@@ -374,21 +374,36 @@ button, input, textarea, select {
 
 .grid {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
-.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.grid-cols-1 { grid-template-columns: 1fr; }
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
-@media (max-width: 1024px) {
-  .md\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .md\\:grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 640px) {
+  .sm\:grid-cols-1 { grid-template-columns: 1fr; }
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sm\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
-@media (max-width: 640px) {
-  .sm\\:grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+@media (min-width: 768px) {
+  .md\:grid-cols-1 { grid-template-columns: 1fr; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-1 { grid-template-columns: 1fr; }
+  .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 639px) {
   .grid-cols-2, .grid-cols-3, .grid-cols-4 { grid-template-columns: 1fr; }
 }
 
@@ -446,43 +461,45 @@ button, input, textarea, select {
 .ig-avatar-wrapper {
   position: relative;
   flex-shrink: 0;
-  display: inline-block;
+  width: 110px;
+  height: 110px;
+  align-self: flex-start;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform var(--transition-bounce);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .ig-avatar-wrapper {
+    width: 130px;
+    height: 130px;
+  }
 }
 
 .ig-avatar-wrapper.has-story {
-  padding: 3.5px;
-  background: linear-gradient(135deg, #F8BFD4 0%, #EFA6C1 50%, #DE85A7 100%);
-  box-shadow: 0 4px 16px rgba(239, 166, 193, 0.4);
-  animation: pulseStory 3s ease infinite;
-}
-
-@keyframes pulseStory {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
+  padding: 4px;
+  background: var(--primary-600);
+  box-shadow: 0 2px 12px rgba(239, 166, 193, 0.4);
 }
 
 .ig-avatar-img {
-  width: 110px;
-  height: 110px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   object-fit: cover;
   border: 4px solid #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   background-color: #ffffff;
   display: block;
 }
 
 .ig-avatar-wrapper.has-story .ig-avatar-img {
-  border: 3px solid #ffffff;
-}
-
-@media (min-width: 768px) {
-  .ig-avatar-img {
-    width: 130px;
-    height: 130px;
-  }
+  border: 3.5px solid #ffffff;
 }
 
 .ig-info {
@@ -519,7 +536,7 @@ button, input, textarea, select {
   flex-wrap: wrap;
 }
 
-.ig-stat-item {
+.ig-stat-item, .ig-stat-pill {
   font-size: 0.88rem;
   color: var(--text-muted);
   background: var(--surface-alt);
@@ -531,7 +548,7 @@ button, input, textarea, select {
   gap: 0.35rem;
 }
 
-.ig-stat-item strong {
+.ig-stat-item strong, .ig-stat-pill strong {
   font-family: var(--font-heading);
   color: var(--primary-deep);
   font-weight: 700;
@@ -970,9 +987,15 @@ input[type="range"]::-moz-range-track {
    ============================================================ */
 .calc-pin-card {
   text-align: center;
-  max-width: 320px;
+  max-width: 360px;
+  width: 100%;
   margin: 0 auto;
-  padding: 12px 6px 6px;
+  padding: 26px 22px 22px;
+  background: var(--card);
+  border-radius: 24px;
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-md);
+  box-sizing: border-box;
 }
 
 .calc-lock-icon {
@@ -1006,9 +1029,9 @@ input[type="range"]::-moz-range-track {
 /* Calculator Screen Display with Soft Inset */
 .calc-screen {
   background: var(--primary-light);
-  border: 2px solid var(--border);
-  border-radius: 20px;
-  padding: 16px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  padding: 14px 18px;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.04);
   margin-bottom: 22px;
   display: flex;
@@ -1057,19 +1080,19 @@ input[type="range"]::-moz-range-track {
 .calc-keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px 16px;
-  max-width: 250px;
+  gap: 14px 18px;
+  max-width: 270px;
   margin: 0 auto;
   justify-items: center;
   align-items: center;
 }
 
 .calc-key {
-  width: 60px;
-  height: 60px;
+  width: 62px;
+  height: 62px;
   border-radius: 50%;
   border: 1.5px solid var(--border);
-  background: #ffffff;
+  background: var(--card);
   font-size: 22px;
   font-weight: 800;
   color: var(--text);
@@ -1098,7 +1121,7 @@ input[type="range"]::-moz-range-track {
 }
 
 .calc-key-action {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   color: var(--primary-deep);
   background: var(--primary-light);
@@ -1106,7 +1129,7 @@ input[type="range"]::-moz-range-track {
 }
 
 .calc-key-del {
-  font-size: 18px;
+  font-size: 16px;
   color: var(--danger);
   background: var(--primary-light);
   border-color: var(--border);
@@ -1296,4 +1319,20 @@ input[type="range"]::-moz-range-track {
   flex-direction: column;
   gap: 8px;
   margin-top: 14px;
+}
+
+
+/* BNC HayMate Checkout & Payment Styles */
+.btn-copy-acc:hover {
+  background: var(--primary-700) !important;
+}
+
+#slipUploadDropzone:hover {
+  border-color: var(--primary-600) !important;
+  background: var(--primary-soft) !important;
+}
+
+.checkout-qr-box img {
+  user-select: none;
+  -webkit-user-drag: none;
 }

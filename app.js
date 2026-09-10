@@ -794,11 +794,17 @@ const Store = (function () {
  getOrders: function () {
  return loadLocal().orders || [];
  },
+ getAllOrders: function () {
+ return this.getOrders();
+ },
  getOrderById: function (id) {
  return (loadLocal().orders || []).find(o => o.id === id || o.order_number === id) || null;
  },
  getPayments: function () {
  return loadLocal().payments || [];
+ },
+ getAllPayments: function () {
+ return this.getPayments();
  },
  getGroupAccessList: function () {
  return loadLocal().group_access || [];
@@ -2633,7 +2639,9 @@ window.Store = Store;
 
  if (state.adminPinBuffer === correctPin || state.adminPinBuffer === '123456') {
  state.isAdmin = true;
+ if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('bnc_admin_auth', 'true');
  state.adminPinBuffer = '';
+ renderNavbar();
  renderCurrentView();
  } else {
  // Shake error animation
@@ -2651,6 +2659,8 @@ window.Store = Store;
 
  window.handleAdminLogout = function () {
  state.isAdmin = false;
+ if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('bnc_admin_auth');
+ renderNavbar();
  window.location.hash = 'home';
  };
 
@@ -2794,43 +2804,51 @@ window.Store = Store;
  }
 
  function renderFontCard(f, s) {
- return `
- <div class="product-card">
- <div style="padding: 1.25rem 1.25rem 0.5rem; border-bottom: 1px solid var(--border-light); background: var(--surface-alt);">
- <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
- <span class="badge badge--pink">${escapeHTML(f.category || 'ลายมือ')}</span>
- <span class="badge ${f.delivery_type === 'GOOGLE_DRIVE' ? 'badge--success' : 'badge--info'}">${f.delivery_type === 'GOOGLE_DRIVE' ? 'ส่งอัตโนมัติ' : 'แอดมินส่ง'}</span>
- </div>
- <h3 style="font-size: 1.2rem; margin: 0;">${escapeHTML(f.name)}</h3>
- </div>
+    const fontImg = f.preview_image || f.preview_image_url || f.image_url || 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';
+    return `
+      <div class="product-card">
+        <!-- Font Signboard / Poster Banner Preview (Requirement 3) -->
+        <div class="product-card__image-wrapper" style="position: relative; height: 185px; overflow: hidden; border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); cursor: pointer; background: var(--surface-alt);" onclick="openLightbox('${escapeHTML(fontImg)}')" title="คลิกเพื่อดูรูปป้ายฟอนต์ขนาดใหญ่">
+          <img src="${escapeHTML(fontImg)}" alt="${escapeHTML(f.name)}" style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;" class="product-card__img" loading="lazy">
+          <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 6px;">
+            <span class="badge badge--pink">${escapeHTML(f.category || 'ลายมือ')}</span>
+          </div>
+          <div style="position: absolute; top: 10px; right: 10px;">
+            <span class="badge ${f.delivery_type === 'GOOGLE_DRIVE' ? 'badge--success' : 'badge--info'}">${f.delivery_type === 'GOOGLE_DRIVE' ? 'ส่งอัตโนมัติ' : 'แอดมินส่ง'}</span>
+          </div>
+        </div>
 
- <!-- Live Font Preview Area -->
- <div class="font-preview-area">
- <div class="font-preview-text" style="font-size: ${state.fontTester.size}px; font-weight: 500; word-break: break-word;">
- ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
- </div>
- </div>
+        <div style="padding: 1rem 1.25rem 0.5rem; border-bottom: 1px solid var(--border-light); background: var(--surface-alt);">
+          <h3 style="font-size: 1.15rem; margin: 0; font-weight: 700;">${escapeHTML(f.name)}</h3>
+        </div>
 
- <div class="product-card__body">
- <p class="product-card__desc">${escapeHTML(f.description || '')}</p>
- <div class="product-card__footer">
- <div class="product-price">฿${Number(f.price || 0).toLocaleString()}</div>
- <div style="display: flex; gap: 0.35rem;">
- <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${f.id}', 'FONT')">
- <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
- ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
- </button>
- <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${f.id}', 'FONT')">
- ${escapeHTML(s.btnBuyText || 'ซื้อ')}
- </button>
- </div>
- </div>
- </div>
- </div>
- `;
- }
+        <!-- Live Font Preview Area -->
+        <div class="font-preview-area">
+          <div class="font-preview-text" style="font-size: clamp(18px, 4vw, ${state.fontTester.size}px); font-weight: 500; word-break: break-word;">
+            ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี ฟอนต์ลายมือน่ารัก 1234')}
+          </div>
+        </div>
 
- function renderGroupCard(g, s) {
+        <div class="product-card__body">
+          <p class="product-card__desc">${escapeHTML(f.description || '')}</p>
+          <div class="product-card__footer">
+            <div class="product-price">฿${Number(f.price || 0).toLocaleString()}</div>
+            <div style="display: flex; gap: 0.35rem;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${f.id}', 'FONT')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${f.id}', 'FONT')">
+                ${escapeHTML(s.btnBuyText || 'สั่งซื้อเลย')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderGroupCard(g, s) {
  const benefits = (g.benefits || '').split('\n').filter(Boolean);
  return `
  <div class="card" style="display: flex; flex-direction: column;">
@@ -3175,71 +3193,105 @@ window.Store = Store;
     cart.forEach(i => total += (Number(i.price) || 0));
 
     const paymentAccounts = Store.getPaymentAccounts();
+    const primaryQr = paymentAccounts[0]?.qrUrl || s.promptpayQrUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678';
 
     content.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.85rem;">
-        <h3 style="font-size: 1.25rem; margin: 0; color: var(--text);">ชำระเงิน & สั่งซื้อสินค้า</h3>
-        <button type="button" onclick="closeCheckoutModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);">✕</button>
+        <div>
+          <h3 style="font-size: 1.25rem; margin: 0; color: var(--text);">Payment & Checkout</h3>
+          <small style="color: var(--text-muted); font-size: 0.82rem;">ชำระเงินและแจ้งโอน (สไตล์ BNC HayMate)</small>
+        </div>
+        <button type="button" onclick="closeCheckoutModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);" title="ปิด">✕</button>
       </div>
 
-      <!-- Summary -->
-      <div style="background: var(--surface-alt); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem; border: 1px solid var(--border-light);">
-        <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.4rem;">รายการสินค้าที่จะสั่งซื้อ:</div>
-        <div style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 0.65rem;">
-          ${cart.map(i => `• <strong>${escapeHTML(i.name)}</strong> — ฿${Number(i.price || 0).toLocaleString()}`).join('<br>')}
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed var(--border); padding-top: 0.5rem;">
-          <span style="font-weight: 700;">ยอดชำระทั้งหมด:</span>
-          <span style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700; color: var(--primary-deep);">฿${total.toLocaleString()}</span>
-        </div>
-      </div>
-
-      <!-- Payment Account Selector -->
-      <div style="margin-bottom: 1.25rem;">
-        <label class="form-label">เลือกช่องทางชำระเงิน</label>
-        <select id="chkPayAccountSelect" class="form-input" onchange="switchCheckoutAccount(this.value)">
-          ${paymentAccounts.map((acc, idx) => `
-            <option value="${idx}">${escapeHTML(acc.bankName)} — ${escapeHTML(acc.accountNo)} (${escapeHTML(acc.accountName)})</option>
+      <!-- Summary of items -->
+      <div style="background: var(--surface-alt); border-radius: var(--radius-md); padding: 1.1rem; margin-bottom: 1.25rem; border: 1.5px solid var(--border-light);">
+        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">รายการสั่งซื้อของคุณ (${cart.length} รายการ)</div>
+        <div style="font-size: 0.92rem; line-height: 1.7; margin-bottom: 0.75rem;">
+          ${cart.map(i => `
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 75%;">• <strong>${escapeHTML(i.name)}</strong></span>
+              <span style="font-weight: 700; color: var(--text); flex-shrink: 0;">฿${Number(i.price || 0).toLocaleString()}</span>
+            </div>
           `).join('')}
-        </select>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1.5px dashed var(--border); padding-top: 0.65rem;">
+          <span style="font-weight: 800; font-size: 0.95rem;">ยอดชำระสุทธิ (Total Amount):</span>
+          <span style="font-family: var(--font-heading); font-size: 1.6rem; font-weight: 800; color: var(--primary-deep);">฿${total.toLocaleString()}</span>
+        </div>
       </div>
 
-      <!-- Dynamic Payment QR & Bank Display -->
-      <div id="chkPayAccountPreview" style="background: #ffffff; border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; text-align: center;">
-        <div style="font-weight: 700; color: var(--primary-deep); margin-bottom: 0.25rem;" id="chkPayBankTitle">${escapeHTML(paymentAccounts[0]?.bankName || s.bankName || 'ธนาคารกสิกรไทย')}</div>
-        <small style="color: var(--text-muted); display: block; margin-bottom: 0.75rem;" id="chkPayBankDetail">
-          เลขที่บัญชี: <strong style="font-size: 1rem; color: var(--text);">${escapeHTML(paymentAccounts[0]?.accountNo || s.bankAccount || '123-4-56789-0')}</strong> (${escapeHTML(paymentAccounts[0]?.accountName || s.bankAccountName || s.shopName)})
-        </small>
-        <img id="chkPayQrImg" src="${escapeHTML(paymentAccounts[0]?.qrUrl || s.promptpayQrUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678')}" style="max-width: 170px; border-radius: 8px; border: 1px solid var(--border-light); padding: 0.4rem; display: block; margin: 0 auto;" alt="PromptPay QR">
+      <!-- Payment Transfer Section (Exact BNC HayMate Style) -->
+      <div style="background: #ffffff; border: 1.5px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem; box-shadow: var(--shadow-sm);">
+        <div style="font-weight: 800; font-size: 0.95rem; color: var(--text); margin-bottom: 0.2rem;">Payment Transfer</div>
+        <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">สแกน QR หรือโอนผ่านบัญชีธนาคาร/วอลเล็ทด้านล่างนี้ค่ะ</div>
+
+        <!-- 1:1 Large PromptPay QR Box (BNC HayMate Standard) -->
+        <div class="checkout-qr-box" style="background: #ffffff; border: 1.5px solid var(--border); border-radius: 18px; padding: 14px; width: fit-content; margin: 0 auto 8px; box-shadow: var(--shadow-sm); text-align: center;">
+          <img id="chkPromptPayQrImg" src="${escapeHTML(primaryQr)}" style="width: 160px; height: 160px; object-fit: contain; display: block; margin: 0 auto; border-radius: 10px;" alt="PromptPay QR Code">
+        </div>
+        <div style="font-size: 12px; font-weight: 800; color: var(--primary-deep); text-align: center; margin-bottom: 14px;">PromptPay QR Code (สแกนจ่ายเงิน)</div>
+
+        <!-- Bank & Wallet Transfer Account Cards -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          ${paymentAccounts.map((acc, idx) => `
+            <div style="background: var(--surface-alt); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: var(--shadow-card);">
+              <div>
+                <div style="font-size: 11px; color: var(--text-muted); font-weight: 700; margin-bottom: 2px;">
+                  ${escapeHTML(acc.bankName || 'ธนาคาร')}
+                </div>
+                <div style="font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: 0.5px; margin: 2px 0;">
+                  ${escapeHTML(acc.accountNo || '')}
+                </div>
+                ${acc.accountName ? `<div style="font-size: 11.5px; color: var(--text-muted);">ชื่อ: ${escapeHTML(acc.accountName)}</div>` : ''}
+              </div>
+              <button type="button" class="btn btn-copy-acc" onclick="copyAccountNo(this, '${escapeHTML(acc.accountNo || '')}')" style="background: var(--primary-600); color: #ffffff; border: none; font-size: 12.5px; font-weight: 700; white-space: nowrap; padding: 8px 15px; border-radius: 10px; cursor: pointer; transition: all 0.15s ease;">Copy</button>
+            </div>
+          `).join('')}
+        </div>
       </div>
 
-      <!-- Form -->
+      <!-- Customer Checkout Form -->
       <form onsubmit="handleMultiCheckoutSubmit(event)">
+        <!-- HayMate-style Slip Upload Dropzone -->
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" style="margin: 0; font-weight: 700; font-size: 12.5px; color: var(--text);">แนบสลิปโอนเงิน <span style="color: var(--danger)">* (จำเป็น)</span></label>
+            <span id="slipStatusBadge" style="font-size: 11.5px; color: var(--text-muted); font-weight: 600;">ยังไม่ได้แนบสลิป</span>
+          </div>
+          <input type="file" id="chkSlipInput" accept="image/*" style="display: none;" onchange="previewSlipImage(event)">
+          <div id="slipUploadDropzone" onclick="document.getElementById('chkSlipInput').click()" style="cursor: pointer; border: 2px dashed var(--border-dark); border-radius: 16px; background: var(--primary-light); padding: 18px 14px; text-align: center; transition: all 0.2s ease;">
+            <div id="slipPrompt">
+              <div style="color: var(--primary-deep); margin-bottom: 6px;">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+              </div>
+              <div style="font-weight: 700; font-size: 13.5px; color: var(--primary-deep);">คลิกเพื่ออัปโหลดสลิปโอนเงิน</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">รองรับรูปถ่าย JPG, PNG (สูงสุด 10MB)</div>
+            </div>
+            <div id="chkSlipPreviewWrap" style="display: none;">
+              <img id="chkSlipPreviewImg" src="" style="max-height: 160px; max-width: 100%; border-radius: 10px; object-fit: contain; box-shadow: var(--shadow-sm); display: block; margin: 0 auto;">
+              <div style="font-size: 12px; color: #166534; font-weight: 700; margin-top: 8px;">✓ แนบสลิปเรียบร้อยแล้ว (คลิกเพื่อเปลี่ยนรูป)</div>
+            </div>
+          </div>
+        </div>
+
         <div class="form-group">
-          <label class="form-label">ชื่อผู้สั่งซื้อ <span style="color: var(--primary);">*</span></label>
-          <input type="text" id="chkCustName" class="form-input" placeholder="ชื่อ-นามสกุล หรือชื่อเล่น" required>
+          <label class="form-label" style="font-weight: 700;">ชื่อผู้สั่งซื้อ <span style="color: var(--primary);">*</span></label>
+          <input type="text" id="chkCustName" class="form-input" placeholder="เช่น น้องฟ้าใส หรือชื่อ-นามสกุล" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Gmail สำหรับรับสิทธิ์ Google Drive <span style="color: var(--primary);">*</span></label>
+          <label class="form-label" style="font-weight: 700;">Gmail สำหรับรับสิทธิ์ Google Drive <span style="color: var(--primary);">*</span></label>
           <input type="email" id="chkCustGmail" class="form-input" placeholder="example@gmail.com" required>
-          <small style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">ระบบจะแชร์และดึงเมลล์นี้เข้าโฟลเดอร์ Google Drive ทันที</small>
-        </div>
-        <div class="form-group">
-          <label class="form-label">LINE ID สำหรับแจ้งเตือน</label>
-          <input type="text" id="chkCustLine" class="form-input" placeholder="ไอดีไลน์ของคุณ">
+          <small style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">ระบบคลาวด์จะดึงเมลล์นี้เข้าโฟลเดอร์ Google Drive ทันที</small>
         </div>
         <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label class="form-label">แนบสลิปการโอนเงิน (ถ้ามี)</label>
-          <input type="file" id="chkSlipInput" accept="image/*" class="form-input" onchange="previewSlipImage(event)">
-          <small style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">แนบสลิปที่นี่ หรือแจ้งโอนทาง LINE ร้านภายหลังได้ค่ะ</small>
-          <div id="chkSlipPreviewWrap" style="display: none; text-align: center; margin-top: 0.5rem;">
-            <img id="chkSlipPreviewImg" src="" style="max-height: 180px; border-radius: 6px; border: 1px solid var(--border);">
-          </div>
+          <label class="form-label" style="font-weight: 700;">LINE ID สำหรับติดต่อและแจ้งสถานะ</label>
+          <input type="text" id="chkCustLine" class="form-input" placeholder="เช่น @lineid หรือเบอร์โทร">
         </div>
 
         <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
           <button type="button" class="btn btn-outline" onclick="closeCheckoutModal()">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary" id="btnSubmitOrder">ยืนยันการชำระเงิน & ส่งคำสั่งซื้อ</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitOrder" style="font-weight: 700; padding: 0.65rem 1.4rem;">ยืนยันคำสั่งซื้อ (Confirm Order)</button>
         </div>
       </form>
     `;
@@ -3247,21 +3299,30 @@ window.Store = Store;
     modal.classList.add('is-active');
   };
 
-  window.switchCheckoutAccount = function (idx) {
-    const paymentAccounts = Store.getPaymentAccounts();
-    const acc = paymentAccounts[idx];
-    if (!acc) return;
-    const title = $('chkPayBankTitle');
-    const detail = $('chkPayBankDetail');
-    const qrImg = $('chkPayQrImg');
-    if (title) title.textContent = acc.bankName;
-    if (detail) detail.innerHTML = 'เลขที่บัญชี: <strong style="font-size: 1rem; color: var(--text);">' + escapeHTML(acc.accountNo) + '</strong> (' + escapeHTML(acc.accountName) + ')';
-    if (qrImg && acc.qrUrl) qrImg.src = acc.qrUrl;
-  };
-
   window.closeCheckoutModal = function () {
     const modal = $('checkoutModal');
     if (modal) modal.classList.remove('is-active');
+  };
+
+  window.copyAccountNo = function(btn, text) {
+    if (!text) return;
+    const clean = text.replace(/\D/g, '') || text;
+    const doCopy = () => {
+      const orig = btn.textContent;
+      btn.textContent = 'คัดลอกแล้ว!';
+      btn.style.background = '#166534';
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.style.background = 'var(--primary-600)';
+      }, 2000);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(clean).then(doCopy).catch(() => {
+        prompt('คัดลอกเลขบัญชี:', clean);
+      });
+    } else {
+      prompt('คัดลอกเลขบัญชี:', clean);
+    }
   };
 
   window.previewSlipImage = function (e) {
@@ -3271,9 +3332,19 @@ window.Store = Store;
     reader.onload = function (evt) {
       const wrap = $('chkSlipPreviewWrap');
       const img = $('chkSlipPreviewImg');
-      if (wrap && img) {
-        img.src = evt.target.result;
-        wrap.style.display = 'block';
+      const promptEl = $('slipPrompt');
+      const badge = $('slipStatusBadge');
+      const dropzone = $('slipUploadDropzone');
+      if (img) img.src = evt.target.result;
+      if (wrap) wrap.style.display = 'block';
+      if (promptEl) promptEl.style.display = 'none';
+      if (badge) {
+        badge.textContent = '✓ แนบสลิปแล้ว';
+        badge.style.color = '#166534';
+      }
+      if (dropzone) {
+        dropzone.style.borderColor = '#86efac';
+        dropzone.style.background = '#f0fdf4';
       }
     };
     reader.readAsDataURL(file);
@@ -3305,15 +3376,16 @@ window.Store = Store;
 
       if (btn) {
         btn.disabled = false;
-        btn.textContent = 'ยืนยันการชำระเงิน & ส่งคำสั่งซื้อ';
+        btn.textContent = 'ยืนยันคำสั่งซื้อ (Confirm Order)';
       }
       closeCheckoutModal();
 
-      // Get selected payment account
-      const selectEl = $('chkPayAccountSelect');
-      const accIdx = selectEl ? Number(selectEl.value) || 0 : 0;
       const paymentAccounts = Store.getPaymentAccounts();
-      const selectedAcc = paymentAccounts[accIdx] || paymentAccounts[0];
+      const selectedAcc = paymentAccounts[0] || {
+        bankName: s.bankName,
+        accountNo: s.bankAccount,
+        accountName: s.bankAccountName
+      };
 
       // Automatically open BNC HayMate style Receipt Modal!
       openReceiptModal(result.order, selectedAcc);
@@ -3321,7 +3393,7 @@ window.Store = Store;
       console.error('Checkout error:', err);
       if (btn) {
         btn.disabled = false;
-        btn.textContent = 'ยืนยันการชำระเงิน & ส่งคำสั่งซื้อ';
+        btn.textContent = 'ยืนยันคำสั่งซื้อ (Confirm Order)';
       }
       alert('เกิดข้อผิดพลาดในการสั่งซื้อ: ' + err.message);
     }
