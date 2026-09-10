@@ -24,11 +24,11 @@
 
   <div class="admin-layout">
     <aside class="admin-sidebar">
-      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+      <div class="sidebar-brand">
         <span>🎨</span>
         <span>BNC Admin</span>
       </div>
-      <nav class="sidebar-nav" style="padding: 1rem 0;">
+      <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
         <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
         <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
@@ -39,20 +39,20 @@
         <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
         <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
       </nav>
-      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+      <div style="padding: 1.25rem; margin-top: auto; border-top: 1px solid var(--border-light);">
         <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
     <main class="admin-main">
-      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+      <header class="admin-topbar">
+        <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
           จัดการฟอนต์ & จัดส่งเมล 🔤
         </h1>
         <button class="btn btn-primary btn-sm" onclick="openAddFontModal()">➕ เพิ่มฟอนต์ใหม่</button>
       </header>
 
-      <div style="padding: 1.5rem;">
+      <div style="padding: 2rem 1.75rem;">
         <!-- Tabs -->
         <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
           <button class="btn btn-primary btn-sm" id="tabPendingBtn" onclick="switchFontTab('pending')">
@@ -193,20 +193,20 @@
         const orderNum = ord ? ord.order_number : 'ORD-????';
 
         return `
-          <div class="card card--flat" style="padding: 1.25rem; margin-bottom: 1rem; border-left: 4px solid ${item.status === 'COMPLETED' ? 'var(--success)' : 'var(--warning)'};">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+          <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 1rem; border: 1px solid var(--border-light); border-left: 4px solid ${item.status === 'COMPLETED' ? '#10B981' : '#F59E0B'}; border-radius: var(--radius-md); background: var(--bg-primary);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem;">
               <div>
-                <span class="badge badge--pink">#${orderNum}</span>
-                <span class="badge ${item.status === 'COMPLETED' ? 'badge--success' : 'badge--warning'}" style="margin-left: 0.5rem;">
+                <span class="badge" style="background: var(--bg-surface); color: var(--pink-deep); font-weight: 600;">#${orderNum}</span>
+                <span class="badge" style="background: ${item.status === 'COMPLETED' ? '#F0FDF4' : '#FFFBEB'}; color: ${item.status === 'COMPLETED' ? '#166534' : '#92400E'}; margin-left: 0.5rem; font-weight: 600;">
                   ${item.status === 'COMPLETED' ? '✅ ดึงเมลล์เรียบร้อย' : '🕐 รอดึงเมลล์'}
                 </span>
-                <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; margin: 0.35rem 0 0.15rem; color: var(--gray-900);">
+                <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; margin: 0.5rem 0 0.25rem; color: var(--text-main);">
                   ฟอนต์: ${item.item_name}
                 </h3>
-                <p style="font-size: 0.95rem; color: var(--gray-600);">
+                <p style="font-size: 0.92rem; color: var(--text-muted); margin: 0;">
                   ลูกค้า: <strong>${item.customer_name}</strong><br>
-                  Gmail: <strong style="color: var(--pink-600); font-size: 1.05rem; background: var(--pink-50); padding: 0.1rem 0.5rem; border-radius: 0.25rem;">${item.gmail || '-'}</strong>
-                  <button class="btn btn-outline btn-sm" style="padding: 0.1rem 0.5rem; font-size: 0.75rem; margin-left: 0.5rem;" onclick="copyText('${item.gmail}')">📋 คัดลอก Gmail</button>
+                  Gmail: <strong style="color: var(--pink-deep); font-size: 1.05rem; background: var(--bg-surface); padding: 0.2rem 0.6rem; border-radius: var(--radius-sm);">${item.gmail || '-'}</strong>
+                  <button class="btn btn-outline btn-sm" style="padding: 0.2rem 0.6rem; font-size: 0.78rem; margin-left: 0.5rem;" onclick="copyText('${item.gmail}')">📋 คัดลอก Gmail</button>
                 </p>
               </div>
 
@@ -216,7 +216,7 @@
                     ✅ ดึงเมลล์เรียบร้อย
                   </button>
                 ` : `
-                  <span style="font-size: 0.85rem; color: var(--success); font-weight: 500;">
+                  <span style="font-size: 0.85rem; color: #166534; font-weight: 600; background: #F0FDF4; padding: 0.35rem 0.75rem; border-radius: var(--radius-sm);">
                     ✓ ดำเนินการสำเร็จเมื่อ ${new Date(item.completed_at).toLocaleDateString('th-TH')}
                   </span>
                 `}
@@ -232,17 +232,17 @@
       const container = document.getElementById('adminFontsGrid');
 
       container.innerHTML = fonts.map(f => `
-        <div class="card card--flat">
-          <div style="padding: 1rem; border-bottom: 1px solid var(--pink-100); display: flex; justify-content: space-between; align-items: center;">
-            <span class="badge badge--pink">${f.category}</span>
-            <span class="price-tag price-tag--sm">฿${f.price}</span>
+        <div class="card card--flat" style="border: 1px solid var(--border-light); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-primary);">
+          <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; background: var(--bg-secondary);">
+            <span class="badge" style="background: var(--bg-surface); color: var(--pink-deep); font-weight: 600;">${f.category}</span>
+            <span style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--pink-deep);">฿${f.price}</span>
           </div>
-          <div class="card__body">
-            <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; margin-bottom: 0.25rem;">${f.name}</h3>
-            <span style="font-size: 0.8rem; font-weight: 500; color: ${f.delivery_type === 'GOOGLE_DRIVE' ? 'var(--success)' : 'var(--info)'}; display: block; margin-bottom: 0.75rem;">
+          <div class="card__body" style="padding: 1.35rem;">
+            <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-main);">${f.name}</h3>
+            <span style="font-size: 0.8rem; font-weight: 600; color: ${f.delivery_type === 'GOOGLE_DRIVE' ? '#166534' : '#1E40AF'}; display: block; margin-bottom: 0.75rem;">
               ${f.delivery_type === 'GOOGLE_DRIVE' ? '⚡ Google Drive ออโต้' : '👩‍💼 Manual แอดมินดึงเมลล์'}
             </span>
-            <p style="color: var(--gray-600); font-size: 0.85rem; margin-bottom: 1rem;">${f.description}</p>
+            <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin-bottom: 1.25rem;">${f.description}</p>
             <div style="display: flex; gap: 0.5rem;">
               <button class="btn btn-outline btn-sm" onclick="openEditFontModal('${f.id}')">✏️ แก้ไข</button>
               <button class="btn btn-danger btn-sm" onclick="deleteFont('${f.id}')">🗑️ ลบ</button>

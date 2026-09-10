@@ -24,11 +24,11 @@
 
   <div class="admin-layout">
     <aside class="admin-sidebar">
-      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+      <div class="sidebar-brand">
         <span>🎨</span>
         <span>BNC Admin</span>
       </div>
-      <nav class="sidebar-nav" style="padding: 1rem 0;">
+      <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
         <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
         <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
@@ -39,20 +39,20 @@
         <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
         <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
       </nav>
-      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+      <div style="padding: 1.25rem; margin-top: auto; border-top: 1px solid var(--border-light);">
         <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
     <main class="admin-main">
-      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+      <header class="admin-topbar">
+        <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
           จัดการสินค้าสำเร็จรูป (Digital Products) 🛍️
         </h1>
         <button class="btn btn-primary btn-sm" onclick="openAddProdModal()">➕ เพิ่มสินค้าใหม่</button>
       </header>
 
-      <div style="padding: 1.5rem;">
+      <div style="padding: 2rem 1.75rem;">
         <div id="adminProductsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <!-- Render dynamically -->
         </div>
@@ -137,15 +137,17 @@
       const container = document.getElementById('adminProductsGrid');
 
       container.innerHTML = prods.map(p => `
-        <div class="card card--flat">
-          <img src="${p.image || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600'}" style="width: 100%; height: 180px; object-fit: cover;">
-          <div class="card__body">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <span class="badge badge--pink">${p.category}</span>
-              <span class="price-tag price-tag--sm">฿${p.price}</span>
+        <div class="card card--flat" style="border: 1px solid var(--border-light); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-primary);">
+          <div style="width: 100%; height: 180px; overflow: hidden; background: var(--bg-secondary);">
+            <img src="${p.image || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600'}" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div class="card__body" style="padding: 1.35rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <span class="badge" style="background: var(--bg-surface); color: var(--pink-deep); font-weight: 600;">${p.category}</span>
+              <span style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--pink-deep);">฿${p.price}</span>
             </div>
-            <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; margin: 0.35rem 0;">${p.name}</h3>
-            <span style="font-size: 0.8rem; font-weight: 500; color: ${p.delivery_type === 'GOOGLE_DRIVE' ? 'var(--success)' : 'var(--info)'}; display: block; margin-bottom: 0.75rem;">
+            <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; margin: 0.35rem 0; color: var(--text-main);">${p.name}</h3>
+            <span style="font-size: 0.8rem; font-weight: 600; color: ${p.delivery_type === 'GOOGLE_DRIVE' ? '#166534' : '#1E40AF'}; display: block; margin-bottom: 1rem;">
               ${p.delivery_type === 'GOOGLE_DRIVE' ? '⚡ ส่ง Google Drive' : '👩‍💼 ส่งเอง (Manual)'}
             </span>
             <div style="display: flex; gap: 0.5rem;">

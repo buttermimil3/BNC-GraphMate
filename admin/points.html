@@ -12,11 +12,11 @@
 
   <div class="admin-layout">
     <aside class="admin-sidebar">
-      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+      <div class="sidebar-brand">
         <span>🎨</span>
         <span>BNC Admin</span>
       </div>
-      <nav class="sidebar-nav" style="padding: 1rem 0;">
+      <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
         <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
         <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
@@ -27,22 +27,22 @@
         <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
         <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
       </nav>
-      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+      <div style="padding: 1.25rem; margin-top: auto; border-top: 1px solid var(--border-light);">
         <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
     <main class="admin-main">
-      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem;">
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+      <header class="admin-topbar">
+        <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
           จัดการคะแนนสะสม & ประวัติการรับแต้ม ⭐
         </h1>
       </header>
 
-      <div style="padding: 1.5rem;">
+      <div style="padding: 2rem 1.75rem;">
         <!-- Search Customer -->
-        <div class="card card--flat" style="padding: 1.25rem; margin-bottom: 1.5rem; max-width: 600px;">
-          <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.1rem; margin-bottom: 0.75rem;">🔍 ค้นหาลูกค้าเพื่อปรับแต้ม</h3>
+        <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 1.75rem; max-width: 600px; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
+          <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-main);">🔍 ค้นหาลูกค้าเพื่อปรับแต้ม</h3>
           <div style="display: flex; gap: 0.5rem;">
             <input type="text" id="custSearchBox" class="form-input" placeholder="พิมพ์ชื่อ, เบอร์โทร หรือ Member Code">
             <button class="btn btn-primary" onclick="searchCustomer()">ค้นหา</button>
@@ -51,23 +51,23 @@
 
         <!-- Customer Card & Adjust Points Form -->
         <div id="customerAdjustBox" style="display: none; margin-bottom: 2rem;">
-          <div class="card card--flat" style="padding: 1.5rem; border: 2px solid var(--pink-200);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+          <div class="card card--flat" style="padding: 1.75rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
               <div>
-                <h3 id="aCustName" style="font-family: 'Mitr', sans-serif; font-size: 1.35rem; margin: 0; color: var(--gray-900);"></h3>
-                <span id="aCustCode" style="color: var(--pink-600); font-weight: 600;"></span> |
-                <span id="aCustPhone" style="color: var(--gray-600);"></span>
+                <h3 id="aCustName" style="font-family: 'Prompt', sans-serif; font-size: 1.35rem; font-weight: 700; margin: 0 0 0.25rem; color: var(--text-main);"></h3>
+                <span id="aCustCode" style="color: var(--pink-deep); font-weight: 600;"></span> |
+                <span id="aCustPhone" style="color: var(--text-muted);"></span>
               </div>
-              <div style="background: var(--pink-50); border: 1px solid var(--pink-200); border-radius: 0.75rem; padding: 0.5rem 1.25rem; text-align: right;">
-                <span style="font-size: 0.8rem; color: var(--gray-600);">คะแนนปัจจุบัน:</span>
-                <div id="aCustPoints" style="font-size: 1.8rem; font-weight: 700; color: var(--pink-500); line-height: 1.1;"></div>
+              <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.75rem 1.5rem; text-align: right;">
+                <span style="font-size: 0.8rem; color: var(--text-muted);">คะแนนปัจจุบัน:</span>
+                <div id="aCustPoints" style="font-family: 'Prompt', sans-serif; font-size: 1.85rem; font-weight: 700; color: var(--pink-deep); line-height: 1.1;"></div>
               </div>
             </div>
 
             <!-- Form -->
-            <form id="adjustPointsForm" style="background: var(--gray-50); border-radius: 1rem; padding: 1.25rem; border: 1px solid var(--gray-200);">
-              <h4 style="font-size: 1rem; margin-bottom: 0.75rem;">📝 ปรับคะแนน (สร้าง Transaction ตรวจสอบย้อนหลัง)</h4>
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" style="margin-bottom: 1rem;">
+            <form id="adjustPointsForm" style="background: var(--bg-secondary); border-radius: var(--radius-md); padding: 1.5rem; border: 1px solid var(--border-light);">
+              <h4 style="font-family: 'Prompt', sans-serif; font-size: 1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">📝 ปรับคะแนน (สร้าง Transaction ตรวจสอบย้อนหลัง)</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" style="margin-bottom: 1.25rem;">
                 <div>
                   <label class="form-label">ประเภท</label>
                   <select id="adjType" class="form-input">
@@ -92,24 +92,24 @@
             </form>
 
             <!-- Customer Transactions History -->
-            <h4 style="font-family: 'Mitr', sans-serif; margin-top: 1.5rem; margin-bottom: 0.5rem;">📜 ประวัติคะแนนของลูกค้ารายนี้</h4>
+            <h4 style="font-family: 'Prompt', sans-serif; font-size: 1.05rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.75rem; color: var(--text-main);">📜 ประวัติคะแนนของลูกค้ารายนี้</h4>
             <div id="custTxBox"></div>
           </div>
         </div>
 
         <!-- All Transactions Overview -->
-        <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.2rem; margin-bottom: 1rem;">
+        <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
           📊 ประวัติการทำรายการคะแนนทั้งหมด (Point Transactions Log)
         </h3>
-        <div class="card card--flat" style="overflow-x: auto; padding: 0.5rem;">
+        <div class="card card--flat" style="overflow-x: auto; padding: 0.5rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
           <table class="table" style="width: 100%; font-size: 0.9rem;">
             <thead>
-              <tr style="border-bottom: 2px solid var(--pink-100); text-align: left; background: var(--pink-50);">
-                <th style="padding: 0.75rem;">วันที่</th>
-                <th style="padding: 0.75rem;">ลูกค้า ID</th>
-                <th style="padding: 0.75rem;">ประเภท</th>
-                <th style="padding: 0.75rem;">รายละเอียด</th>
-                <th style="padding: 0.75rem; text-align: right;">จำนวนแต้ม</th>
+              <tr style="border-bottom: 1px solid var(--border-light); text-align: left; background: var(--bg-secondary);">
+                <th style="padding: 0.85rem; font-weight: 600; color: var(--text-main);">วันที่</th>
+                <th style="padding: 0.85rem; font-weight: 600; color: var(--text-main);">ลูกค้า ID</th>
+                <th style="padding: 0.85rem; font-weight: 600; color: var(--text-main);">ประเภท</th>
+                <th style="padding: 0.85rem; font-weight: 600; color: var(--text-main);">รายละเอียด</th>
+                <th style="padding: 0.85rem; text-align: right; font-weight: 600; color: var(--text-main);">จำนวนแต้ม</th>
               </tr>
             </thead>
             <tbody id="allTxTbody">

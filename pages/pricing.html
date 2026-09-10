@@ -37,62 +37,68 @@
   </header>
 
   <main>
-    <section style="background: var(--pink-50); border-bottom: 2px solid var(--pink-100); padding: 2.5rem 1rem; text-align: center;">
-      <div class="container">
-        <span class="badge badge--pink" style="margin-bottom: 0.5rem;">Services & Pricing</span>
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 2.2rem; color: var(--gray-900); margin-bottom: 0.5rem;">
+    <section style="background: var(--bg-secondary); border-bottom: 1px solid var(--border-light); padding: 3rem 1.5rem; text-align: center;">
+      <div class="container" style="max-width: 700px;">
+        <span class="badge" style="background: var(--bg-surface); color: var(--pink-deep); margin-bottom: 0.75rem; font-weight: 600;">PRICING & SERVICES</span>
+        <h1 style="font-family: 'Prompt', sans-serif; font-size: 2.2rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem;">
           อัตราค่าบริการ & แพ็กเกจ 🏷️
         </h1>
-        <p style="color: var(--gray-600); max-width: 550px; margin: 0 auto;">
-          ราคาโปร่งใส คุ้มค่า ทั้งแบบซื้อแยกชิ้นและเหมาเข้ากลุ่ม VIP
+        <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6;">
+          ราคาคุ้มค่า ชัดเจน ตรงไปตรงมา ทั้งไฟล์เดี่ยวพร้อมใช้และสิทธิ์เข้ากลุ่ม VIP ตลอดชีพ
         </p>
       </div>
     </section>
 
-    <section style="padding: 3rem 1rem;">
+    <section style="padding: 3.5rem 1.5rem;">
       <div class="container">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6" style="align-items: stretch;">
 
           <!-- Card 1 -->
-          <div class="card card--flat" style="border: 2px solid var(--pink-200); padding: 1.5rem; text-align: center;">
-            <span style="font-size: 2.5rem;">🔤</span>
-            <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0.5rem 0;">ฟอนต์ลายมือน่ารัก</h3>
-            <div style="font-size: 2rem; font-weight: 700; color: var(--pink-500); margin: 0.5rem 0;">
+          <div class="card card--flat" style="border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 2rem 1.5rem; text-align: center; background: var(--bg-primary); display: flex; flex-direction: column;">
+            <div style="width: 56px; height: 56px; border-radius: var(--radius-md); background: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 1.25rem;">
+              🔤
+            </div>
+            <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 600; color: var(--text-main); margin: 0 0 0.5rem;">ฟอนต์ลายมือน่ารัก</h3>
+            <div style="font-family: 'Prompt', sans-serif; font-size: 2rem; font-weight: 700; color: var(--pink-deep); margin: 0.5rem 0;">
               เริ่มต้น ฿150
             </div>
-            <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1.25rem;">
-              ไฟล์ .OTF / .TTF ใช้งานได้ตลอดชีพ สระไม่ลอย มีทั้งส่ง Drive ทันทีและตัวแทน
+            <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; margin-bottom: 1.5rem; flex-grow: 1;">
+              ไฟล์ .OTF / .TTF ครบถ้วน สระไม่ลอย ใช้งานเชิงพาณิชย์ได้ รับสิทธิ์เข้า Drive ทันที
             </p>
-            <a href="fonts.html" class="btn btn-primary btn-full">ดูฟอนต์ทั้งหมด ➔</a>
+            <a href="fonts.html" class="btn btn-secondary btn-full">ดูฟอนต์ทั้งหมด ➔</a>
           </div>
 
-          <!-- Card 2 -->
-          <div class="card card--flat" style="border: 2px solid var(--pink-500); padding: 1.5rem; text-align: center; position: relative;">
-            <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--pink-500); color: var(--white); padding: 0.2rem 0.8rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
-              🔥 ยอดนิยมสูงสุด
+          <!-- Card 2: Featured VIP -->
+          <div class="card card--flat" style="border: 2px solid var(--pink-primary); border-radius: var(--radius-lg); padding: 2.25rem 1.5rem; text-align: center; background: var(--bg-primary); position: relative; box-shadow: var(--shadow-subtle); display: flex; flex-direction: column;">
+            <div style="position: absolute; top: -13px; left: 50%; transform: translateX(-50%); background: var(--pink-deep); color: var(--white); padding: 0.25rem 1rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px;">
+              ⭐ แนะนำคุ้มค่าที่สุด
             </div>
-            <span style="font-size: 2.5rem;">👥</span>
-            <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0.5rem 0;">เข้ากลุ่ม LINE VIP</h3>
-            <div style="font-size: 2rem; font-weight: 700; color: var(--pink-500); margin: 0.5rem 0;">
-              เริ่มต้น ฿250 - ฿390
+            <div style="width: 60px; height: 60px; border-radius: var(--radius-md); background: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.25rem;">
+              👥
             </div>
-            <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1.25rem;">
-              จ่ายครั้งเดียว เข้า LINE Group รับไฟล์ป้าย การ์ตูน ฟอนต์ อัปเดตตลอดชีพ
+            <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--text-main); margin: 0 0 0.5rem;">เข้ากลุ่ม LINE VIP</h3>
+            <div style="font-family: 'Prompt', sans-serif; font-size: 2.2rem; font-weight: 700; color: var(--pink-deep); margin: 0.5rem 0;">
+              ฿250 - ฿390
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; margin-bottom: 1.5rem; flex-grow: 1;">
+              สมัครครั้งเดียวเข้ากลุ่มถาวร อัปเดตไฟล์ป้าย ตัวการ์ตูน และฟอนต์ใหม่ลง Google Drive ประจำสัปดาห์
             </p>
-            <a href="groups.html" class="btn btn-primary btn-full">ดูรายละเอียดกลุ่ม ➔</a>
+            <a href="groups.html" class="btn btn-primary btn-full">ดูรายละเอียดกลุ่ม VIP ➔</a>
           </div>
 
           <!-- Card 3 -->
-          <div class="card card--flat" style="border: 2px solid var(--pink-200); padding: 1.5rem; text-align: center;">
-            <span style="font-size: 2.5rem;">🛍️</span>
-            <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0.5rem 0;">สินค้าดิจิทัลสำเร็จ</h3>
-            <div style="font-size: 2rem; font-weight: 700; color: var(--pink-500); margin: 0.5rem 0;">
+          <div class="card card--flat" style="border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 2rem 1.5rem; text-align: center; background: var(--bg-primary); display: flex; flex-direction: column;">
+            <div style="width: 56px; height: 56px; border-radius: var(--radius-md); background: var(--bg-surface); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 1.25rem;">
+              🛍️
+            </div>
+            <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 600; color: var(--text-main); margin: 0 0 0.5rem;">สินค้าดิจิทัลสำเร็จ</h3>
+            <div style="font-family: 'Prompt', sans-serif; font-size: 2rem; font-weight: 700; color: var(--pink-deep); margin: 0.5rem 0;">
               เริ่มต้น ฿99
             </div>
-            <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1.25rem;">
-              เทมเพลตป้ายสำเร็จรูป Elements สติกเกอร์การ์ตูน โหลดผ่าน Drive ได้ทันที
+            <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.5; margin-bottom: 1.5rem; flex-grow: 1;">
+              เทมเพลตป้ายเมนู Elements สติกเกอร์ไดคัท ไฟล์แยกเลเยอร์ PSD / PNG โหลดใช้งานได้ทันที
             </p>
-            <a href="products.html" class="btn btn-primary btn-full">ดูสินค้าสำเร็จ ➔</a>
+            <a href="products.html" class="btn btn-secondary btn-full">ดูสินค้าสำเร็จ ➔</a>
           </div>
 
         </div>

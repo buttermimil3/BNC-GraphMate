@@ -9,21 +9,24 @@
   <link rel="stylesheet" href="../css/admin.css">
   <style>
     .slip-card-admin {
-      background: var(--white);
-      border-radius: 1.25rem;
-      border: 1px solid var(--gray-200);
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-light);
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      box-shadow: var(--shadow-subtle);
+      transition: transform 0.2s, box-shadow 0.2s;
     }
     .slip-img-holder {
-      background: var(--gray-100);
-      height: 250px;
+      background: var(--bg-secondary);
+      height: 240px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       position: relative;
+      border-bottom: 1px solid var(--border-light);
     }
     .slip-img-holder img {
       max-height: 100%;
@@ -37,11 +40,11 @@
   <div class="admin-layout">
     <!-- Sidebar -->
     <aside class="admin-sidebar">
-      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+      <div class="sidebar-brand">
         <span>🎨</span>
         <span>BNC Admin</span>
       </div>
-      <nav class="sidebar-nav" style="padding: 1rem 0;">
+      <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
         <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
         <a href="slips.html" class="sidebar-link active">🧳 ตรวจสอบสลิป</a>
@@ -52,21 +55,21 @@
         <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
         <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
       </nav>
-      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+      <div style="padding: 1.25rem; margin-top: auto; border-top: 1px solid var(--border-light);">
         <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
     <main class="admin-main">
-      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem;">
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+      <header class="admin-topbar">
+        <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
           ตรวจสอบสลิปการโอนเงิน (Slip Verification) 🧳
         </h1>
       </header>
 
-      <div style="padding: 1.5rem;">
+      <div style="padding: 2rem 1.75rem;">
         <!-- Filters -->
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.75rem; flex-wrap: wrap;">
           <button class="btn btn-primary btn-sm" onclick="filterSlips('VERIFYING', this)">รอตรวจสอบ</button>
           <button class="btn btn-outline btn-sm" onclick="filterSlips('ALL', this)">ทั้งหมด</button>
           <button class="btn btn-outline btn-sm" onclick="filterSlips('PAID', this)">อนุมัติแล้ว</button>
@@ -125,28 +128,28 @@
             <div class="slip-img-holder" onclick="window.open('${pay.slip_image_url || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c'}')">
               <img src="${pay.slip_image_url || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c'}" alt="Slip Image">
             </div>
-            <div style="padding: 1rem; flex: 1; display: flex; flex-direction: column;">
+            <div style="padding: 1.25rem; flex: 1; display: flex; flex-direction: column;">
               <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                <span class="badge badge--pink">#${orderNum}</span>
-                <span class="price-tag price-tag--sm">฿${pay.amount}</span>
+                <span class="badge" style="background: var(--bg-surface); color: var(--pink-deep); font-weight: 600;">#${orderNum}</span>
+                <span style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--pink-deep);">฿${pay.amount}</span>
               </div>
-              <h4 style="margin: 0.25rem 0; font-size: 1rem; color: var(--gray-900);">${itemName}</h4>
-              <p style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.5rem;">
-                👤 ${custName} | LINE: <code>${lineId}</code>
+              <h4 style="font-family: 'Prompt', sans-serif; margin: 0.35rem 0; font-size: 1rem; color: var(--text-main);">${itemName}</h4>
+              <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                👤 ${custName} | LINE: <code style="color: var(--pink-deep); background: var(--bg-surface); padding: 2px 6px; border-radius: 4px;">${lineId}</code>
               </p>
 
               <!-- QR Analysis Box -->
-              <div style="background: var(--pink-50); border-radius: 0.5rem; padding: 0.5rem; font-size: 0.8rem; margin-bottom: 1rem;">
-                <strong>🔍 ข้อมูล QR สลิป:</strong><br>
-                Ref: <code>${pay.qr_trans_ref || 'MANUAL-CHECK'}</code>
+              <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; font-size: 0.82rem; margin-bottom: 1.25rem;">
+                <strong style="color: var(--text-main);">🔍 ข้อมูล QR สลิป:</strong><br>
+                Ref: <code style="font-size: 0.8rem;">${pay.qr_trans_ref || 'MANUAL-CHECK'}</code>
               </div>
 
-              <div style="margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div style="margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
                 ${pay.verification_status === 'VERIFYING' ? `
                   <button class="btn btn-success btn-sm" onclick="approveSlip('${pay.id}')">✅ ยืนยันยอด</button>
                   <button class="btn btn-danger btn-sm" onclick="rejectSlip('${pay.id}')">❌ ปฏิเสธ</button>
                 ` : `
-                  <div style="grid-column: 1/-1; text-align: center; font-weight: 600; font-size: 0.85rem; color: ${pay.verification_status === 'PAID' ? 'var(--success)' : 'var(--danger)'};">
+                  <div style="grid-column: 1/-1; text-align: center; font-weight: 600; font-size: 0.85rem; padding: 0.35rem 0; border-radius: var(--radius-sm); background: ${pay.verification_status === 'PAID' ? '#F0FDF4' : '#FFF1F2'}; color: ${pay.verification_status === 'PAID' ? '#166534' : '#9F1239'};">
                     ${pay.verification_status === 'PAID' ? '✅ ยืนยันแล้ว' : '❌ ปฏิเสธสลิป'}
                   </div>
                 `}

@@ -35,11 +35,11 @@
 
   <div class="admin-layout">
     <aside class="admin-sidebar">
-      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+      <div class="sidebar-brand">
         <span>🎨</span>
         <span>BNC Admin</span>
       </div>
-      <nav class="sidebar-nav" style="padding: 1rem 0;">
+      <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
         <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
         <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
@@ -50,20 +50,20 @@
         <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
         <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
       </nav>
-      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+      <div style="padding: 1.25rem; margin-top: auto; border-top: 1px solid var(--border-light);">
         <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
     <main class="admin-main">
-      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+      <header class="admin-topbar">
+        <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
           จัดการกลุ่ม LINE & ดึงลูกค้าเข้ากลุ่ม 👥
         </h1>
         <button class="btn btn-primary btn-sm" onclick="openAddGroupModal()">➕ เพิ่มกลุ่มใหม่</button>
       </header>
 
-      <div style="padding: 1.5rem;">
+      <div style="padding: 2rem 1.75rem;">
         <!-- Tabs -->
         <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
           <button class="btn btn-primary btn-sm" id="tabPendingBtn" onclick="switchTab('pending')">🕐 รอดึงเข้ากลุ่ม</button>
@@ -159,17 +159,17 @@
       }
 
       container.innerHTML = list.map(item => `
-        <div class="card card--flat" style="padding: 1.25rem; margin-bottom: 1rem; border-left: 4px solid ${item.status === 'COMPLETED' ? 'var(--success)' : item.status === 'FAILED' ? 'var(--danger)' : 'var(--warning)'};">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+        <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 1rem; border: 1px solid var(--border-light); border-left: 4px solid ${item.status === 'COMPLETED' ? '#10B981' : item.status === 'FAILED' ? '#EF4444' : '#F59E0B'}; border-radius: var(--radius-md); background: var(--bg-primary);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem;">
             <div>
-              <span class="badge ${item.status === 'COMPLETED' ? 'badge--success' : item.status === 'FAILED' ? 'badge--danger' : 'badge--warning'}">
+              <span class="badge" style="background: ${item.status === 'COMPLETED' ? '#F0FDF4' : item.status === 'FAILED' ? '#FFF1F2' : '#FFFBEB'}; color: ${item.status === 'COMPLETED' ? '#166534' : item.status === 'FAILED' ? '#9F1239' : '#92400E'}; font-weight: 600;">
                 ${item.status === 'COMPLETED' ? '✅ ดึงเข้ากลุ่มเรียบร้อย' : item.status === 'FAILED' ? '❌ ไม่สามารถดึงเข้ากลุ่มได้' : '🕐 รอดึงเข้ากลุ่ม'}
               </span>
-              <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; margin: 0.35rem 0 0.15rem; color: var(--gray-900);">
+              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; margin: 0.5rem 0 0.25rem; color: var(--text-main);">
                 กลุ่ม: ${item.group_name}
               </h3>
-              <p style="font-size: 0.95rem; color: var(--gray-600);">
-                ลูกค้า: <strong>${item.customer_name}</strong> | LINE ID: <strong style="color: var(--pink-600); font-size: 1.1rem; background: var(--pink-50); padding: 0.1rem 0.5rem; border-radius: 0.25rem;">${item.line_id || '-'}</strong>
+              <p style="font-size: 0.92rem; color: var(--text-muted); margin: 0;">
+                ลูกค้า: <strong>${item.customer_name}</strong> | LINE ID: <strong style="color: var(--pink-deep); font-size: 1.05rem; background: var(--bg-surface); padding: 0.2rem 0.6rem; border-radius: var(--radius-sm);">${item.line_id || '-'}</strong>
               </p>
             </div>
 
@@ -197,14 +197,14 @@
       const container = document.getElementById('adminGroupsGrid');
 
       container.innerHTML = groups.map(g => `
-        <div class="card card--flat">
+        <div class="card card--flat" style="border: 1px solid var(--border-light); border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-primary);">
           <img src="${g.cover_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600'}" style="width: 100%; height: 180px; object-fit: cover;">
-          <div class="card__body">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <h3 style="font-family: 'Mitr', sans-serif; margin: 0;">${g.name}</h3>
-              <span class="price-tag">฿${g.price}</span>
+          <div class="card__body" style="padding: 1.35rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; margin: 0; color: var(--text-main);">${g.name}</h3>
+              <span style="font-family: 'Prompt', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--pink-deep);">฿${g.price}</span>
             </div>
-            <p style="color: var(--gray-600); font-size: 0.85rem; margin: 0.5rem 0 1rem;">${g.description}</p>
+            <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin: 0.5rem 0 1.25rem;">${g.description}</p>
             <div style="display: flex; gap: 0.5rem;">
               <button class="btn btn-outline btn-sm" onclick="openEditGroupModal('${g.id}')">✏️ แก้ไข</button>
               <button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')">🗑️ ลบ</button>

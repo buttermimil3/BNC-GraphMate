@@ -3,17 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>รีวิวจากลูกค้า ❤️ | BNC GraphMate</title>
+  <title>รีวิวจากลูกค้า ✿ BNC GraphMate</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <style>
+    .page-hero {
+      background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 3rem 0;
+      text-align: center;
+    }
     .star-btn {
       background: none;
       border: none;
       font-size: 2rem;
-      color: var(--gray-200);
+      color: var(--border-medium);
       cursor: pointer;
-      transition: color 0.15s ease;
+      transition: color var(--transition-fast);
+      padding: 0 0.15rem;
     }
     .star-btn.active {
       color: #F59E0B;
@@ -26,10 +33,10 @@
   <header class="navbar">
     <div class="navbar__container">
       <a href="../index.html" class="navbar__brand">
-        <span class="navbar__logo">🎨</span>
-        <span class="navbar__title">BNC GraphMate</span>
+        <span>BNC GraphMate</span>
+        <span class="brand-dot">✿</span>
       </a>
-      <button class="navbar__hamburger" id="navToggle" aria-label="เมนู">
+      <button class="navbar__hamburger" id="navToggle" aria-label="เปิดเมนู">
         <span class="navbar__hamburger-bar"></span>
         <span class="navbar__hamburger-bar"></span>
         <span class="navbar__hamburger-bar"></span>
@@ -38,39 +45,37 @@
         <a href="../index.html" class="navbar__link">หน้าแรก</a>
         <a href="portfolio.html" class="navbar__link">ผลงาน</a>
         <a href="pricing.html" class="navbar__link">ราคา/บริการ</a>
-        <a href="groups.html" class="navbar__link">เข้ากลุ่ม LINE 👥</a>
-        <a href="products.html" class="navbar__link">สินค้าสำเร็จ 🛍️</a>
-        <a href="fonts.html" class="navbar__link">ฟอนต์ 🔤</a>
-        <a href="points.html" class="navbar__link">สะสมแต้ม ⭐</a>
-        <a href="reviews.html" class="navbar__link active">รีวิว ❤️</a>
-        <a href="orders.html" class="navbar__link">สถานะออเดอร์ 📦</a>
-        <a href="contact.html" class="navbar__link">ติดต่อ/LINE 💬</a>
+        <a href="groups.html" class="navbar__link">เข้ากลุ่ม LINE</a>
+        <a href="products.html" class="navbar__link">สินค้าสำเร็จ</a>
+        <a href="fonts.html" class="navbar__link">ฟอนต์</a>
+        <a href="points.html" class="navbar__link">สะสมแต้ม</a>
+        <a href="reviews.html" class="navbar__link active">รีวิว</a>
+        <a href="orders.html" class="navbar__link">เช็กสถานะ</a>
+        <a href="contact.html" class="navbar__link">ติดต่อร้าน</a>
         <a href="../admin/reviews.html" class="btn btn-outline btn-sm">⚙️ จัดการรีวิว</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <section style="background: var(--pink-50); border-bottom: 2px solid var(--pink-100); padding: 2.5rem 1rem; text-align: center;">
+    <section class="page-hero">
       <div class="container">
-        <span class="badge badge--pink" style="margin-bottom: 0.5rem;">Customer Satisfaction</span>
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 2.2rem; color: var(--gray-900); margin-bottom: 0.5rem;">
-          รีวิวจากลูกค้า ❤️
-        </h1>
-        <p style="color: var(--gray-600); max-width: 550px; margin: 0 auto 1.5rem;">
-          แสดงเฉพาะรีวิวที่ได้รับการอนุมัติจากแอดมิน เพื่อความน่าเชื่อถือและส่งมอบบริการที่ดีที่สุด
+        <span class="section-tag">Customer Reviews</span>
+        <h1 class="section-title">รีวิวจากลูกค้า ❤️</h1>
+        <p class="section-desc" style="max-width: 550px; margin: 0 auto 1.5rem;">
+          ทุกคำติชมคือกำลังใจสำคัญของสตูดิโอเราค่ะ ขอบคุณทุกคนที่ไว้ใจงานของ BNC นะคะ
         </p>
-        <button type="button" class="btn btn-primary" onclick="toggleReviewForm()">✍️ เขียนรีวิวของคุณ</button>
+        <button type="button" class="btn btn-primary btn-lg" onclick="toggleReviewForm()">✍️ แวะเขียนรีวิวความประทับใจ</button>
       </div>
     </section>
 
-    <section style="padding: 2.5rem 1rem;">
-      <div class="container" style="max-width: 800px;">
+    <section style="padding: 3rem 0;">
+      <div class="container" style="max-width: 820px;">
 
         <!-- Review Submit Form -->
-        <div id="reviewFormCard" class="card card--flat" style="display: none; border: 2px solid var(--pink-200); padding: 1.75rem; margin-bottom: 2.5rem;">
-          <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin-bottom: 1rem; color: var(--pink-500);">
-            💌 เขียนรีวิวความประทับใจ
+        <div id="reviewFormCard" class="card card--flat" style="display: none; padding: 2rem; margin-bottom: 3rem;">
+          <h3 style="font-size: 1.3rem; margin-bottom: 1.25rem; color: var(--text-main);">
+            💌 เขียนรีวิวถึงทางร้าน
           </h3>
           <form id="submitReviewForm">
             <div class="form-group">
@@ -78,11 +83,11 @@
               <input type="text" id="revAuthorName" class="form-input" placeholder="เช่น น้องมีน คาเฟ่" required>
             </div>
             <div class="form-group">
-              <label class="form-label">สินค้าหรือบริการที่สั่งซื้อ</label>
+              <label class="form-label">สินค้าหรือผลงานที่สั่งซื้อ</label>
               <input type="text" id="revProductName" class="form-input" placeholder="เช่น ฟอนต์ขนมปังเนยสด หรือ กลุ่ม VIP" required>
             </div>
             <div class="form-group">
-              <label class="form-label">ให้คะแนนความพึงพอใจ</label>
+              <label class="form-label">ระดับความพึงพอใจ</label>
               <div id="starPicker">
                 <button type="button" class="star-btn active" data-val="1">★</button>
                 <button type="button" class="star-btn active" data-val="2">★</button>
@@ -99,7 +104,7 @@
               <label class="form-label">รูปภาพประกอบ (ถ้ามี - ใส่ URL รูป)</label>
               <input type="url" id="revImageUrl" class="form-input" placeholder="https://example.com/photo.jpg">
             </div>
-            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
               <button type="button" class="btn btn-outline" onclick="toggleReviewForm()">ยกเลิก</button>
               <button type="submit" class="btn btn-primary">ส่งรีวิวให้แอดมินตรวจ ➔</button>
             </div>
@@ -123,7 +128,6 @@
 
     let currentRating = 5;
 
-    // Star Picker
     const starBtns = document.querySelectorAll('.star-btn');
     starBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -142,7 +146,6 @@
       if (card.style.display === 'block') card.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Submit Review
     document.getElementById('submitReviewForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const name = document.getElementById('revAuthorName').value.trim();
@@ -180,20 +183,20 @@
       }
 
       container.innerHTML = list.map(r => `
-        <div class="card card--flat review-card">
-          ${r.image_url ? `<img src="${r.image_url}" alt="Review photo" style="width: 100%; height: 180px; object-fit: cover; border-top-left-radius: var(--radius-2xl); border-top-right-radius: var(--radius-2xl);">` : ''}
+        <div class="card card--flat">
+          ${r.image_url ? `<img src="${r.image_url}" alt="Review photo" style="width: 100%; height: 180px; object-fit: cover;">` : ''}
           <div class="card__body">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-              <span style="font-weight: 600; color: var(--gray-900);">👤 ${r.customer_name}</span>
-              <span style="color: #F59E0B; font-size: 1.1rem;">${'★'.repeat(r.rating || 5)}</span>
+              <span style="font-weight: 600; color: var(--text-main);">✿ คุณ${r.customer_name}</span>
+              <span style="color: #F59E0B; font-size: 0.95rem;">${'★'.repeat(r.rating || 5)}</span>
             </div>
-            <div style="font-size: 0.85rem; color: var(--pink-500); font-weight: 500; margin-bottom: 0.5rem;">
-              สั่งซื้อ: ${r.product_name}
+            <div style="font-size: 0.82rem; color: var(--pink-primary); font-weight: 500; margin-bottom: 0.45rem;">
+              ชิ้นงาน: ${r.product_name}
             </div>
-            <p style="color: var(--gray-600); font-size: 0.95rem; line-height: 1.5; margin-bottom: 0.75rem;">
+            <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; margin-bottom: 0.75rem;">
               "${r.message}"
             </p>
-            <span style="font-size: 0.8rem; color: var(--gray-400);">${new Date(r.created_at).toLocaleDateString('th-TH')}</span>
+            <span style="font-size: 0.78rem; color: var(--text-light);">${new Date(r.created_at).toLocaleDateString('th-TH')}</span>
           </div>
         </div>
       `).join('');

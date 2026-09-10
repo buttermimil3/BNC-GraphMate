@@ -3,55 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>สินค้าดิจิทัลสำเร็จรูป 🛍️ | BNC GraphMate</title>
+  <title>สินค้าดิจิทัลพร้อมใช้ ✿ BNC GraphMate</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <style>
+    .page-hero {
+      background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 3rem 0;
+      text-align: center;
+    }
     .cat-filters {
       display: flex;
-      gap: 0.5rem;
+      gap: 0.6rem;
       overflow-x: auto;
-      padding-bottom: 0.5rem;
+      padding-bottom: 0.75rem;
       margin-bottom: 2rem;
+      scrollbar-width: none;
     }
+    .cat-filters::-webkit-scrollbar { display: none; }
     .cat-btn {
-      background: var(--white);
-      border: 1px solid var(--pink-200);
-      color: var(--gray-600);
+      background: var(--bg-primary);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
       padding: 0.5rem 1.25rem;
-      border-radius: 9999px;
+      border-radius: var(--radius-full);
+      font-size: 0.9rem;
       font-weight: 500;
       white-space: nowrap;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-subtle);
     }
     .cat-btn.active, .cat-btn:hover {
-      background: var(--pink-500);
-      color: var(--white);
-      border-color: var(--pink-500);
-    }
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.4);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 1rem;
-    }
-    .modal-overlay.is-active {
-      display: flex;
-    }
-    .modal-box {
-      background: var(--white);
-      border-radius: 1.5rem;
-      width: 100%;
-      max-width: 520px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 1.75rem;
-      position: relative;
+      background: var(--pink-primary);
+      color: var(--text-white);
+      border-color: var(--pink-primary);
+      box-shadow: 0 4px 12px rgba(217, 111, 157, 0.2);
     }
   </style>
 </head>
@@ -61,10 +49,10 @@
   <header class="navbar">
     <div class="navbar__container">
       <a href="../index.html" class="navbar__brand">
-        <span class="navbar__logo">🎨</span>
-        <span class="navbar__title">BNC GraphMate</span>
+        <span>BNC GraphMate</span>
+        <span class="brand-dot">✿</span>
       </a>
-      <button class="navbar__hamburger" id="navToggle" aria-label="เมนู">
+      <button class="navbar__hamburger" id="navToggle" aria-label="เปิดเมนู">
         <span class="navbar__hamburger-bar"></span>
         <span class="navbar__hamburger-bar"></span>
         <span class="navbar__hamburger-bar"></span>
@@ -73,44 +61,42 @@
         <a href="../index.html" class="navbar__link">หน้าแรก</a>
         <a href="portfolio.html" class="navbar__link">ผลงาน</a>
         <a href="pricing.html" class="navbar__link">ราคา/บริการ</a>
-        <a href="groups.html" class="navbar__link">เข้ากลุ่ม LINE 👥</a>
-        <a href="products.html" class="navbar__link active">สินค้าสำเร็จ 🛍️</a>
-        <a href="fonts.html" class="navbar__link">ฟอนต์ 🔤</a>
-        <a href="points.html" class="navbar__link">สะสมแต้ม ⭐</a>
-        <a href="reviews.html" class="navbar__link">รีวิว ❤️</a>
-        <a href="orders.html" class="navbar__link">สถานะออเดอร์ 📦</a>
-        <a href="contact.html" class="navbar__link">ติดต่อ/LINE 💬</a>
+        <a href="groups.html" class="navbar__link">เข้ากลุ่ม LINE</a>
+        <a href="products.html" class="navbar__link active">สินค้าสำเร็จ</a>
+        <a href="fonts.html" class="navbar__link">ฟอนต์</a>
+        <a href="points.html" class="navbar__link">สะสมแต้ม</a>
+        <a href="reviews.html" class="navbar__link">รีวิว</a>
+        <a href="orders.html" class="navbar__link">เช็กสถานะ</a>
+        <a href="contact.html" class="navbar__link">ติดต่อร้าน</a>
         <a href="../admin/products.html" class="btn btn-outline btn-sm">⚙️ จัดการสินค้า</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <section style="background: var(--pink-50); border-bottom: 2px solid var(--pink-100); padding: 2.5rem 1rem; text-align: center;">
+    <section class="page-hero">
       <div class="container">
-        <span class="badge badge--pink" style="margin-bottom: 0.5rem;">Digital Products</span>
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 2.2rem; color: var(--gray-900); margin-bottom: 0.5rem;">
-          สินค้าดิจิทัลสำเร็จรูป 🛍️
-        </h1>
-        <p style="color: var(--gray-600); max-width: 600px; margin: 0 auto;">
-          ป้ายสำเร็จรูป ไฟล์ตกแต่ง การ์ตูนไดคัท Elements และเทมเพลตพร้อมใช้งาน ส่งตรงถึง Google Drive ทันที!
+        <span class="section-tag">Ready-to-use Digital Assets</span>
+        <h1 class="section-title">ไฟล์กราฟิก & เทมเพลตป้ายสำเร็จรูป 🛍️</h1>
+        <p class="section-desc" style="max-width: 600px; margin: 0 auto;">
+          ดาวน์โหลดและนำไปใช้งานได้ทันที แก้ไขง่าย มีทั้งเทมเพลตป้าย การ์ตูนไดคัท และองค์ประกอบตกแต่งน่ารักๆ ค่ะ
         </p>
       </div>
     </section>
 
-    <section style="padding: 2.5rem 1rem;">
+    <section style="padding: 3rem 0;">
       <div class="container">
         <!-- Category Filter -->
         <div class="cat-filters">
           <button class="cat-btn active" onclick="filterCat('ALL', this)">ทั้งหมด</button>
           <button class="cat-btn" onclick="filterCat('Template', this)">📑 เทมเพลตป้าย</button>
           <button class="cat-btn" onclick="filterCat('Cartoon', this)">🧸 Cartoon ไดคัท</button>
-          <button class="cat-btn" onclick="filterCat('Elements', this)">🎀 Elements</button>
-          <button class="cat-btn" onclick="filterCat('Graphic', this)">🎨 กราฟิก/ป้าย</button>
+          <button class="cat-btn" onclick="filterCat('Elements', this)">🎀 Elements ตกแต่ง</button>
+          <button class="cat-btn" onclick="filterCat('Graphic', this)">🎨 กราฟิกพร้อมใช้</button>
         </div>
 
-        <!-- Products Grid -->
-        <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Products Grid (Image 60-70% Focus) -->
+        <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <!-- Render dynamically -->
         </div>
       </div>
@@ -120,16 +106,16 @@
   <!-- Product Purchase Modal -->
   <div class="modal-overlay" id="productModal">
     <div class="modal-box">
-      <button id="closeProdModal" style="position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-400);">×</button>
+      <button id="closeProdModal" style="position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light);">×</button>
 
       <!-- Step 1: Info & Gmail -->
       <div id="pStep1">
-        <h3 style="font-family: 'Mitr', sans-serif; color: var(--pink-500); margin-bottom: 0.25rem;" id="pModalTitle"></h3>
-        <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1rem;" id="pModalDesc"></p>
+        <h3 style="font-size: 1.25rem; color: var(--text-main); margin-bottom: 0.35rem;" id="pModalTitle"></h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;" id="pModalDesc"></p>
 
-        <div style="background: var(--pink-50); border-radius: 1rem; padding: 1rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-weight: 600;">ยอดชำระ</span>
-          <span style="color: var(--pink-500); font-weight: 700; font-size: 1.25rem;" id="pModalPrice"></span>
+        <div style="background: var(--bg-subtle); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-weight: 500; color: var(--text-main);">ยอดชำระ</span>
+          <span style="color: var(--pink-primary); font-weight: 700; font-size: 1.35rem; font-family: 'Prompt', sans-serif;" id="pModalPrice"></span>
         </div>
 
         <div class="form-group">
@@ -138,42 +124,43 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Gmail ของคุณ (สำหรับรับสิทธิ์ Google Drive) *สำคัญมาก</label>
+          <label class="form-label">Gmail ของคุณ (สำหรับรับสิทธิ์เข้าถึง Google Drive) *สำคัญมาก</label>
           <input type="email" id="pCustGmail" class="form-input" placeholder="yourname@gmail.com" required>
-          <small style="color: var(--gray-600); font-size: 0.8rem;">*ระบบจะดึงอีเมลนี้เข้าไปเป็น Viewer ในโฟลเดอร์ Google Drive</small>
+          <small style="color: var(--text-muted); font-size: 0.82rem; margin-top: 0.25rem; display: block;">*ระบบจะเพิ่มอีเมลนี้เป็น Viewer ในโฟลเดอร์ Google Drive เพื่อให้ดาวน์โหลดไฟล์ได้ทันทีค่ะ</small>
         </div>
 
-        <button type="button" class="btn btn-primary btn-full" id="pBtnNext1">ต่อไป: ชำระเงิน ➔</button>
+        <button type="button" class="btn btn-primary btn-full btn-lg" id="pBtnNext1">ต่อไป: ชำระเงิน ➔</button>
       </div>
 
       <!-- Step 2: Payment & Slip -->
       <div id="pStep2" style="display: none; text-align: center;">
-        <h3 style="font-family: 'Mitr', sans-serif; margin-bottom: 0.5rem;">สแกนชำระเงิน</h3>
-        <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 0.75rem;">ยอดโอน: <strong id="pPayAmount" style="color: var(--pink-500); font-size: 1.2rem;"></strong></p>
+        <h3 style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 0.25rem;">สแกนชำระเงิน</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">ยอดโอน: <strong id="pPayAmount" style="color: var(--pink-primary); font-size: 1.25rem;"></strong></p>
 
-        <div style="display: inline-block; background: var(--pink-50); padding: 0.5rem; border-radius: 1rem; border: 1px solid var(--pink-200); margin-bottom: 0.75rem;">
-          <img id="pQrImg" src="" alt="QR Payment" style="width: 200px; height: 200px;">
+        <div style="display: inline-block; background: var(--bg-primary); padding: 0.75rem; border-radius: var(--radius-lg); border: 1px solid var(--border-light); margin-bottom: 1rem; box-shadow: var(--shadow-subtle);">
+          <img id="pQrImg" src="" alt="QR Payment" style="width: 190px; height: 190px; object-fit: contain;">
         </div>
 
-        <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 0.75rem; padding: 0.5rem; margin-bottom: 1rem; text-align: left; font-size: 0.85rem;">
-          <p><strong>ธนาคาร:</strong> <span id="pBankName"></span> | <strong>เลขบัญชี:</strong> <span id="pBankAcc"></span></p>
-          <p><strong>ชื่อบัญชี:</strong> <span id="pBankOwner"></span></p>
+        <div style="background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.25rem; text-align: left; font-size: 0.88rem; line-height: 1.6;">
+          <p style="margin-bottom: 0.25rem;"><strong>ธนาคาร:</strong> <span id="pBankName"></span> | <strong>เลขบัญชี:</strong> <span id="pBankAcc"></span></p>
+          <p style="margin: 0;"><strong>ชื่อบัญชี:</strong> <span id="pBankOwner"></span></p>
         </div>
 
         <!-- Slip Area -->
-        <div class="slip-upload" id="pSlipArea" style="margin-bottom: 1rem;">
+        <div class="slip-upload" id="pSlipArea" style="margin-bottom: 1.25rem;">
           <input type="file" id="pSlipInput" accept="image/*" style="display: none;">
           <div id="pSlipPrompt">
-            <span style="font-size: 2rem;">📸</span>
-            <p style="font-weight: 500; font-size: 0.9rem;">คลิกเพื่ออัปโหลดสลิป</p>
+            <span style="font-size: 2.2rem; display: block; margin-bottom: 0.25rem;">📸</span>
+            <p style="font-weight: 500; font-size: 0.95rem; margin-bottom: 0.15rem; color: var(--text-main);">คลิกเพื่อแนบรูปสลิป</p>
+            <p style="font-size: 0.8rem; color: var(--text-muted);">ระบบตรวจจับ QR สลิปอัตโนมัติ</p>
           </div>
           <div id="pSlipPreview" style="display: none;">
-            <img id="pSlipImg" src="" style="max-height: 180px; margin: 0 auto; display: block; border-radius: 0.5rem;">
-            <p id="pSlipStatus" style="font-size: 0.85rem; font-weight: 500; margin-top: 0.35rem;"></p>
+            <img id="pSlipImg" src="" style="max-height: 180px; margin: 0 auto; display: block; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+            <p id="pSlipStatus" style="font-size: 0.86rem; font-weight: 500; margin-top: 0.5rem;"></p>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1.4fr; gap: 0.75rem;">
           <button type="button" class="btn btn-outline" id="pBtnBack2">ย้อนกลับ</button>
           <button type="button" class="btn btn-primary" id="pBtnSubmit" disabled>ยืนยันสั่งซื้อ ➔</button>
         </div>
@@ -181,23 +168,25 @@
 
       <!-- Step 3: Result & Drive Access Status -->
       <div id="pStep3" style="display: none; text-align: center;">
-        <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">✅</div>
-        <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.4rem; color: var(--gray-900); margin-bottom: 0.5rem;">
-          ดึงเมลล์เรียบร้อย
+        <span class="status-pill status-success" style="margin-bottom: 1rem;">
+          <span>✅</span> ดึงเมลล์เรียบร้อย
+        </span>
+        <h3 style="font-size: 1.35rem; color: var(--text-main); margin-bottom: 0.35rem;">
+          เข้าเช็กใน Google Drive ได้เลยค่ะ ✿
         </h3>
-        <p style="color: var(--pink-600); font-weight: 500; font-size: 1rem; margin-bottom: 1.25rem;">
-          เข้าเช็กใน Google Drive ได้เลยค่ะ 🌸
+        <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 1.5rem;">
+          ระบบได้บันทึกคำสั่งซื้อและส่งสิทธิ์เข้า Gmail ของคุณเรียบร้อยแล้วค่ะ
         </p>
 
-        <div style="background: var(--pink-50); border: 1px solid var(--pink-200); border-radius: 1rem; padding: 1rem; text-align: left; margin-bottom: 1.5rem; font-size: 0.9rem;">
-          <p><strong>หมายเลขคำสั่งซื้อ:</strong> <span id="pResOrderNum" style="color: var(--pink-500); font-weight: 600;"></span></p>
-          <p><strong>สินค้า:</strong> <span id="pResProdName"></span></p>
-          <p><strong>Gmail ที่ได้รับสิทธิ์:</strong> <span id="pResGmail" style="color: var(--gray-900); font-weight: 600;"></span></p>
-          <p><strong>ประเภทการจัดส่ง:</strong> <span id="pResDeliveryType">Google Drive อัตโนมัติ</span></p>
+        <div style="background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.25rem; text-align: left; margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.65;">
+          <p style="margin-bottom: 0.25rem;"><strong>เลขคำสั่งซื้อ:</strong> <span id="pResOrderNum" style="color: var(--pink-primary); font-weight: 600;"></span></p>
+          <p style="margin-bottom: 0.25rem;"><strong>สินค้า:</strong> <span id="pResProdName"></span></p>
+          <p style="margin-bottom: 0.25rem;"><strong>Gmail ที่ได้รับสิทธิ์:</strong> <span id="pResGmail" style="color: var(--text-main); font-weight: 600;"></span></p>
+          <p style="margin: 0;"><strong>รูปแบบการส่งมอบ:</strong> <span id="pResDeliveryType">Google Drive อัตโนมัติ</span></p>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-          <a href="https://drive.google.com/drive/shared-with-me" target="_blank" class="btn btn-primary btn-full">
+        <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+          <a href="https://drive.google.com/drive/shared-with-me" target="_blank" class="btn btn-primary btn-full btn-lg">
             📂 เปิด Google Drive เช็กไฟล์ทันที
           </a>
           <a href="orders.html" class="btn btn-outline btn-full">
@@ -245,27 +234,33 @@
       }
 
       container.innerHTML = prods.map(p => {
-        const whatYouGet = (p.what_you_get || '').split('\n').filter(w => w.trim()).map(w => `<li>✓ ${w}</li>`).join('');
+        const whatYouGet = (p.what_you_get || '')
+          .split('\n')
+          .filter(w => w.trim())
+          .slice(0, 2)
+          .map(w => `<li style="display: flex; align-items: flex-start; gap: 0.35rem; margin-bottom: 0.2rem;"><span style="color: var(--pink-primary);">✿</span> <span>${w}</span></li>`)
+          .join('');
+
         return `
           <div class="card card--flat product-card">
-            <img src="${p.image || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600'}" alt="${p.name}" class="product-card__image" style="width: 100%; height: 200px; object-fit: cover; border-top-left-radius: var(--radius-2xl); border-top-right-radius: var(--radius-2xl);">
+            <img src="${p.image || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600'}" alt="${p.name}" class="product-card__image">
             <div class="card__body">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
                 <span class="badge badge--pink">${p.category}</span>
-                <span class="price-tag">฿${p.price}</span>
+                <span class="price-tag price-tag--sm">฿${p.price}</span>
               </div>
-              <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; color: var(--gray-900); margin-bottom: 0.5rem;">${p.name}</h3>
-              <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1rem;">${p.description}</p>
+              <h3 style="font-size: 1.15rem; color: var(--text-main); margin-bottom: 0.4rem; line-height: 1.4;">${p.name}</h3>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem; flex-grow: 1;">${p.description}</p>
 
-              <div style="background: var(--pink-50); border-radius: 0.75rem; padding: 0.75rem; font-size: 0.85rem; color: var(--pink-600); margin-bottom: 1rem;">
-                <strong>สิ่งที่จะได้รับ:</strong>
-                <ul style="list-style: none; padding: 0; margin: 0.25rem 0 0 0;">
-                  ${whatYouGet || '<li>✓ ไฟล์ดิจิทัลความละเอียดสูง</li>'}
+              <div style="background: var(--bg-secondary); border-radius: var(--radius-md); padding: 0.75rem 0.95rem; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+                <strong style="color: var(--text-main); font-size: 0.82rem; display: block; margin-bottom: 0.25rem;">สิ่งที่จะได้รับ:</strong>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                  ${whatYouGet || '<li>✿ ไฟล์ดิจิทัลความละเอียดสูงพร้อมใช้</li>'}
                 </ul>
               </div>
 
               <button type="button" class="btn btn-primary btn-full" onclick="openProdModal('${p.id}')">
-                🛍️ ซื้อสินค้าชิ้นนี้
+                สั่งซื้อชิ้นนี้ ➔
               </button>
             </div>
           </div>
@@ -317,7 +312,6 @@
       document.getElementById('pStep1').style.display = 'block';
     });
 
-    // Slip upload & scan
     const slipArea = document.getElementById('pSlipArea');
     const slipInput = document.getElementById('pSlipInput');
     slipArea.addEventListener('click', () => slipInput.click());
@@ -334,7 +328,7 @@
 
       preview.style.display = 'block';
       status.textContent = '🔄 กำลังอ่าน QR สลิป...';
-      status.style.color = 'var(--info)';
+      status.style.color = 'var(--status-proc-text)';
 
       const res = await SlipScanner.scanSlip(file);
       pScannedSlip = res;
@@ -342,11 +336,11 @@
 
       if (res.isDuplicate) {
         status.textContent = '❌ สลิปนี้ถูกใช้งานไปแล้ว';
-        status.style.color = 'var(--danger)';
+        status.style.color = 'var(--status-error-text)';
         submit.disabled = true;
       } else {
-        status.textContent = res.hasQr ? '✅ สแกน QR สลิปเรียบร้อย' : '📷 โหลดสลิปสำเร็จ';
-        status.style.color = 'var(--success)';
+        status.textContent = res.hasQr ? '✓ สแกน QR สลิปเรียบร้อย' : '📷 โหลดสลิปสำเร็จ';
+        status.style.color = 'var(--status-success-text)';
         submit.disabled = false;
       }
     });

@@ -36,46 +36,46 @@
     <!-- Main Content -->
     <main class="admin-main">
       <!-- Topbar -->
-      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+      <header class="admin-topbar">
+        <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
           ภาพรวมร้านค้า (Dashboard) 📊
         </h1>
-        <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <button class="btn btn-outline btn-sm" id="btnSyncCloud" onclick="manualSyncCloud()" style="background: var(--pink-50); border-color: var(--pink-300);">
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <button class="btn btn-outline btn-sm" id="btnSyncCloud" onclick="manualSyncCloud()" style="background: var(--bg-surface); border-color: var(--pink-primary); color: var(--pink-deep); font-size: 0.85rem;">
             🔄 ซิงก์ข้อมูล Google Sheet
           </button>
-          <span class="badge badge--pink">ผู้ดูแลระบบ</span>
+          <span class="badge" style="background: var(--bg-surface); color: var(--pink-deep); font-weight: 600;">Admin Studio</span>
         </div>
       </header>
 
-      <div style="padding: 1.5rem;">
+      <div style="padding: 2rem 1.75rem;">
         <!-- Stats Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" style="margin-bottom: 1.75rem;">
-          <div class="stat-card" style="background: var(--white); border-radius: 1rem; border-left: 4px solid var(--pink-500); padding: 1.25rem;">
-            <span style="font-size: 0.85rem; color: var(--gray-600);">ยอดขายรวม</span>
-            <div id="statTotalRevenue" style="font-family: 'Mitr', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--pink-500); margin: 0.25rem 0;">฿0</div>
-            <span style="font-size: 0.8rem; color: var(--success);">ยอดคำสั่งซื้อสำเร็จ</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5" style="margin-bottom: 2rem;">
+          <div class="stat-card" style="border-left: 4px solid var(--pink-deep);">
+            <span class="stat-card__label">ยอดขายรวม</span>
+            <div id="statTotalRevenue" class="stat-card__value" style="color: var(--pink-deep);">฿0</div>
+            <span style="font-size: 0.8rem; color: #166534; font-weight: 500;">✓ คำสั่งซื้อที่ชำระแล้ว</span>
           </div>
-          <div class="stat-card" style="background: var(--white); border-radius: 1rem; border-left: 4px solid var(--info); padding: 1.25rem;">
-            <span style="font-size: 0.85rem; color: var(--gray-600);">ออเดอร์ทั้งหมด</span>
-            <div id="statTotalOrders" style="font-family: 'Mitr', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--info); margin: 0.25rem 0;">0</div>
-            <span style="font-size: 0.8rem; color: var(--gray-400);">รายการ</span>
+          <div class="stat-card" style="border-left: 4px solid #3B82F6;">
+            <span class="stat-card__label">ออเดอร์ทั้งหมด</span>
+            <div id="statTotalOrders" class="stat-card__value" style="color: #1E40AF;">0</div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">รายการคำสั่งซื้อ</span>
           </div>
-          <div class="stat-card" style="background: var(--white); border-radius: 1rem; border-left: 4px solid var(--warning); padding: 1.25rem;">
-            <span style="font-size: 0.85rem; color: var(--gray-600);">สลิปรอตรวจสอบ</span>
-            <div id="statPendingSlips" style="font-family: 'Mitr', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--warning); margin: 0.25rem 0;">0</div>
-            <a href="slips.html" style="font-size: 0.8rem; color: var(--warning); text-decoration: underline;">ไปหน้าตรวจสลิป ➔</a>
+          <div class="stat-card" style="border-left: 4px solid #F59E0B;">
+            <span class="stat-card__label">สลิปรอตรวจสอบ</span>
+            <div id="statPendingSlips" class="stat-card__value" style="color: #B45309;">0</div>
+            <a href="slips.html" style="font-size: 0.8rem; color: #B45309; text-decoration: underline; font-weight: 500;">ไปหน้าตรวจสลิป ➔</a>
           </div>
-          <div class="stat-card" style="background: var(--white); border-radius: 1rem; border-left: 4px solid var(--success); padding: 1.25rem;">
-            <span style="font-size: 0.85rem; color: var(--gray-600);">จำนวนลูกค้า</span>
-            <div id="statTotalCustomers" style="font-family: 'Mitr', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--success); margin: 0.25rem 0;">0</div>
-            <span style="font-size: 0.8rem; color: var(--gray-400);">คน</span>
+          <div class="stat-card" style="border-left: 4px solid #10B981;">
+            <span class="stat-card__label">สมาชิกทั้งหมด</span>
+            <div id="statTotalCustomers" class="stat-card__value" style="color: #047857;">0</div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">ลูกค้าในระบบ</span>
           </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="card card--flat" style="padding: 1.25rem; margin-bottom: 1.75rem;">
-          <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--gray-900);">
+        <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
+          <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
             ⚡ ทางลัดจัดการด่วน (Quick Actions)
           </h3>
           <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
@@ -92,12 +92,12 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           <!-- Left: รอดึงเข้ากลุ่ม -->
-          <div class="card card--flat" style="padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.1rem; color: var(--gray-900); margin: 0;">
+          <div class="card card--flat" style="padding: 1.5rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin: 0;">
                 👥 ลูกค้ารอดึงเข้ากลุ่ม LINE
               </h3>
-              <a href="groups.html" style="font-size: 0.85rem; color: var(--pink-500);">ดูทั้งหมด ➔</a>
+              <a href="groups.html" style="font-size: 0.85rem; color: var(--pink-deep); font-weight: 500;">ดูทั้งหมด ➔</a>
             </div>
             <div id="dashPendingGroups">
               <!-- Render dynamically -->
@@ -105,12 +105,12 @@
           </div>
 
           <!-- Right: รอดึงเมลล์ (Manual Delivery) -->
-          <div class="card card--flat" style="padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.1rem; color: var(--gray-900); margin: 0;">
+          <div class="card card--flat" style="padding: 1.5rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin: 0;">
                 🔤 รอดึงเมลล์ (ฟอนต์/สินค้า Manual)
               </h3>
-              <a href="fonts.html" style="font-size: 0.85rem; color: var(--pink-500);">ดูทั้งหมด ➔</a>
+              <a href="fonts.html" style="font-size: 0.85rem; color: var(--pink-deep); font-weight: 500;">ดูทั้งหมด ➔</a>
             </div>
             <div id="dashPendingMails">
               <!-- Render dynamically -->

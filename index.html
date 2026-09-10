@@ -3,83 +3,136 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BNC GraphMate 🎨 ร้านป้าย & กราฟิกสุดน่ารัก</title>
+  <title>BNC GraphMate ✿ สตูดิโอป้าย & ฟอนต์กราฟิกน่ารัก</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <style>
-    /* Custom playful tweaks for index */
-    .hero-banner {
-      background-color: var(--pink-50);
-      border-bottom: 2px solid var(--pink-100);
-      padding: 3.5rem 1rem 3rem;
-      text-align: center;
+    /* ── Boutique Hero Section ─────────────────────────────── */
+    .boutique-hero {
+      padding: 3.5rem 0 4rem;
+      background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      align-items: center;
+    }
+    @media (min-width: 840px) {
+      .hero-grid {
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 3.5rem;
+      }
     }
     .hero-badge {
-      display: inline-block;
-      background-color: var(--white);
-      color: var(--pink-500);
-      border: 1px solid var(--pink-200);
-      padding: 0.35rem 1rem;
-      border-radius: 9999px;
-      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background-color: var(--bg-surface);
+      color: var(--pink-primary);
+      border: 1px solid var(--border-light);
+      padding: 0.35rem 0.95rem;
+      border-radius: var(--radius-full);
+      font-size: 0.86rem;
       font-weight: 500;
       margin-bottom: 1rem;
     }
-    .hero-title {
-      font-family: 'Mitr', sans-serif;
-      font-size: clamp(2rem, 5vw, 3rem);
-      color: var(--gray-900);
+    .hero-heading {
+      font-family: 'Prompt', sans-serif;
+      font-size: clamp(2.1rem, 4.2vw, 3rem);
+      font-weight: 700;
+      color: var(--text-main);
       line-height: 1.25;
       margin-bottom: 1rem;
+      letter-spacing: -0.02em;
     }
-    .hero-title span {
-      color: var(--pink-500);
+    .hero-heading span {
+      color: var(--pink-primary);
+      position: relative;
     }
-    .hero-desc {
-      font-size: 1.1rem;
-      color: var(--gray-600);
-      max-width: 600px;
-      margin: 0 auto 1.8rem;
+    .hero-text {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 1.75rem;
     }
-    .quick-category-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 1rem;
-      margin-top: 2rem;
+    .hero-cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
     }
-    .quick-cat-card {
-      background: var(--white);
-      border: 1px solid var(--pink-100);
-      border-radius: 1.25rem;
-      padding: 1.25rem 0.75rem;
-      text-align: center;
+
+    /* Showcase Artwork Card */
+    .hero-showcase-card {
+      background: var(--bg-primary);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-light);
+      box-shadow: 0 12px 32px rgba(120, 60, 80, 0.07);
+      padding: 1rem;
+      position: relative;
+    }
+    .hero-showcase-img {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      border-radius: var(--radius-lg);
+    }
+    .hero-showcase-caption {
+      padding: 1rem 0.5rem 0.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Category Pill Strip */
+    .category-strip {
+      display: flex;
+      gap: 0.65rem;
+      overflow-x: auto;
+      padding: 1.25rem 0 2rem;
+      scrollbar-width: none;
+    }
+    .category-strip::-webkit-scrollbar {
+      display: none;
+    }
+    .category-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-light);
+      padding: 0.55rem 1.15rem;
+      border-radius: var(--radius-full);
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--text-main);
       text-decoration: none;
-      color: var(--gray-900);
-      transition: transform 0.15s ease, border-color 0.15s ease;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-subtle);
     }
-    .quick-cat-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--pink-400);
-    }
-    .quick-cat-card .icon {
-      font-size: 2.2rem;
-      margin-bottom: 0.5rem;
-      display: block;
-    }
-    .quick-cat-card .name {
-      font-weight: 600;
-      font-size: 0.95rem;
+    .category-pill:hover {
+      background: var(--bg-surface);
+      border-color: var(--pink-soft);
+      color: var(--pink-primary);
+      transform: translateY(-1px);
     }
   </style>
 </head>
 <body>
 
+  <!-- Top Announcement Ribbon -->
+  <div class="announcement-ribbon" id="announcementBar">
+    🌸 ยินดีต้อนรับสู่ BNC GraphMate สตูดิโอป้าย & ทรัพยากรกราฟิกน่ารัก อัปเดตงานใหม่ทุกสัปดาห์
+  </div>
+
   <!-- Navbar -->
   <header class="navbar">
     <div class="navbar__container">
       <a href="index.html" class="navbar__brand">
-        <span class="navbar__logo">🎨</span>
-        <span class="navbar__title">BNC GraphMate</span>
+        <span>BNC GraphMate</span>
+        <span class="brand-dot">✿</span>
       </a>
 
       <button class="navbar__hamburger" id="navToggle" aria-label="เปิดเมนู">
@@ -92,135 +145,135 @@
         <a href="index.html" class="navbar__link active">หน้าแรก</a>
         <a href="pages/portfolio.html" class="navbar__link">ผลงาน</a>
         <a href="pages/pricing.html" class="navbar__link">ราคา/บริการ</a>
-        <a href="pages/groups.html" class="navbar__link">เข้ากลุ่ม LINE 👥</a>
-        <a href="pages/products.html" class="navbar__link">สินค้าสำเร็จ 🛍️</a>
-        <a href="pages/fonts.html" class="navbar__link">ฟอนต์ 🔤</a>
-        <a href="pages/points.html" class="navbar__link">สะสมแต้ม ⭐</a>
-        <a href="pages/reviews.html" class="navbar__link">รีวิว ❤️</a>
-        <a href="pages/orders.html" class="navbar__link">สถานะออเดอร์ 📦</a>
-        <a href="pages/contact.html" class="navbar__link">ติดต่อ/LINE 💬</a>
-        <a href="admin/index.html" class="btn btn-outline btn-sm" style="margin-left: 0.5rem;">⚙️ หลังบ้าน</a>
+        <a href="pages/groups.html" class="navbar__link">เข้ากลุ่ม LINE</a>
+        <a href="pages/products.html" class="navbar__link">สินค้าสำเร็จ</a>
+        <a href="pages/fonts.html" class="navbar__link">ฟอนต์</a>
+        <a href="pages/points.html" class="navbar__link">สะสมแต้ม</a>
+        <a href="pages/reviews.html" class="navbar__link">รีวิว</a>
+        <a href="pages/orders.html" class="navbar__link">เช็กสถานะ</a>
+        <a href="pages/contact.html" class="navbar__link">ติดต่อร้าน</a>
+        <a href="admin/index.html" class="btn btn-outline btn-sm" style="margin-left: 0.25rem;">⚙️ หลังบ้าน</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <!-- Announcement Bar -->
-    <div id="announcementBar" style="background: var(--pink-100); color: var(--pink-600); padding: 0.5rem 1rem; text-align: center; font-size: 0.9rem; font-weight: 500;">
-      🌸 ยินดีต้อนรับสู่ BNC GraphMate! มีฟอนต์ใหม่และกลุ่มทรัพยากรป้ายอัปเดตทุกสัปดาห์ 🌸
-    </div>
-
-    <!-- Hero Section -->
-    <section class="hero-banner">
+    <!-- Boutique Hero Section (2-Column Studio Look) -->
+    <section class="boutique-hero">
       <div class="container">
-        <span class="hero-badge">✨ ร้านป้าย & กราฟิกดีไซน์ สไตล์น่ารักขี้เล่น</span>
-        <h1 class="hero-title">สร้างป้ายสวย กราฟิกปัง<br><span>แบบน่ารักไม่ซ้ำใคร</span> 🎀</h1>
-        <p class="hero-desc">
-          รวมไฟล์ป้ายสำเร็จ การ์ตูนตกแต่ง ฟอนต์ลายมือสุดคิ้วท์ และกลุ่ม VIP อัปเดตงานตลอดชีพ สั่งซื้อสะดวก ตรวจสลิปฉับไว สะสมแต้มรับของขวัญได้จริง!
-        </p>
-        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
-          <a href="pages/groups.html" class="btn btn-primary btn-lg">👥 เข้ากลุ่ม LINE VIP</a>
-          <a href="pages/fonts.html" class="btn btn-secondary btn-lg">🔤 ทดลองพิมพ์ฟอนต์</a>
-          <a href="pages/products.html" class="btn btn-outline btn-lg">🛍️ ช้อปสินค้าสำเร็จ</a>
+        <div class="hero-grid">
+          <div>
+            <span class="hero-badge">
+              <span>✿</span> สตูดิโองานป้าย & กราฟิกทำมือ
+            </span>
+            <h1 class="hero-heading">
+              งานป้ายและฟอนต์น่ารัก<br>
+              <span>ตั้งใจทำทุกชิ้น</span> เพื่อร้านคุณ
+            </h1>
+            <p class="hero-text">
+              เราวาดและออกแบบไฟล์กราฟิก ป้ายเมนู การ์ตูนตกแต่ง และฟอนต์ลายมือนุ่มฟู เพื่อให้คุณนำไปแต่งร้าน ปริ้นท์ป้าย หรือทำโพสต์โปรโมตได้ง่ายๆ และดูอบอุ่นเป็นกันเอง
+            </p>
+            <div class="hero-cta-group">
+              <a href="pages/groups.html" class="btn btn-primary btn-lg">เข้ากลุ่ม LINE VIP ➔</a>
+              <a href="pages/fonts.html" class="btn btn-secondary btn-lg">ทดลองพิมพ์ฟอนต์</a>
+              <a href="pages/products.html" class="btn btn-outline btn-lg">ดูสินค้าพร้อมใช้</a>
+            </div>
+          </div>
+
+          <!-- Right Showcase Artwork -->
+          <div>
+            <div class="hero-showcase-card">
+              <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" alt="BNC Studio Artwork" class="hero-showcase-img">
+              <div class="hero-showcase-caption">
+                <div>
+                  <span style="font-size: 0.78rem; color: var(--pink-primary); font-weight: 600; text-transform: uppercase;">Featured Artwork</span>
+                  <div style="font-family: 'Prompt', sans-serif; font-size: 1rem; font-weight: 600; color: var(--text-main);">ป้ายเมนู & การ์ตูนสุดคิ้วท์ 2026</div>
+                </div>
+                <a href="pages/portfolio.html" class="btn btn-secondary btn-sm">ดูผลงาน</a>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Quick Categories -->
-        <div class="quick-category-grid">
-          <a href="pages/groups.html" class="quick-cat-card">
-            <span class="icon">👥</span>
-            <span class="name">เข้ากลุ่ม LINE</span>
-          </a>
-          <a href="pages/products.html?cat=Template" class="quick-cat-card">
-            <span class="icon">📑</span>
-            <span class="name">เทมเพลตป้าย</span>
-          </a>
-          <a href="pages/fonts.html" class="quick-cat-card">
-            <span class="icon">🔤</span>
-            <span class="name">ฟอนต์ลายมือ</span>
-          </a>
-          <a href="pages/products.html?cat=Cartoon" class="quick-cat-card">
-            <span class="icon">🧸</span>
-            <span class="name">การ์ตูนไดคัท</span>
-          </a>
-          <a href="pages/products.html?cat=Elements" class="quick-cat-card">
-            <span class="icon">🎀</span>
-            <span class="name">Elements ตกแต่ง</span>
-          </a>
-          <a href="pages/points.html" class="quick-cat-card">
-            <span class="icon">⭐</span>
-            <span class="name">เช็คแต้มสะสม</span>
-          </a>
+        <!-- Category Pill Strip -->
+        <div class="category-strip">
+          <a href="pages/groups.html" class="category-pill">👥 กลุ่ม LINE รวมไฟล์</a>
+          <a href="pages/products.html?cat=Template" class="category-pill">📑 เทมเพลตป้ายเมนู</a>
+          <a href="pages/fonts.html" class="category-pill">🔤 ฟอนต์ลายมือเชิงพาณิชย์</a>
+          <a href="pages/products.html?cat=Cartoon" class="category-pill">🧸 การ์ตูนไดคัท</a>
+          <a href="pages/products.html?cat=Elements" class="category-pill">🎀 Elements แต่งภาพ</a>
+          <a href="pages/points.html" class="category-pill">⭐ ตรวจแต้มสะสม</a>
         </div>
       </div>
     </section>
 
-    <!-- Groups Highlight -->
-    <section style="padding: 3rem 1rem;">
+    <!-- Groups Section -->
+    <section style="padding: 4rem 0;">
       <div class="container">
-        <div class="section-title">
-          <span class="section-title__badge">LINE Groups</span>
-          <h2 class="section-title__heading">กลุ่ม LINE VIP ประจำร้าน 👥</h2>
-          <p class="section-title__sub">เข้ากลุ่มรับไฟล์ตลอดชีพ แอดมินดึงเข้ากลุ่มเอง อัปเดตไฟล์ใหม่ตลอดไม่มีหมดอายุ</p>
+        <div class="section-header">
+          <span class="section-tag">LINE Groups</span>
+          <h2 class="section-title">กลุ่ม LINE VIP รวมทรัพยากร</h2>
+          <p class="section-desc">สมัครครั้งเดียวเข้ากลุ่มถาวร อัปเดตไฟล์ป้าย การ์ตูน และฟอนต์ใหม่ลงกลุ่มสม่ำเสมอ แอดมินดูแลดึงเข้ากลุ่มเองค่ะ</p>
         </div>
 
         <div id="homeGroupsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Render dynamically -->
+          <!-- Render dynamically from Store -->
         </div>
 
-        <div style="text-align: center; margin-top: 2rem;">
-          <a href="pages/groups.html" class="btn btn-outline">ดูรายการกลุ่มทั้งหมด ➔</a>
+        <div style="text-align: center; margin-top: 2.5rem;">
+          <a href="pages/groups.html" class="btn btn-outline">ดูกลุ่มทั้งหมดที่มีในร้าน ➔</a>
         </div>
       </div>
     </section>
 
-    <!-- Featured Fonts Highlight -->
-    <section style="background: var(--pink-50); padding: 3rem 1rem; border-top: 1px solid var(--pink-100); border-bottom: 1px solid var(--pink-100);">
+    <!-- Featured Fonts Section -->
+    <section style="background-color: var(--bg-secondary); padding: 4rem 0; border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);">
       <div class="container">
-        <div class="section-title">
-          <span class="section-title__badge">Cute Fonts</span>
-          <h2 class="section-title__heading">ฟอนต์แนะนำยอดฮิต 🔤</h2>
-          <p class="section-title__sub">ทดลองพิมพ์ข้อความจริงได้ทันที มีทั้งระบบส่งสิทธิ์ Drive อัตโนมัติและแอดมินดึงเมลล์</p>
+        <div class="section-header">
+          <span class="section-tag">Cute Handwritten Fonts</span>
+          <h2 class="section-title">ฟอนต์ลายมือน่ารักพร้อมใช้</h2>
+          <p class="section-desc">สระไม่ลอย วรรณยุกต์ลงตำแหน่งสวย ใช้ได้ทั้งทำป้ายและงานออกแบบพาณิชย์</p>
         </div>
 
         <div id="homeFontsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- Render dynamically -->
+          <!-- Render dynamically from Store -->
         </div>
 
-        <div style="text-align: center; margin-top: 2rem;">
-          <a href="pages/fonts.html" class="btn btn-primary">ไปหน้าฟอนต์ & ทดลองพิมพ์สด ➔</a>
+        <div style="text-align: center; margin-top: 2.5rem;">
+          <a href="pages/fonts.html" class="btn btn-primary">ไปหน้าฟอนต์เพื่อทดลองพิมพ์ข้อความจริง ➔</a>
         </div>
       </div>
     </section>
 
-    <!-- Recent Reviews Highlight -->
-    <section style="padding: 3rem 1rem;">
+    <!-- Reviews Section -->
+    <section style="padding: 4rem 0;">
       <div class="container">
-        <div class="section-title">
-          <span class="section-title__badge">Customer Reviews</span>
-          <h2 class="section-title__heading">เสียงตอบรับจากลูกค้าจริง ❤️</h2>
-          <p class="section-title__sub">ความประทับใจจากลูกค้าที่สั่งซื้อและใช้บริการกับ BNC GraphMate</p>
+        <div class="section-header">
+          <span class="section-tag">Customer Stories</span>
+          <h2 class="section-title">รีวิวจากเพื่อนๆ ที่สั่งงานไป</h2>
+          <p class="section-desc">ความตั้งใจของทางร้านคืออยากให้ทุกคนได้งานน่ารักและนำไปใช้ต่อได้จริงค่ะ</p>
         </div>
 
         <div id="homeReviewsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Render dynamically -->
+          <!-- Render dynamically from Store -->
         </div>
 
-        <div style="text-align: center; margin-top: 2rem;">
-          <a href="pages/reviews.html" class="btn btn-outline">อ่านรีวิวทั้งหมด หรือส่งรีวิว ➔</a>
+        <div style="text-align: center; margin-top: 2.5rem;">
+          <a href="pages/reviews.html" class="btn btn-outline">อ่านรีวิวทั้งหมด หรือแวะเขียนรีวิว ➔</a>
         </div>
       </div>
     </section>
 
-    <!-- CTA Section -->
-    <section style="background: var(--white); border-top: 2px solid var(--pink-100); padding: 3.5rem 1rem; text-align: center;">
-      <div class="container" style="max-width: 650px;">
-        <span style="font-size: 3rem; display: block; margin-bottom: 0.5rem;">💌</span>
-        <h2 style="font-family: 'Mitr', sans-serif; font-size: 1.8rem; color: var(--pink-500); margin-bottom: 0.75rem;">มีข้อสงสัย หรืออยากสั่งทำป้ายพิเศษ?</h2>
-        <p style="color: var(--gray-600); margin-bottom: 1.5rem;">
-          ทักคุยกับแอดมินทาง LINE ได้โดยตรงเลยค่ะ ปรึกษาฟรี ตอบไว ใจดี พร้อมช่วยแนะนำทุกแพ็กเกจ!
+    <!-- Friendly Chat Banner -->
+    <section style="background-color: var(--bg-subtle); border-top: 1px solid var(--border-light); padding: 3.5rem 0; text-align: center;">
+      <div class="container" style="max-width: 620px;">
+        <span style="font-size: 2.2rem; display: inline-block; margin-bottom: 0.5rem;">💌</span>
+        <h2 style="font-family: 'Prompt', sans-serif; font-size: 1.6rem; color: var(--text-main); margin-bottom: 0.6rem;">อยากสั่งทำป้ายพิเศษ หรือสอบถามเพิ่มเติม?</h2>
+        <p style="color: var(--text-muted); font-size: 0.98rem; margin-bottom: 1.5rem;">
+          ทักมาพูดคุยกับแอดมินทาง LINE ได้เลยนะคะ ยินดีให้คำแนะนำทุกแพ็กเกจอย่างเป็นกันเองค่ะ
         </p>
-        <a id="lineCtaBtn" href="https://line.me/ti/p/~bncgraphmate" target="_blank" class="btn btn-success btn-lg">
-          💬 ทัก LINE ร้านค้าทันที
+        <a id="lineCtaBtn" href="https://line.me/ti/p/~bncgraphmate" target="_blank" class="btn btn-primary btn-lg">
+          💬 ทัก LINE ร้านค้าคุยกับเรา
         </a>
       </div>
     </section>
@@ -231,57 +284,53 @@
     <div class="container">
       <div class="footer__grid">
         <div>
-          <div class="footer__brand">
-            <span class="footer__logo">🎨</span>
-            <span class="footer__name">BNC GraphMate</span>
-          </div>
-          <p class="footer__desc" id="footerTagline">
-            ร้านป้าย & กราฟิกดีไซน์ สไตล์น่ารักขี้เล่น ให้บริการป้ายสำเร็จ เทมเพลต ฟอนต์ และกลุ่มทรัพยากรครบวงจร
+          <div class="footer__brand-title">BNC GraphMate ✿</div>
+          <p class="footer__brand-desc" id="footerTagline">
+            สตูดิโอออกแบบป้าย & สินค้าดิจิทัลสไตล์อบอุ่นน่ารัก ให้บริการไฟล์ป้ายสำเร็จ ฟอนต์ และกลุ่ม VIP
           </p>
         </div>
 
         <div>
-          <h4 class="footer__heading">เมนูหลัก</h4>
+          <h4 class="footer__heading">สำรวจร้านค้า</h4>
           <ul class="footer__links">
-            <li><a href="pages/groups.html" class="footer__link">เข้ากลุ่ม LINE VIP</a></li>
-            <li><a href="pages/products.html" class="footer__link">สินค้าดิจิทัลสำเร็จรูป</a></li>
-            <li><a href="pages/fonts.html" class="footer__link">ฟอนต์ลายมือ & ตัวพิมพ์</a></li>
-            <li><a href="pages/pricing.html" class="footer__link">อัตราค่าบริการ</a></li>
+            <li><a href="pages/groups.html" class="footer__link">กลุ่ม LINE VIP</a></li>
+            <li><a href="pages/products.html" class="footer__link">สินค้าดิจิทัลพร้อมใช้</a></li>
+            <li><a href="pages/fonts.html" class="footer__link">ฟอนต์ลายมือ</a></li>
+            <li><a href="pages/pricing.html" class="footer__link">แพ็กเกจราคา</a></li>
           </ul>
         </div>
 
         <div>
-          <h4 class="footer__heading">ลูกค้า & บริการ</h4>
+          <h4 class="footer__heading">ข้อมูลคำสั่งซื้อ</h4>
           <ul class="footer__links">
-            <li><a href="pages/orders.html" class="footer__link">ตรวจสอบสถานะคำสั่งซื้อ</a></li>
-            <li><a href="pages/points.html" class="footer__link">เช็คแต้มสะสม & สิทธิพิเศษ</a></li>
+            <li><a href="pages/orders.html" class="footer__link">เช็กสถานะออเดอร์</a></li>
+            <li><a href="pages/points.html" class="footer__link">ตรวจสอบแต้มสะสม</a></li>
             <li><a href="pages/reviews.html" class="footer__link">รีวิวจากลูกค้า</a></li>
             <li><a href="pages/contact.html" class="footer__link">ติดต่อสอบถาม</a></li>
           </ul>
         </div>
 
         <div>
-          <h4 class="footer__heading">ช่องทางติดต่อ</h4>
-          <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 0.5rem;">
+          <h4 class="footer__heading">พูดคุยกับเรา</h4>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.6rem;">
             📱 โทร: <span id="footerPhone">081-234-5678</span><br>
             💬 LINE: <span id="footerLine">@bncgraphmate</span>
           </p>
-          <a href="admin/index.html" style="font-size: 0.85rem; color: var(--pink-500); text-decoration: underline;">
-            🔒 เข้าสู่ระบบแอดมิน (Admin Portal)
+          <a href="admin/index.html" style="font-size: 0.85rem; color: var(--pink-primary); text-decoration: underline;">
+            🔒 สำหรับผู้ดูแลระบบ (Admin)
           </a>
         </div>
       </div>
 
       <div class="footer__bottom">
-        <p class="footer__copy">© 2026 BNC GraphMate. All rights reserved. ออกแบบด้วยความน่ารัก 🌸</p>
+        <p>© 2026 BNC GraphMate ✿ ออกแบบและดูแลด้วยความใส่ใจ</p>
       </div>
     </div>
   </footer>
 
-  <!-- Scripts -->
+  <!-- Scripts (100% Preserving Logic) -->
   <script src="js/store.js"></script>
   <script>
-    // Hamburger menu toggle
     const navToggle = document.getElementById('navToggle');
     const navMenu = document.getElementById('navMenu');
     if (navToggle && navMenu) {
@@ -290,7 +339,6 @@
       });
     }
 
-    // Load dynamic data from Store
     document.addEventListener('DOMContentLoaded', () => {
       const settings = Store.getSettings();
       if (settings) {
@@ -303,79 +351,79 @@
         }
       }
 
-      // Render Groups (top 2)
+      // Render Groups with visual focus & clear CTA hierarchy
       const groups = Store.getGroups().slice(0, 2);
       const groupsGrid = document.getElementById('homeGroupsGrid');
       if (groupsGrid && groups.length > 0) {
         groupsGrid.innerHTML = groups.map(g => `
           <div class="card card--flat">
-            <img src="${g.cover_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600'}" alt="${g.name}" style="width: 100%; height: 200px; object-fit: cover; border-top-left-radius: var(--radius-2xl); border-top-right-radius: var(--radius-2xl);">
+            <img src="${g.cover_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600'}" alt="${g.name}" style="width: 100%; height: 210px; object-fit: cover;">
             <div class="card__body">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--gray-900); margin: 0;">${g.name}</h3>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem;">
+                <h3 style="font-size: 1.18rem; color: var(--text-main); margin: 0;">${g.name}</h3>
                 <span class="price-tag">฿${g.price}</span>
               </div>
-              <p style="color: var(--gray-600); font-size: 0.95rem; margin-bottom: 1rem;">${g.description}</p>
-              <div style="background: var(--pink-50); border: 1px dashed var(--pink-200); border-radius: 0.75rem; padding: 0.75rem; font-size: 0.85rem; color: var(--pink-600); margin-bottom: 1.25rem;">
-                ✨ สิ่งที่จะได้รับ: เข้า LINE Group ถาวร + ไฟล์อัปเดตใหม่ตลอดชีพ
+              <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 1rem;">${g.description}</p>
+              <div style="background: var(--bg-secondary); border-radius: var(--radius-md); padding: 0.75rem 1rem; font-size: 0.85rem; color: var(--pink-deep); margin-bottom: 1.25rem;">
+                ✿ สิ่งที่จะได้รับ: เข้า LINE Group รับไฟล์อัปเดตตลอดชีพ
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                <a href="${g.preview_drive_url}" target="_blank" class="btn btn-secondary btn-sm">👁️ ดูตัวอย่าง</a>
-                <a href="pages/groups.html?id=${g.id}" class="btn btn-primary btn-sm">👥 เข้ากลุ่มนี้</a>
+              <div style="display: grid; grid-template-columns: 1fr 1.3fr; gap: 0.6rem; margin-top: auto;">
+                <a href="${g.preview_drive_url}" target="_blank" class="btn btn-outline btn-sm">👁️ ดูตัวอย่าง</a>
+                <a href="pages/groups.html?id=${g.id}" class="btn btn-primary btn-sm">เข้ากลุ่มนี้ ➔</a>
               </div>
             </div>
           </div>
         `).join('');
       }
 
-      // Render Fonts (top 3)
+      // Render Fonts with clean preview area
       const fonts = Store.getFonts().slice(0, 3);
       const fontsGrid = document.getElementById('homeFontsGrid');
       if (fontsGrid && fonts.length > 0) {
         fontsGrid.innerHTML = fonts.map(f => `
           <div class="card card--flat font-card">
-            <div style="padding: 1.25rem; border-bottom: 1px solid var(--pink-100);">
+            <div style="padding: 1.25rem; border-bottom: 1px solid var(--border-subtle);">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span class="badge badge--pink">${f.category}</span>
                 <span class="price-tag price-tag--sm">฿${f.price}</span>
               </div>
-              <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; margin-top: 0.5rem; color: var(--gray-900);">${f.name}</h3>
+              <h3 style="font-size: 1.15rem; margin-top: 0.45rem; color: var(--text-main);">${f.name}</h3>
             </div>
-            <div class="font-card__preview" style="background: var(--pink-50); padding: 1.5rem 1rem; text-align: center; font-size: 1.25rem; color: var(--pink-600); font-weight: 500;">
-              ${f.preview_text || 'ตัวอย่างฟอนต์สุดน่ารัก 🌸'}
+            <div class="font-card__preview" style="font-size: 1.25rem; font-weight: 500;">
+              ${f.preview_text || 'ข้อความตัวอย่างฟอนต์น่ารัก ✿'}
             </div>
             <div class="card__body" style="padding-top: 1rem;">
-              <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1rem;">${f.description}</p>
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 0.8rem; color: ${f.delivery_type === 'GOOGLE_DRIVE' ? 'var(--success)' : 'var(--info)'};">
-                  ${f.delivery_type === 'GOOGLE_DRIVE' ? '⚡ ดึงสิทธิ์ Drive ออโต้' : '👩‍💼 แอดมินดึงเมลล์ให้'}
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">${f.description}</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                <span style="font-size: 0.8rem; color: ${f.delivery_type === 'GOOGLE_DRIVE' ? 'var(--status-success-text)' : 'var(--status-proc-text)'};">
+                  ${f.delivery_type === 'GOOGLE_DRIVE' ? '⚡ ส่งสิทธิ์ Drive ทันที' : '👩‍💼 แอดมินดึงสิทธิ์ให้'}
                 </span>
-                <a href="pages/fonts.html?id=${f.id}" class="btn btn-primary btn-sm">สั่งซื้อ ➔</a>
+                <a href="pages/fonts.html?id=${f.id}" class="btn btn-primary btn-sm">ดูรายละเอียด</a>
               </div>
             </div>
           </div>
         `).join('');
       }
 
-      // Render Reviews (top 2)
+      // Render Reviews
       const reviews = Store.getApprovedReviews().slice(0, 2);
       const reviewsGrid = document.getElementById('homeReviewsGrid');
       if (reviewsGrid && reviews.length > 0) {
         reviewsGrid.innerHTML = reviews.map(r => `
-          <div class="card card--flat review-card">
+          <div class="card card--flat">
             <div class="card__body">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <div style="font-weight: 600; color: var(--gray-900);">
-                  👤 ${r.customer_name}
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                <div style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">
+                  ✿ คุณ${r.customer_name}
                 </div>
-                <div style="color: #F59E0B; font-size: 1.1rem;">
+                <div style="color: #F59E0B; font-size: 0.95rem;">
                   ${'★'.repeat(r.rating || 5)}
                 </div>
               </div>
-              <div style="font-size: 0.85rem; color: var(--pink-500); font-weight: 500; margin-bottom: 0.5rem;">
-                สั่งซื้อ: ${r.product_name}
+              <div style="font-size: 0.82rem; color: var(--pink-primary); font-weight: 500; margin-bottom: 0.45rem;">
+                ชิ้นงาน: ${r.product_name}
               </div>
-              <p style="color: var(--gray-600); font-size: 0.95rem; line-height: 1.5;">"${r.message}"</p>
+              <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; margin: 0;">"${r.message}"</p>
             </div>
           </div>
         `).join('');

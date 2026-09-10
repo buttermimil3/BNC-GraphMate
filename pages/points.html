@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>เช็คคะแนนสะสม & สิทธิพิเศษ ⭐ | BNC GraphMate</title>
+  <title>สะสมแต้ม BNC Rewards ✿ BNC GraphMate</title>
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/components.css">
   <style>
-    .points-hero {
-      background: var(--pink-50);
-      border-bottom: 2px solid var(--pink-100);
-      padding: 2.5rem 1rem;
+    .page-hero {
+      background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 3rem 0;
       text-align: center;
     }
     .search-card {
-      background: var(--white);
-      border: 2px solid var(--pink-200);
-      border-radius: 1.5rem;
-      padding: 1.75rem;
-      max-width: 580px;
-      margin: -2rem auto 2.5rem;
-      box-shadow: 0 4px 20px rgba(255, 45, 138, 0.08);
+      background: var(--bg-primary);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      max-width: 560px;
+      margin: -2rem auto 3rem;
+      box-shadow: 0 10px 30px rgba(120, 60, 80, 0.06);
       position: relative;
       z-index: 10;
     }
@@ -28,15 +28,15 @@
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      padding: 0.35rem 0.85rem;
-      border-radius: 9999px;
+      padding: 0.3rem 0.85rem;
+      border-radius: var(--radius-full);
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
     }
-    .level-BRONZE { background: #FEF3C7; color: #B45309; }
-    .level-SILVER { background: #E0E7FF; color: #4338CA; }
-    .level-GOLD { background: #FEF08A; color: #854D0E; }
-    .level-DIAMOND { background: #FCE7F3; color: #BE185D; }
+    .level-BRONZE { background: #FEF3C7; color: #92400E; }
+    .level-SILVER { background: #EEF2FF; color: #3730A3; }
+    .level-GOLD { background: #FEF9C3; color: #854D0E; }
+    .level-DIAMOND { background: #FCE7F3; color: #9D174D; }
   </style>
 </head>
 <body>
@@ -45,10 +45,10 @@
   <header class="navbar">
     <div class="navbar__container">
       <a href="../index.html" class="navbar__brand">
-        <span class="navbar__logo">🎨</span>
-        <span class="navbar__title">BNC GraphMate</span>
+        <span>BNC GraphMate</span>
+        <span class="brand-dot">✿</span>
       </a>
-      <button class="navbar__hamburger" id="navToggle" aria-label="เมนู">
+      <button class="navbar__hamburger" id="navToggle" aria-label="เปิดเมนู">
         <span class="navbar__hamburger-bar"></span>
         <span class="navbar__hamburger-bar"></span>
         <span class="navbar__hamburger-bar"></span>
@@ -57,27 +57,25 @@
         <a href="../index.html" class="navbar__link">หน้าแรก</a>
         <a href="portfolio.html" class="navbar__link">ผลงาน</a>
         <a href="pricing.html" class="navbar__link">ราคา/บริการ</a>
-        <a href="groups.html" class="navbar__link">เข้ากลุ่ม LINE 👥</a>
-        <a href="products.html" class="navbar__link">สินค้าสำเร็จ 🛍️</a>
-        <a href="fonts.html" class="navbar__link">ฟอนต์ 🔤</a>
-        <a href="points.html" class="navbar__link active">สะสมแต้ม ⭐</a>
-        <a href="reviews.html" class="navbar__link">รีวิว ❤️</a>
-        <a href="orders.html" class="navbar__link">สถานะออเดอร์ 📦</a>
-        <a href="contact.html" class="navbar__link">ติดต่อ/LINE 💬</a>
+        <a href="groups.html" class="navbar__link">เข้ากลุ่ม LINE</a>
+        <a href="products.html" class="navbar__link">สินค้าสำเร็จ</a>
+        <a href="fonts.html" class="navbar__link">ฟอนต์</a>
+        <a href="points.html" class="navbar__link active">สะสมแต้ม</a>
+        <a href="reviews.html" class="navbar__link">รีวิว</a>
+        <a href="orders.html" class="navbar__link">เช็กสถานะ</a>
+        <a href="contact.html" class="navbar__link">ติดต่อร้าน</a>
         <a href="../admin/points.html" class="btn btn-outline btn-sm">⚙️ จัดการแต้ม</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="points-hero">
+    <section class="page-hero">
       <div class="container">
-        <span class="badge badge--pink" style="margin-bottom: 0.5rem;">BNC Rewards</span>
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 2.2rem; color: var(--gray-900); margin-bottom: 0.5rem;">
-          สะสมแต้ม BNC Rewards ⭐
-        </h1>
-        <p style="color: var(--gray-600); max-width: 550px; margin: 0 auto 1.5rem;">
-          ทุกยอดสั่งซื้อ 10 บาท รับ 1 แต้ม! สะสมแต้มเพื่ออัปเกรดระดับสมาชิกและรับส่วนลดพิเศษ
+        <span class="section-tag">BNC Loyalty Rewards</span>
+        <h1 class="section-title">คะแนนสะสม & สิทธิพิเศษ ⭐</h1>
+        <p class="section-desc" style="max-width: 550px; margin: 0 auto 1.5rem;">
+          ทุกยอดสั่งซื้อ 10 บาท รับ 1 แต้มทันทีค่ะ สะสมเพื่อเลื่อนระดับสมาชิกและรับส่วนลดพิเศษ
         </p>
       </div>
     </section>
@@ -85,49 +83,49 @@
     <!-- Search Section -->
     <div class="container">
       <div class="search-card">
-        <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; color: var(--gray-900); margin-bottom: 0.75rem; text-align: center;">
+        <h3 style="font-size: 1.15rem; color: var(--text-main); margin-bottom: 0.4rem; text-align: center;">
           🔍 ค้นหาคะแนนสะสมของคุณ
         </h3>
-        <p style="font-size: 0.85rem; color: var(--gray-600); text-align: center; margin-bottom: 1.25rem;">
-          กรอกชื่อที่ใช้ลงทะเบียน, เบอร์โทรศัพท์ หรือ Member Code (เช่น BNC-8899)
+        <p style="font-size: 0.86rem; color: var(--text-muted); text-align: center; margin-bottom: 1.25rem;">
+          กรอกชื่อที่ใช้ลงทะเบียนกับร้าน หรือ Member Code (เช่น BNC-8899)
         </p>
 
-        <form id="searchPointsForm" style="display: flex; gap: 0.5rem;">
-          <input type="text" id="pointsSearchInput" class="form-input" placeholder="พิมพ์ชื่อ, เบอร์โทร หรือ BNC-XXXX" required>
+        <form id="searchPointsForm" style="display: flex; gap: 0.6rem;">
+          <input type="text" id="pointsSearchInput" class="form-input" placeholder="พิมพ์ชื่อ, เบอร์ หรือ BNC-XXXX" required>
           <button type="submit" class="btn btn-primary" style="white-space: nowrap;">ค้นหาแต้ม ➔</button>
         </form>
 
-        <div style="margin-top: 0.75rem; text-align: center;">
-          <span style="font-size: 0.8rem; color: var(--gray-400);">ทดลองค้นหา:</span>
-          <button type="button" onclick="quickSearch('น้องพลอย')" style="background: none; border: none; color: var(--pink-500); font-size: 0.8rem; cursor: pointer; text-decoration: underline;">
+        <div style="margin-top: 1rem; text-align: center;">
+          <span style="font-size: 0.8rem; color: var(--text-light);">ทดลองค้นหา:</span>
+          <button type="button" onclick="quickSearch('น้องพลอย')" style="background: none; border: none; color: var(--pink-primary); font-size: 0.82rem; cursor: pointer; text-decoration: underline; font-family: inherit;">
             น้องพลอย (Demo)
           </button>
         </div>
       </div>
 
       <!-- Result Profile Display -->
-      <div id="pointsResultCard" style="display: none; max-width: 720px; margin: 0 auto 3rem;">
-        <div class="card card--flat" style="border: 2px solid var(--pink-200); padding: 1.75rem;">
+      <div id="pointsResultCard" style="display: none; max-width: 720px; margin: 0 auto 3.5rem;">
+        <div class="card card--flat" style="padding: 2rem;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
             <div>
               <span id="resMemberBadge" class="level-badge"></span>
-              <h2 id="resCustName" style="font-family: 'Mitr', sans-serif; font-size: 1.5rem; color: var(--gray-900); margin: 0.5rem 0 0.25rem;"></h2>
-              <span style="font-size: 0.85rem; color: var(--gray-600);">Member Code: <strong id="resCustCode" style="color: var(--pink-600);"></strong></span>
+              <h2 id="resCustName" style="font-size: 1.45rem; color: var(--text-main); margin: 0.45rem 0 0.2rem;"></h2>
+              <span style="font-size: 0.86rem; color: var(--text-muted);">Member Code: <strong id="resCustCode" style="color: var(--pink-primary);"></strong></span>
             </div>
 
             <!-- Points Display Box -->
-            <div style="background: var(--pink-50); border: 1px solid var(--pink-200); border-radius: 1rem; padding: 1rem 1.5rem; text-align: right;">
-              <span style="font-size: 0.85rem; color: var(--gray-600); display: block;">คะแนนสะสมปัจจุบัน</span>
-              <span id="resTotalPoints" style="font-family: 'Mitr', sans-serif; font-size: 2.2rem; font-weight: 700; color: var(--pink-500);">0</span>
-              <span style="font-size: 0.9rem; color: var(--pink-500); font-weight: 500;">คะแนน</span>
+            <div style="background: var(--bg-subtle); border-radius: var(--radius-lg); padding: 1rem 1.4rem; text-align: right;">
+              <span style="font-size: 0.82rem; color: var(--text-muted); display: block;">คะแนนสะสมปัจจุบัน</span>
+              <span id="resTotalPoints" style="font-family: 'Prompt', sans-serif; font-size: 2.2rem; font-weight: 700; color: var(--pink-primary); line-height: 1.15;">0</span>
+              <span style="font-size: 0.85rem; color: var(--pink-primary); font-weight: 500;">คะแนน</span>
             </div>
           </div>
 
           <!-- Progress Bar to Next Level -->
           <div style="margin-bottom: 1.75rem;">
-            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem;">
-              <span id="nextLevelText">ระดับถัดไป</span>
-              <span id="progressPointsText" style="color: var(--pink-600);">750 / 1,000 คะแนน</span>
+            <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 500; margin-bottom: 0.5rem;">
+              <span id="nextLevelText" style="color: var(--text-main);">ระดับถัดไป</span>
+              <span id="progressPointsText" style="color: var(--pink-primary); font-family: 'Prompt', sans-serif;">750 / 1,000 คะแนน</span>
             </div>
             <div class="progress-bar">
               <div id="pointsProgressBar" class="progress-bar__fill" style="width: 75%;"></div>
@@ -135,9 +133,9 @@
           </div>
 
           <!-- Badges / Achievements -->
-          <div style="background: var(--gray-50); border-radius: 1rem; padding: 1rem; margin-bottom: 1.5rem;">
-            <h4 style="font-size: 0.95rem; font-weight: 600; color: var(--gray-900); margin-bottom: 0.75rem;">
-              🏅 ป้ายเกียรติยศ (Badges)
+          <div style="background: var(--bg-secondary); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.75rem;">
+            <h4 style="font-size: 0.92rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.6rem;">
+              ป้ายเกียรติยศสมาชิก ✿
             </h4>
             <div id="badgesContainer" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
               <!-- Badges inserted here -->
@@ -146,8 +144,8 @@
 
           <!-- Point History -->
           <div>
-            <h4 style="font-family: 'Mitr', sans-serif; font-size: 1.1rem; color: var(--gray-900); margin-bottom: 0.75rem;">
-              📜 ประวัติคะแนนล่าสุด
+            <h4 style="font-size: 1.05rem; color: var(--text-main); margin-bottom: 0.75rem;">
+              📜 ประวัติคะแนนสะสม
             </h4>
             <div id="historyTableContainer">
               <!-- Render history -->
@@ -158,34 +156,34 @@
       </div>
 
       <!-- Membership Levels Explanation -->
-      <div style="max-width: 850px; margin: 0 auto 3rem;">
-        <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; text-align: center; margin-bottom: 1.25rem;">
-          สิทธิพิเศษตามระดับสมาชิก 🏆
+      <div style="max-width: 850px; margin: 0 auto 3.5rem;">
+        <h3 style="font-size: 1.25rem; text-align: center; margin-bottom: 1.5rem; color: var(--text-main);">
+          สิทธิพิเศษตามระดับสมาชิก ✿
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="card card--flat" style="text-align: center; padding: 1.25rem;">
-            <span style="font-size: 2rem;">🥉</span>
-            <h4 style="color: #B45309; font-weight: 700; margin: 0.25rem 0;">BRONZE</h4>
-            <p style="font-size: 0.8rem; color: var(--gray-600);">0 - 499 คะแนน</p>
-            <p style="font-size: 0.85rem; margin-top: 0.5rem;">รับแต้มสะสมทุกคำสั่งซื้อ</p>
+          <div class="card card--flat" style="text-align: center; padding: 1.35rem 1rem;">
+            <span style="font-size: 1.8rem; display: block; margin-bottom: 0.25rem;">🥉</span>
+            <h4 style="color: #92400E; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem;">BRONZE</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.4rem;">0 - 499 คะแนน</p>
+            <p style="font-size: 0.84rem; color: var(--text-main); margin: 0;">รับแต้มสะสมทุกคำสั่งซื้อ</p>
           </div>
-          <div class="card card--flat" style="text-align: center; padding: 1.25rem;">
-            <span style="font-size: 2rem;">🥈</span>
-            <h4 style="color: #4338CA; font-weight: 700; margin: 0.25rem 0;">SILVER</h4>
-            <p style="font-size: 0.8rem; color: var(--gray-600);">500 - 999 คะแนน</p>
-            <p style="font-size: 0.85rem; margin-top: 0.5rem;">ส่วนลด 5% ทุกสินค้าดิจิทัล</p>
+          <div class="card card--flat" style="text-align: center; padding: 1.35rem 1rem;">
+            <span style="font-size: 1.8rem; display: block; margin-bottom: 0.25rem;">🥈</span>
+            <h4 style="color: #3730A3; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem;">SILVER</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.4rem;">500 - 999 คะแนน</p>
+            <p style="font-size: 0.84rem; color: var(--text-main); margin: 0;">ส่วนลด 5% ทุกสินค้าดิจิทัล</p>
           </div>
-          <div class="card card--flat" style="text-align: center; padding: 1.25rem;">
-            <span style="font-size: 2rem;">🥇</span>
-            <h4 style="color: #854D0E; font-weight: 700; margin: 0.25rem 0;">GOLD</h4>
-            <p style="font-size: 0.8rem; color: var(--gray-600);">1,000 - 2,999 คะแนน</p>
-            <p style="font-size: 0.85rem; margin-top: 0.5rem;">ส่วนลด 10% + ฟอนต์ฟรี 1 รายการ</p>
+          <div class="card card--flat" style="text-align: center; padding: 1.35rem 1rem;">
+            <span style="font-size: 1.8rem; display: block; margin-bottom: 0.25rem;">🥇</span>
+            <h4 style="color: #854D0E; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem;">GOLD</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.4rem;">1,000 - 2,999 คะแนน</p>
+            <p style="font-size: 0.84rem; color: var(--text-main); margin: 0;">ส่วนลด 10% + ฟอนต์ฟรี 1 ชิ้น</p>
           </div>
-          <div class="card card--flat" style="text-align: center; padding: 1.25rem;">
-            <span style="font-size: 2rem;">💎</span>
-            <h4 style="color: #BE185D; font-weight: 700; margin: 0.25rem 0;">DIAMOND</h4>
-            <p style="font-size: 0.8rem; color: var(--gray-600);">3,000+ คะแนน</p>
-            <p style="font-size: 0.85rem; margin-top: 0.5rem;">สิทธิ์เข้ากลุ่ม VIP ฟรี 1 กลุ่ม</p>
+          <div class="card card--flat" style="text-align: center; padding: 1.35rem 1rem;">
+            <span style="font-size: 1.8rem; display: block; margin-bottom: 0.25rem;">💎</span>
+            <h4 style="color: #9D174D; font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem;">DIAMOND</h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.4rem;">3,000+ คะแนน</p>
+            <p style="font-size: 0.84rem; color: var(--text-main); margin: 0;">สิทธิ์เข้ากลุ่ม VIP ฟรี 1 กลุ่ม</p>
           </div>
         </div>
       </div>
@@ -232,16 +230,15 @@
       const level = cust.member_level || 'BRONZE';
       const badge = document.getElementById('resMemberBadge');
       badge.className = 'level-badge level-' + level;
-      badge.innerHTML = `★ สมาชิกระดับ ${level}`;
+      badge.innerHTML = `✿ สมาชิกระดับ ${level}`;
 
-      // Progress Calculation
       const pts = cust.total_points || 0;
       let target = 500;
       let nextLevel = 'SILVER';
 
       if (pts >= 3000) {
         target = 3000;
-        nextLevel = 'MAX (DIAMOND)';
+        nextLevel = 'สูงสุด (DIAMOND)';
       } else if (pts >= 1000) {
         target = 3000;
         nextLevel = 'DIAMOND (3,000 แต้ม)';
@@ -258,35 +255,33 @@
       document.getElementById('progressPointsText').textContent = `${pts.toLocaleString()} / ${target.toLocaleString()} คะแนน`;
       document.getElementById('pointsProgressBar').style.width = percent + '%';
 
-      // Badges
       const badgesBox = document.getElementById('badgesContainer');
-      let badgesHtml = '<span class="badge badge--pink">🌸 สมาชิก BNC GraphMate</span>';
-      if (pts >= 100) badgesHtml += '<span class="badge badge--success">⭐ ช้อปเก่ง</span>';
-      if (pts >= 500) badgesHtml += '<span class="badge badge--info">🥈 ลูกค้าคนโปรด</span>';
+      let badgesHtml = '<span class="badge badge--pink">🌸 สมาชิก BNC Studio</span>';
+      if (pts >= 100) badgesHtml += '<span class="badge badge--success">⭐ ช้อปผลงาน</span>';
+      if (pts >= 500) badgesHtml += '<span class="badge badge--info">🥈 สมาชิกคนโปรด</span>';
       if (pts >= 1000) badgesHtml += '<span class="badge badge--warning">👑 VIP Supporter</span>';
       badgesBox.innerHTML = badgesHtml;
 
-      // History
       const history = Store.getPointTransactionsByCustomer(cust.id);
       const historyBox = document.getElementById('historyTableContainer');
       if (history.length === 0) {
-        historyBox.innerHTML = '<p style="color: var(--gray-400); font-size: 0.9rem;">ยังไม่มีรายการคะแนน</p>';
+        historyBox.innerHTML = '<p style="color: var(--text-light); font-size: 0.9rem;">ยังไม่มีรายการคะแนน</p>';
       } else {
         historyBox.innerHTML = `
-          <table class="table" style="width: 100%; font-size: 0.9rem;">
+          <table class="table" style="font-size: 0.88rem;">
             <thead>
-              <tr style="border-bottom: 2px solid var(--pink-100); text-align: left;">
-                <th style="padding: 0.5rem;">วันที่</th>
-                <th style="padding: 0.5rem;">รายละเอียด</th>
-                <th style="padding: 0.5rem; text-align: right;">คะแนน</th>
+              <tr style="border-bottom: 1px solid var(--border-light);">
+                <th style="padding: 0.5rem 0.6rem;">วันที่</th>
+                <th style="padding: 0.5rem 0.6rem;">รายละเอียด</th>
+                <th style="padding: 0.5rem 0.6rem; text-align: right;">คะแนน</th>
               </tr>
             </thead>
             <tbody>
               ${history.map(h => `
-                <tr style="border-bottom: 1px solid var(--gray-100);">
-                  <td style="padding: 0.5rem; color: var(--gray-600);">${new Date(h.created_at).toLocaleDateString('th-TH')}</td>
-                  <td style="padding: 0.5rem;">${h.description}</td>
-                  <td style="padding: 0.5rem; text-align: right; font-weight: 600; color: ${h.type === 'REDEEM' ? 'var(--danger)' : 'var(--success)'};">
+                <tr>
+                  <td style="padding: 0.55rem 0.6rem; color: var(--text-muted);">${new Date(h.created_at).toLocaleDateString('th-TH')}</td>
+                  <td style="padding: 0.55rem 0.6rem;">${h.description}</td>
+                  <td style="padding: 0.55rem 0.6rem; text-align: right; font-weight: 600; color: ${h.type === 'REDEEM' ? 'var(--status-error-text)' : 'var(--status-success-text)'};">
                     ${h.type === 'REDEEM' ? '-' : '+'}${h.amount}
                   </td>
                 </tr>
@@ -300,7 +295,6 @@
       resultCard.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Auto search demo on load
     document.addEventListener('DOMContentLoaded', () => {
       const demoCust = Store.getCustomers()[0];
       if (demoCust) displayCustomerPoints(demoCust);

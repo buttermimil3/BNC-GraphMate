@@ -12,11 +12,11 @@
 
   <div class="admin-layout">
     <aside class="admin-sidebar">
-      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+      <div class="sidebar-brand">
         <span>🎨</span>
         <span>BNC Admin</span>
       </div>
-      <nav class="sidebar-nav" style="padding: 1rem 0;">
+      <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
         <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
         <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
@@ -27,19 +27,19 @@
         <a href="reviews.html" class="sidebar-link active">❤️ รีวิวลูกค้า</a>
         <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
       </nav>
-      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+      <div style="padding: 1.25rem; margin-top: auto; border-top: 1px solid var(--border-light);">
         <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
     <main class="admin-main">
-      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem;">
-        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+      <header class="admin-topbar">
+        <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
           ตรวจสอบ & จัดการรีวิวลูกค้า ❤️
         </h1>
       </header>
 
-      <div style="padding: 1.5rem;">
+      <div style="padding: 2rem 1.75rem;">
         <div id="adminReviewsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Render dynamically -->
         </div>
@@ -54,24 +54,24 @@
       const container = document.getElementById('adminReviewsGrid');
 
       if (list.length === 0) {
-        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><p>ยังไม่มีรีวิวเข้ามา</p></div>';
+        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><p>ยังไม่มีรีวิวเข้ามาค่ะ 🌸</p></div>';
         return;
       }
 
       container.innerHTML = list.map(r => `
-        <div class="card card--flat" style="padding: 1.25rem; border-left: 4px solid ${r.status === 'APPROVED' ? 'var(--success)' : r.status === 'PENDING' ? 'var(--warning)' : 'var(--gray-400)'};">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+        <div class="card card--flat" style="padding: 1.5rem; border: 1px solid var(--border-light); border-left: 4px solid ${r.status === 'APPROVED' ? '#10B981' : r.status === 'PENDING' ? '#F59E0B' : '#9CA3AF'}; border-radius: var(--radius-md); background: var(--bg-primary);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
             <div>
-              <span class="badge ${r.status === 'APPROVED' ? 'badge--success' : r.status === 'PENDING' ? 'badge--warning' : 'badge--gray'}">
+              <span class="badge" style="background: ${r.status === 'APPROVED' ? '#F0FDF4' : r.status === 'PENDING' ? '#FFFBEB' : '#F4F4F5'}; color: ${r.status === 'APPROVED' ? '#166534' : r.status === 'PENDING' ? '#92400E' : '#52525B'}; font-weight: 600;">
                 ${r.status === 'APPROVED' ? '✅ อนุมัติแล้ว (แสดงหน้าร้าน)' : r.status === 'PENDING' ? '🕐 รออนุมัติ' : '🚫 ซ่อนไว้'}
               </span>
-              <h3 style="font-size: 1.1rem; margin: 0.35rem 0 0.1rem; color: var(--gray-900);">👤 ${r.customer_name}</h3>
-              <span style="font-size: 0.85rem; color: var(--pink-500);">สินค้า: ${r.product_name}</span>
+              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; margin: 0.5rem 0 0.15rem; color: var(--text-main);">👤 ${r.customer_name}</h3>
+              <span style="font-size: 0.85rem; color: var(--pink-deep); font-weight: 500;">สินค้า: ${r.product_name}</span>
             </div>
-            <span style="color: #F59E0B; font-size: 1.2rem;">${'★'.repeat(r.rating || 5)}</span>
+            <span style="color: #F59E0B; font-size: 1.15rem;">${'★'.repeat(r.rating || 5)}</span>
           </div>
 
-          <p style="color: var(--gray-600); font-size: 0.95rem; margin: 0.5rem 0 1rem;">
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0.5rem 0 1.25rem;">
             "${r.message}"
           </p>
 
