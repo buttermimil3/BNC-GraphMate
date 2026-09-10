@@ -1418,11 +1418,9 @@ input[type="range"] {
 
 .goodnotes-paper {
   background-color: #FFFDFE;
-  background-image: 
-    linear-gradient(90deg, transparent 46px, #F7B5CD 46px, #F7B5CD 48px, transparent 48px),
-    repeating-linear-gradient(transparent, transparent 33px, #F8DBE7 33px, #F8DBE7 35px);
-  background-size: 100% 100%, 100% 35px;
-  padding: 22px 24px 22px 64px;
+  background-image: linear-gradient(90deg, transparent 46px, #F7B5CD 46px, #F7B5CD 48px, transparent 48px);
+  background-size: 100% 100%;
+  padding: 24px 24px 24px 72px;
   min-height: 180px;
   position: relative;
   border-radius: 0 0 18px 18px;
@@ -1430,11 +1428,9 @@ input[type="range"] {
 
 @media (max-width: 640px) {
   .goodnotes-paper {
-    background-image: 
-      linear-gradient(90deg, transparent 32px, #F7B5CD 32px, #F7B5CD 34px, transparent 34px),
-      repeating-linear-gradient(transparent, transparent 31px, #F8DBE7 31px, #F8DBE7 33px);
-    background-size: 100% 100%, 100% 33px;
-    padding: 16px 14px 16px 44px;
+    background-image: linear-gradient(90deg, transparent 32px, #F7B5CD 32px, #F7B5CD 34px, transparent 34px);
+    background-size: 100% 100%;
+    padding: 20px 16px 20px 52px;
   }
 }
 
@@ -1798,9 +1794,7 @@ input[type="range"] {
 .queue-notebook-paper {
   background-color: #FFFDFE;
   background-image: 
-    linear-gradient(90deg, transparent 46px, #F7B5CD 46px, #F7B5CD 48px, transparent 48px),
-    repeating-linear-gradient(transparent, transparent 33px, #F8DBE7 33px, #F8DBE7 35px);
-  background-size: 100% 100%, 100% 35px;
+    linear-gradient(90deg, transparent 46px, #F7B5CD 46px, #F7B5CD 48px, transparent 48px); background-size: 100% 100%;
   padding: 24px 24px 22px 64px;
   position: relative;
   border-radius: 0 0 20px 20px;
@@ -1809,9 +1803,7 @@ input[type="range"] {
 @media (max-width: 640px) {
   .queue-notebook-paper {
     background-image: 
-      linear-gradient(90deg, transparent 32px, #F7B5CD 32px, #F7B5CD 34px, transparent 34px),
-      repeating-linear-gradient(transparent, transparent 31px, #F8DBE7 31px, #F8DBE7 33px);
-    background-size: 100% 100%, 100% 33px;
+      linear-gradient(90deg, transparent 32px, #F7B5CD 32px, #F7B5CD 34px, transparent 34px); background-size: 100% 100%;
     padding: 18px 14px 18px 44px;
   }
 }
@@ -2144,4 +2136,128 @@ input[type="range"] {
 .admin-stamp-btn:hover {
   background: var(--primary-600);
   color: #ffffff;
+}
+
+
+/* ── 100% OPAQUE SOLID MODAL DIALOGS (Zero Translucency Fix) ── */
+.modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(20, 10, 16, 0.72) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999 !important;
+  padding: 1.25rem;
+}
+
+.modal-overlay.is-active {
+  display: flex !important;
+}
+
+.modal-card,
+.modal-box,
+.receipt-popup-card,
+.order-detail-card {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-radius: 24px !important;
+  border: 1.5px solid var(--border) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4) !important;
+  position: relative !important;
+  z-index: 100000 !important;
+}
+
+/* ── POP-OUT BADGES (Floats at Top of Card Box) ── */
+.compact-card-item,
+.product-card {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.pop-out-badge {
+  position: absolute !important;
+  top: -11px !important;
+  left: 14px !important;
+  z-index: 20 !important;
+  background: #ffffff !important;
+  color: #e11d48 !important;
+  border: 1.5px solid #f43f5e !important;
+  border-radius: 999px !important;
+  padding: 3px 12px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.22) !important;
+  white-space: nowrap !important;
+  line-height: 1.4 !important;
+  letter-spacing: 0.2px !important;
+}
+
+/* ── WHITE STAMP BADGE 0/10 ── */
+.stamp-badge-white {
+  background: #ffffff !important;
+  border: 1.5px solid #f43f5e !important;
+  color: #be123c !important;
+  font-weight: 800 !important;
+  padding: 4px 14px !important;
+  border-radius: 999px !important;
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.15) !important;
+}
+
+/* ── MASCOT ON PROGRESS BAR TIP ── */
+.stamp-progress-wrapper {
+  margin-left: 0 !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+.stamp-progress-track {
+  position: relative !important;
+  overflow: visible !important;
+  height: 14px !important;
+}
+
+.stamp-progress-fill {
+  position: relative !important;
+  height: 100% !important;
+  border-radius: 10px !important;
+  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.stamp-progress-mascot-tip {
+  position: absolute !important;
+  right: -14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 3px 8px rgba(225, 29, 72, 0.35) !important;
+  background: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10 !important;
+}
+
+.stamp-progress-mascot-img {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* ── INTERACTIVE PRICE MENU ACTIVE STATE ── */
+.price-menu-item.is-active {
+  background: #ffe4e6 !important;
+  border-color: #f43f5e !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(244, 63, 94, 0.25) !important;
 }

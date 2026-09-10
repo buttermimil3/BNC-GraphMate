@@ -54,11 +54,26 @@ const Store = (function () {
       { id: 'b2', title: 'กลุ่ม VIP รวมไฟล์กราฟิก', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80', link: '#groups' },
       { id: 'b3', title: 'เทมเพลตป้ายสำเร็จรูป', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80', link: '#products' }
     ],
-    queueStatus: {
+    
+        stampSettings: {
+          cardTitle: getVal('cfg_stampTitle', 'บัตรสะสมแต้ม BNC GraphMate'),
+          cardSubtitle: getVal('cfg_stampSubtitle', 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี'),
+          rewardText: getVal('cfg_stampRewardText', 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ'),
+          mascotIcon: getVal('cfg_stampMascotIcon', ''),
+          rulesText: getVal('cfg_stampRules', '')
+        },
+        queueStatus: {
       isAvailable: true,
-      queueText: 'ว่างพร้อมรับ 3 คิว 💖',
+      queueText: 'ว่างพร้อมรับ 3 คิว',
       chatHours: '09:00 - 23:00 น. (ตอบไว)',
       deliveryInfo: 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'
+    },
+    stampSettings: {
+      cardTitle: 'บัตรสะสมแต้ม BNC GraphMate',
+      cardSubtitle: 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที',
+      rewardText: 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ',
+      rulesText: 'ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊มหัวใจ 1 ดวงทันที\nสะสมครบ 10 ดวง เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี\nติดต่อแลกรางวัลได้ทาง LINE Official ของร้าน',
+      mascotIcon: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100'
     },
     headings: {
       fontsTitle: 'ฟอนต์ทั้งหมด',
@@ -116,7 +131,7 @@ const Store = (function () {
  name: 'กลุ่มคาแรกเตอร์การ์ตูน & บอร์ดตกแต่ง',
  category: 'การ์ตูน & คาแรกเตอร์',
  description: 'เน้นงานการ์ตูนเด็ก คาแรคเตอร์น่ารัก สำหรับทำป้ายร้านอาหาร ขนม เบเกอรี่',
- cover_image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600&auto=format&fit=crop&q=80',
+ cover_image: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600&auto=format&fit=crop&q=80',
  price: 250,
  preview_drive_url: 'https://drive.google.com/',
  benefits: 'การ์ตูนวาดมือความละเอียดสูง 300 DPI\nพาเลทสีและเทมเพลตแต่งร้าน\nใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์',
@@ -1300,6 +1315,49 @@ window.Store = Store;
  // ── Application Initialization ────────────────────────────────
  
   // ── Dynamic Font-Face Loader ──────────────────────────────────
+  
+  // ── Cute Pastel Click Sound (Web Audio Synthesizer) ─────────
+  function playCuteClickSound() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      if (!window._cuteAudioCtx) {
+        window._cuteAudioCtx = new AudioContext();
+      }
+      const ctx = window._cuteAudioCtx;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      // Charming ascending pastel bubble chirp (587Hz -> 880Hz)
+      osc.frequency.setValueAtTime(587.33, now);
+      osc.frequency.exponentialRampToValueAtTime(880.0, now + 0.07);
+
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.07);
+    } catch (err) {
+      // Audio fallback
+    }
+  }
+
+  // Global listener for interactive sound
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('button, .btn, .nav-link, .price-menu-item, .stamp-slot, .compact-card-item, .hero-carousel-prev, .hero-carousel-next, .hero-carousel-dot, .calc-key')) {
+      playCuteClickSound();
+    }
+  }, true);
+
   function loadFontFaces() {
     const fonts = Store.getAllFonts();
     let css = '';
@@ -1384,12 +1442,6 @@ window.Store = Store;
  if (!navEl) return;
 
  navEl.innerHTML = `
- ${s.announcementEnabled && s.announcement ? `
- <div class="announcement-bar">
- 
- <span>${escapeHTML(s.announcement)}</span>
- </div>
- ` : ''}
  <div class="container navbar__inner">
  <a href="#home" class="brand-link">
  
@@ -1464,13 +1516,51 @@ window.Store = Store;
  updateCartBadge();
  }
 
- // ============================================================
- // VIEW: HOME (Facebook Cover + Instagram Profile Layout)
- // ============================================================
- // ============================================================
-  // VIEW: HOME (1:1 Hero Carousel + Queue Notebook + Compact Sliders)
+  // ============================================================
+  // VIEW: HOME (Cover Banner + Profile + Queue Notebook + 1:1 Carousel + Pop-out Badges)
   // ============================================================
   let heroCarouselTimer = null;
+  let currentHeroSlideIdx = 0;
+
+  function initHeroCarousel(count) {
+    if (heroCarouselTimer) {
+      clearInterval(heroCarouselTimer);
+      heroCarouselTimer = null;
+    }
+    currentHeroSlideIdx = 0;
+    if (!count || count <= 1) return;
+    heroCarouselTimer = setInterval(() => {
+      if (typeof window.nextHeroSlide === 'function') {
+        window.nextHeroSlide();
+      }
+    }, 4500);
+  }
+
+  window.goToHeroSlide = function(idx) {
+    const slides = document.querySelectorAll('.hero-carousel-slide');
+    const dots = document.querySelectorAll('.hero-carousel-dot');
+    if (!slides.length) return;
+    currentHeroSlideIdx = (idx + slides.length) % slides.length;
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentHeroSlideIdx));
+    dots.forEach((d, i) => d.classList.toggle('active', i === currentHeroSlideIdx));
+  };
+
+  window.nextHeroSlide = function() {
+    window.goToHeroSlide(currentHeroSlideIdx + 1);
+  };
+
+  window.prevHeroSlide = function() {
+    window.goToHeroSlide(currentHeroSlideIdx - 1);
+  };
+
+  window.handleStampSearch = function(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('stampSearchInput');
+    if (input) {
+      state.stampSearchQuery = input.value.trim();
+      renderView('points');
+    }
+  };
 
   function renderHomeView(container) {
     const s = Store.getSettings();
@@ -1482,47 +1572,27 @@ window.Store = Store;
     const featuredGroups = Store.getAllGroups();
 
     container.innerHTML = `
-      <!-- Profile & Hero Section -->
-      <section style="background-color: var(--surface-alt); padding: 2rem 0 2.75rem; border-bottom: 1px solid var(--border-light);">
+      <!-- Facebook Cover Banner (Restored by Request) -->
+      <div class="fb-cover-banner" style="width: 100%; max-height: 380px; overflow: hidden; background: #FFF0F5;">
+        <img src="${escapeHTML(s.coverImage || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600')}" class="fb-cover-img" alt="Cover Banner" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600';">
+      </div>
+
+      <!-- Profile & Services Header -->
+      <section style="background-color: var(--surface-alt); padding: 1.5rem 0 2.5rem; border-bottom: 1px solid var(--border-light);">
         <div class="container">
           
-          <!-- 1:1 Square Hero Carousel (BNC HayMate Standard) -->
-          <div class="hero-carousel-wrapper">
-            <div class="hero-carousel-container" id="heroCarouselSlides">
-              ${banners.map((b, idx) => `
-                <div class="hero-carousel-slide ${idx === 0 ? 'active' : ''}" data-index="${idx}">
-                  <a href="${escapeHTML(b.link || '#fonts')}">
-                    <img src="${escapeHTML(b.image)}" alt="${escapeHTML(b.title || '')}" style="width:100%; height:100%; object-fit:cover; display:block;">
-                  </a>
-                </div>
-              `).join('')}
-            </div>
-            ${banners.length > 1 ? `
-              <button type="button" class="hero-carousel-prev" onclick="prevHeroSlide()" aria-label="ภาพก่อนหน้า">‹</button>
-              <button type="button" class="hero-carousel-next" onclick="nextHeroSlide()" aria-label="ภาพถัดไป">›</button>
-              <div class="hero-carousel-dots" id="heroCarouselDots">
-                ${banners.map((_, idx) => `
-                  <span class="hero-carousel-dot ${idx === 0 ? 'active' : ''}" onclick="goToHeroSlide(${idx})"></span>
-                `).join('')}
-              </div>
-            ` : ''}
-          </div>
-
-          <!-- Profile Info Row (Cute Pink Avatar, No Story Ring) -->
+          <!-- Profile Info Row -->
           <div class="ig-profile-section" style="max-width: 680px; margin: 0 auto;">
             <div class="ig-profile-header">
               
               <div class="ig-avatar-wrapper" style="border: 3px solid var(--primary-light);">
-                <img src="${escapeHTML(s.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="ig-avatar-img" alt="Studio Avatar">
+                <img src="${escapeHTML(s.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="ig-avatar-img" alt="Studio Avatar" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
               </div>
 
               <!-- Shop Info -->
               <div class="ig-info">
                 <div class="ig-name-row">
                   <h1 class="ig-shop-title">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</h1>
-                  <span style="color: var(--primary); display: inline-flex;" title="Official Studio">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                  </span>
                   <span class="badge badge--pink">${escapeHTML(s.tagline || 'Graphic & Font Studio')}</span>
                 </div>
 
@@ -1536,22 +1606,18 @@ window.Store = Store;
                 <!-- Bio -->
                 <p class="ig-bio-text">${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้')}</p>
 
-                <!-- Action Buttons -->
+                <!-- Action Buttons (No emojis) -->
                 <div class="ig-actions-row">
                   <a href="${escapeHTML(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="_blank" class="btn btn-primary btn-sm">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     ${escapeHTML(s.btnLineText || 'ทักแชท LINE ร้าน')}
                   </a>
                   <a href="${escapeHTML(s.instagramUrl || 'https://instagram.com/bncgraphmate')}" target="_blank" class="btn btn-secondary btn-sm">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
                     ${escapeHTML(s.btnIgText || 'Instagram')}
                   </a>
                   <a href="${escapeHTML(s.facebookUrl || 'https://facebook.com/bncgraphmate')}" target="_blank" class="btn btn-secondary btn-sm">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
                     ${escapeHTML(s.btnFbText || 'Facebook')}
                   </a>
                   <a href="tel:${escapeHTML(s.contactPhone || '0812345678')}" class="btn btn-outline btn-sm">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                     ${escapeHTML(s.btnPhoneText || 'โทรติดต่อ')}
                   </a>
                 </div>
@@ -1559,7 +1625,7 @@ window.Store = Store;
             </div>
           </div>
 
-          <!-- GoodNotes Notebook Paper: Queue & Notice Board (User Approved) -->
+          <!-- GoodNotes Notebook Paper: Queue & Notice Board (No horizontal lines, no emojis) -->
           <div class="notebook-paper-container" style="max-width: 680px; margin: 2rem auto 0; box-shadow: var(--shadow-md); border-radius: 20px;">
             <div class="notebook-binder-header">
               <div class="notebook-binder-holes">
@@ -1570,35 +1636,62 @@ window.Store = Store;
                 <span class="notebook-hole"></span>
               </div>
               <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 6px;">
-                <span>📌 คิวงาน & แจ้งเตือนร้าน BNC GraphMate</span>
+                <span>คิวงานและแจ้งเตือนร้าน BNC GraphMate</span>
               </div>
               <div class="queue-badge-chip">
                 <span class="queue-status-bullet"></span>
-                <span>${escapeHTML(queueStatus.queueText || 'ว่าง 3 คิว 💖')}</span>
+                <span>${escapeHTML(queueStatus.queueText || 'ว่างพร้อมรับ 3 คิว')}</span>
               </div>
             </div>
 
             <div class="queue-notebook-paper">
               <div style="font-size: 0.95rem; line-height: 2.1; color: var(--text); font-weight: 600;">
-                <div>💖 <strong>สถานะคิวงานออกแบบ:</strong> <span style="color: var(--primary-deep);">${escapeHTML(queueStatus.queueText || 'ว่างพร้อมรับ 3 คิว 💖')}</span></div>
-                <div>⏰ <strong>เวลาตอบแชท & ให้คำปรึกษา:</strong> ${escapeHTML(queueStatus.chatHours || '09:00 - 23:00 น. (ตอบไว)')}</div>
-                <div>⚡ <strong>ความเร็วการส่งมอบ:</strong> ${escapeHTML(queueStatus.deliveryInfo || 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}</div>
+                <div><strong>สถานะคิวงานออกแบบ:</strong> <span style="color: var(--primary-deep);">${escapeHTML(queueStatus.queueText || 'ว่างพร้อมรับ 3 คิว')}</span></div>
+                <div><strong>เวลาตอบแชท:</strong> ${escapeHTML(queueStatus.chatHours || '09:00 - 23:00 น. (ตอบไว)')}</div>
+                <div><strong>ความเร็วการส่งมอบ:</strong> ${escapeHTML(queueStatus.deliveryInfo || 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}</div>
               </div>
               <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
                 <a href="${escapeHTML(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="_blank" class="btn btn-primary btn-sm" style="font-weight: 700; border-radius: 12px;">
-                  💬 ทักแชทจองคิว / สั่งทำงานออกแบบ
+                  ทักแชทจองคิว / สั่งทำงานออกแบบ
                 </a>
               </div>
+            </div>
+          </div>
+
+          <!-- 1:1 Square Hero Carousel (Repositioned to be directly AFTER Notebook Paper) -->
+          <div style="margin-top: 2.5rem;">
+            <div style="text-align: center; margin-bottom: 0.85rem;">
+              <span class="badge badge--pink" style="font-size: 11px;">ป้ายแบนเนอร์แนะนำ</span>
+            </div>
+            <div class="hero-carousel-wrapper">
+              <div class="hero-carousel-container" id="heroCarouselSlides">
+                ${banners.map((b, idx) => `
+                  <div class="hero-carousel-slide ${idx === 0 ? 'active' : ''}" data-index="${idx}">
+                    <a href="${escapeHTML(b.link || '#fonts')}">
+                      <img src="${escapeHTML(b.image)}" alt="${escapeHTML(b.title || '')}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1541643600914-78b084683601?w=600';">
+                    </a>
+                  </div>
+                `).join('')}
+              </div>
+              ${banners.length > 1 ? `
+                <button type="button" class="hero-carousel-prev" onclick="prevHeroSlide()" aria-label="ภาพก่อนหน้า">‹</button>
+                <button type="button" class="hero-carousel-next" onclick="nextHeroSlide()" aria-label="ภาพถัดไป">›</button>
+                <div class="hero-carousel-dots" id="heroCarouselDots">
+                  ${banners.map((_, idx) => `
+                    <span class="hero-carousel-dot ${idx === 0 ? 'active' : ''}" onclick="goToHeroSlide(${idx})"></span>
+                  `).join('')}
+                </div>
+              ` : ''}
             </div>
           </div>
 
         </div>
       </section>
 
-      <!-- VIP LINE Groups Section (1-Row Compact Horizontal Slider) -->
+      <!-- VIP LINE Groups Section (1-Row Compact Horizontal Slider with Pop-Out Badges) -->
       <section style="padding: 3rem 0 2.5rem;">
         <div class="container">
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
             <div>
               <span class="section-tag">LINE VIP Groups</span>
               <h2 class="section-title" style="margin: 0.25rem 0 0;">กลุ่ม VIP รวมไฟล์กราฟิก & ป้าย</h2>
@@ -1606,12 +1699,12 @@ window.Store = Store;
             <a href="#groups" class="btn btn-outline btn-sm">ดูทั้งหมด (${featuredGroups.length}) →</a>
           </div>
 
-          <div class="compact-horizontal-slider">
+          <div class="compact-horizontal-slider" style="padding-top: 15px;">
             ${featuredGroups.map(g => `
               <div class="compact-card-item">
-                <img src="${escapeHTML(g.cover_image_url || g.cover_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600')}" class="compact-card-thumb" alt="${escapeHTML(g.name)}" loading="lazy">
+                <div class="pop-out-badge">${escapeHTML(g.category || 'VIP')}</div>
+                <img src="${escapeHTML(g.cover_image_url || g.cover_image || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600')}" class="compact-card-thumb" alt="${escapeHTML(g.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600';">
                 <div class="compact-card-content">
-                  ${g.is_pinned ? `<span class="badge badge--pink" style="font-size: 10px; margin-bottom: 4px;">📌 แนะนำ</span>` : `<span class="badge badge--pink" style="font-size: 10px; margin-bottom: 4px;">${escapeHTML(g.category || 'กลุ่ม VIP')}</span>`}
                   <div class="compact-card-title">${escapeHTML(g.name)}</div>
                   <div class="compact-card-footer">
                     <span class="product-price" style="font-size: 1.05rem;">฿${Number(g.price || 0).toLocaleString()}</span>
@@ -1626,10 +1719,10 @@ window.Store = Store;
         </div>
       </section>
 
-      <!-- Handwritten Fonts Section (1-Row Compact Horizontal Slider) -->
+      <!-- Handwritten Fonts Section (1-Row Compact Horizontal Slider with Pop-Out Badges) -->
       <section style="padding: 2rem 0 2.5rem; background-color: var(--surface-alt);">
         <div class="container">
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
             <div>
               <span class="section-tag">Handwritten Fonts</span>
               <h2 class="section-title" style="margin: 0.25rem 0 0;">ฟอนต์ลายมือเชิงพาณิชย์</h2>
@@ -1637,14 +1730,14 @@ window.Store = Store;
             <a href="#fonts" class="btn btn-outline btn-sm">ดูทั้งหมด (${featuredFonts.length}) →</a>
           </div>
 
-          <div class="compact-horizontal-slider">
+          <div class="compact-horizontal-slider" style="padding-top: 15px;">
             ${featuredFonts.map(f => {
               const fontImg = f.preview_image || f.preview_image_url || f.image_url || 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';
               return `
                 <div class="compact-card-item">
-                  <img src="${escapeHTML(fontImg)}" class="compact-card-thumb" alt="${escapeHTML(f.name)}" loading="lazy" onclick="openLightbox('${escapeHTML(fontImg)}')" style="cursor: pointer;">
+                  <div class="pop-out-badge">${escapeHTML(f.category || 'ลายมือ')}</div>
+                  <img src="${escapeHTML(fontImg)}" class="compact-card-thumb" alt="${escapeHTML(f.name)}" loading="lazy" onclick="openLightbox('${escapeHTML(fontImg)}')" style="cursor: pointer;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';">
                   <div class="compact-card-content">
-                    <span class="badge badge--pink" style="font-size: 10px; margin-bottom: 4px;">${escapeHTML(f.category || 'ลายมือ')}</span>
                     <div class="compact-card-title">${escapeHTML(f.name)}</div>
                     <div class="compact-card-footer">
                       <span class="product-price" style="font-size: 1.05rem;">฿${Number(f.price || 0).toLocaleString()}</span>
@@ -1660,10 +1753,10 @@ window.Store = Store;
         </div>
       </section>
 
-      <!-- Graphic Products Section (1-Row Compact Horizontal Slider) -->
+      <!-- Graphic Products Section (1-Row Compact Horizontal Slider with Pop-Out Badges) -->
       <section style="padding: 2.5rem 0 3.5rem;">
         <div class="container">
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
             <div>
               <span class="section-tag">Graphic Ready</span>
               <h2 class="section-title" style="margin: 0.25rem 0 0;">สินค้าสำเร็จ & ไฟล์ตกแต่ง</h2>
@@ -1671,12 +1764,12 @@ window.Store = Store;
             <a href="#products" class="btn btn-outline btn-sm">ดูทั้งหมด (${featuredProds.length}) →</a>
           </div>
 
-          <div class="compact-horizontal-slider">
+          <div class="compact-horizontal-slider" style="padding-top: 15px;">
             ${featuredProds.map(p => `
               <div class="compact-card-item">
-                <img src="${escapeHTML(p.image_url || p.image || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600')}" class="compact-card-thumb" alt="${escapeHTML(p.name)}" loading="lazy">
+                <div class="pop-out-badge">${escapeHTML(p.category || 'กราฟิก')}</div>
+                <img src="${escapeHTML(p.image_url || p.image || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600')}" class="compact-card-thumb" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1541643600914-78b084683601?w=600';">
                 <div class="compact-card-content">
-                  <span class="badge badge--pink" style="font-size: 10px; margin-bottom: 4px;">${escapeHTML(p.category || 'กราฟิก')}</span>
                   <div class="compact-card-title">${escapeHTML(p.name)}</div>
                   <div class="compact-card-footer">
                     <span class="product-price" style="font-size: 1.05rem;">฿${Number(p.price || 0).toLocaleString()}</span>
@@ -1695,58 +1788,6 @@ window.Store = Store;
     // Start Auto Carousel Slide
     initHeroCarousel(banners.length);
   }
-
-  function initHeroCarousel(totalSlides) {
-    if (heroCarouselTimer) clearInterval(heroCarouselTimer);
-    if (totalSlides <= 1) return;
-
-    heroCarouselTimer = setInterval(() => {
-      nextHeroSlide();
-    }, 4500);
-  }
-
-  window.nextHeroSlide = function () {
-    const slides = document.querySelectorAll('.hero-carousel-slide');
-    const dots = document.querySelectorAll('.hero-carousel-dot');
-    if (!slides.length) return;
-
-    let curIdx = 0;
-    slides.forEach((s, idx) => {
-      if (s.classList.contains('active')) curIdx = idx;
-      s.classList.remove('active');
-    });
-    const nextIdx = (curIdx + 1) % slides.length;
-    slides[nextIdx].classList.add('active');
-
-    dots.forEach((d, idx) => {
-      d.classList.toggle('active', idx === nextIdx);
-    });
-  };
-
-  window.prevHeroSlide = function () {
-    const slides = document.querySelectorAll('.hero-carousel-slide');
-    const dots = document.querySelectorAll('.hero-carousel-dot');
-    if (!slides.length) return;
-
-    let curIdx = 0;
-    slides.forEach((s, idx) => {
-      if (s.classList.contains('active')) curIdx = idx;
-      s.classList.remove('active');
-    });
-    const prevIdx = (curIdx - 1 + slides.length) % slides.length;
-    slides[prevIdx].classList.add('active');
-
-    dots.forEach((d, idx) => {
-      d.classList.toggle('active', idx === prevIdx);
-    });
-  };
-
-  window.goToHeroSlide = function (idx) {
-    const slides = document.querySelectorAll('.hero-carousel-slide');
-    const dots = document.querySelectorAll('.hero-carousel-dot');
-    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
-    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
-  };
 
   function renderFontsView(container) {
     const s = Store.getSettings();
@@ -2055,13 +2096,26 @@ window.Store = Store;
   // ============================================================
   // VIEW: PORTFOLIO (Square 1:1 Gallery & Price Menu Card - Requirements 3 & 4)
   // ============================================================
+  // ============================================================
+  // VIEW: PORTFOLIO (Square 1:1 Gallery & Interactive Price Menu)
+  // ============================================================
   function renderPortfolioView(container) {
     const s = Store.getSettings();
+    const headings = Store.getHeadings();
     const portfolio = Store.getPortfolio();
-    const categories = ['ALL', 'ป้ายร้าน', 'ฟอนต์', 'กราฟิก', 'การ์ตูน'];
+    const categories = ['ALL', 'ป้ายเครดิต', 'ป้ายแอพพรี', 'ป้ายเติมเกม', 'ป้ายเปิดร้าน', 'ป้ายโปรโมชั่น', 'งานป้ายสั่งทำพิเศษ', 'ป้ายร้าน', 'ฟอนต์', 'กราฟิก'];
+
+    state.portfolioPriceFilter = state.portfolioPriceFilter || 'ALL';
 
     const filtered = portfolio.filter(item => {
-      return state.portfolioFilter === 'ALL' || item.category === state.portfolioFilter;
+      if (state.portfolioPriceFilter !== 'ALL') {
+        const pMatch = item.category === state.portfolioPriceFilter || (item.title && item.title.includes(state.portfolioPriceFilter));
+        return pMatch;
+      }
+      if (state.portfolioFilter && state.portfolioFilter !== 'ALL') {
+        return item.category === state.portfolioFilter || (item.category && item.category.includes(state.portfolioFilter));
+      }
+      return true;
     });
 
     state.lightboxList = filtered;
@@ -2071,64 +2125,64 @@ window.Store = Store;
         <div class="container">
           <div class="section-header">
             <span class="section-tag">Our Works & Gallery</span>
-            <h2 class="section-title">แกลเลอรีผลงาน & อัตราค่าบริการ</h2>
-            <p class="section-desc">รวมตัวอย่างผลงานกราฟิกสไตล์คิ้วท์น่ารัก และตารางราคาป้ายสำเร็จรูปยอดนิยม</p>
+            <h2 class="section-title">${escapeHTML(headings.portTitle || 'แกลเลอรีผลงาน & อัตราค่าบริการ')}</h2>
+            <p class="section-desc">${escapeHTML(headings.portDesc || 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน คลิกเลือกรายการราคาเพื่อกรองดูผลงานได้ทันที')}</p>
           </div>
 
-          <!-- Category Filter Tabs at Top (Requirement 3) -->
-          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem;">
-            ${categories.map(c => `
-              <button type="button" class="btn ${state.portfolioFilter === c ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="filterPortfolioCat('${c}')">
-                ${c === 'ALL' ? 'ทั้งหมด' : c}
-              </button>
-            `).join('')}
-          </div>
-
-          <!-- Standard Price Menu Card Before Gallery (Requirement 4) -->
+          <!-- Standard Price Menu Card Before Gallery (Click to filter works) -->
           <div class="price-menu-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1.5px dashed var(--border); padding-bottom: 0.75rem;">
               <div>
-                <h3 style="font-size: 1.15rem; margin: 0; color: var(--primary-deep);">📋 ตารางอัตราค่าบริการ & รายการราคาป้ายยอดนิยม</h3>
-                <small style="color: var(--text-muted); font-size: 0.82rem;">ราคามาตรฐานงานออกแบบสำเร็จรูป พร้อมจัดส่งไฟล์ความละเอียดสูง 300 DPI</small>
+                <h3 style="font-size: 1.15rem; margin: 0; color: var(--primary-deep);">ตารางอัตราค่าบริการ & รายการราคาป้ายยอดนิยม</h3>
+                <small style="color: var(--text-muted); font-size: 0.82rem;">คลิกที่รายการราคาด้านล่าง เพื่อดูตัวอย่างผลงานของงานประเภทนั้นๆ ได้ทันทีค่ะ</small>
               </div>
               <span class="badge badge--pink">อัปเดต 2026</span>
             </div>
 
             <div class="price-menu-grid">
-              <div class="price-menu-item">
-                <span class="price-menu-title">🏷️ ป้ายเครดิต</span>
+              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'ป้ายเครดิต' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('ป้ายเครดิต')" title="คลิกเพื่อดูผลงานป้ายเครดิต">
+                <span class="price-menu-title">ป้ายเครดิต</span>
                 <span class="price-menu-price">฿129</span>
               </div>
-              <div class="price-menu-item">
-                <span class="price-menu-title">⭐ ป้ายแอพพรี</span>
+              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'ป้ายแอพพรี' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('ป้ายแอพพรี')" title="คลิกเพื่อดูผลงานป้ายแอพพรี">
+                <span class="price-menu-title">ป้ายแอพพรี</span>
                 <span class="price-menu-price">฿199</span>
               </div>
-              <div class="price-menu-item">
-                <span class="price-menu-title">🎮 ป้ายเติมเกม</span>
+              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'ป้ายเติมเกม' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('ป้ายเติมเกม')" title="คลิกเพื่อดูผลงานป้ายเติมเกม">
+                <span class="price-menu-title">ป้ายเติมเกม</span>
                 <span class="price-menu-price">฿189</span>
               </div>
-              <div class="price-menu-item">
-                <span class="price-menu-title">💳 ป้ายเปิดร้าน / ป้ายเลขบัญชี</span>
+              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'ป้ายเปิดร้าน' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('ป้ายเปิดร้าน')" title="คลิกเพื่อดูผลงานป้ายเปิดร้าน">
+                <span class="price-menu-title">ป้ายเปิดร้าน / ป้ายเลขบัญชี</span>
                 <span class="price-menu-price">฿150</span>
               </div>
-              <div class="price-menu-item">
-                <span class="price-menu-title">🍰 ป้ายโปรโมชั่น / บอร์ดเมนู</span>
+              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'ป้ายโปรโมชั่น' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('ป้ายโปรโมชั่น')" title="คลิกเพื่อดูผลงานป้ายโปรโมชั่น">
+                <span class="price-menu-title">ป้ายโปรโมชั่น / บอร์ดเมนู</span>
                 <span class="price-menu-price">฿250</span>
               </div>
-              <div class="price-menu-item">
-                <span class="price-menu-title">✨ งานป้ายสั่งทำพิเศษ (Custom)</span>
+              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'งานป้ายสั่งทำพิเศษ' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('งานป้ายสั่งทำพิเศษ')" title="คลิกเพื่อดูงานป้ายสั่งทำพิเศษ">
+                <span class="price-menu-title">งานป้ายสั่งทำพิเศษ</span>
                 <span class="price-menu-price">฿390</span>
               </div>
             </div>
+
+            <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <small style="color: var(--text-muted); font-size: 0.85rem;">
+                ${state.portfolioPriceFilter !== 'ALL' ? `กำลังแสดงผลงานหมวด: <strong>${escapeHTML(state.portfolioPriceFilter)}</strong> (${filtered.length} รายการ)` : 'แสดงผลงานทั้งหมด'}
+              </small>
+              ${state.portfolioPriceFilter !== 'ALL' ? `
+                <button type="button" class="btn btn-outline btn-sm" onclick="filterPortfolioByPrice('ALL')">ดูผลงานทั้งหมด</button>
+              ` : ''}
+            </div>
           </div>
 
-          <!-- Pure Square Image Gallery (1:1 Ratio, No Captions - Requirement 3) -->
+          <!-- Pure Square Image Gallery (1:1 Ratio, No Captions) -->
           <div class="square-gallery-grid">
-            ${filtered.map((item, idx) => {
+            ${filtered.length > 0 ? filtered.map((item, idx) => {
               const img = item.image_url || item.cover_image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
               return `
                 <div class="square-gallery-item" onclick="openLightbox(${idx})" title="คลิกเพื่อดูรูปขยาย">
-                  <img src="${escapeHTML(img)}" alt="Portfolio Graphic" loading="lazy">
+                  <img src="${escapeHTML(img)}" alt="Portfolio Graphic" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
                   <div class="square-gallery-overlay">
                     <div class="square-gallery-overlay-icon">
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
@@ -2136,7 +2190,12 @@ window.Store = Store;
                   </div>
                 </div>
               `;
-            }).join('')}
+            }).join('') : `
+              <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
+                <p>ยังไม่มีรูปผลงานในหมวดหมู่นี้ค่ะ แอดมินสามารถเพิ่มรูปได้ในเมนูหลังบ้าน (จัดการผลงาน)</p>
+                <button type="button" class="btn btn-outline btn-sm" onclick="filterPortfolioByPrice('ALL')">ดูผลงานทั้งหมด</button>
+              </div>
+            `}
           </div>
 
         </div>
@@ -2144,18 +2203,14 @@ window.Store = Store;
     `;
   }
 
-  window.filterPortfolioCat = function (cat) {
-    state.portfolioFilter = cat;
+  window.filterPortfolioByPrice = function (serviceName) {
+    state.portfolioPriceFilter = serviceName;
     renderCurrentView();
   };
 
-  // VIEW: REVIEWS (Pinned Notes & Customer Testimonials - Requirement 7)
-  // ============================================================
-  // ============================================================
-  // VIEW: POINTS & 10-HEART STAMP NOTEBOOK CARD (User Requested)
-  // ============================================================
   function renderPointsView(container) {
     const s = Store.getSettings();
+    const stampCfg = Store.getStampSettings();
     const customers = Store.getCustomers();
     const query = (state.stampSearchQuery || '').trim();
 
@@ -2163,7 +2218,6 @@ window.Store = Store;
     if (query) {
       targetCustomer = Store.findCustomerByNameOrCode(query);
     } else {
-      // Default to demo customer if available
       targetCustomer = customers[0] || null;
     }
 
@@ -2177,14 +2231,14 @@ window.Store = Store;
           
           <div class="section-header">
             <span class="section-tag">Heart Stamp Loyalty Card</span>
-            <h2 class="section-title">บัตรสะสมแต้มปั๊มหัวใจ 💖</h2>
-            <p class="section-desc">สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที</p>
+            <h2 class="section-title">${escapeHTML(stampCfg.cardTitle || 'บัตรสะสมแต้ม BNC GraphMate')}</h2>
+            <p class="section-desc">${escapeHTML(stampCfg.cardSubtitle || 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที')}</p>
           </div>
 
           <!-- Customer Search Input -->
           <div class="card" style="margin-bottom: 2rem; padding: 1.25rem 1.5rem; border-radius: 18px;">
             <label style="font-weight: 700; font-size: 0.92rem; color: var(--text); display: block; margin-bottom: 0.5rem;">
-              🔍 ค้นหาบัตรสะสมแต้มของคุณ
+              ค้นหาบัตรสะสมแต้มของคุณ
             </label>
             <form onsubmit="handleStampSearch(event)" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
               <input type="text" id="stampSearchInput" class="form-input" placeholder="กรอกชื่อ, LINE ID หรือเบอร์โทรศัพท์..." value="${escapeHTML(state.stampSearchQuery || '')}" style="flex: 1; min-width: 220px;">
@@ -2209,16 +2263,16 @@ window.Store = Store;
                 <span class="notebook-hole"></span>
               </div>
               <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 6px;">
-                <span>📝 สมุดสะสมแต้ม BNC GraphMate Loyalty Card</span>
+                <span>สมุดสะสมแต้ม BNC GraphMate Loyalty Card</span>
               </div>
-              <div class="queue-badge-chip" style="background: #FFE4E6; border-color: #FECDD3; color: #BE123C;">
-                <span style="font-size: 13px;">💖</span>
+              <!-- Stamp Badge 0/10 in Pure White Background -->
+              <div class="queue-badge-chip stamp-badge-white">
                 <span>${currentStamps} / 10 ดวง</span>
               </div>
             </div>
 
-            <!-- GoodNotes Ruled Paper Body -->
-            <div class="goodnotes-paper" style="padding: 24px 28px;">
+            <!-- GoodNotes Paper Body (Ample padding, No horizontal lines clashing) -->
+            <div class="goodnotes-paper" style="padding: 26px 28px 26px 72px;">
               
               <!-- Card Header Info -->
               <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; border-bottom: 1.5px dashed #F8DBE7; padding-bottom: 14px;">
@@ -2232,12 +2286,12 @@ window.Store = Store;
                 </div>
                 <div style="text-align: right;">
                   <span class="badge ${isCompleted ? 'badge--success' : 'badge--pink'}" style="font-size: 12px;">
-                    ${isCompleted ? '🎉 สะสมครบแล้ว!' : `สะสมแล้ว ${currentStamps} ดวง`}
+                    ${isCompleted ? 'สะสมครบ 10 ดวงแล้ว' : `สะสมแล้ว ${currentStamps} ดวง`}
                   </span>
                 </div>
               </div>
 
-              <!-- 10-Heart Stamp Grid (2 Rows x 5 Columns) -->
+              <!-- 10-Heart Stamp Grid (2 Rows x 5 Columns, No decorative emojis in text) -->
               <div class="stamp-grid-10">
                 ${Array.from({ length: 10 }).map((_, idx) => {
                   const num = idx + 1;
@@ -2246,9 +2300,9 @@ window.Store = Store;
 
                   if (isStamped) {
                     return `
-                      <div class="stamp-slot is-stamped" title="ดวงที่ ${num}: ปั๊มแล้ว 💖">
+                      <div class="stamp-slot is-stamped" title="ดวงที่ ${num}: ปั๊มแล้ว">
                         <div class="stamp-ink-ring"></div>
-                        <span class="stamp-heart-icon">💖</span>
+                        <svg class="stamp-heart-icon" width="28" height="28" viewBox="0 0 24 24" fill="#E11D48"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                         <span class="stamp-badge-text">BNC</span>
                       </div>
                     `;
@@ -2256,8 +2310,7 @@ window.Store = Store;
                     return `
                       <div class="stamp-slot is-empty ${isRewardSlot ? 'is-reward' : ''}" title="ดวงที่ ${num}: ยังไม่ได้ปั๊ม">
                         ${isRewardSlot ? `
-                          <span style="font-size: 1.3rem;">🎁</span>
-                          <span style="font-size: 8.5px; font-weight: 800; text-align: center; line-height: 1;">ฟรี 1 สิทธิ์</span>
+                          <span style="font-size: 10px; font-weight: 800; text-align: center; line-height: 1.2; color: #d97706;">ฟรี 1 สิทธิ์</span>
                         ` : `
                           <span class="stamp-slot-num">${num}</span>
                         `}
@@ -2267,32 +2320,34 @@ window.Store = Store;
                 }).join('')}
               </div>
 
-              <!-- Progress & Reward Notice -->
-              <div class="stamp-progress-wrapper">
+              <!-- Progress & Reward Notice (Mascot on Tip of Fill) -->
+              <div class="stamp-progress-wrapper" style="box-sizing: border-box; width: 100%;">
                 <div style="flex: 1; min-width: 240px;">
                   <div style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; color: var(--text);">
                     <span>ความคืบหน้าการสะสม</span>
                     <span style="color: var(--primary-deep); font-weight: 800;">${currentStamps} / 10 ดวง</span>
                   </div>
-                  <div class="stamp-progress-track">
-                    <div class="stamp-progress-fill" style="width: ${Math.min(100, (currentStamps / 10) * 100)}%;"></div>
+                  <div class="stamp-progress-track" style="margin-top: 8px;">
+                    <div class="stamp-progress-fill" style="width: ${Math.min(100, (currentStamps / 10) * 100)}%;">
+                      <div class="stamp-progress-mascot-tip">
+                        <img src="${escapeHTML(stampCfg.mascotIcon || s.pointsBarIcon || s.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100')}" class="stamp-progress-mascot-img" alt="Mascot" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100';">
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div style="font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
+                <div style="font-size: 0.88rem; font-weight: 700; color: var(--primary-deep); margin-top: 8px;">
                   ${isCompleted ? `
-                    <span>🎉 สะสมครบ 10 ดวงแล้ว! ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ</span>
+                    <span>${escapeHTML(stampCfg.rewardText || 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ')}</span>
                   ` : `
-                    <span>ขาดอีก <span style="font-size: 1.15rem; color: #e11d48;">${10 - currentStamps}</span> ดวง จะได้รับของขวัญฟรี 🎁</span>
+                    <span>ขาดอีก <span style="font-size: 1.15rem; color: #e11d48;">${10 - currentStamps}</span> ดวง จะได้รับของขวัญฟรี</span>
                   `}
                 </div>
               </div>
 
               <!-- Card Bottom Rules -->
-              <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1.5px dashed #F8DBE7; font-size: 0.82rem; color: var(--text-muted); line-height: 1.8;">
-                <div>💖 <strong>กติกาง่ายๆ:</strong> ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊มหัวใจ 1 ดวงทันที</div>
-                <div>🎁 <strong>ของรางวัล:</strong> สะสมครบ 10 ดวง เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี!</div>
-                <div>💬 <strong>ติดต่อแลกรางวัล:</strong> ทักแชท LINE ร้านเพื่อแจ้งแลกสิทธิ์ได้ตลอด 24 ชม.</div>
+              <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1.5px dashed #F8DBE7; font-size: 0.82rem; color: var(--text-muted); line-height: 1.8; white-space: pre-line;">
+                ${escapeHTML(stampCfg.rulesText || 'ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊มหัวใจ 1 ดวงทันที\nสะสมครบ 10 ดวง เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี\nติดต่อแลกรางวัลได้ทาง LINE Official ของร้าน')}
               </div>
 
             </div>
@@ -2302,12 +2357,6 @@ window.Store = Store;
       </section>
     `;
   }
-
-  window.handleStampSearch = function (e) {
-    e.preventDefault();
-    state.stampSearchQuery = ($('stampSearchInput')?.value || '').trim();
-    renderCurrentView();
-  };
 
   function renderReviewsView(container) {
     const allReviews = Store.getAllReviews();
@@ -2330,7 +2379,7 @@ window.Store = Store;
           ${pinnedReviews.length > 0 ? `
             <div class="pinned-reviews-board">
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem;">
-                <span style="font-size: 1.3rem;">📌</span>
+                <span style="font-size: 1.3rem;"></span>
                 <h3 style="margin: 0; font-size: 1.15rem; color: var(--primary-deep);">รีวิวปักหมุดแนะนำ</h3>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2338,7 +2387,7 @@ window.Store = Store;
                   <div class="pinned-review-card">
                     <div class="pushpin-pin"></div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                      <span class="pinned-tape-badge">📌 รีวิวแนะนำ</span>
+                      <span class="pinned-tape-badge">รีวิวแนะนำ</span>
                       <span style="color: #F59E0B; font-size: 1rem;">${'★'.repeat(r.rating || 5)}</span>
                     </div>
                     <div style="font-weight: 700; color: var(--text); font-size: 1.05rem; margin-bottom: 4px;">${escapeHTML(r.customer_name || 'ลูกค้า')}</div>
@@ -2369,7 +2418,7 @@ window.Store = Store;
                   <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin: 0 0 0.75rem;">${escapeHTML(r.message)}</p>
                   ${state.isAdmin ? `
                     <div style="text-align: right; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px;">
-                      <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px;">📌 ปักหมุด</button>
+                      <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px;">ปักหมุด</button>
                     </div>
                   ` : ''}
                 </div>
@@ -2422,7 +2471,7 @@ window.Store = Store;
                     <small style="color: var(--text-muted);">${new Date(o.created_at).toLocaleString('th-TH')}</small>
                   </div>
                   <span class="badge ${o.status === 'PAID' || o.status === 'COMPLETED' ? 'badge--success' : (o.status === 'REJECTED' ? 'badge--warning' : 'badge--pink')}">
-                    ${o.status === 'PAID' ? '✓ ชำระเงินแล้ว' : (o.status === 'VERIFYING' ? '⏳ กำลังตรวจสลิป' : (o.status === 'COMPLETED' ? '✓ ส่งมอบสิทธิ์แล้ว' : o.status))}
+                    ${o.status === 'PAID' ? 'ชำระเงินแล้ว' : (o.status === 'VERIFYING' ? '⏳ กำลังตรวจสลิป' : (o.status === 'COMPLETED' ? 'ส่งมอบสิทธิ์แล้ว' : o.status))}
                   </span>
                 </div>
 
@@ -2439,14 +2488,14 @@ window.Store = Store;
                       <strong>Gmail รับไฟล์:</strong> <span style="font-family: monospace; font-weight: 600;">${escapeHTML(o.gmail)}</span>
                     </div>
                     <button type="button" class="btn-copy-email" onclick="copyEmailToClipboard('${escapeHTML(o.gmail)}', this)" title="คัดลอกอีเมล">
-                      📋 คัดลอก Gmail
+                      คัดลอก Gmail
                     </button>
                   </div>
                 ` : ''}
 
                 <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px dashed var(--border-light); padding-top: 0.75rem;">
                   <button type="button" class="btn btn-outline btn-sm" onclick="openOrderDetailModal('${o.id}')">
-                    🔍 ดูรายละเอียดออเดอร์
+                    ดูรายละเอียดออเดอร์
                   </button>
                 </div>
               </div>
@@ -2467,7 +2516,7 @@ window.Store = Store;
     if (!email) return;
     const doFeedback = () => {
       const orig = btn.innerHTML;
-      btn.innerHTML = '✓ คัดลอกแล้ว!';
+      btn.innerHTML = 'คัดลอกแล้ว!';
       btn.style.background = '#22c55e';
       btn.style.color = '#ffffff';
       setTimeout(() => {
@@ -2566,7 +2615,9 @@ window.Store = Store;
  <button type="button" class="admin-tab-btn ${state.adminTab === 'products' ? 'active' : ''}" onclick="switchAdminTab('products')">จัดการสินค้า</button>
  <button type="button" class="admin-tab-btn ${state.adminTab === 'fonts' ? 'active' : ''}" onclick="switchAdminTab('fonts')">จัดการฟอนต์</button>
  <button type="button" class="admin-tab-btn ${state.adminTab === 'groups' ? 'active' : ''}" onclick="switchAdminTab('groups')">จัดการกลุ่ม VIP</button>
-          <button type="button" class="admin-tab-btn ${state.adminTab === 'stamps' ? 'active' : ''}" onclick="switchAdminTab('stamps')">บัตรสะสมแต้ม 💖</button>
+          <button type="button" class="admin-tab-btn ${state.adminTab === 'portfolio' ? 'active' : ''}" onclick="switchAdminTab('portfolio')">จัดการผลงาน</button>
+          <button type="button" class="admin-tab-btn ${state.adminTab === 'stamps' ? 'active' : ''}" onclick="switchAdminTab('stamps')">บัตรสะสมแต้ม</button>
+          <button type="button" class="admin-tab-btn ${state.adminTab === 'stamps' ? 'active' : ''}" onclick="switchAdminTab('stamps')">บัตรสะสมแต้ม </button>
  <button type="button" class="admin-tab-btn ${state.adminTab === 'settings' ? 'active' : ''}" onclick="switchAdminTab('settings')">ตั้งค่าร้าน (ทุกจุด)</button>
  </div>
 
@@ -2803,13 +2854,100 @@ window.Store = Store;
 
  // ── Master Admin Settings Tab (100% Configurable) ─────────────
  
+  
+  function renderAdminPortfolioTab() {
+    const portfolio = Store.getPortfolio();
+    return `
+      <div class="card" style="border-radius: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">จัดการรูปผลงาน & อัตราค่าบริการ</h3>
+            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">เพิ่ม ลบ หรือแก้ไขรูปผลงานสำหรับให้ลูกค้ากดดูตามราคาและประเภทงาน</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openAddPortfolioModal()">+ เพิ่มผลงานใหม่</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>รูป 1:1</th>
+                <th>ชื่อผลงาน / บริการ</th>
+                <th>หมวดหมู่ (ราคา)</th>
+                <th>ราคามาตรฐาน</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${portfolio.map(item => `
+                <tr>
+                  <td>
+                    <img src="${escapeHTML(item.image_url)}" style="width: 50px; height: 50px; border-radius: 10px; object-fit: cover;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
+                  </td>
+                  <td><strong>${escapeHTML(item.title || 'ผลงานการออกแบบ')}</strong></td>
+                  <td><span class="badge badge--pink">${escapeHTML(item.category || 'ป้าย')}</span></td>
+                  <td>฿${Number(item.price || 0).toLocaleString()}</td>
+                  <td>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="deletePortfolioItemAction('${item.id}')">ลบ</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  window.openAddPortfolioModal = function () {
+    const modal = $('adminPortfolioModal');
+    if (!modal) return;
+    $('adminPortTitle').value = '';
+    $('adminPortCategory').value = 'ป้ายเครดิต';
+    $('adminPortPrice').value = '129';
+    $('adminPortImage').value = 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
+    modal.classList.add('is-active');
+  };
+
+  window.closeAddPortfolioModal = function () {
+    const modal = $('adminPortfolioModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
+  window.handleSavePortfolioSubmit = function (e) {
+    e.preventDefault();
+    const title = ($('adminPortTitle')?.value || '').trim();
+    if (!title) return alert('กรุณากรอกชื่อผลงาน');
+    const category = $('adminPortCategory').value;
+    const price = Number($('adminPortPrice').value) || 0;
+    const image = ($('adminPortImage')?.value || '').trim();
+    if (!image) return alert('กรุณากรอกลิงก์รูปภาพ 1:1');
+
+    Store.savePortfolioItem({
+      title,
+      category,
+      price,
+      image_url: image
+    });
+
+    closeAddPortfolioModal();
+    alert('บันทึกผลงานใหม่เรียบร้อยแล้วค่ะ');
+    renderCurrentView();
+  };
+
+  window.deletePortfolioItemAction = function (id) {
+    if (!confirm('ยืนยันการลบผลงานนี้ใช่หรือไม่?')) return;
+    Store.deletePortfolioItem(id);
+    renderCurrentView();
+  };
+
   function renderAdminStampsTab() {
     const customers = Store.getCustomers();
     return `
       <div class="card" style="border-radius: 18px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
           <div>
-            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">💖 จัดการบัตรสะสมแต้มหัวใจ (Stamp Loyalty Card)</h3>
+            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;"> จัดการบัตรสะสมแต้มหัวใจ (Stamp Loyalty Card)</h3>
             <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">กดเพิ่มหรือลดจำนวนดวงหัวใจให้ลูกค้าแต่ละคนได้ทันที หรือพิมพ์จำนวนดวงที่ต้องการ</p>
           </div>
           <div>
@@ -2842,7 +2980,7 @@ window.Store = Store;
                     <td>${escapeHTML(c.phone || '-')}</td>
                     <td style="text-align: center;">
                       <div style="display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 1.1rem; color: #e11d48;">
-                        <span>💖</span>
+                        <span></span>
                         <span>${stamps} / 10</span>
                       </div>
                     </td>
@@ -2984,7 +3122,7 @@ window.Store = Store;
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="form-group">
               <label class="form-label">สถานะคิวงานออกแบบ</label>
-              <input type="text" id="cfg_queueText" class="form-input" value="${escapeHTML(queueStatus.queueText || 'ว่างพร้อมรับ 3 คิว 💖')}">
+              <input type="text" id="cfg_queueText" class="form-input" value="${escapeHTML(queueStatus.queueText || 'ว่างพร้อมรับ 3 คิว ')}">
             </div>
             <div class="form-group">
               <label class="form-label">เวลาตอบแชท</label>
@@ -2994,6 +3132,35 @@ window.Store = Store;
               <label class="form-label">ความเร็วการส่งมอบไฟล์</label>
               <input type="text" id="cfg_deliveryInfo" class="form-input" value="${escapeHTML(queueStatus.deliveryInfo || 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}">
             </div>
+          </div>
+        </div>
+
+        
+        <!-- 3.1 Stamp Card Configuration -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ตั้งค่าบัตรสะสมแต้มปั๊มหัวใจ 10 ดวง</h3>
+          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">สามารถปรับแต่งข้อความ กติกา และรูปมาสคอตบนหลอดโปรเกรสได้ทุกจุด</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label">ชื่อบัตรสะสมแต้ม</label>
+              <input type="text" id="cfg_stampTitle" class="form-input" value="${escapeHTML(Store.getStampSettings().cardTitle || 'บัตรสะสมแต้ม BNC GraphMate')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">คำบรรยายหัวการ์ด</label>
+              <input type="text" id="cfg_stampSubtitle" class="form-input" value="${escapeHTML(Store.getStampSettings().cardSubtitle || 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ข้อความเมื่อสะสมครบ 10 ดวง</label>
+              <input type="text" id="cfg_stampRewardText" class="form-input" value="${escapeHTML(Store.getStampSettings().rewardText || 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ลิงก์รูปมาสคอตตรงปลายหลอดโปรเกรส</label>
+              <input type="text" id="cfg_stampMascotIcon" class="form-input" value="${escapeHTML(Store.getStampSettings().mascotIcon || s.profileImage || '')}">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top: 1rem;">
+            <label class="form-label">กติกาการสะสมแต้มด้านล่างบัตร</label>
+            <textarea id="cfg_stampRules" class="form-textarea" rows="3">${escapeHTML(Store.getStampSettings().rulesText || '')}</textarea>
           </div>
         </div>
 
@@ -3148,7 +3315,7 @@ window.Store = Store;
             <small style="color: var(--text-muted);">ระบบจะอัปเดตการแสดงผลและข้อมูลคลาวด์ทันที</small>
           </div>
           <button type="submit" class="btn btn-primary" style="font-weight: 800; padding: 0.75rem 2rem; font-size: 1rem; border-radius: 14px;">
-            💾 บันทึกการตั้งค่าทั้งหมด
+            บันทึกการตั้งค่าทั้งหมด
           </button>
         </div>
 
@@ -3257,7 +3424,7 @@ window.Store = Store;
         adminPin: getVal('cfg_adminPin', '123456'),
         queueStatus: {
           isAvailable: true,
-          queueText: getVal('cfg_queueText', 'ว่างพร้อมรับ 3 คิว 💖'),
+          queueText: getVal('cfg_queueText', 'ว่างพร้อมรับ 3 คิว '),
           chatHours: getVal('cfg_chatHours', '09:00 - 23:00 น. (ตอบไว)'),
           deliveryInfo: getVal('cfg_deliveryInfo', 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')
         },
@@ -3452,7 +3619,7 @@ window.Store = Store;
     return `
       <div class="card" style="display: flex; flex-direction: column; border-radius: var(--radius-lg);">
         <img src="${escapeHTML(g.cover_image_url || g.cover_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600')}" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 1rem;" alt="${escapeHTML(g.name)}">
-        ${g.is_pinned ? `<span class="badge badge--pink" style="margin-bottom: 0.5rem; align-self: flex-start;">📌 กลุ่มแนะนำ</span>` : ''}
+        ${g.is_pinned ? `<span class="badge badge--pink" style="margin-bottom: 0.5rem; align-self: flex-start;">กลุ่มแนะนำ</span>` : ''}
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
           <h3 style="font-size: 1.2rem; margin: 0; font-weight: 700;">${escapeHTML(g.name)}</h3>
           <span class="product-price">฿${Number(g.price || 0).toLocaleString()}</span>
@@ -3463,7 +3630,7 @@ window.Store = Store;
         <div style="margin-bottom: 1.5rem; flex-grow: 1;">
           ${benefits.map(b => `
             <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; margin-bottom: 0.35rem; color: var(--text-secondary);">
-              <span style="color: var(--primary); font-weight: 700;">✓</span>
+              <span style="color: var(--primary); font-weight: 700;"></span>
               <span>${escapeHTML(b)}</span>
             </div>
           `).join('')}
@@ -3874,7 +4041,7 @@ window.Store = Store;
             </div>
             <div id="chkSlipPreviewWrap" style="display: none;">
               <img id="chkSlipPreviewImg" src="" style="max-height: 160px; max-width: 100%; border-radius: 10px; object-fit: contain; box-shadow: var(--shadow-sm); display: block; margin: 0 auto;">
-              <div style="font-size: 12px; color: #166534; font-weight: 700; margin-top: 8px;">✓ แนบสลิปเรียบร้อยแล้ว (คลิกเพื่อเปลี่ยนรูป)</div>
+              <div style="font-size: 12px; color: #166534; font-weight: 700; margin-top: 8px;">แนบสลิปเรียบร้อยแล้ว (คลิกเพื่อเปลี่ยนรูป)</div>
             </div>
           </div>
         </div>
@@ -3943,7 +4110,7 @@ window.Store = Store;
       if (wrap) wrap.style.display = 'block';
       if (promptEl) promptEl.style.display = 'none';
       if (badge) {
-        badge.textContent = '✓ แนบสลิปแล้ว';
+        badge.textContent = 'แนบสลิปแล้ว';
         badge.style.color = '#166534';
       }
       if (dropzone) {
@@ -4025,7 +4192,7 @@ window.Store = Store;
     adminProductModal.innerHTML = `
       <div class="modal-card" style="max-width: 560px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
-          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">🛍️ เพิ่มสินค้ากราฟิกใหม่</h3>
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">เพิ่มสินค้ากราฟิกใหม่</h3>
           <button type="button" onclick="closeAddProductModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer;">✕</button>
         </div>
         <form onsubmit="handleSaveProductSubmit(event)">
@@ -4076,7 +4243,7 @@ window.Store = Store;
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
             <button type="button" class="btn btn-outline" onclick="closeAddProductModal()">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 บันทึกสินค้า</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700;">บันทึกสินค้า</button>
           </div>
         </form>
       </div>
@@ -4091,7 +4258,7 @@ window.Store = Store;
     adminFontModal.innerHTML = `
       <div class="modal-card" style="max-width: 560px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
-          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">🔤 เพิ่มฟอนต์ลายมือใหม่</h3>
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">เพิ่มฟอนต์ลายมือใหม่</h3>
           <button type="button" onclick="closeAddFontModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer;">✕</button>
         </div>
         <form onsubmit="handleSaveFontSubmit(event)">
@@ -4147,7 +4314,7 @@ window.Store = Store;
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
             <button type="button" class="btn btn-outline" onclick="closeAddFontModal()">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 บันทึกฟอนต์</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700;">บันทึกฟอนต์</button>
           </div>
         </form>
       </div>
@@ -4162,7 +4329,7 @@ window.Store = Store;
     adminGroupModal.innerHTML = `
       <div class="modal-card" style="max-width: 560px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
-          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">👥 เพิ่มกลุ่ม LINE VIP ใหม่</h3>
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">เพิ่มกลุ่ม LINE VIP ใหม่</h3>
           <button type="button" onclick="closeAddGroupModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer;">✕</button>
         </div>
         <form onsubmit="handleSaveGroupSubmit(event)">
@@ -4201,12 +4368,12 @@ window.Store = Store;
           <div class="form-group" style="margin-bottom: 1.25rem;">
             <label style="display:flex; align-items:center; gap: 8px; cursor:pointer;">
               <input type="checkbox" id="adminGroupPinned">
-              <span style="font-weight: 700; color: var(--primary-deep);">📌 ปักหมุดเป็นกลุ่มแนะนำ (แสดงป้ายพิเศษ)</span>
+              <span style="font-weight: 700; color: var(--primary-deep);">ปักหมุดเป็นกลุ่มแนะนำ (แสดงป้ายพิเศษ)</span>
             </label>
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
             <button type="button" class="btn btn-outline" onclick="closeAddGroupModal()">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 บันทึกกลุ่มใหม่</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700;">บันทึกกลุ่มใหม่</button>
           </div>
         </form>
       </div>
@@ -4251,7 +4418,7 @@ window.Store = Store;
     receiptModal.innerHTML = `
       <div class="receipt-popup-card">
         <div class="receipt-header">
-          <div class="receipt-heart-badge">💖</div>
+          <div class="receipt-heart-badge"></div>
           <h3 class="receipt-title">Order Confirmed!</h3>
           <p class="receipt-subtitle">บันทึกคำสั่งซื้อเรียบร้อยแล้วค่ะ</p>
         </div>
@@ -4342,7 +4509,7 @@ window.Store = Store;
           <div>
             <div style="font-size: 0.82rem; color: var(--text-muted);">สถานะออเดอร์</div>
             <span class="badge ${order.status === 'PAID' || order.status === 'COMPLETED' ? 'badge--success' : (order.status === 'REJECTED' ? 'badge--warning' : 'badge--pink')}" style="margin-top: 4px;">
-              ${order.status === 'PAID' ? '✓ ชำระเงินแล้ว' : (order.status === 'VERIFYING' ? '⏳ กำลังตรวจสลิป' : (order.status === 'COMPLETED' ? '✓ ส่งมอบสิทธิ์แล้ว' : order.status))}
+              ${order.status === 'PAID' ? 'ชำระเงินแล้ว' : (order.status === 'VERIFYING' ? '⏳ กำลังตรวจสลิป' : (order.status === 'COMPLETED' ? 'ส่งมอบสิทธิ์แล้ว' : order.status))}
             </span>
           </div>
           <div style="text-align: right;">
@@ -4355,7 +4522,7 @@ window.Store = Store;
           <h4 style="margin: 0 0 0.5rem; font-size: 0.95rem; color: var(--text);">ข้อมูลลูกค้า</h4>
           <div style="font-size: 0.9rem; line-height: 1.7;">
             <div>👤 <strong>ชื่อ:</strong> ${escapeHTML(order.customer_name || 'ลูกค้าทั่วไป')}</div>
-            <div>💬 <strong>LINE ID:</strong> ${escapeHTML(order.line_id || '-')}</div>
+            <div><strong>LINE ID:</strong> ${escapeHTML(order.line_id || '-')}</div>
             ${order.gmail ? `<div>📧 <strong>Gmail:</strong> <span style="font-family: monospace;">${escapeHTML(order.gmail)}</span></div>` : ''}
           </div>
         </div>
