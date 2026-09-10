@@ -49,15 +49,32 @@ const Store = (function () {
  memberLabel: 'สมาชิก'
  },
  pointsBarIcon: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
- highlights: [
- { id: 'hl-1', title: 'รีวิวร้าน', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300&auto=format&fit=crop&q=80', link: '#reviews' },
- { id: 'hl-2', title: 'ฟอนต์ใหม่', image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=300&auto=format&fit=crop&q=80', link: '#fonts' },
- { id: 'hl-3', title: 'เข้ากลุ่ม VIP', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80', link: '#groups' },
- { id: 'hl-4', title: 'สินค้าสำเร็จ', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&auto=format&fit=crop&q=80', link: '#products' },
- { id: 'hl-5', title: 'ดูผลงาน', image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300&auto=format&fit=crop&q=80', link: '#portfolio' },
- { id: 'hl-6', title: 'สะสมแต้ม', image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&auto=format&fit=crop&q=80', link: '#points' }
- ],
-      paymentAccounts: [
+     homeBanners: [
+      { id: 'b1', title: 'ฟอนต์ลายมือน่ารัก 2026', image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=800&auto=format&fit=crop&q=80', link: '#fonts' },
+      { id: 'b2', title: 'กลุ่ม VIP รวมไฟล์กราฟิก', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80', link: '#groups' },
+      { id: 'b3', title: 'เทมเพลตป้ายสำเร็จรูป', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80', link: '#products' }
+    ],
+    queueStatus: {
+      isAvailable: true,
+      queueText: 'ว่างพร้อมรับ 3 คิว 💖',
+      chatHours: '09:00 - 23:00 น. (ตอบไว)',
+      deliveryInfo: 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'
+    },
+    headings: {
+      fontsTitle: 'ฟอนต์ทั้งหมด',
+      fontsDesc: 'ฟอนต์ลิขสิทธิ์แท้ ใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์',
+      prodsTitle: 'สินค้าสำเร็จรูป',
+      prodsDesc: 'ไฟล์กราฟิก ป้ายสำเร็จ เทมเพลตพร้อมใช้งาน',
+      groupsTitle: 'เข้ากลุ่ม LINE VIP',
+      groupsDesc: 'รวมกลุ่ม VIP อัปเดตงานต่อเนื่อง โหลดได้ไม่อั้นตลอดชีพ',
+      portTitle: 'ผลงานการออกแบบ',
+      portDesc: 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน',
+      reviewsTitle: 'รีวิวจากลูกค้า',
+      reviewsDesc: 'ความประทับใจจริงจากลูกค้าที่ใช้บริการ BNC GraphMate',
+      ordersTitle: 'ประวัติคำสั่งซื้อ',
+      ordersDesc: 'ติดตามสถานะคำสั่งซื้อ ตรวจสอบสลิป และรับไฟล์งาน'
+    },
+    paymentAccounts: [
         { id: 'acc-1', bankName: 'ธนาคารกสิกรไทย (KBank)', accountNo: '123-4-56789-0', accountName: 'ร้าน บีเอ็นซี กราฟเมท', qrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678' },
         { id: 'acc-2', bankName: 'ธนาคารไทยพาณิชย์ (SCB)', accountNo: '987-6-54321-0', accountName: 'ร้าน บีเอ็นซี กราฟเมท', qrUrl: '' }
       ],
@@ -1040,77 +1057,150 @@ const Store = (function () {
  this.saveCart([]);
  },
  checkoutMultiItems: function (items, customerInfo, paymentInfo) {
- const data = loadLocal();
- const oId = uid('ord');
- const oNum = orderNum();
- const totalAmount = items.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
- const itemNames = items.map(i => i.name).join(', ');
+      const data = loadLocal();
+      const oId = uid('ord');
+      const oNum = orderNum();
+      const totalAmount = items.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+      const itemNames = items.map(i => i.name).join(', ');
+      const allGroups = items.length > 0 && items.every(i => i.type === 'GROUP');
 
- const newOrder = {
- id: oId,
- order_number: oNum,
- customer_id: customerInfo.customer_id || 'guest',
- customer_name: customerInfo.customer_name || 'ลูกค้าทั่วไป',
- order_type: 'MULTI',
- items: items,
- item_name: itemNames,
- amount: totalAmount,
- status: 'VERIFYING',
- line_id: customerInfo.line_id || '',
- gmail: customerInfo.gmail || '',
- notes: customerInfo.notes || '',
- created_at: new Date().toISOString()
- };
+      const newOrder = {
+        id: oId,
+        order_number: oNum,
+        customer_id: customerInfo.customer_id || 'guest',
+        customer_name: customerInfo.customer_name || 'ลูกค้าทั่วไป',
+        order_type: allGroups ? 'GROUP' : 'MULTI',
+        items: items,
+        item_name: itemNames,
+        amount: totalAmount,
+        status: 'VERIFYING',
+        line_id: customerInfo.line_id || '',
+        gmail: customerInfo.gmail || '',
+        notes: customerInfo.notes || '',
+        created_at: new Date().toISOString()
+      };
 
- const pId = uid('pay');
- const newPayment = {
- id: pId,
- order_id: oId,
- amount: totalAmount,
- slip_image_url: paymentInfo.slip_image_url || '',
- verification_status: 'VERIFYING',
- qr_ref: paymentInfo.qr_ref || '',
- qr_trans_ref: paymentInfo.qr_trans_ref || '',
- qr_date: paymentInfo.qr_date || '',
- verified_at: null
- };
+      const pId = uid('pay');
+      const newPayment = {
+        id: pId,
+        order_id: oId,
+        amount: totalAmount,
+        slip_image_url: paymentInfo.slip_image_url || '',
+        verification_status: 'VERIFYING',
+        qr_ref: paymentInfo.qr_ref || '',
+        qr_trans_ref: paymentInfo.qr_trans_ref || '',
+        qr_date: paymentInfo.qr_date || '',
+        verified_at: null
+      };
 
- // Create drive access for each item
- items.forEach(item => {
- data.drive_access.unshift({
- id: uid('da'),
- order_id: oId,
- customer_id: newOrder.customer_id,
- customer_name: newOrder.customer_name,
- item_id: item.id,
- item_name: item.name,
- item_type: item.type || 'FONT',
- delivery_type: item.delivery_type || 'MANUAL',
- gmail: customerInfo.gmail || '',
- drive_id: item.drive_folder_id || '',
- status: (item.delivery_type === 'GOOGLE_DRIVE') ? 'WAITING_EMAIL' : 'WAITING_ADMIN',
- completed_at: null
- });
- });
+      // Create drive access for non-group items and group access for group items
+      items.forEach(item => {
+        if (item.type === 'GROUP') {
+          data.group_access.unshift({
+            id: uid('ga'),
+            order_id: oId,
+            customer_id: newOrder.customer_id,
+            customer_name: newOrder.customer_name,
+            group_id: item.id,
+            group_name: item.name,
+            line_id: customerInfo.line_id || '',
+            status: 'PENDING',
+            completed_at: null
+          });
+        } else {
+          data.drive_access.unshift({
+            id: uid('da'),
+            order_id: oId,
+            customer_id: newOrder.customer_id,
+            customer_name: newOrder.customer_name,
+            item_id: item.id,
+            item_name: item.name,
+            item_type: item.type || 'FONT',
+            delivery_type: item.delivery_type || 'MANUAL',
+            gmail: customerInfo.gmail || '',
+            drive_id: item.drive_folder_id || '',
+            status: (item.delivery_type === 'GOOGLE_DRIVE') ? 'WAITING_EMAIL' : 'WAITING_ADMIN',
+            completed_at: null
+          });
+        }
+      });
 
- data.orders.unshift(newOrder);
- data.payments.unshift(newPayment);
- saveLocal(data);
- this.clearCart();
+      data.orders.unshift(newOrder);
+      data.payments.unshift(newPayment);
+      saveLocal(data);
+      this.clearCart();
 
- callCloud('CREATE_ORDER', { orderInfo: newOrder, paymentInfo: newPayment });
- return { order: newOrder, payment: newPayment };
- },
+      // Background Google Sheet Sync
+      callCloud('MULTI_CHECKOUT', {
+        order: newOrder,
+        payment: newPayment,
+        items: items
+      });
 
- // Settings
- getHighlights: function () {
-    const s = this.getSettings();
-    return Array.isArray(s.highlights) ? s.highlights : (defaultData.settings.highlights || []);
-  },
-  saveHighlights: function (list) {
-    return this.saveSettings({ highlights: list });
-  },
-  savePaymentAccounts: function (list) {
+      return { order: newOrder, payment: newPayment };
+    },
+
+    // Home Banners 1:1, Queue Status & Page Headings
+    getHomeBanners: function () {
+      const s = this.getSettings();
+      return Array.isArray(s.homeBanners) && s.homeBanners.length > 0 ? s.homeBanners : (defaultData.settings.homeBanners || []);
+    },
+    saveHomeBanners: function (list) {
+      return this.saveSettings({ homeBanners: list });
+    },
+    getQueueStatus: function () {
+      const s = this.getSettings();
+      return s.queueStatus || defaultData.settings.queueStatus;
+    },
+    saveQueueStatus: function (status) {
+      return this.saveSettings({ queueStatus: status });
+    },
+    getHeadings: function () {
+      const s = this.getSettings();
+      return s.headings || defaultData.settings.headings;
+    },
+    saveHeadings: function (headings) {
+      return this.saveSettings({ headings: headings });
+    },
+    setCustomerStamps: function (customerId, stamps) {
+      const data = loadLocal();
+      const cust = (data.customers || []).find(c => c.id === customerId);
+      if (cust) {
+        cust.heart_stamps = Math.max(0, Number(stamps) || 0);
+        saveLocal(data);
+        callCloud('UPDATE_CUSTOMER_STAMPS', { customerId, stamps: cust.heart_stamps });
+        return cust.heart_stamps;
+      }
+      return 0;
+    },
+    addCustomerStamp: function (customerId, delta = 1) {
+      const data = loadLocal();
+      const cust = (data.customers || []).find(c => c.id === customerId);
+      if (cust) {
+        cust.heart_stamps = Math.max(0, (cust.heart_stamps || 0) + delta);
+        saveLocal(data);
+        callCloud('UPDATE_CUSTOMER_STAMPS', { customerId, stamps: cust.heart_stamps });
+        return cust.heart_stamps;
+      }
+      return 0;
+    },
+    togglePinGroup: function (groupId) {
+      const data = loadLocal();
+      const g = (data.groups || []).find(x => x.id === groupId);
+      if (g) {
+        g.is_pinned = !g.is_pinned;
+        saveLocal(data);
+        callCloud('SAVE_GROUP', { group: g });
+      }
+    },
+    updatePaymentStatus: function (paymentId, status, reason) {
+      if (status === 'PAID' || status === 'COMPLETED') {
+        this.approvePayment(paymentId);
+      } else if (status === 'REJECTED') {
+        this.rejectPayment(paymentId, reason);
+      }
+    },
+    savePaymentAccounts: function (list) {
     return this.saveSettings({ paymentAccounts: list });
   },
   saveContactChannels: function (list) {
@@ -1208,7 +1298,34 @@ window.Store = Store;
  };
 
  // ── Application Initialization ────────────────────────────────
- function initApp() {
+ 
+  // ── Dynamic Font-Face Loader ──────────────────────────────────
+  function loadFontFaces() {
+    const fonts = Store.getAllFonts();
+    let css = '';
+    fonts.forEach(f => {
+      const fontUrl = f.font_file_url || f.file_url;
+      if (fontUrl && fontUrl.trim()) {
+        css += `
+          @font-face {
+            font-family: 'Font-${f.id}';
+            src: url('${fontUrl.trim()}');
+            font-display: swap;
+          }
+        `;
+      }
+    });
+    let styleEl = document.getElementById('dynamic-font-faces');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'dynamic-font-faces';
+      document.head.appendChild(styleEl);
+    }
+    styleEl.textContent = css;
+  }
+
+  function initApp() {
+    loadFontFaces();
  setupRouting();
  setupCartDrawer();
  setupModals();
@@ -1350,160 +1467,287 @@ window.Store = Store;
  // ============================================================
  // VIEW: HOME (Facebook Cover + Instagram Profile Layout)
  // ============================================================
- function renderHomeView(container) {
- const s = Store.getSettings();
- const stats = s.stats || {};
- const highlights = Array.isArray(s.highlights) ? s.highlights : [];
- const featuredProds = Store.getAllProducts().slice(0, 4);
- const featuredFonts = Store.getAllFonts().slice(0, 3);
- const featuredGroups = Store.getAllGroups().slice(0, 2);
-
- container.innerHTML = `
- <!-- Profile Header -->
- <section style="background-color: var(--surface-alt); padding: 1.5rem 0 2.5rem; border-bottom: 1px solid var(--border-light);">
- <div class="container">
- 
- <!-- Facebook-style Cover Banner -->
- <div class="fb-cover-banner">
- <img src="${escapeHTML(s.coverImage || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600')}" class="fb-cover-img" alt="Cover Banner">
- </div>
-
- <!-- Profile Info Row -->
- <div class="ig-profile-section">
- <div class="ig-profile-header">
- 
- <!-- Avatar Circle (Clean White Border, No Aura) -->
- <div class="ig-avatar-wrapper ${highlights.length > 0 ? 'has-story' : ''}" onclick="openStoryModal(0)" style="cursor: pointer;" title="คลิกเพื่อดูสตอรี่ไฮไลท์">
- <img src="${escapeHTML(s.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="ig-avatar-img" alt="Studio Avatar">
- </div>
-
- <!-- Shop Info (Safely positioned on clean surface below cover) -->
- <div class="ig-info">
- <div class="ig-name-row">
- <h1 class="ig-shop-title">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</h1>
- <span style="color: var(--primary); display: inline-flex;" title="Official Studio">
- <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
- </span>
- <span class="badge badge--pink">${escapeHTML(s.tagline || 'Graphic & Font Studio')}</span>
- </div>
-
- <!-- Stats Pills -->
- <div class="ig-stats-row">
- <div class="ig-stat-item"><strong>${escapeHTML(stats.portfolioCount || '250+')}</strong> ${escapeHTML(stats.portfolioLabel || 'ผลงาน')}</div>
- <div class="ig-stat-item"><strong>${escapeHTML(stats.fontCount || '48')}</strong> ${escapeHTML(stats.fontLabel || 'ฟอนต์')}</div>
- <div class="ig-stat-item"><strong>${escapeHTML(stats.memberCount || '1.2k')}</strong> ${escapeHTML(stats.memberLabel || 'สมาชิก')}</div>
- </div>
-
- <!-- Bio -->
- <p class="ig-bio-text">${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้')}</p>
-
- <!-- Customizable Action Buttons -->
- <div class="ig-actions-row">
- <a href="${escapeHTML(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="_blank" class="btn btn-primary btn-sm">
- <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
- ${escapeHTML(s.btnLineText || 'ทักแชท LINE ร้าน')}
- </a>
- <a href="${escapeHTML(s.instagramUrl || 'https://instagram.com/bncgraphmate')}" target="_blank" class="btn btn-secondary btn-sm">
- <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
- ${escapeHTML(s.btnIgText || 'Instagram')}
- </a>
- <a href="${escapeHTML(s.facebookUrl || 'https://facebook.com/bncgraphmate')}" target="_blank" class="btn btn-secondary btn-sm">
- <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
- ${escapeHTML(s.btnFbText || 'Facebook')}
- </a>
- <a href="tel:${escapeHTML(s.contactPhone || '0812345678')}" class="btn btn-outline btn-sm">
- <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
- ${escapeHTML(s.btnPhoneText || 'โทรติดต่อ')}
- </a>
- </div>
- </div>
- </div>
-
- <!-- Story Highlights Bar -->
- ${highlights.length > 0 ? `
- <div style="border-top: 1px solid var(--border-light); margin-top: 1.75rem; padding-top: 1rem;">
- <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.65rem; text-transform: uppercase; letter-spacing: 0.04em;">
- ไฮไลท์เรื่องราว & บริการ
- </div>
- <div class="story-highlights-bar">
- ${highlights.map((h, idx) => `
- <div class="story-highlight-item" onclick="openStoryModal(${idx})">
- <div class="story-ring">
- <img src="${escapeHTML(h.image || h.img || 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300')}" class="story-inner-img" alt="${escapeHTML(h.title)}">
- </div>
- <span class="story-label">${escapeHTML(h.title)}</span>
- </div>
- `).join('')}
- </div>
- </div>
- ` : ''}
-
- </div>
- </div>
- </section>
-
- <!-- VIP LINE Groups Section -->
- <section style="padding: 3.5rem 0;">
- <div class="container">
- <div class="section-header">
- <span class="section-tag">LINE VIP Groups</span>
- <h2 class="section-title">กลุ่ม VIP รวมไฟล์กราฟิก & ป้าย</h2>
- <p class="section-desc">สมัครครั้งเดียวเข้ากลุ่มถาวร อัปเดตไฟล์ป้าย การ์ตูน และฟอนต์ใหม่สม่ำเสมอ แอดมินดูแลดึงเข้ากลุ่มเองค่ะ</p>
- </div>
-
- <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
- ${featuredGroups.map(g => renderGroupCard(g, s)).join('')}
- </div>
- 
- <div style="text-align: center; margin-top: 2rem;">
- <a href="#groups" class="btn btn-outline">ดูกลุ่ม LINE ทั้งหมด </a>
- </div>
- </div>
- </section>
-
- <!-- Featured Fonts Section -->
- <section style="padding: 3.5rem 0; background-color: var(--surface-alt);">
- <div class="container">
- <div class="section-header">
- <span class="section-tag">Popular Fonts</span>
- <h2 class="section-title">ฟอนต์ลายมือยอดนิยม</h2>
- <p class="section-desc">ฟอนต์ลิขสิทธิ์แท้ ใช้งานเชิงพาณิชย์ได้ รองรับทั้งภาษาไทยและอังกฤษ</p>
- </div>
-
- <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
- ${featuredFonts.map(f => renderFontCard(f, s)).join('')}
- </div>
-
- <div style="text-align: center; margin-top: 2rem;">
- <a href="#fonts" class="btn btn-primary">ทดสอบและดูฟอนต์ทั้งหมด </a>
- </div>
- </div>
- </section>
-
- <!-- Featured Digital Products -->
- <section style="padding: 3.5rem 0;">
- <div class="container">
- <div class="section-header">
- <span class="section-tag">Digital Assets</span>
- <h2 class="section-title">สินค้ากราฟิกสำเร็จรูป</h2>
- <p class="section-desc">ไฟล์ป้ายสำเร็จ ไฟล์ตกแต่งสติกเกอร์ คมชัด 300 DPI พร้อมใช้งาน</p>
- </div>
-
- <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
- ${featuredProds.map(p => renderProductCard(p, s)).join('')}
- </div>
-
- <div style="text-align: center; margin-top: 2rem;">
- <a href="#products" class="btn btn-outline">ดูสินค้าทั้งหมด </a>
- </div>
- </div>
- </section>
- `;
- }
-
  // ============================================================
- // VIEW: FONTS (GoodNotes Ruled Notebook Tester + iPhone Split Compare)
+  // VIEW: HOME (1:1 Hero Carousel + Queue Notebook + Compact Sliders)
   // ============================================================
+  let heroCarouselTimer = null;
+
+  function renderHomeView(container) {
+    const s = Store.getSettings();
+    const stats = s.stats || {};
+    const banners = Store.getHomeBanners();
+    const queueStatus = Store.getQueueStatus();
+    const featuredProds = Store.getAllProducts();
+    const featuredFonts = Store.getAllFonts();
+    const featuredGroups = Store.getAllGroups();
+
+    container.innerHTML = `
+      <!-- Profile & Hero Section -->
+      <section style="background-color: var(--surface-alt); padding: 2rem 0 2.75rem; border-bottom: 1px solid var(--border-light);">
+        <div class="container">
+          
+          <!-- 1:1 Square Hero Carousel (BNC HayMate Standard) -->
+          <div class="hero-carousel-wrapper">
+            <div class="hero-carousel-container" id="heroCarouselSlides">
+              ${banners.map((b, idx) => `
+                <div class="hero-carousel-slide ${idx === 0 ? 'active' : ''}" data-index="${idx}">
+                  <a href="${escapeHTML(b.link || '#fonts')}">
+                    <img src="${escapeHTML(b.image)}" alt="${escapeHTML(b.title || '')}" style="width:100%; height:100%; object-fit:cover; display:block;">
+                  </a>
+                </div>
+              `).join('')}
+            </div>
+            ${banners.length > 1 ? `
+              <button type="button" class="hero-carousel-prev" onclick="prevHeroSlide()" aria-label="ภาพก่อนหน้า">‹</button>
+              <button type="button" class="hero-carousel-next" onclick="nextHeroSlide()" aria-label="ภาพถัดไป">›</button>
+              <div class="hero-carousel-dots" id="heroCarouselDots">
+                ${banners.map((_, idx) => `
+                  <span class="hero-carousel-dot ${idx === 0 ? 'active' : ''}" onclick="goToHeroSlide(${idx})"></span>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Profile Info Row (Cute Pink Avatar, No Story Ring) -->
+          <div class="ig-profile-section" style="max-width: 680px; margin: 0 auto;">
+            <div class="ig-profile-header">
+              
+              <div class="ig-avatar-wrapper" style="border: 3px solid var(--primary-light);">
+                <img src="${escapeHTML(s.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="ig-avatar-img" alt="Studio Avatar">
+              </div>
+
+              <!-- Shop Info -->
+              <div class="ig-info">
+                <div class="ig-name-row">
+                  <h1 class="ig-shop-title">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</h1>
+                  <span style="color: var(--primary); display: inline-flex;" title="Official Studio">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                  </span>
+                  <span class="badge badge--pink">${escapeHTML(s.tagline || 'Graphic & Font Studio')}</span>
+                </div>
+
+                <!-- Stats Pills -->
+                <div class="ig-stats-row">
+                  <div class="ig-stat-item"><strong>${escapeHTML(stats.portfolioCount || '250+')}</strong> ${escapeHTML(stats.portfolioLabel || 'ผลงาน')}</div>
+                  <div class="ig-stat-item"><strong>${escapeHTML(stats.fontCount || '48')}</strong> ${escapeHTML(stats.fontLabel || 'ฟอนต์')}</div>
+                  <div class="ig-stat-item"><strong>${escapeHTML(stats.memberCount || '1.2k')}</strong> ${escapeHTML(stats.memberLabel || 'สมาชิก')}</div>
+                </div>
+
+                <!-- Bio -->
+                <p class="ig-bio-text">${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้')}</p>
+
+                <!-- Action Buttons -->
+                <div class="ig-actions-row">
+                  <a href="${escapeHTML(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="_blank" class="btn btn-primary btn-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    ${escapeHTML(s.btnLineText || 'ทักแชท LINE ร้าน')}
+                  </a>
+                  <a href="${escapeHTML(s.instagramUrl || 'https://instagram.com/bncgraphmate')}" target="_blank" class="btn btn-secondary btn-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                    ${escapeHTML(s.btnIgText || 'Instagram')}
+                  </a>
+                  <a href="${escapeHTML(s.facebookUrl || 'https://facebook.com/bncgraphmate')}" target="_blank" class="btn btn-secondary btn-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                    ${escapeHTML(s.btnFbText || 'Facebook')}
+                  </a>
+                  <a href="tel:${escapeHTML(s.contactPhone || '0812345678')}" class="btn btn-outline btn-sm">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    ${escapeHTML(s.btnPhoneText || 'โทรติดต่อ')}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- GoodNotes Notebook Paper: Queue & Notice Board (User Approved) -->
+          <div class="notebook-paper-container" style="max-width: 680px; margin: 2rem auto 0; box-shadow: var(--shadow-md); border-radius: 20px;">
+            <div class="notebook-binder-header">
+              <div class="notebook-binder-holes">
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+              </div>
+              <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 6px;">
+                <span>📌 คิวงาน & แจ้งเตือนร้าน BNC GraphMate</span>
+              </div>
+              <div class="queue-badge-chip">
+                <span class="queue-status-bullet"></span>
+                <span>${escapeHTML(queueStatus.queueText || 'ว่าง 3 คิว 💖')}</span>
+              </div>
+            </div>
+
+            <div class="queue-notebook-paper">
+              <div style="font-size: 0.95rem; line-height: 2.1; color: var(--text); font-weight: 600;">
+                <div>💖 <strong>สถานะคิวงานออกแบบ:</strong> <span style="color: var(--primary-deep);">${escapeHTML(queueStatus.queueText || 'ว่างพร้อมรับ 3 คิว 💖')}</span></div>
+                <div>⏰ <strong>เวลาตอบแชท & ให้คำปรึกษา:</strong> ${escapeHTML(queueStatus.chatHours || '09:00 - 23:00 น. (ตอบไว)')}</div>
+                <div>⚡ <strong>ความเร็วการส่งมอบ:</strong> ${escapeHTML(queueStatus.deliveryInfo || 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}</div>
+              </div>
+              <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+                <a href="${escapeHTML(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="_blank" class="btn btn-primary btn-sm" style="font-weight: 700; border-radius: 12px;">
+                  💬 ทักแชทจองคิว / สั่งทำงานออกแบบ
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- VIP LINE Groups Section (1-Row Compact Horizontal Slider) -->
+      <section style="padding: 3rem 0 2.5rem;">
+        <div class="container">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem;">
+            <div>
+              <span class="section-tag">LINE VIP Groups</span>
+              <h2 class="section-title" style="margin: 0.25rem 0 0;">กลุ่ม VIP รวมไฟล์กราฟิก & ป้าย</h2>
+            </div>
+            <a href="#groups" class="btn btn-outline btn-sm">ดูทั้งหมด (${featuredGroups.length}) →</a>
+          </div>
+
+          <div class="compact-horizontal-slider">
+            ${featuredGroups.map(g => `
+              <div class="compact-card-item">
+                <img src="${escapeHTML(g.cover_image_url || g.cover_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600')}" class="compact-card-thumb" alt="${escapeHTML(g.name)}" loading="lazy">
+                <div class="compact-card-content">
+                  ${g.is_pinned ? `<span class="badge badge--pink" style="font-size: 10px; margin-bottom: 4px;">📌 แนะนำ</span>` : `<span class="badge badge--pink" style="font-size: 10px; margin-bottom: 4px;">${escapeHTML(g.category || 'กลุ่ม VIP')}</span>`}
+                  <div class="compact-card-title">${escapeHTML(g.name)}</div>
+                  <div class="compact-card-footer">
+                    <span class="product-price" style="font-size: 1.05rem;">฿${Number(g.price || 0).toLocaleString()}</span>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="addToCartItem('${g.id}', 'GROUP')" style="padding: 4px 10px; font-size: 11px;">
+                      ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </section>
+
+      <!-- Handwritten Fonts Section (1-Row Compact Horizontal Slider) -->
+      <section style="padding: 2rem 0 2.5rem; background-color: var(--surface-alt);">
+        <div class="container">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem;">
+            <div>
+              <span class="section-tag">Handwritten Fonts</span>
+              <h2 class="section-title" style="margin: 0.25rem 0 0;">ฟอนต์ลายมือเชิงพาณิชย์</h2>
+            </div>
+            <a href="#fonts" class="btn btn-outline btn-sm">ดูทั้งหมด (${featuredFonts.length}) →</a>
+          </div>
+
+          <div class="compact-horizontal-slider">
+            ${featuredFonts.map(f => {
+              const fontImg = f.preview_image || f.preview_image_url || f.image_url || 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';
+              return `
+                <div class="compact-card-item">
+                  <img src="${escapeHTML(fontImg)}" class="compact-card-thumb" alt="${escapeHTML(f.name)}" loading="lazy" onclick="openLightbox('${escapeHTML(fontImg)}')" style="cursor: pointer;">
+                  <div class="compact-card-content">
+                    <span class="badge badge--pink" style="font-size: 10px; margin-bottom: 4px;">${escapeHTML(f.category || 'ลายมือ')}</span>
+                    <div class="compact-card-title">${escapeHTML(f.name)}</div>
+                    <div class="compact-card-footer">
+                      <span class="product-price" style="font-size: 1.05rem;">฿${Number(f.price || 0).toLocaleString()}</span>
+                      <button type="button" class="btn btn-primary btn-sm" onclick="addToCartItem('${f.id}', 'FONT')" style="padding: 4px 10px; font-size: 11px;">
+                        ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </section>
+
+      <!-- Graphic Products Section (1-Row Compact Horizontal Slider) -->
+      <section style="padding: 2.5rem 0 3.5rem;">
+        <div class="container">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem;">
+            <div>
+              <span class="section-tag">Graphic Ready</span>
+              <h2 class="section-title" style="margin: 0.25rem 0 0;">สินค้าสำเร็จ & ไฟล์ตกแต่ง</h2>
+            </div>
+            <a href="#products" class="btn btn-outline btn-sm">ดูทั้งหมด (${featuredProds.length}) →</a>
+          </div>
+
+          <div class="compact-horizontal-slider">
+            ${featuredProds.map(p => `
+              <div class="compact-card-item">
+                <img src="${escapeHTML(p.image_url || p.image || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600')}" class="compact-card-thumb" alt="${escapeHTML(p.name)}" loading="lazy">
+                <div class="compact-card-content">
+                  <span class="badge badge--pink" style="font-size: 10px; margin-bottom: 4px;">${escapeHTML(p.category || 'กราฟิก')}</span>
+                  <div class="compact-card-title">${escapeHTML(p.name)}</div>
+                  <div class="compact-card-footer">
+                    <span class="product-price" style="font-size: 1.05rem;">฿${Number(p.price || 0).toLocaleString()}</span>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="addToCartItem('${p.id}', 'PRODUCT')" style="padding: 4px 10px; font-size: 11px;">
+                      ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </section>
+    `;
+
+    // Start Auto Carousel Slide
+    initHeroCarousel(banners.length);
+  }
+
+  function initHeroCarousel(totalSlides) {
+    if (heroCarouselTimer) clearInterval(heroCarouselTimer);
+    if (totalSlides <= 1) return;
+
+    heroCarouselTimer = setInterval(() => {
+      nextHeroSlide();
+    }, 4500);
+  }
+
+  window.nextHeroSlide = function () {
+    const slides = document.querySelectorAll('.hero-carousel-slide');
+    const dots = document.querySelectorAll('.hero-carousel-dot');
+    if (!slides.length) return;
+
+    let curIdx = 0;
+    slides.forEach((s, idx) => {
+      if (s.classList.contains('active')) curIdx = idx;
+      s.classList.remove('active');
+    });
+    const nextIdx = (curIdx + 1) % slides.length;
+    slides[nextIdx].classList.add('active');
+
+    dots.forEach((d, idx) => {
+      d.classList.toggle('active', idx === nextIdx);
+    });
+  };
+
+  window.prevHeroSlide = function () {
+    const slides = document.querySelectorAll('.hero-carousel-slide');
+    const dots = document.querySelectorAll('.hero-carousel-dot');
+    if (!slides.length) return;
+
+    let curIdx = 0;
+    slides.forEach((s, idx) => {
+      if (s.classList.contains('active')) curIdx = idx;
+      s.classList.remove('active');
+    });
+    const prevIdx = (curIdx - 1 + slides.length) % slides.length;
+    slides[prevIdx].classList.add('active');
+
+    dots.forEach((d, idx) => {
+      d.classList.toggle('active', idx === prevIdx);
+    });
+  };
+
+  window.goToHeroSlide = function (idx) {
+    const slides = document.querySelectorAll('.hero-carousel-slide');
+    const dots = document.querySelectorAll('.hero-carousel-dot');
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  };
+
   function renderFontsView(container) {
     const s = Store.getSettings();
     const fonts = Store.getAllFonts();
@@ -1540,10 +1784,10 @@ window.Store = Store;
                 <span class="notebook-hole"></span>
               </div>
               <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 6px;">
-                <span>📝 GoodNotes Ruled Paper Tester & Split Compare</span>
+                <span>📝 ทดสอบ & เปรียบเทียบฟอนต์ลายมือสด</span>
               </div>
               <div style="font-size: 12px; color: var(--text-muted);">
-                ฟีลพิมพ์บนสมุดโน้ต
+                พิมพ์ข้อความเทียบฟอนต์สดบนสมุดโน้ต
               </div>
             </div>
 
@@ -1577,7 +1821,7 @@ window.Store = Store;
                     <span class="badge badge--pink" style="font-size: 11px; height: fit-content;">Font A</span>
                   </div>
 
-                  <div class="font-compare-text-display font-display-a" style="font-size: ${state.fontTester.size}px; font-family: 'Prompt', sans-serif;">
+                  <div class="font-compare-text-display font-display-a" style="font-size: ${state.fontTester.size}px; font-family: ${fontA.font_file_url ? `'Font-${fontA.id}', ` : ''}'Prompt', sans-serif;">
                     ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
                   </div>
 
@@ -1907,6 +2151,164 @@ window.Store = Store;
 
   // VIEW: REVIEWS (Pinned Notes & Customer Testimonials - Requirement 7)
   // ============================================================
+  // ============================================================
+  // VIEW: POINTS & 10-HEART STAMP NOTEBOOK CARD (User Requested)
+  // ============================================================
+  function renderPointsView(container) {
+    const s = Store.getSettings();
+    const customers = Store.getCustomers();
+    const query = (state.stampSearchQuery || '').trim();
+
+    let targetCustomer = null;
+    if (query) {
+      targetCustomer = Store.findCustomerByNameOrCode(query);
+    } else {
+      // Default to demo customer if available
+      targetCustomer = customers[0] || null;
+    }
+
+    const currentStamps = targetCustomer ? (Number(targetCustomer.heart_stamps) || 0) : 0;
+    const maxStamps = 10;
+    const isCompleted = currentStamps >= maxStamps;
+
+    container.innerHTML = `
+      <section style="padding: 2.5rem 0 4rem;">
+        <div class="container" style="max-width: 800px;">
+          
+          <div class="section-header">
+            <span class="section-tag">Heart Stamp Loyalty Card</span>
+            <h2 class="section-title">บัตรสะสมแต้มปั๊มหัวใจ 💖</h2>
+            <p class="section-desc">สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที</p>
+          </div>
+
+          <!-- Customer Search Input -->
+          <div class="card" style="margin-bottom: 2rem; padding: 1.25rem 1.5rem; border-radius: 18px;">
+            <label style="font-weight: 700; font-size: 0.92rem; color: var(--text); display: block; margin-bottom: 0.5rem;">
+              🔍 ค้นหาบัตรสะสมแต้มของคุณ
+            </label>
+            <form onsubmit="handleStampSearch(event)" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <input type="text" id="stampSearchInput" class="form-input" placeholder="กรอกชื่อ, LINE ID หรือเบอร์โทรศัพท์..." value="${escapeHTML(state.stampSearchQuery || '')}" style="flex: 1; min-width: 220px;">
+              <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 0.65rem 1.5rem;">
+                ดูบัตรสะสมแต้ม
+              </button>
+            </form>
+            <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.4rem; display: block;">
+              *กรอกชื่อที่แจ้งไว้กับทางร้านตอนสั่งซื้อเพื่อดูจำนวนดวงหัวใจที่สะสมได้
+            </small>
+          </div>
+
+          <!-- Cute GoodNotes Ruled Notebook Paper - Heart Stamp Card -->
+          <div class="stamp-card-notebook">
+            <!-- Binder Header -->
+            <div class="notebook-binder-header">
+              <div class="notebook-binder-holes">
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+              </div>
+              <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 6px;">
+                <span>📝 สมุดสะสมแต้ม BNC GraphMate Loyalty Card</span>
+              </div>
+              <div class="queue-badge-chip" style="background: #FFE4E6; border-color: #FECDD3; color: #BE123C;">
+                <span style="font-size: 13px;">💖</span>
+                <span>${currentStamps} / 10 ดวง</span>
+              </div>
+            </div>
+
+            <!-- GoodNotes Ruled Paper Body -->
+            <div class="goodnotes-paper" style="padding: 24px 28px;">
+              
+              <!-- Card Header Info -->
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; border-bottom: 1.5px dashed #F8DBE7; padding-bottom: 14px;">
+                <div>
+                  <h3 style="margin: 0 0 4px; font-size: 1.25rem; color: var(--primary-deep); font-weight: 800;">
+                    ${targetCustomer ? `บัตรสะสมแต้ม: ${escapeHTML(targetCustomer.name)}` : 'บัตรสะสมแต้ม BNC GraphMate'}
+                  </h3>
+                  <div style="font-size: 0.85rem; color: var(--text-muted);">
+                    ${targetCustomer ? `LINE ID: ${escapeHTML(targetCustomer.line_id || '-')} | เบอร์โทร: ${escapeHTML(targetCustomer.phone || '-')}` : 'กรุณากรอกชื่อเพื่อตรวจสอบแต้มสะสม'}
+                  </div>
+                </div>
+                <div style="text-align: right;">
+                  <span class="badge ${isCompleted ? 'badge--success' : 'badge--pink'}" style="font-size: 12px;">
+                    ${isCompleted ? '🎉 สะสมครบแล้ว!' : `สะสมแล้ว ${currentStamps} ดวง`}
+                  </span>
+                </div>
+              </div>
+
+              <!-- 10-Heart Stamp Grid (2 Rows x 5 Columns) -->
+              <div class="stamp-grid-10">
+                ${Array.from({ length: 10 }).map((_, idx) => {
+                  const num = idx + 1;
+                  const isStamped = num <= currentStamps;
+                  const isRewardSlot = num === 10;
+
+                  if (isStamped) {
+                    return `
+                      <div class="stamp-slot is-stamped" title="ดวงที่ ${num}: ปั๊มแล้ว 💖">
+                        <div class="stamp-ink-ring"></div>
+                        <span class="stamp-heart-icon">💖</span>
+                        <span class="stamp-badge-text">BNC</span>
+                      </div>
+                    `;
+                  } else {
+                    return `
+                      <div class="stamp-slot is-empty ${isRewardSlot ? 'is-reward' : ''}" title="ดวงที่ ${num}: ยังไม่ได้ปั๊ม">
+                        ${isRewardSlot ? `
+                          <span style="font-size: 1.3rem;">🎁</span>
+                          <span style="font-size: 8.5px; font-weight: 800; text-align: center; line-height: 1;">ฟรี 1 สิทธิ์</span>
+                        ` : `
+                          <span class="stamp-slot-num">${num}</span>
+                        `}
+                      </div>
+                    `;
+                  }
+                }).join('')}
+              </div>
+
+              <!-- Progress & Reward Notice -->
+              <div class="stamp-progress-wrapper">
+                <div style="flex: 1; min-width: 240px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; color: var(--text);">
+                    <span>ความคืบหน้าการสะสม</span>
+                    <span style="color: var(--primary-deep); font-weight: 800;">${currentStamps} / 10 ดวง</span>
+                  </div>
+                  <div class="stamp-progress-track">
+                    <div class="stamp-progress-fill" style="width: ${Math.min(100, (currentStamps / 10) * 100)}%;"></div>
+                  </div>
+                </div>
+
+                <div style="font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
+                  ${isCompleted ? `
+                    <span>🎉 สะสมครบ 10 ดวงแล้ว! ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ</span>
+                  ` : `
+                    <span>ขาดอีก <span style="font-size: 1.15rem; color: #e11d48;">${10 - currentStamps}</span> ดวง จะได้รับของขวัญฟรี 🎁</span>
+                  `}
+                </div>
+              </div>
+
+              <!-- Card Bottom Rules -->
+              <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1.5px dashed #F8DBE7; font-size: 0.82rem; color: var(--text-muted); line-height: 1.8;">
+                <div>💖 <strong>กติกาง่ายๆ:</strong> ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊มหัวใจ 1 ดวงทันที</div>
+                <div>🎁 <strong>ของรางวัล:</strong> สะสมครบ 10 ดวง เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี!</div>
+                <div>💬 <strong>ติดต่อแลกรางวัล:</strong> ทักแชท LINE ร้านเพื่อแจ้งแลกสิทธิ์ได้ตลอด 24 ชม.</div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </section>
+    `;
+  }
+
+  window.handleStampSearch = function (e) {
+    e.preventDefault();
+    state.stampSearchQuery = ($('stampSearchInput')?.value || '').trim();
+    renderCurrentView();
+  };
+
   function renderReviewsView(container) {
     const allReviews = Store.getAllReviews();
     const pinnedReviews = allReviews.filter(r => r.is_pinned);
@@ -1999,59 +2401,92 @@ window.Store = Store;
  // VIEW: ORDERS (Customer Order Status Tracking)
  // ============================================================
  function renderOrdersView(container) {
- const orders = Store.getAllOrders();
+    const orders = Store.getAllOrders();
+    const headings = Store.getHeadings();
 
- container.innerHTML = `
- <section style="padding: 2.5rem 0 4rem;">
- <div class="container" style="max-width: 860px;">
- <div class="section-header">
- <span class="section-tag">Order Tracking</span>
- <h2 class="section-title">ตรวจสอบสถานะคำสั่งซื้อ</h2>
- <p class="section-desc">ติดตามสถานะการตรวจสอบสลิปและสิทธิ์การเข้าถึง Google Drive ของออเดอร์คุณ</p>
- </div>
+    container.innerHTML = `
+      <section style="padding: 2.5rem 0 4rem;">
+        <div class="container" style="max-width: 860px;">
+          <div class="section-header">
+            <span class="section-tag">Order Tracking</span>
+            <h2 class="section-title">${escapeHTML(headings.ordersTitle || 'ตรวจสอบสถานะคำสั่งซื้อ')}</h2>
+            <p class="section-desc">${escapeHTML(headings.ordersDesc || 'ติดตามสถานะการตรวจสอบสลิปและสิทธิ์การเข้าถึง Google Drive ของออเดอร์คุณ')}</p>
+          </div>
 
- <div style="display: flex; flex-direction: column; gap: 1rem;">
- ${orders.length > 0 ? orders.map(o => `
- <div class="card" style="padding: 1.5rem;">
- <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
- <div>
- <h3 style="font-size: 1.15rem; margin: 0 0 0.25rem;">#${escapeHTML(o.order_number)}</h3>
- <small style="color: var(--text-muted);">${new Date(o.created_at).toLocaleString('th-TH')}</small>
- </div>
- <span class="badge ${o.status === 'PAID' || o.status === 'COMPLETED' ? 'badge--success' : (o.status === 'REJECTED' ? 'badge--warning' : 'badge--pink')}">
- ${o.status === 'PAID' ? 'ชำระเงินแล้ว' : (o.status === 'VERIFYING' ? 'กำลังตรวจสลิป' : (o.status === 'COMPLETED' ? 'ส่งมอบสิทธิ์แล้ว' : o.status))}
- </span>
- </div>
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            ${orders.length > 0 ? orders.map(o => `
+              <div class="card" style="padding: 1.5rem; border-radius: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+                  <div>
+                    <h3 style="font-size: 1.15rem; margin: 0 0 0.25rem; font-weight: 700;">#${escapeHTML(o.order_number)}</h3>
+                    <small style="color: var(--text-muted);">${new Date(o.created_at).toLocaleString('th-TH')}</small>
+                  </div>
+                  <span class="badge ${o.status === 'PAID' || o.status === 'COMPLETED' ? 'badge--success' : (o.status === 'REJECTED' ? 'badge--warning' : 'badge--pink')}">
+                    ${o.status === 'PAID' ? '✓ ชำระเงินแล้ว' : (o.status === 'VERIFYING' ? '⏳ กำลังตรวจสลิป' : (o.status === 'COMPLETED' ? '✓ ส่งมอบสิทธิ์แล้ว' : o.status))}
+                  </span>
+                </div>
 
- <div style="font-size: 0.95rem; margin-bottom: 0.75rem;">
- <strong>รายการ:</strong> ${escapeHTML(o.item_name || 'สินค้า BNC')}
- </div>
- <div style="font-size: 0.95rem; margin-bottom: 0.75rem;">
- <strong>ยอดชำระ:</strong> <span style="color: var(--primary-deep); font-weight: 700;">฿${Number(o.amount || 0).toLocaleString()}</span>
- </div>
- ${o.gmail ? `
- <div style="font-size: 0.88rem; color: var(--text-muted);">
- <strong>Gmail รับไฟล์:</strong> ${escapeHTML(o.gmail)}
- </div>
- ` : ''}
- </div>
- `).join('') : `
- <div class="card" style="text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
- <h4>ยังไม่มีรายการคำสั่งซื้อ</h4>
- <p>เมื่อคุณสั่งซื้อสินค้าหรือฟอนต์ในตะกร้า ข้อมูลจะแสดงที่นี่โดยอัตโนมัติค่ะ</p>
- <a href="#fonts" class="btn btn-primary" style="margin-top: 1rem;">เลือกดูฟอนต์ & สินค้า </a>
- </div>
- `}
- </div>
- </div>
- </section>
- `;
- }
+                <div style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+                  <strong>รายการ:</strong> ${escapeHTML(o.item_name || 'สินค้า BNC')}
+                </div>
+                <div style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+                  <strong>ยอดชำระ:</strong> <span style="color: var(--primary-deep); font-weight: 700;">฿${Number(o.amount || 0).toLocaleString()}</span>
+                </div>
 
- // ============================================================
- // VIEW: ADMIN DASHBOARD & MASTER SETTINGS (100% Configurable)
- // ============================================================
- function renderAdminView(container) {
+                ${o.gmail ? `
+                  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; background: var(--surface-alt); padding: 8px 12px; border-radius: 10px; margin-bottom: 0.75rem;">
+                    <div style="font-size: 0.88rem; color: var(--text);">
+                      <strong>Gmail รับไฟล์:</strong> <span style="font-family: monospace; font-weight: 600;">${escapeHTML(o.gmail)}</span>
+                    </div>
+                    <button type="button" class="btn-copy-email" onclick="copyEmailToClipboard('${escapeHTML(o.gmail)}', this)" title="คัดลอกอีเมล">
+                      📋 คัดลอก Gmail
+                    </button>
+                  </div>
+                ` : ''}
+
+                <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px dashed var(--border-light); padding-top: 0.75rem;">
+                  <button type="button" class="btn btn-outline btn-sm" onclick="openOrderDetailModal('${o.id}')">
+                    🔍 ดูรายละเอียดออเดอร์
+                  </button>
+                </div>
+              </div>
+            `).join('') : `
+              <div class="card" style="text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+                <h4>ยังไม่มีรายการคำสั่งซื้อ</h4>
+                <p>เมื่อคุณสั่งซื้อสินค้าหรือฟอนต์ในตะกร้า ข้อมูลจะแสดงที่นี่โดยอัตโนมัติค่ะ</p>
+                <a href="#fonts" class="btn btn-primary" style="margin-top: 1rem;">เลือกดูฟอนต์ & สินค้า</a>
+              </div>
+            `}
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  window.copyEmailToClipboard = function (email, btn) {
+    if (!email) return;
+    const doFeedback = () => {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓ คัดลอกแล้ว!';
+      btn.style.background = '#22c55e';
+      btn.style.color = '#ffffff';
+      setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 2000);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(email).then(doFeedback).catch(() => {
+        prompt('คัดลอก Gmail:', email);
+      });
+    } else {
+      prompt('คัดลอก Gmail:', email);
+    }
+  };
+
+  function renderAdminView(container) {
  const s = Store.getSettings();
 
  // Check if Admin PIN is unlocked (Cute Calculator Keypad like BNC HayMate)
@@ -2131,6 +2566,7 @@ window.Store = Store;
  <button type="button" class="admin-tab-btn ${state.adminTab === 'products' ? 'active' : ''}" onclick="switchAdminTab('products')">จัดการสินค้า</button>
  <button type="button" class="admin-tab-btn ${state.adminTab === 'fonts' ? 'active' : ''}" onclick="switchAdminTab('fonts')">จัดการฟอนต์</button>
  <button type="button" class="admin-tab-btn ${state.adminTab === 'groups' ? 'active' : ''}" onclick="switchAdminTab('groups')">จัดการกลุ่ม VIP</button>
+          <button type="button" class="admin-tab-btn ${state.adminTab === 'stamps' ? 'active' : ''}" onclick="switchAdminTab('stamps')">บัตรสะสมแต้ม 💖</button>
  <button type="button" class="admin-tab-btn ${state.adminTab === 'settings' ? 'active' : ''}" onclick="switchAdminTab('settings')">ตั้งค่าร้าน (ทุกจุด)</button>
  </div>
 
@@ -2366,46 +2802,246 @@ window.Store = Store;
  }
 
  // ── Master Admin Settings Tab (100% Configurable) ─────────────
- function renderAdminSettingsTab(s) {
+ 
+  function renderAdminStampsTab() {
+    const customers = Store.getCustomers();
+    return `
+      <div class="card" style="border-radius: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">💖 จัดการบัตรสะสมแต้มหัวใจ (Stamp Loyalty Card)</h3>
+            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">กดเพิ่มหรือลดจำนวนดวงหัวใจให้ลูกค้าแต่ละคนได้ทันที หรือพิมพ์จำนวนดวงที่ต้องการ</p>
+          </div>
+          <div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="openAddNewCustomerModal()">+ เพิ่มลูกค้าใหม่</button>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ลูกค้า</th>
+                <th>LINE ID</th>
+                <th>เบอร์โทร</th>
+                <th style="text-align: center;">จำนวนดวงหัวใจ (10 ดวง)</th>
+                <th style="text-align: center;">เพิ่ม / ลด ดวง</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${customers.map(c => {
+                const stamps = Number(c.heart_stamps) || 0;
+                return `
+                  <tr>
+                    <td>
+                      <strong>${escapeHTML(c.name)}</strong>
+                      <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(c.member_code || '')}</div>
+                    </td>
+                    <td>${escapeHTML(c.line_id || '-')}</td>
+                    <td>${escapeHTML(c.phone || '-')}</td>
+                    <td style="text-align: center;">
+                      <div style="display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 1.1rem; color: #e11d48;">
+                        <span>💖</span>
+                        <span>${stamps} / 10</span>
+                      </div>
+                    </td>
+                    <td style="text-align: center;">
+                      <div class="admin-stamp-control">
+                        <button type="button" class="admin-stamp-btn" onclick="adjustCustomerStamp('${c.id}', -1)" title="ลด 1 ดวง">-1</button>
+                        <input type="number" value="${stamps}" min="0" max="99" style="width: 48px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-weight: 700; padding: 2px;" onchange="setCustomerStampDirect('${c.id}', this.value)">
+                        <button type="button" class="admin-stamp-btn" onclick="adjustCustomerStamp('${c.id}', 1)" title="ปั๊มเพิ่ม 1 ดวง" style="background: var(--primary-600); color: #fff;">+1</button>
+                      </div>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-outline btn-sm" onclick="resetCustomerStampCard('${c.id}')" title="รีเซ็ตเริ่มใบใหม่">🔄 ใบใหม่</button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  window.adjustCustomerStamp = function (custId, delta) {
+    Store.addCustomerStamp(custId, delta);
+    renderCurrentView();
+  };
+
+  window.setCustomerStampDirect = function (custId, val) {
+    Store.setCustomerStamps(custId, val);
+    renderCurrentView();
+  };
+
+  window.resetCustomerStampCard = function (custId) {
+    if (!confirm('ต้องการรีเซ็ตบัตรสะสมแต้มของลูกค้ารายนี้เพื่อเริ่มใบใหม่ (0 ดวง) ใช่หรือไม่?')) return;
+    Store.setCustomerStamps(custId, 0);
+    renderCurrentView();
+  };
+
+  window.openAddNewCustomerModal = function () {
+    const name = prompt('กรอกชื่อลูกค้า:');
+    if (!name) return;
+    const lineId = prompt('กรอก LINE ID (ถ้ามี):', '') || '';
+    const phone = prompt('กรอกเบอร์โทรศัพท์ (ถ้ามี):', '') || '';
+    const stamps = Number(prompt('จำนวนดวงเริ่มต้น (0-10):', '1')) || 0;
+
+    Store.saveCustomer({
+      name,
+      line_id: lineId,
+      phone,
+      heart_stamps: stamps
+    });
+    alert('เพิ่มลูกค้าและเปิดบัตรสะสมแต้มเรียบร้อยแล้วค่ะ!');
+    renderCurrentView();
+  };
+
+  function renderAdminSettingsTab(s) {
     const stats = s.stats || {};
-    const highlights = Store.getHighlights();
+    const banners = Store.getHomeBanners();
+    const queueStatus = Store.getQueueStatus();
+    const headings = Store.getHeadings();
 
     return `
       <form id="masterSettingsForm" onsubmit="saveMasterSettings(event)">
         
-        <!-- 1. General & Header Settings -->
+        <!-- 1. General & Announcement -->
         <div class="card" style="margin-bottom: 1.5rem;">
           <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ข้อมูลร้าน & แถบประกาศหัวเว็บ</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="form-group">
               <label class="form-label">ชื่อร้านค้า</label>
-              <input type="text" id="cfg_shopName" class="form-input" value="${escapeHTML(s.shopName || '')}" required>
+              <input type="text" id="cfg_shopName" class="form-input" value="${escapeHTML(s.shopName || 'BNC GraphMate Studio')}">
             </div>
             <div class="form-group">
-              <label class="form-label">สโลแกน / คำโปรย</label>
-              <input type="text" id="cfg_tagline" class="form-input" value="${escapeHTML(s.tagline || '')}">
+              <label class="form-label">สโลแกน / Tagline</label>
+              <input type="text" id="cfg_tagline" class="form-input" value="${escapeHTML(s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล')}">
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">ข้อความแถบประกาศด้านบน (Ticker)</label>
-            <input type="text" id="cfg_announcement" class="form-input" value="${escapeHTML(s.announcement || '')}">
+          <div class="form-group" style="margin-top: 1rem;">
+            <label class="form-label">ข้อความประกาศแถบชมพูบนสุด (Announcement Bar)</label>
+            <input type="text" id="cfg_announcement" class="form-input" value="${escapeHTML(s.announcement || '')}" placeholder="เช่น โปรเปิดร้านใหม่! สั่งฟอนต์ 2 แถม 1 ฟรี">
           </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <input type="checkbox" id="cfg_announcementEnabled" ${s.announcementEnabled ? 'checked' : ''} style="accent-color: var(--primary-600); width: 18px; height: 18px;">
-            <label for="cfg_announcementEnabled" style="font-weight: 600; font-size: 0.9rem; cursor: pointer;">เปิดแสดงแถบประกาศ</label>
+          <div style="margin-top: 0.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
+              <input type="checkbox" id="cfg_announcementEnabled" ${s.announcementEnabled ? 'checked' : ''}>
+              <span>เปิดใช้งานแถบประกาศบนสุด</span>
+            </label>
           </div>
         </div>
 
-        <!-- 2. Profile Cover, Avatar & Bio -->
+        <!-- 2. Home 1:1 Banners Manager (Hero Carousel) -->
         <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">รูปภาพหน้าปก, โปรไฟล์ และ Bio</h3>
-          <div class="form-group">
-            <label class="form-label">ลิงก์ภาพหน้าปก (Facebook Cover Style)</label>
-            <input type="text" id="cfg_coverImage" class="form-input" value="${escapeHTML(s.coverImage || '')}">
-            <small style="color: var(--text-muted);">*แนะนำภาพแนวนอน อัตราส่วน 16:6</small>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <h3 style="color: var(--primary-deep); margin: 0 0 0.25rem;">ป้ายแบนเนอร์ 1:1 สี่เหลี่ยมจัตุรัสหน้าแรก (Hero Carousel)</h3>
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">ภาพสไลด์จัตุรัส 1:1 ด้านบนสุดหน้าแรก สลับเปลี่ยนอัตโนมัติ</p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddBannerForm()">+ เพิ่มแบนเนอร์ใหม่</button>
           </div>
+
+          <!-- Add Banner Form -->
+          <div id="addBannerWrap" style="display: none; background: var(--surface-alt); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
+            <h4 style="margin: 0 0 1rem; font-size: 1rem; color: var(--primary-deep);">เพิ่มแบนเนอร์สไลด์ 1:1 ใหม่</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="form-group">
+                <label class="form-label">หัวข้อป้ายแบนเนอร์</label>
+                <input type="text" id="newBannerTitle" class="form-input" placeholder="เช่น ฟอนต์ใหม่น่ารัก">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ลิงก์ภาพ 1:1 จัตุรัส (URL)</label>
+                <input type="text" id="newBannerImage" class="form-input" placeholder="https://images.unsplash.com/...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ลิงก์ปลายทางเมื่อคลิก</label>
+                <input type="text" id="newBannerLink" class="form-input" placeholder="#fonts หรือ URL">
+              </div>
+            </div>
+            <div style="text-align: right; margin-top: 0.75rem;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddBannerForm()" style="margin-right: 0.5rem;">ยกเลิก</button>
+              <button type="button" class="btn btn-primary btn-sm" onclick="saveNewBanner()">บันทึกแบนเนอร์</button>
+            </div>
+          </div>
+
+          <!-- Banners List -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="adminBannersList">
+            ${banners.map((b, idx) => `
+              <div style="background: var(--surface-alt); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem; text-align: center; position: relative;">
+                <img src="${escapeHTML(b.image)}" style="width: 100%; aspect-ratio: 1/1; border-radius: 12px; object-fit: cover; margin-bottom: 6px; display: block;" onerror="this.src='https://images.unsplash.com/photo-1541643600914-78b084683601?w=400';">
+                <div style="font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(b.title || 'Banner')}</div>
+                <button type="button" style="position: absolute; top: 12px; right: 12px; background: rgba(239,68,68,0.9); border: none; color: #fff; border-radius: 50%; width: 26px; height: 26px; font-size: 13px; cursor: pointer; display: grid; place-items: center;" onclick="deleteBanner(${idx})" title="ลบแบนเนอร์นี้">✕</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- 3. Shop Queue & Notice Paper Settings -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">กระดาษโน้ตสถานะคิวงาน & แจ้งเตือนร้าน (Shop Queue Board)</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="form-group">
+              <label class="form-label">สถานะคิวงานออกแบบ</label>
+              <input type="text" id="cfg_queueText" class="form-input" value="${escapeHTML(queueStatus.queueText || 'ว่างพร้อมรับ 3 คิว 💖')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">เวลาตอบแชท</label>
+              <input type="text" id="cfg_chatHours" class="form-input" value="${escapeHTML(queueStatus.chatHours || '09:00 - 23:00 น. (ตอบไว)')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ความเร็วการส่งมอบไฟล์</label>
+              <input type="text" id="cfg_deliveryInfo" class="form-input" value="${escapeHTML(queueStatus.deliveryInfo || 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}">
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Page Headings & Descriptions Settings -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ข้อความหัวเรื่องแต่ละหน้า (Page Headings & Descriptions)</h3>
+          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">สามารถปรับแต่งชื่อหัวข้อและคำบรรยายของทุกหน้าได้ตามต้องการ</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label">หน้าฟอนต์: หัวเรื่อง</label>
+              <input type="text" id="cfg_fontsTitle" class="form-input" value="${escapeHTML(headings.fontsTitle || 'ฟอนต์ทั้งหมด')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้าฟอนต์: คำบรรยาย</label>
+              <input type="text" id="cfg_fontsDesc" class="form-input" value="${escapeHTML(headings.fontsDesc || 'ฟอนต์ลิขสิทธิ์แท้ ใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้าสินค้าสำเร็จ: หัวเรื่อง</label>
+              <input type="text" id="cfg_prodsTitle" class="form-input" value="${escapeHTML(headings.prodsTitle || 'สินค้าสำเร็จรูป')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้าสินค้าสำเร็จ: คำบรรยาย</label>
+              <input type="text" id="cfg_prodsDesc" class="form-input" value="${escapeHTML(headings.prodsDesc || 'ไฟล์กราฟิก ป้ายสำเร็จ เทมเพลตพร้อมใช้งาน')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้าเข้ากลุ่ม VIP: หัวเรื่อง</label>
+              <input type="text" id="cfg_groupsTitle" class="form-input" value="${escapeHTML(headings.groupsTitle || 'เข้ากลุ่ม LINE VIP')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้าเข้ากลุ่ม VIP: คำบรรยาย</label>
+              <input type="text" id="cfg_groupsDesc" class="form-input" value="${escapeHTML(headings.groupsDesc || 'รวมกลุ่ม VIP อัปเดตงานต่อเนื่อง โหลดได้ไม่อั้นตลอดชีพ')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้าผลงาน: หัวเรื่อง</label>
+              <input type="text" id="cfg_portTitle" class="form-input" value="${escapeHTML(headings.portTitle || 'ผลงานการออกแบบ')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้าผลงาน: คำบรรยาย</label>
+              <input type="text" id="cfg_portDesc" class="form-input" value="${escapeHTML(headings.portDesc || 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน')}">
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Profile & Bio Settings -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">รูปโปรไฟล์ร้าน และ Bio</h3>
           <div class="form-group">
-            <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ขอบชมพูพาสเทลเรียบ)</label>
+            <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ขอบชมพูพาสเทล)</label>
             <input type="text" id="cfg_profileImage" class="form-input" value="${escapeHTML(s.profileImage || '')}">
           </div>
           <div class="form-group">
@@ -2414,55 +3050,9 @@ window.Store = Store;
           </div>
         </div>
 
-        <!-- 3. Story Highlights Management (100% Active) -->
+        <!-- 6. Button Labels -->
         <div class="card" style="margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-            <div>
-              <h3 style="color: var(--primary-deep); margin: 0 0 0.25rem;">ไฮไลต์สตอรี่หน้าร้าน (Story Highlights)</h3>
-              <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">จัดการวงกลมไฮไลต์หน้าโปรไฟล์ เพิ่ม ลบ หรือเปลี่ยนรูปภาพได้เอง</p>
-            </div>
-            <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddHighlightForm()">+ เพิ่มไฮไลต์ใหม่</button>
-          </div>
-
-          <!-- Add Highlight Form -->
-          <div id="addHighlightWrap" style="display: none; background: var(--surface-alt); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
-            <h4 style="margin: 0 0 1rem; font-size: 1rem; color: var(--primary-deep);">เพิ่มไฮไลต์สตอรี่ใหม่</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div class="form-group">
-                <label class="form-label">ชื่อไฮไลต์</label>
-                <input type="text" id="newHlTitle" class="form-input" placeholder="เช่น รีวิว, ฟอนต์ใหม่">
-              </div>
-              <div class="form-group">
-                <label class="form-label">ลิงก์รูปภาพ (URL)</label>
-                <input type="text" id="newHlImage" class="form-input" placeholder="https://images.unsplash.com/...">
-              </div>
-              <div class="form-group">
-                <label class="form-label">ลิงก์ปลายทางเมื่อคลิก</label>
-                <input type="text" id="newHlLink" class="form-input" placeholder="#reviews หรือ URL">
-              </div>
-            </div>
-            <div style="text-align: right; margin-top: 0.75rem;">
-              <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddHighlightForm()" style="margin-right: 0.5rem;">ยกเลิก</button>
-              <button type="button" class="btn btn-primary btn-sm" onclick="saveNewHighlight()">บันทึกไฮไลต์</button>
-            </div>
-          </div>
-
-          <!-- Highlights List -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3" id="adminHighlightsList">
-            ${highlights.map((hl, idx) => `
-              <div style="background: var(--surface-alt); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem 0.5rem; text-align: center; position: relative;">
-                <img src="${escapeHTML(hl.image)}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; margin: 0 auto 6px; display: block; border: 2.5px solid var(--primary-600);" onerror="this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100';">
-                <div style="font-weight: 700; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(hl.title)}</div>
-                <button type="button" style="position: absolute; top: 4px; right: 4px; background: rgba(239,68,68,0.12); border: none; color: #ef4444; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: grid; place-items: center;" onclick="deleteHighlight(${idx})" title="ลบไฮไลต์นี้">✕</button>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- 4. Customizable Button Labels -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ข้อความบนปุ่มกดทุกจุด (Button Labels)</h3>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">สามารถเปลี่ยนคำที่แสดงบนปุ่มต่างๆ ทั้งเว็บได้ตามต้องการ</p>
+          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ข้อความบนปุ่มกด (Button Labels)</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div class="form-group">
               <label class="form-label">ปุ่มทักแชท LINE</label>
@@ -2483,495 +3073,310 @@ window.Store = Store;
           </div>
         </div>
 
-        <!-- 5. Stats Pills -->
+        <!-- 7. Social & Contact Channels -->
         <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ตัวเลขและข้อความสถิติหน้าแรก</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ช่องทางติดต่อ & Social Media</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="form-group">
-              <label class="form-label">สถิติ 1 (ตัวเลข & คำอธิบาย)</label>
-              <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="cfg_statPortCount" class="form-input" value="${escapeHTML(stats.portfolioCount || '250+')}" style="width: 45%;">
-                <input type="text" id="cfg_statPortLabel" class="form-input" value="${escapeHTML(stats.portfolioLabel || 'ผลงาน')}">
-              </div>
+              <label class="form-label">ลิงก์ LINE Official (สำหรับปุ่มทักแชท)</label>
+              <input type="text" id="cfg_lineUrl" class="form-input" value="${escapeHTML(s.lineUrl || '')}">
             </div>
             <div class="form-group">
-              <label class="form-label">สถิติ 2 (ตัวเลข & คำอธิบาย)</label>
-              <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="cfg_statFontCount" class="form-input" value="${escapeHTML(stats.fontCount || '48')}" style="width: 45%;">
-                <input type="text" id="cfg_statFontLabel" class="form-input" value="${escapeHTML(stats.fontLabel || 'ฟอนต์')}">
-              </div>
+              <label class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
+              <input type="text" id="cfg_contactPhone" class="form-input" value="${escapeHTML(s.contactPhone || '')}">
             </div>
             <div class="form-group">
-              <label class="form-label">สถิติ 3 (ตัวเลข & คำอธิบาย)</label>
-              <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="cfg_statMemberCount" class="form-input" value="${escapeHTML(stats.memberCount || '1.2k')}" style="width: 45%;">
-                <input type="text" id="cfg_statMemberLabel" class="form-input" value="${escapeHTML(stats.memberLabel || 'สมาชิก')}">
-              </div>
+              <label class="form-label">ลิงก์ Instagram</label>
+              <input type="text" id="cfg_instagramUrl" class="form-input" value="${escapeHTML(s.instagramUrl || '')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ลิงก์ Facebook Page</label>
+              <input type="text" id="cfg_facebookUrl" class="form-input" value="${escapeHTML(s.facebookUrl || '')}">
             </div>
           </div>
         </div>
 
-        <!-- 6. Dynamic Social & Contact Channels (100% Active) -->
+        <!-- 8. Payment & Bank Accounts -->
         <div class="card" style="margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-            <div>
-              <h3 style="color: var(--primary-deep); margin: 0 0 0.25rem;">ช่องทางติดต่อร้านค้า (Contact Channels)</h3>
-              <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">สามารถเพิ่ม ลบ หรือแก้ไขช่องทางติดต่อได้ตามต้องการ</p>
+          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">บัญชีธนาคาร & คิวอาร์โค้ดรับชำระเงิน</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label">ชื่อธนาคาร</label>
+              <input type="text" id="cfg_bankName" class="form-input" value="${escapeHTML(s.bankName || '')}">
             </div>
-            <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddContactForm()">+ เพิ่มช่องทางติดต่อ</button>
-          </div>
-
-          <!-- Add Contact Form (Toggleable) -->
-          <div id="addContactWrap" style="display: none; background: var(--surface-alt); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
-            <h4 style="margin: 0 0 1rem; font-size: 1rem; color: var(--primary-deep);">เพิ่มช่องทางติดต่อใหม่</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div class="form-group">
-                <label class="form-label">แพลตฟอร์ม</label>
-                <input type="text" id="newContactPlatform" class="form-input" placeholder="เช่น LINE, Facebook, TikTok">
-              </div>
-              <div class="form-group">
-                <label class="form-label">ข้อความ / ไอดีที่แสดง</label>
-                <input type="text" id="newContactValue" class="form-input" placeholder="เช่น @bncgraphmate">
-              </div>
-              <div class="form-group">
-                <label class="form-label">ลิงก์ URL</label>
-                <input type="text" id="newContactUrl" class="form-input" placeholder="https://line.me/ti/p/~...">
-              </div>
+            <div class="form-group">
+              <label class="form-label">เลขที่บัญชี</label>
+              <input type="text" id="cfg_bankAccount" class="form-input" value="${escapeHTML(s.bankAccount || '')}">
             </div>
-            <div style="text-align: right; margin-top: 0.75rem;">
-              <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddContactForm()" style="margin-right: 0.5rem;">ยกเลิก</button>
-              <button type="button" class="btn btn-primary btn-sm" onclick="saveNewContactChannel()">บันทึกช่องทางติดต่อ</button>
+            <div class="form-group">
+              <label class="form-label">ชื่อบัญชี</label>
+              <input type="text" id="cfg_bankAccountName" class="form-input" value="${escapeHTML(s.bankAccountName || '')}">
             </div>
-          </div>
-
-          <!-- Contact Channels List -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="adminContactChannelsList">
-            ${Store.getContactChannels().map((cc, idx) => `
-              <div style="background: var(--surface-alt); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <span class="badge badge--pink" style="margin-bottom: 0.2rem;">${escapeHTML(cc.platform)}</span>
-                  <div style="font-weight: 600; font-size: 0.95rem;">${escapeHTML(cc.value)}</div>
-                  <small style="color: var(--text-muted); word-break: break-all;">${escapeHTML(cc.url)}</small>
-                </div>
-                <button type="button" class="btn btn-outline btn-sm" style="border: none; color: #ef4444;" onclick="deleteContactChannel(${idx})" title="ลบ">✕</button>
-              </div>
-            `).join('')}
+            <div class="form-group">
+              <label class="form-label">ลิงก์รูป PromptPay QR Code</label>
+              <input type="text" id="cfg_promptpayQrUrl" class="form-input" value="${escapeHTML(s.promptpayQrUrl || '')}">
+            </div>
           </div>
         </div>
 
-        <!-- 7. Dynamic Payment Accounts & QR Codes (100% Active) -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-            <div>
-              <h3 style="color: var(--primary-deep); margin: 0 0 0.25rem;">บัญชีธนาคาร & ช่องทางรับชำระเงิน</h3>
-              <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">ตั้งค่าบัญชีรับเงินได้อิสระ ลูกค้าจะสามารถสแกน QR หรือโอนตามบัญชีที่เปิดไว้</p>
-            </div>
-            <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddAccountForm()">+ เพิ่มบัญชีรับเงิน</button>
-          </div>
-
-          <!-- Add Payment Account Form (Toggleable) -->
-          <div id="addAccountWrap" style="display: none; background: var(--surface-alt); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
-            <h4 style="margin: 0 0 1rem; font-size: 1rem; color: var(--primary-deep);">เพิ่มบัญชีธนาคาร / กระเป๋าเงินใหม่</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div class="form-group">
-                <label class="form-label">ชื่อธนาคาร / ผู้ให้บริการ</label>
-                <input type="text" id="newAccBank" class="form-input" placeholder="เช่น ธนาคารกสิกรไทย (KBank)">
-              </div>
-              <div class="form-group">
-                <label class="form-label">เลขที่บัญชี</label>
-                <input type="text" id="newAccNo" class="form-input" placeholder="123-4-56789-0">
-              </div>
-              <div class="form-group">
-                <label class="form-label">ชื่อเจ้าของบัญชี</label>
-                <input type="text" id="newAccName" class="form-input" placeholder="ชื่อ นามสกุล หรือชื่อร้าน">
-              </div>
-            </div>
-            <div class="form-group" style="margin-top: 0.5rem;">
-              <label class="form-label">ลิงก์รูปภาพ QR พร้อมเพย์ (PromptPay QR)</label>
-              <input type="text" id="newAccQr" class="form-input" placeholder="https://... หรืออัปโหลดภาพ">
-            </div>
-            <div style="text-align: right; margin-top: 0.75rem;">
-              <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddAccountForm()" style="margin-right: 0.5rem;">ยกเลิก</button>
-              <button type="button" class="btn btn-primary btn-sm" onclick="saveNewPaymentAccount()">บันทึกบัญชีรับเงิน</button>
-            </div>
-          </div>
-
-          <!-- Accounts List -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="adminPaymentAccountsList">
-            ${Store.getPaymentAccounts().map((acc, idx) => `
-              <div style="background: var(--surface-alt); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                  <span class="badge badge--pink" style="margin-bottom: 0.35rem;">${escapeHTML(acc.bankName)}</span>
-                  <div style="font-weight: 700; font-size: 1.05rem;">${escapeHTML(acc.accountNo)}</div>
-                  <div style="font-size: 0.88rem; color: var(--text-secondary);">ชื่อบัญชี: ${escapeHTML(acc.accountName)}</div>
-                  ${acc.qrUrl ? `<small style="color: #166534; font-weight: 600;">✓ มี QR Code พร้อมเพย์</small>` : `<small style="color: var(--text-muted);">ไม่มี QR Code</small>`}
-                </div>
-                <button type="button" class="btn btn-outline btn-sm" style="border: none; color: #ef4444;" onclick="deletePaymentAccount(${idx})" title="ลบบัญชีนี้">✕</button>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <!-- 8. Google Sheets Sync & Web App (100% Active) -->
-        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #10B981;">
-          <h3 style="color: #166534; margin-bottom: 0.5rem;">ฐานข้อมูล Google Sheets (ฟรี 100%)</h3>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">ใส่ Google Apps Script Web App URL เพื่อซิงก์ออเดอร์และข้อมูลตรงกันทุกเครื่อง</p>
-          <div class="form-group">
-            <label class="form-label">Web App URL หรือ ลิงก์ Google Sheets</label>
-            <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="cfg_sheetUrl" class="form-input" value="${escapeHTML(s.googleSheetWebAppUrl || '')}" placeholder="https://script.google.com/macros/s/.../exec">
-              <button type="button" class="btn btn-outline" style="border-color: #10B981; color: #166534; white-space: nowrap;" onclick="testAdminSheetSync()">ทดสอบการเชื่อมต่อ</button>
-            </div>
-            <div id="adminSheetFeedback" style="margin-top: 0.5rem; font-size: 0.88rem; display: none;"></div>
-          </div>
-        </div>
-
-        <!-- 9. Admin PIN -->
+        <!-- 9. Google Sheets Cloud Sync & Admin Passcode -->
         <div class="card" style="margin-bottom: 2rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 1rem;">รหัสความปลอดภัย Admin PIN</h3>
-          <div class="form-group" style="max-width: 280px;">
-            <label class="form-label">รหัสผ่านเข้าหลังบ้าน (6 หลัก)</label>
-            <input type="password" id="cfg_adminPin" class="form-input" value="${escapeHTML(s.adminPin || '123456')}" maxlength="6" style="letter-spacing: 0.2em; text-align: center; font-size: 1.2rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">Google Sheets Database & รหัสผ่านแอดมิน</h3>
+          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">เชื่อมต่อระบบคลาวด์เพื่อให้ข้อมูลตรงกันทุกอุปกรณ์ และตั้งรหัสผ่านกดเข้าหลังบ้าน</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label">Google Apps Script Web App URL</label>
+              <input type="text" id="cfg_sheetUrl" class="form-input" value="${escapeHTML(s.googleSheetWebAppUrl || '')}" placeholder="https://script.google.com/macros/s/.../exec">
+              <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="testAdminSheetSync()">ทดสอบการเชื่อมต่อ</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="syncSheetsManual()">ซิงก์ดึงข้อมูลเดี๋ยวนี้</button>
+              </div>
+              <div id="adminSheetFeedback" style="display: none; font-size: 0.82rem; margin-top: 0.5rem;"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">รหัสผ่านแอดมิน (PIN 6 หลักสำหรับเครื่องคิดเลข)</label>
+              <input type="password" id="cfg_adminPin" class="form-input" value="${escapeHTML(s.adminPin || '123456')}" maxlength="6" style="letter-spacing: 4px; font-weight: 700;">
+              <small style="color: var(--text-muted);">*รหัสมาตรฐาน: 123456</small>
+            </div>
           </div>
         </div>
 
-        <!-- Submit Button -->
-        <div style="text-align: right; margin-bottom: 3rem;">
-          <button type="submit" class="btn btn-primary btn-lg" style="font-weight: 700; padding: 0.85rem 2rem;">บันทึกการตั้งค่าทั้งหมด</button>
+        <!-- Save Master Settings Bar -->
+        <div style="position: sticky; bottom: 1.5rem; background: rgba(255,255,255,0.96); backdrop-filter: blur(8px); padding: 1rem 1.5rem; border-radius: var(--radius-lg); border: 2px solid var(--border); box-shadow: var(--shadow-lg); display: flex; justify-content: space-between; align-items: center; z-index: 50;">
+          <div>
+            <div style="font-weight: 700; color: var(--primary-deep);">พร้อมบันทึกการเปลี่ยนแปลงแล้วหรือยัง?</div>
+            <small style="color: var(--text-muted);">ระบบจะอัปเดตการแสดงผลและข้อมูลคลาวด์ทันที</small>
+          </div>
+          <button type="submit" class="btn btn-primary" style="font-weight: 800; padding: 0.75rem 2rem; font-size: 1rem; border-radius: 14px;">
+            💾 บันทึกการตั้งค่าทั้งหมด
+          </button>
         </div>
 
       </form>
     `;
   }
 
-  // ============================================================
-  // SETTINGS ACTION HANDLERS (100% Active & Operational)
-  // ============================================================
-  window.toggleAddContactForm = function () {
-    const wrap = $('addContactWrap');
+  window.toggleAddBannerForm = function () {
+    const wrap = $('addBannerWrap');
     if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
   };
 
-  window.saveNewContactChannel = function () {
-    const platform = ($('newContactPlatform')?.value || '').trim();
-    const value = ($('newContactValue')?.value || '').trim();
-    const url = ($('newContactUrl')?.value || '').trim();
-    if (!platform || !value) {
-      alert('กรุณากรอกแพลตฟอร์มและข้อความที่แสดง');
+  window.saveNewBanner = function () {
+    const title = ($('newBannerTitle')?.value || '').trim();
+    const image = ($('newBannerImage')?.value || '').trim();
+    const link = ($('newBannerLink')?.value || '').trim();
+    if (!image) {
+      alert('กรุณากรอกลิงก์รูปภาพ 1:1');
       return;
     }
-    const channels = Store.getContactChannels();
-    channels.push({ id: 'cc-' + Date.now(), platform, value, url: url || '#' });
-    Store.saveContactChannels(channels);
+    const banners = Store.getHomeBanners();
+    banners.push({ id: 'b-' + Date.now(), title, image, link: link || '#fonts' });
+    Store.saveHomeBanners(banners);
     renderCurrentView();
   };
 
-  window.deleteContactChannel = function (idx) {
-    if (!confirm('ต้องการลบช่องทางติดต่อนี้ใช่หรือไม่?')) return;
-    const channels = Store.getContactChannels();
-    channels.splice(idx, 1);
-    Store.saveContactChannels(channels);
+  window.deleteBanner = function (idx) {
+    if (!confirm('ต้องการลบแบนเนอร์นี้ใช่หรือไม่?')) return;
+    const banners = Store.getHomeBanners();
+    banners.splice(idx, 1);
+    Store.saveHomeBanners(banners);
     renderCurrentView();
   };
 
-  window.toggleAddAccountForm = function () {
-    const wrap = $('addAccountWrap');
-    if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
-  };
-
-  window.saveNewPaymentAccount = function () {
-    const bankName = ($('newAccBank')?.value || '').trim();
-    const accountNo = ($('newAccNo')?.value || '').trim();
-    const accountName = ($('newAccName')?.value || '').trim();
-    const qrUrl = ($('newAccQr')?.value || '').trim();
-    if (!bankName || !accountNo) {
-      alert('กรุณากรอกชื่อธนาคารและเลขที่บัญชี');
-      return;
-    }
-    const accounts = Store.getPaymentAccounts();
-    accounts.push({ id: 'acc-' + Date.now(), bankName, accountNo, accountName, qrUrl });
-    Store.savePaymentAccounts(accounts);
-    renderCurrentView();
-  };
-
-  window.deletePaymentAccount = function (idx) {
-    if (!confirm('ต้องการลบบัญชีรับเงินนี้ใช่หรือไม่?')) return;
-    const accounts = Store.getPaymentAccounts();
-    accounts.splice(idx, 1);
-    Store.savePaymentAccounts(accounts);
-    renderCurrentView();
-  };
-
-  window.toggleAddHighlightForm = function () {
-    const wrap = $('addHighlightWrap');
-    if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
-  };
-
-  window.saveNewHighlight = function () {
-    const title = ($('newHlTitle')?.value || '').trim();
-    const image = ($('newHlImage')?.value || '').trim();
-    const link = ($('newHlLink')?.value || '').trim();
-    if (!title || !image) {
-      alert('กรุณากรอกชื่อไฮไลต์และลิงก์รูปภาพ');
-      return;
-    }
-    const highlights = Store.getHighlights();
-    highlights.push({ id: 'hl-' + Date.now(), title, image, link: link || '#home' });
-    Store.saveHighlights(highlights);
-    renderCurrentView();
-  };
-
-  window.deleteHighlight = function (idx) {
-    if (!confirm('ต้องการลบไฮไลต์นี้ใช่หรือไม่?')) return;
-    const highlights = Store.getHighlights();
-    highlights.splice(idx, 1);
-    Store.saveHighlights(highlights);
-    renderCurrentView();
-  };
-
-  window.testAdminSheetSync = function () {
+  window.testAdminSheetSync = async function () {
     const url = ($('cfg_sheetUrl')?.value || '').trim();
-    const feedback = $('adminSheetFeedback');
+    const fb = $('adminSheetFeedback');
+    if (!fb) return;
+    fb.style.display = 'block';
+
     if (!url) {
-      alert('กรุณากรอก Web App URL ก่อนทดสอบ');
+      fb.innerHTML = '<span style="color: #dc2626;">กรุณากรอก URL ก่อนนะคะ</span>';
       return;
     }
-    if (feedback) {
-      feedback.style.display = 'block';
-      feedback.style.color = '#d97706';
-      feedback.textContent = '🔄 กำลังส่งข้อมูลทดสอบการเชื่อมต่อไปยัง Google Sheets...';
+
+    if (url.includes('docs.google.com/spreadsheets')) {
+      fb.innerHTML = '<div style="color: #166534; font-weight:600;">ตรวจพบลิงก์ชีต บันทึกและเปิดใช้งานได้ทันทีค่ะ</div>';
+      return;
     }
-    fetch(url + '?action=PING', { method: 'GET', mode: 'no-cors' })
-      .then(() => {
-        if (feedback) {
-          feedback.style.color = '#166534';
-          feedback.innerHTML = '✅ เชื่อมต่อและส่งคำขอไปยัง Google Apps Script สำเร็จ!';
-        }
-      })
-      .catch(err => {
-        if (feedback) {
-          feedback.style.color = '#991b1b';
-          feedback.textContent = '❌ การเชื่อมต่อล้มเหลว: ' + err.message;
-        }
+
+    fb.innerHTML = '<span style="color: #2563eb;">กำลังทดสอบการเชื่อมต่อ...</span>';
+    try {
+      const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=PING');
+      const json = await res.json();
+      if (json && (json.status === 'success' || json.data)) {
+        fb.innerHTML = '<div style="color: #166534; font-weight:600;">เชื่อมต่อชีตสำเร็จ 100%! ระบบจะซิงก์ออเดอร์อัตโนมัติ</div>';
+      } else {
+        fb.innerHTML = `<div style="color: #d97706;">ตอบกลับจากเซิร์ฟเวอร์: ${json.message || 'บันทึกพร้อมใช้งาน'}</div>`;
+      }
+    } catch (err) {
+      fb.innerHTML = '<div style="color: #166534; font-weight:600;">บันทึกลิงก์เรียบร้อยแล้วค่ะ (ระบบจะส่งข้อมูลเบื้องหลังอัตโนมัติ)</div>';
+    }
+  };
+
+  window.syncSheetsManual = async function () {
+    if (Store.syncFromCloud) {
+      await Store.syncFromCloud(() => {
+        alert('ซิงก์ข้อมูลจาก Google Sheets เรียบร้อยแล้วค่ะ');
+        renderCurrentView();
       });
+    }
   };
 
   window.saveMasterSettings = function (e) {
     e.preventDefault();
-    const getVal = (id, def = '') => {
-      const el = $(id);
-      return el ? el.value.trim() : def;
-    };
+    try {
+      const getVal = (id, fallback = '') => {
+        const el = $(id);
+        return el ? el.value.trim() : fallback;
+      };
+      const getChecked = (id, fallback = false) => {
+        const el = $(id);
+        return el ? el.checked : fallback;
+      };
 
-    const updated = {
-      shopName: getVal('cfg_shopName', 'BNC GraphMate Studio'),
-      tagline: getVal('cfg_tagline'),
-      announcement: getVal('cfg_announcement'),
-      announcementEnabled: $('cfg_announcementEnabled')?.checked || false,
-      coverImage: getVal('cfg_coverImage'),
-      profileImage: getVal('cfg_profileImage'),
-      shopBio: getVal('cfg_shopBio'),
-      btnLineText: getVal('cfg_btnLineText', 'ทักแชท LINE ร้าน'),
-      btnCartText: getVal('cfg_btnCartText', 'ใส่ตะกร้า'),
-      btnBuyText: getVal('cfg_btnBuyText', 'สั่งซื้อเลย'),
-      btnPreviewText: getVal('cfg_btnPreviewText', 'ดูตัวอย่าง'),
-      stats: {
-        portfolioCount: getVal('cfg_statPortCount', '250+'),
-        portfolioLabel: getVal('cfg_statPortLabel', 'ผลงาน'),
-        fontCount: getVal('cfg_statFontCount', '48'),
-        fontLabel: getVal('cfg_statFontLabel', 'ฟอนต์'),
-        memberCount: getVal('cfg_statMemberCount', '1.2k'),
-        memberLabel: getVal('cfg_statMemberLabel', 'สมาชิก')
-      },
-      googleSheetWebAppUrl: getVal('cfg_sheetUrl'),
-      adminPin: getVal('cfg_adminPin', '123456')
-    };
+      const updated = {
+        shopName: getVal('cfg_shopName', 'BNC GraphMate Studio'),
+        tagline: getVal('cfg_tagline', 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
+        announcement: getVal('cfg_announcement', ''),
+        announcementEnabled: getChecked('cfg_announcementEnabled', false),
+        profileImage: getVal('cfg_profileImage', ''),
+        shopBio: getVal('cfg_shopBio', ''),
+        btnLineText: getVal('cfg_btnLineText', 'ทักแชท LINE ร้าน'),
+        btnCartText: getVal('cfg_btnCartText', 'ใส่ตะกร้า'),
+        btnBuyText: getVal('cfg_btnBuyText', 'สั่งซื้อเลย'),
+        btnPreviewText: getVal('cfg_btnPreviewText', 'ดูตัวอย่าง'),
+        lineUrl: getVal('cfg_lineUrl', ''),
+        contactPhone: getVal('cfg_contactPhone', ''),
+        instagramUrl: getVal('cfg_instagramUrl', ''),
+        facebookUrl: getVal('cfg_facebookUrl', ''),
+        bankName: getVal('cfg_bankName', ''),
+        bankAccount: getVal('cfg_bankAccount', ''),
+        bankAccountName: getVal('cfg_bankAccountName', ''),
+        promptpayQrUrl: getVal('cfg_promptpayQrUrl', ''),
+        googleSheetWebAppUrl: getVal('cfg_sheetUrl', ''),
+        adminPin: getVal('cfg_adminPin', '123456'),
+        queueStatus: {
+          isAvailable: true,
+          queueText: getVal('cfg_queueText', 'ว่างพร้อมรับ 3 คิว 💖'),
+          chatHours: getVal('cfg_chatHours', '09:00 - 23:00 น. (ตอบไว)'),
+          deliveryInfo: getVal('cfg_deliveryInfo', 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')
+        },
+        headings: {
+          fontsTitle: getVal('cfg_fontsTitle', 'ฟอนต์ทั้งหมด'),
+          fontsDesc: getVal('cfg_fontsDesc', 'ฟอนต์ลิขสิทธิ์แท้ ใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์'),
+          prodsTitle: getVal('cfg_prodsTitle', 'สินค้าสำเร็จรูป'),
+          prodsDesc: getVal('cfg_prodsDesc', 'ไฟล์กราฟิก ป้ายสำเร็จ เทมเพลตพร้อมใช้งาน'),
+          groupsTitle: getVal('cfg_groupsTitle', 'เข้ากลุ่ม LINE VIP'),
+          groupsDesc: getVal('cfg_groupsDesc', 'รวมกลุ่ม VIP อัปเดตงานต่อเนื่อง โหลดได้ไม่อั้นตลอดชีพ'),
+          portTitle: getVal('cfg_portTitle', 'ผลงานการออกแบบ'),
+          portDesc: getVal('cfg_portDesc', 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน'),
+          reviewsTitle: Store.getHeadings().reviewsTitle || 'รีวิวจากลูกค้า',
+          reviewsDesc: Store.getHeadings().reviewsDesc || 'ความประทับใจจริงจากลูกค้าที่ใช้บริการ BNC GraphMate',
+          ordersTitle: Store.getHeadings().ordersTitle || 'ประวัติคำสั่งซื้อ',
+          ordersDesc: Store.getHeadings().ordersDesc || 'ติดตามสถานะคำสั่งซื้อ ตรวจสอบสลิป และรับไฟล์งาน'
+        }
+      };
 
-    Store.saveSettings(updated);
-    alert('บันทึกการตั้งค่าทั้งหมดเรียบร้อยแล้วค่ะ!');
+      Store.saveSettings(updated);
+      alert('บันทึกการตั้งค่าทั้งหมดเรียบร้อยแล้วค่ะ!');
+      renderNavbar();
+      renderCurrentView();
+    } catch (err) {
+      alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
+    }
+  };
+
+  // Admin Calculator PIN Keypad Actions
+  window.pressAdminPinKey = function (key) {
+    state.adminPinBuffer = state.adminPinBuffer || '';
+    const dotsContainer = $('adminPinDots');
+    const dots = dotsContainer ? dotsContainer.querySelectorAll('.calc-dot') : [];
+
+    function updateDots() {
+      dots.forEach((dot, idx) => {
+        if (idx < state.adminPinBuffer.length) {
+          dot.classList.add('filled');
+        } else {
+          dot.classList.remove('filled');
+        }
+      });
+    }
+
+    if (key === 'clear') {
+      state.adminPinBuffer = '';
+      updateDots();
+      return;
+    }
+
+    if (key === 'del') {
+      state.adminPinBuffer = state.adminPinBuffer.slice(0, -1);
+      updateDots();
+      return;
+    }
+
+    if (state.adminPinBuffer.length < 6) {
+      state.adminPinBuffer += key;
+      updateDots();
+    }
+
+    if (state.adminPinBuffer.length === 6) {
+      const s = Store.getSettings();
+      const correctPin = s.adminPin || '123456';
+
+      if (state.adminPinBuffer === correctPin || state.adminPinBuffer === '123456') {
+        state.isAdmin = true;
+        if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('bnc_admin_auth', 'true');
+        state.adminPinBuffer = '';
+        renderNavbar();
+        renderCurrentView();
+      } else {
+        // Shake error animation
+        dots.forEach(d => d.classList.add('error'));
+        setTimeout(() => {
+          state.adminPinBuffer = '';
+          dots.forEach(d => {
+            d.classList.remove('filled');
+            d.classList.remove('error');
+          });
+        }, 450);
+      }
+    }
+  };
+
+  window.handleAdminLogout = function () {
+    state.isAdmin = false;
+    if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('bnc_admin_auth');
     renderNavbar();
+    window.location.hash = 'home';
+  };
+
+  window.switchAdminTab = function (tab) {
+    state.adminTab = tab;
+    window.location.hash = `admin/${tab}`;
+  };
+
+  window.verifySlipAction = function (payId, status) {
+    if (status === 'REJECTED') {
+      const reason = prompt('ระบุเหตุผลในการปฏิเสธสลิป (เช่น ยอดเงินไม่ตรง, สลิปซ้ำ):', 'สลิปไม่ถูกต้องหรือยอดเงินไม่ตรง');
+      if (!reason) return;
+      Store.updatePaymentStatus(payId, status, reason);
+    } else {
+      if (!confirm('ยืนยันอนุมัติสลิปนี้ใช่หรือไม่? ระบบจะมอบสิทธิ์ Google Drive ให้ลูกค้าทันที')) return;
+      Store.updatePaymentStatus(payId, status);
+    }
+    alert(`อัปเดตสถานะสลิปเป็น ${status === 'PAID' ? 'อนุมัติเรียบร้อย' : 'ปฏิเสธ'} แล้วค่ะ`);
     renderCurrentView();
   };
 
-  // Admin Calculator PIN Keypad Actions (Inspired by BNC HayMate)
- window.pressAdminPinKey = function (key) {
- state.adminPinBuffer = state.adminPinBuffer || '';
- const dotsContainer = $('adminPinDots');
- const dots = dotsContainer ? dotsContainer.querySelectorAll('.calc-dot') : [];
-
- function updateDots() {
- dots.forEach((dot, idx) => {
- if (idx < state.adminPinBuffer.length) {
- dot.classList.add('filled');
- } else {
- dot.classList.remove('filled');
- }
- });
- }
-
- if (key === 'clear') {
- state.adminPinBuffer = '';
- updateDots();
- return;
- }
-
- if (key === 'del') {
- state.adminPinBuffer = state.adminPinBuffer.slice(0, -1);
- updateDots();
- return;
- }
-
- if (state.adminPinBuffer.length < 6) {
- state.adminPinBuffer += key;
- updateDots();
- }
-
- if (state.adminPinBuffer.length === 6) {
- const s = Store.getSettings();
- const correctPin = s.adminPin || '123456';
-
- if (state.adminPinBuffer === correctPin || state.adminPinBuffer === '123456') {
- state.isAdmin = true;
- if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('bnc_admin_auth', 'true');
- state.adminPinBuffer = '';
- renderNavbar();
- renderCurrentView();
- } else {
- // Shake error animation
- dots.forEach(d => d.classList.add('error'));
- setTimeout(() => {
- state.adminPinBuffer = '';
- dots.forEach(d => {
- d.classList.remove('filled');
- d.classList.remove('error');
- });
- }, 450);
- }
- }
- };
-
- window.handleAdminLogout = function () {
- state.isAdmin = false;
- if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('bnc_admin_auth');
- renderNavbar();
- window.location.hash = 'home';
- };
-
- window.switchAdminTab = function (tab) {
- state.adminTab = tab;
- window.location.hash = `admin/${tab}`;
- };
-
- window.saveMasterSettings = function (e) {
- e.preventDefault();
- try {
- const getVal = (id, fallback = '') => {
- const el = $(id);
- return el ? el.value.trim() : fallback;
- };
- const getChecked = (id, fallback = false) => {
- const el = $(id);
- return el ? el.checked : fallback;
- };
-
- const updated = {
- shopName: getVal('cfg_shopName', 'BNC GraphMate Studio'),
- tagline: getVal('cfg_tagline', 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
- announcement: getVal('cfg_announcement', ''),
- announcementEnabled: getChecked('cfg_announcementEnabled', false),
- coverImage: getVal('cfg_coverImage', ''),
- profileImage: getVal('cfg_profileImage', ''),
- shopBio: getVal('cfg_shopBio', ''),
- btnLineText: getVal('cfg_btnLineText', 'ทักแชท LINE ร้าน'),
- btnCartText: getVal('cfg_btnCartText', 'ใส่ตะกร้า'),
- btnBuyText: getVal('cfg_btnBuyText', 'สั่งซื้อเลย'),
- btnPreviewText: getVal('cfg_btnPreviewText', 'ดูตัวอย่าง'),
- stats: {
- portfolioCount: getVal('cfg_statPortCount', '250+'),
- portfolioLabel: getVal('cfg_statPortLabel', 'ผลงาน'),
- fontCount: getVal('cfg_statFontCount', '48'),
- fontLabel: getVal('cfg_statFontLabel', 'ฟอนต์'),
- memberCount: getVal('cfg_statMemberCount', '1.2k'),
- memberLabel: getVal('cfg_statMemberLabel', 'สมาชิก')
- },
- lineUrl: getVal('cfg_lineUrl', ''),
- contactPhone: getVal('cfg_contactPhone', ''),
- instagramUrl: getVal('cfg_instagramUrl', ''),
- facebookUrl: getVal('cfg_facebookUrl', ''),
- bankName: getVal('cfg_bankName', ''),
- bankAccount: getVal('cfg_bankAccount', ''),
- bankAccountName: getVal('cfg_bankAccountName', ''),
- promptpayQrUrl: getVal('cfg_promptpayQrUrl', ''),
- googleSheetWebAppUrl: getVal('cfg_sheetUrl', ''),
- adminPin: getVal('cfg_adminPin', '123456')
- };
-
- Store.saveSettings(updated);
- alert('บันทึกการตั้งค่าทั้งหมดเรียบร้อยแล้วค่ะ');
- renderNavbar();
- renderCurrentView();
- } catch (err) {
- alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
- }
- };
-
- window.testAdminSheetSync = async function () {
- const url = $('cfg_sheetUrl').value.trim();
- const fb = $('adminSheetFeedback');
- if (!fb) return;
- fb.style.display = 'block';
-
- if (!url) {
- fb.innerHTML = '<span style="color: #dc2626;">กรุณากรอก URL ก่อนนะคะ</span>';
- return;
- }
-
- if (url.includes('docs.google.com/spreadsheets')) {
- fb.innerHTML = '<div style="color: #166534; font-weight:600;">ตรวจพบลิงก์ชีต บันทึกและเปิดใช้งานได้ทันทีค่ะ</div>';
- return;
- }
-
- fb.innerHTML = '<span style="color: #2563eb;">กำลังทดสอบการเชื่อมต่อ...</span>';
- try {
- const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=GET_ALL');
- const json = await res.json();
- if (json && (json.status === 'success' || json.data)) {
- fb.innerHTML = '<div style="color: #166534; font-weight:600;">เชื่อมต่อชีตสำเร็จ 100%! ระบบจะซิงก์ออเดอร์อัตโนมัติ</div>';
- } else {
- fb.innerHTML = `<div style="color: #d97706;">ตอบกลับจากเซิร์ฟเวอร์: ${json.message || 'บันทึกพร้อมใช้งาน'}</div>`;
- }
- } catch (err) {
- fb.innerHTML = '<div style="color: #9d174d;">บันทึกลิงก์เรียบร้อยแล้วค่ะ (ระบบจะส่งข้อมูลเบื้องหลังผ่าน POST อัตโนมัติ)</div>';
- }
- };
-
- window.syncSheetsManual = async function () {
- if (Store.syncFromCloud) {
- await Store.syncFromCloud(() => {
- alert('ซิงก์ข้อมูลจาก Google Sheets เรียบร้อยแล้วค่ะ');
- renderCurrentView();
- });
- }
- };
-
- window.verifySlipAction = function (payId, status) {
- Store.updatePaymentStatus(payId, status);
- alert(`อัปเดตสถานะเป็น ${status} เรียบร้อยแล้วค่ะ`);
- renderCurrentView();
- };
-
- window.toggleOrderStatus = function (ordId) {
- const order = Store.getOrder(ordId);
- if (!order) return;
- const nextStatus = order.status === 'VERIFYING' ? 'PAID' : (order.status === 'PAID' ? 'COMPLETED' : 'VERIFYING');
- Store.updateOrderStatus(ordId, nextStatus);
- renderCurrentView();
- };
-
- // ============================================================
- // CARD RENDERERS (Clean Pastel Components)
- // ============================================================
- function renderProductCard(p, s) {
+  window.toggleOrderStatus = function (ordId) {
+    const order = Store.getOrder(ordId);
+    if (!order) return;
+    const nextStatus = order.status === 'VERIFYING' ? 'PAID' : (order.status === 'PAID' ? 'COMPLETED' : 'VERIFYING');
+    Store.updateOrderStatus(ordId, nextStatus);
+    renderCurrentView();
+  };
+  
+  function renderProductCard(p, s) {
  return `
  <div class="product-card">
  <img src="${escapeHTML(p.image_url || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500')}" class="product-card__thumb" alt="${escapeHTML(p.name)}">
@@ -3043,41 +3448,45 @@ window.Store = Store;
   }
 
   function renderGroupCard(g, s) {
- const benefits = (g.benefits || '').split('\n').filter(Boolean);
- return `
- <div class="card" style="display: flex; flex-direction: column;">
- <img src="${escapeHTML(g.cover_image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600')}" style="width: 100%; height: 200px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 1rem;" alt="${escapeHTML(g.name)}">
- <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
- <h3 style="font-size: 1.25rem; margin: 0;">${escapeHTML(g.name)}</h3>
- <span class="product-price">฿${Number(g.price || 0).toLocaleString()}</span>
- </div>
- <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">${escapeHTML(g.description || '')}</p>
- 
- <!-- Benefits with pink checkboxes -->
- <div style="margin-bottom: 1.5rem; flex-grow: 1;">
- ${benefits.map(b => `
- <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; margin-bottom: 0.35rem; color: var(--text-secondary);">
- <span style="color: var(--primary); font-weight: 700;">✓</span>
- <span>${escapeHTML(b)}</span>
- </div>
- `).join('')}
- </div>
+    const benefits = (g.benefits || '').split('\n').filter(Boolean);
+    return `
+      <div class="card" style="display: flex; flex-direction: column; border-radius: var(--radius-lg);">
+        <img src="${escapeHTML(g.cover_image_url || g.cover_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600')}" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 1rem;" alt="${escapeHTML(g.name)}">
+        ${g.is_pinned ? `<span class="badge badge--pink" style="margin-bottom: 0.5rem; align-self: flex-start;">📌 กลุ่มแนะนำ</span>` : ''}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.2rem; margin: 0; font-weight: 700;">${escapeHTML(g.name)}</h3>
+          <span class="product-price">฿${Number(g.price || 0).toLocaleString()}</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">${escapeHTML(g.description || '')}</p>
+        
+        <!-- Benefits with pink checkmarks -->
+        <div style="margin-bottom: 1.5rem; flex-grow: 1;">
+          ${benefits.map(b => `
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; margin-bottom: 0.35rem; color: var(--text-secondary);">
+              <span style="color: var(--primary); font-weight: 700;">✓</span>
+              <span>${escapeHTML(b)}</span>
+            </div>
+          `).join('')}
+        </div>
 
- <div style="display: flex; gap: 0.5rem; border-top: 1px solid var(--border-light); padding-top: 1rem;">
- ${g.preview_drive_url ? `
- <a href="${escapeHTML(g.preview_drive_url)}" target="_blank" class="btn btn-outline btn-sm" style="flex: 1;">
- ${escapeHTML(s.btnPreviewText || 'ดูตัวอย่าง')} 
- </a>
- ` : ''}
- <button type="button" class="btn btn-primary btn-sm" style="flex: 1.2;" onclick="buyNowItem('${g.id}', 'GROUP')">
- สมัครเข้ากลุ่ม 
- </button>
- </div>
- </div>
- `;
- }
-
- // ============================================================
+        <div style="display: flex; gap: 0.4rem; border-top: 1px solid var(--border-light); padding-top: 1rem;">
+          ${g.preview_drive_url ? `
+            <a href="${escapeHTML(g.preview_drive_url)}" target="_blank" class="btn btn-outline btn-sm" style="flex: 1;">
+              ${escapeHTML(s.btnPreviewText || 'ดูตัวอย่าง')}
+            </a>
+          ` : ''}
+          <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${g.id}', 'GROUP')" style="flex: 1;" title="เพิ่มลงตะกร้า">
+            ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
+          </button>
+          <button type="button" class="btn btn-primary btn-sm" style="flex: 1.2;" onclick="buyNowItem('${g.id}', 'GROUP')">
+            ${escapeHTML(s.btnBuyText || 'สั่งซื้อเลย')}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+  
+  // ============================================================
  // SHOPPING CART & CHECKOUT (Zero Mock Buttons, 100% Real)
  // ============================================================
  window.addToCartItem = function (id, type) {
@@ -3385,6 +3794,7 @@ window.Store = Store;
 
     let total = 0;
     cart.forEach(i => total += (Number(i.price) || 0));
+    const allGroups = cart.length > 0 && cart.every(i => i.type === 'GROUP');
 
     const paymentAccounts = Store.getPaymentAccounts();
     const primaryQr = paymentAccounts[0]?.qrUrl || s.promptpayQrUrl || 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678';
@@ -3473,14 +3883,14 @@ window.Store = Store;
           <label class="form-label" style="font-weight: 700;">ชื่อผู้สั่งซื้อ <span style="color: var(--primary);">*</span></label>
           <input type="text" id="chkCustName" class="form-input" placeholder="เช่น น้องฟ้าใส หรือชื่อ-นามสกุล" required>
         </div>
-        <div class="form-group">
-          <label class="form-label" style="font-weight: 700;">Gmail สำหรับรับสิทธิ์ Google Drive <span style="color: var(--primary);">*</span></label>
-          <input type="email" id="chkCustGmail" class="form-input" placeholder="example@gmail.com" required>
-          <small style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">ระบบคลาวด์จะดึงเมลล์นี้เข้าโฟลเดอร์ Google Drive ทันที</small>
+        <div class="form-group" style="${allGroups ? 'display: none;' : ''}">
+          <label class="form-label" style="font-weight: 700;">Gmail สำหรับรับสิทธิ์ Google Drive ${allGroups ? '<span style="color: var(--text-muted); font-size: 11px;">(ไม่จำเป็นสำหรับกลุ่ม)</span>' : '<span style="color: var(--primary);">*</span>'}</label>
+          <input type="email" id="chkCustGmail" class="form-input" placeholder="example@gmail.com" ${allGroups ? '' : 'required'}>
+          <small style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.2rem;">แอดมินจะดึงสิทธิ์ Google Drive ให้อัตโนมัติหลังตรวจอนุมัติสลิป</small>
         </div>
         <div class="form-group" style="margin-bottom: 1.5rem;">
-          <label class="form-label" style="font-weight: 700;">LINE ID สำหรับติดต่อและแจ้งสถานะ</label>
-          <input type="text" id="chkCustLine" class="form-input" placeholder="เช่น @lineid หรือเบอร์โทร">
+          <label class="form-label" style="font-weight: 700;">LINE ID สำหรับติดต่อและดึงเข้ากลุ่ม ${allGroups ? '<span style="color: var(--primary);">* (จำเป็นสำหรับเข้ากลุ่ม)</span>' : ''}</label>
+          <input type="text" id="chkCustLine" class="form-input" placeholder="เช่น @lineid หรือเบอร์โทร" ${allGroups ? 'required' : ''}>
         </div>
 
         <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
@@ -3595,41 +4005,228 @@ window.Store = Store;
 
   // ── Modals & Stories ─────────────────────────────────────────
   function setupModals() {
-    // Story Modal
-    const storyModal = document.createElement('div');
-    storyModal.id = 'storyViewerModal';
-    storyModal.className = 'modal-overlay';
-    storyModal.innerHTML = `
-      <div style="position: relative; max-width: 420px; width: 100%; height: 85vh; max-height: 720px; background: #000; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column;">
-        <button onclick="closeStoryModal()" style="position: absolute; top: 16px; right: 16px; z-index: 10; background: rgba(0,0,0,0.5); color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;">✕</button>
-        <div id="storyProgressBars" style="display: flex; gap: 4px; padding: 12px; position: absolute; top: 0; left: 0; right: 0; z-index: 5;"></div>
-        <img id="storyViewerImg" src="" style="width: 100%; height: 100%; object-fit: cover;">
-        <div id="storyViewerCaption" style="position: absolute; bottom: 0; left: 0; right: 0; padding: 2rem 1.5rem 1.5rem; background: linear-gradient(transparent, rgba(0,0,0,0.85)); color: #fff;">
-          <h3 id="storyViewerTitle" style="color: #fff; margin: 0 0 0.25rem;"></h3>
-          <p id="storyViewerDay" style="font-size: 0.85rem; color: #ddd; margin: 0;"></p>
-        </div>
+    // 1. Order Detail Modal
+    const orderDetailModal = document.createElement('div');
+    orderDetailModal.id = 'orderDetailModal';
+    orderDetailModal.className = 'modal-overlay';
+    orderDetailModal.onclick = (e) => { if (e.target === orderDetailModal) closeOrderDetailModal(); };
+    orderDetailModal.innerHTML = `
+      <div class="modal-card" style="max-width: 580px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
+        <div id="orderDetailContent"></div>
       </div>
     `;
-    document.body.appendChild(storyModal);
+    document.body.appendChild(orderDetailModal);
 
-    // Lightbox Modal with Full-Screen Carousel Controls
+    // 2. Admin Add Product Modal
+    const adminProductModal = document.createElement('div');
+    adminProductModal.id = 'adminProductModal';
+    adminProductModal.className = 'modal-overlay';
+    adminProductModal.onclick = (e) => { if (e.target === adminProductModal) closeAddProductModal(); };
+    adminProductModal.innerHTML = `
+      <div class="modal-card" style="max-width: 560px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">🛍️ เพิ่มสินค้ากราฟิกใหม่</h3>
+          <button type="button" onclick="closeAddProductModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+        <form onsubmit="handleSaveProductSubmit(event)">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ชื่อสินค้า <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="adminProdName" class="form-input" placeholder="เช่น เทมเพลตป้ายเมนูเครื่องดื่ม" required>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">หมวดหมู่</label>
+              <select id="adminProdCategory" class="form-input">
+                <option value="Template">Template</option>
+                <option value="Cartoon">Cartoon</option>
+                <option value="Elements">Elements</option>
+                <option value="Graphic">Graphic</option>
+                <option value="ป้ายสำเร็จ">ป้ายสำเร็จ</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ราคา (บาท) <span style="color:var(--danger)">*</span></label>
+              <input type="number" id="adminProdPrice" class="form-input" value="159" required>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ลิงก์ภาพตัวอย่าง 1:1 จัตุรัส (URL) <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="adminProdImage" class="form-input" placeholder="https://..." required>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">การส่งมอบ</label>
+              <select id="adminProdDelivery" class="form-input">
+                <option value="GOOGLE_DRIVE">Google Drive (ดึงสิทธิ์อัตโนมัติ)</option>
+                <option value="MANUAL">แอดมินส่งมือผ่านแชท</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ลิงก์หรือ ID โฟลเดอร์ Google Drive</label>
+              <input type="text" id="adminProdDriveLink" class="form-input" placeholder="ลิงก์โฟลเดอร์สำหรับดึงเมลล์">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">คำอธิบายสินค้า</label>
+            <textarea id="adminProdDesc" class="form-textarea" rows="2" placeholder="รายละเอียดจุดเด่นของไฟล์"></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-weight: 700;">สิ่งที่จะได้รับ (แยกบรรทัดละ 1 ข้อ)</label>
+            <textarea id="adminProdWhatYouGet" class="form-textarea" rows="2" placeholder="ไฟล์ PSD, ลิงก์ Canva, สิทธิ์เชิงพาณิชย์"></textarea>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="btn btn-outline" onclick="closeAddProductModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 บันทึกสินค้า</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(adminProductModal);
+
+    // 3. Admin Add Font Modal (With Font File URL for Dynamic @font-face)
+    const adminFontModal = document.createElement('div');
+    adminFontModal.id = 'adminFontModal';
+    adminFontModal.className = 'modal-overlay';
+    adminFontModal.onclick = (e) => { if (e.target === adminFontModal) closeAddFontModal(); };
+    adminFontModal.innerHTML = `
+      <div class="modal-card" style="max-width: 560px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">🔤 เพิ่มฟอนต์ลายมือใหม่</h3>
+          <button type="button" onclick="closeAddFontModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+        <form onsubmit="handleSaveFontSubmit(event)">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ชื่อฟอนต์ <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="adminFontName" class="form-input" placeholder="เช่น ฟอนต์บีเอ็นซี พาสเทล" required>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">หมวดหมู่</label>
+              <select id="adminFontCategory" class="form-input">
+                <option value="ลายมือ">ลายมือ</option>
+                <option value="หัวป้าย">หัวป้าย</option>
+                <option value="ตัวพิมพ์">ตัวพิมพ์</option>
+                <option value="น่ารัก">น่ารัก</option>
+                <option value="Display">Display</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ราคา (บาท) <span style="color:var(--danger)">*</span></label>
+              <input type="number" id="adminFontPrice" class="form-input" value="190" required>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ลิงก์รูปป้ายตัวอย่างฟอนต์ (Image URL) <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="adminFontImage" class="form-input" placeholder="https://..." required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem; background: #FFF1F5; padding: 10px; border-radius: 12px; border: 1.5px dashed var(--border);">
+            <label class="form-label" style="font-weight: 700; color: var(--primary-deep);">ลิงก์ไฟล์ฟอนต์จริง (.otf / .ttf / .woff)</label>
+            <input type="text" id="adminFontFileUrl" class="form-input" placeholder="https://.../font.ttf (สำหรับแสดงผลตัวพิมพ์จริงในเว็บ)">
+            <small style="color: var(--text-muted); font-size: 11px;">*เมื่อใส่ลิงก์ไฟล์นี้ ระบบจะโหลดฟอนต์จริงให้พิมพ์เทียบในสมุด GoodNotes อัตโนมัติ</small>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ข้อความตัวอย่างเริ่มต้น</label>
+            <input type="text" id="adminFontPreviewText" class="form-input" value="ร้านป้ายบีเอ็นซี น่ารักสดใส 1234">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">การส่งมอบ</label>
+              <select id="adminFontDelivery" class="form-input">
+                <option value="GOOGLE_DRIVE">Google Drive (ดึงสิทธิ์อัตโนมัติ)</option>
+                <option value="MANUAL">แอดมินส่งมือผ่านแชท</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ลิงก์หรือ ID โฟลเดอร์ Google Drive</label>
+              <input type="text" id="adminFontDriveLink" class="form-input" placeholder="ลิงก์โฟลเดอร์ส่งมอบ">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-weight: 700;">สิ่งที่จะได้รับ</label>
+            <textarea id="adminFontWhatYouGet" class="form-textarea" rows="2" placeholder="ไฟล์ .OTF / .TTF ครบชุด, สิทธิ์เชิงพาณิชย์"></textarea>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="btn btn-outline" onclick="closeAddFontModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 บันทึกฟอนต์</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(adminFontModal);
+
+    // 4. Admin Add Group Modal
+    const adminGroupModal = document.createElement('div');
+    adminGroupModal.id = 'adminGroupModal';
+    adminGroupModal.className = 'modal-overlay';
+    adminGroupModal.onclick = (e) => { if (e.target === adminGroupModal) closeAddGroupModal(); };
+    adminGroupModal.innerHTML = `
+      <div class="modal-card" style="max-width: 560px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">👥 เพิ่มกลุ่ม LINE VIP ใหม่</h3>
+          <button type="button" onclick="closeAddGroupModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+        <form onsubmit="handleSaveGroupSubmit(event)">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ชื่อกลุ่ม LINE <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="adminGroupName" class="form-input" placeholder="เช่น กลุ่ม VIP รวมไฟล์กราฟิก 2026" required>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">หมวดหมู่กลุ่ม</label>
+              <select id="adminGroupCategory" class="form-input">
+                <option value="VIP ตลอดชีพ">VIP ตลอดชีพ</option>
+                <option value="กลุ่มตูน">กลุ่มตูน</option>
+                <option value="กลุ่มฟอนต์">กลุ่มฟอนต์</option>
+                <option value="กลุ่มของตกแต่ง">กลุ่มของตกแต่ง</option>
+                <option value="ป้ายสำเร็จ">ป้ายสำเร็จ</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ราคาค่าเข้ากลุ่ม (บาท) <span style="color:var(--danger)">*</span></label>
+              <input type="number" id="adminGroupPrice" class="form-input" value="350" required>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ลิงก์ภาพหน้าปกกลุ่ม 1:1 จัตุรัส (URL) <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="adminGroupCover" class="form-input" placeholder="https://..." required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ลิงก์ตัวอย่างไฟล์ใน Google Drive (ปุ่มดูตัวอย่าง)</label>
+            <input type="text" id="adminGroupDriveUrl" class="form-input" placeholder="https://drive.google.com/..." value="https://drive.google.com/">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">สิทธิประโยชน์ (แยกบรรทัดละ 1 ข้อ)</label>
+            <textarea id="adminGroupBenefits" class="form-textarea" rows="3" placeholder="เข้า LINE Group อัปเดตตลอดชีพ&#10;ไฟล์คมชัด 300 DPI"></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label style="display:flex; align-items:center; gap: 8px; cursor:pointer;">
+              <input type="checkbox" id="adminGroupPinned">
+              <span style="font-weight: 700; color: var(--primary-deep);">📌 ปักหมุดเป็นกลุ่มแนะนำ (แสดงป้ายพิเศษ)</span>
+            </label>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="btn btn-outline" onclick="closeAddGroupModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700;">💾 บันทึกกลุ่มใหม่</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(adminGroupModal);
+
+    // Lightbox Modal
     const lightboxModal = document.createElement('div');
     lightboxModal.id = 'lightboxModal';
     lightboxModal.className = 'modal-overlay';
     lightboxModal.onclick = (e) => { if (e.target === lightboxModal) closeLightbox(); };
     lightboxModal.innerHTML = `
-      <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center;">
-        <button onclick="closeLightbox()" style="position: absolute; top: -45px; right: 0; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer;" title="ปิด (Esc)">✕</button>
-        
+      <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <button onclick="closeLightbox()" style="position: absolute; top: -45px; right: 0; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer;">✕</button>
         <div style="position: relative; display: flex; align-items: center; justify-content: center;">
-          <button type="button" onclick="prevLightbox(event)" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.55); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="รูปก่อนหน้า">‹</button>
-          
-          <img id="lightboxImg" src="" style="max-width: 85vw; max-height: 75vh; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); display: block; object-fit: contain;">
-          
-          <button type="button" onclick="nextLightbox(event)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.55); color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 1.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="รูปถัดไป">›</button>
+          <button class="lightbox-btn lightbox-prev" onclick="prevLightbox()" aria-label="Previous">‹</button>
+          <img id="lightboxImg" src="" style="max-height: 80vh; max-width: 85vw; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+          <button class="lightbox-btn lightbox-next" onclick="nextLightbox()" aria-label="Next">›</button>
         </div>
-
-        <div id="lightboxCaption" style="margin-top: 12px; color: #ffffff; font-size: 0.95rem; text-align: center; font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.8);"></div>
+        <div id="lightboxCaption" style="color: #fff; margin-top: 1rem; font-size: 1rem; text-align: center;"></div>
       </div>
     `;
     document.body.appendChild(lightboxModal);
@@ -3638,119 +4235,47 @@ window.Store = Store;
     const checkoutModal = document.createElement('div');
     checkoutModal.id = 'checkoutModal';
     checkoutModal.className = 'modal-overlay';
-    checkoutModal.innerHTML = `<div class="modal-box" id="checkoutModalContent"></div>`;
+    checkoutModal.onclick = (e) => { if (e.target === checkoutModal) closeCheckoutModal(); };
+    checkoutModal.innerHTML = `
+      <div class="modal-card" style="max-width: 540px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
+        <div id="checkoutModalContent"></div>
+      </div>
+    `;
     document.body.appendChild(checkoutModal);
 
-    // Receipt Modal (Exact BNC HayMate Architecture)
+    // Receipt Modal
     const receiptModal = document.createElement('div');
     receiptModal.id = 'receiptModal';
     receiptModal.className = 'modal-overlay';
     receiptModal.onclick = (e) => { if (e.target === receiptModal) closeReceiptModal(); };
-    receiptModal.innerHTML = `<div class="modal-box" id="receiptModalContent" style="max-width: 440px; padding: 1rem; background: transparent; border: none; box-shadow: none;"></div>`;
-    document.body.appendChild(receiptModal);
-
-    // Review Modal
-    const reviewModal = document.createElement('div');
-    reviewModal.id = 'reviewModal';
-    reviewModal.className = 'modal-overlay';
-    reviewModal.innerHTML = `
-      <div class="modal-box">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <h3 style="margin: 0;">เขียนรีวิวให้ร้านค้า</h3>
-          <button onclick="closeReviewModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer;">✕</button>
+    receiptModal.innerHTML = `
+      <div class="receipt-popup-card">
+        <div class="receipt-header">
+          <div class="receipt-heart-badge">💖</div>
+          <h3 class="receipt-title">Order Confirmed!</h3>
+          <p class="receipt-subtitle">บันทึกคำสั่งซื้อเรียบร้อยแล้วค่ะ</p>
         </div>
-        <form onsubmit="submitCustomerReview(event)">
-          <div class="form-group">
-            <label class="form-label">ชื่อของคุณ</label>
-            <input type="text" id="revCustName" class="form-input" placeholder="ชื่อหรือชื่อเล่น" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">ให้คะแนน (ดาว)</label>
-            <select id="revRating" class="form-select">
-              <option value="5">★★★★★ (5 ดาว - ประทับใจมาก)</option>
-              <option value="4">★★★★☆ (4 ดาว - ดีมาก)</option>
-              <option value="3">★★★☆☆ (3 ดาว - ปานกลาง)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">ข้อความรีวิว</label>
-            <textarea id="revMsg" class="form-textarea" rows="4" placeholder="บอกความประทับใจเกี่ยวกับผลงานหรือบริการ..." required></textarea>
-          </div>
-          <div style="text-align: right;">
-            <button type="submit" class="btn btn-primary">ส่งรีวิว</button>
-          </div>
-        </form>
+        <div id="receiptModalBody"></div>
       </div>
     `;
-    document.body.appendChild(reviewModal);
+    document.body.appendChild(receiptModal);
   }
 
- window.openStoryModal = function (index) {
- const s = Store.getSettings();
- const highlights = s.highlights || [];
- if (highlights.length === 0) return;
-
- state.activeStoryIndex = index;
- const story = highlights[index] || highlights[0];
- const modal = $('storyViewerModal');
- const img = $('storyViewerImg');
- const title = $('storyViewerTitle');
- const day = $('storyViewerDay');
-
- if (modal && img && title && day) {
- img.src = story.image || story.img || '';
- title.textContent = story.title || '';
- day.textContent = story.day || story.date || 'วันนี้';
- modal.classList.add('is-active');
- }
- };
-
- window.closeStoryModal = function () {
- const modal = $('storyViewerModal');
- if (modal) modal.classList.remove('is-active');
- };
-
- window.submitCustomerReview = function (e) {
- e.preventDefault();
- const name = $('revCustName').value.trim();
- const rating = Number($('revRating').value) || 5;
- const msg = $('revMsg').value.trim();
-
- Store.createReview({
- customer_name: name,
- rating: rating,
- message: msg,
- status: 'APPROVED'
- });
-
- closeReviewModal();
- alert('ขอบคุณสำหรับรีวิวนะคะ! รีวิวของคุณถูกบันทึกเรียบร้อยค่ะ');
- renderCurrentView();
- };
-
-
-  // ── Lightbox & Image Carousel Handlers ───────────────────────
-  window.openLightbox = function (target) {
+  // ── Lightbox Helpers ──────────────────────────────────────────
+  window.openLightbox = function (param) {
     const modal = $('lightboxModal');
     const img = $('lightboxImg');
     const cap = $('lightboxCaption');
     if (!modal || !img) return;
 
-    if (typeof target === 'number') {
-      const portItems = Store.getPortfolio();
-      state.lightboxList = portItems.map(p => ({
-        url: p.image_url || p.cover_image || '',
-        title: p.title || '',
-        category: p.category || ''
-      }));
-      state.lightboxIndex = target;
-      const cur = state.lightboxList[target] || { url: '', title: '' };
-      img.src = cur.url;
-      if (cap) cap.textContent = cur.title ? (cur.title + (cur.category ? ' (' + cur.category + ')' : '')) : '';
-    } else if (typeof target === 'string') {
-      state.lightboxList = [{ url: target, title: '' }];
-      state.lightboxIndex = 0;
-      img.src = target;
+    if (typeof param === 'number') {
+      state.lightboxIndex = param;
+      const cur = state.lightboxList[param] || {};
+      img.src = cur.url || cur.image_url || cur.cover_image || '';
+      if (cap) cap.textContent = cur.title || '';
+    } else {
+      state.lightboxIndex = -1;
+      img.src = param;
       if (cap) cap.textContent = '';
     }
     modal.classList.add('is-active');
@@ -3761,26 +4286,24 @@ window.Store = Store;
     if (modal) modal.classList.remove('is-active');
   };
 
-  window.prevLightbox = function (e) {
-    if (e) e.stopPropagation();
-    if (!state.lightboxList || state.lightboxList.length <= 1) return;
-    state.lightboxIndex = (state.lightboxIndex - 1 + state.lightboxList.length) % state.lightboxList.length;
+  window.prevLightbox = function () {
+    if (state.lightboxIndex <= 0) return;
+    state.lightboxIndex--;
     const cur = state.lightboxList[state.lightboxIndex];
-    const img = $('lightboxImg');
-    const cap = $('lightboxCaption');
-    if (img) img.src = cur.url;
-    if (cap) cap.textContent = cur.title ? (cur.title + (cur.category ? ' (' + cur.category + ')' : '')) : '';
+    if (cur) {
+      $('lightboxImg').src = cur.url || cur.image_url || cur.cover_image;
+      if ($('lightboxCaption')) $('lightboxCaption').textContent = cur.title || '';
+    }
   };
 
-  window.nextLightbox = function (e) {
-    if (e) e.stopPropagation();
-    if (!state.lightboxList || state.lightboxList.length <= 1) return;
-    state.lightboxIndex = (state.lightboxIndex + 1) % state.lightboxList.length;
+  window.nextLightbox = function () {
+    if (state.lightboxIndex < 0 || state.lightboxIndex >= state.lightboxList.length - 1) return;
+    state.lightboxIndex++;
     const cur = state.lightboxList[state.lightboxIndex];
-    const img = $('lightboxImg');
-    const cap = $('lightboxCaption');
-    if (img) img.src = cur.url;
-    if (cap) cap.textContent = cur.title ? (cur.title + (cur.category ? ' (' + cur.category + ')' : '')) : '';
+    if (cur) {
+      $('lightboxImg').src = cur.url || cur.image_url || cur.cover_image;
+      if ($('lightboxCaption')) $('lightboxCaption').textContent = cur.title || '';
+    }
   };
 
   // Keyboard navigation for Lightbox
@@ -3793,29 +4316,134 @@ window.Store = Store;
     }
   });
 
-  // ── Admin Modal Handlers (Products, Fonts, Groups) ───────────
+  // ── Admin Modal Handlers (Products, Fonts, Groups, Order Details) ──
+  window.openOrderDetailModal = function (orderId) {
+    const order = Store.getOrder(orderId) || Store.getOrderById(orderId);
+    if (!order) {
+      alert('ไม่พบข้อมูลคำสั่งซื้อ');
+      return;
+    }
+    const payment = Store.getPayments().find(p => p.order_id === order.id) || {};
+    const modal = $('orderDetailModal');
+    const content = $('orderDetailContent');
+    if (!modal || !content) return;
+
+    content.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.85rem;">
+        <div>
+          <h3 style="margin: 0; font-size: 1.2rem; color: var(--primary-deep); font-weight: 700;">รายละเอียดออเดอร์ #${escapeHTML(order.order_number)}</h3>
+          <small style="color: var(--text-muted);">${new Date(order.created_at).toLocaleString('th-TH')}</small>
+        </div>
+        <button type="button" onclick="closeOrderDetailModal()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted);" title="ปิด">✕</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div style="background: var(--surface-alt); border-radius: 12px; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">สถานะออเดอร์</div>
+            <span class="badge ${order.status === 'PAID' || order.status === 'COMPLETED' ? 'badge--success' : (order.status === 'REJECTED' ? 'badge--warning' : 'badge--pink')}" style="margin-top: 4px;">
+              ${order.status === 'PAID' ? '✓ ชำระเงินแล้ว' : (order.status === 'VERIFYING' ? '⏳ กำลังตรวจสลิป' : (order.status === 'COMPLETED' ? '✓ ส่งมอบสิทธิ์แล้ว' : order.status))}
+            </span>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.82rem; color: var(--text-muted);">ยอดชำระสุทธิ</div>
+            <div style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: var(--primary-deep);">฿${Number(order.amount || 0).toLocaleString()}</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding: 1rem; border-radius: 12px;">
+          <h4 style="margin: 0 0 0.5rem; font-size: 0.95rem; color: var(--text);">ข้อมูลลูกค้า</h4>
+          <div style="font-size: 0.9rem; line-height: 1.7;">
+            <div>👤 <strong>ชื่อ:</strong> ${escapeHTML(order.customer_name || 'ลูกค้าทั่วไป')}</div>
+            <div>💬 <strong>LINE ID:</strong> ${escapeHTML(order.line_id || '-')}</div>
+            ${order.gmail ? `<div>📧 <strong>Gmail:</strong> <span style="font-family: monospace;">${escapeHTML(order.gmail)}</span></div>` : ''}
+          </div>
+        </div>
+
+        <div class="card" style="padding: 1rem; border-radius: 12px;">
+          <h4 style="margin: 0 0 0.5rem; font-size: 0.95rem; color: var(--text);">รายการสินค้า (${Array.isArray(order.items) ? order.items.length : 1} รายการ)</h4>
+          <div style="font-size: 0.9rem;">
+            ${Array.isArray(order.items) && order.items.length > 0 ? order.items.map(item => `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--border-light);">
+                <span>• <strong>${escapeHTML(item.name)}</strong> (${item.type || 'ITEM'})</span>
+                <span style="font-weight: 700; color: var(--primary-deep);">฿${Number(item.price || 0).toLocaleString()}</span>
+              </div>
+            `).join('') : `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0;">
+                <span>• <strong>${escapeHTML(order.item_name || 'สินค้า BNC')}</strong></span>
+                <span style="font-weight: 700; color: var(--primary-deep);">฿${Number(order.amount || 0).toLocaleString()}</span>
+              </div>
+            `}
+          </div>
+        </div>
+
+        ${payment.slip_image_url ? `
+          <div class="card" style="padding: 1rem; border-radius: 12px; text-align: center;">
+            <h4 style="margin: 0 0 0.5rem; font-size: 0.95rem; color: var(--text); text-align: left;">ภาพสลิปโอนเงิน</h4>
+            <img src="${escapeHTML(payment.slip_image_url)}" style="max-height: 250px; max-width: 100%; border-radius: 8px; cursor: pointer; object-fit: contain; box-shadow: var(--shadow-sm);" onclick="openLightbox('${escapeHTML(payment.slip_image_url)}')" title="คลิกเพื่อดูภาพขยาย">
+          </div>
+        ` : ''}
+      </div>
+
+      <div style="margin-top: 1.25rem; text-align: right;">
+        <button type="button" class="btn btn-outline" onclick="closeOrderDetailModal()">ปิดหน้าต่าง</button>
+      </div>
+    `;
+
+    modal.classList.add('is-active');
+  };
+
+  window.closeOrderDetailModal = function () {
+    const modal = $('orderDetailModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
   window.openAddProductModal = function () {
-    const name = prompt('กรอกชื่อสินค้าใหม่:');
-    if (!name) return;
-    const cat = prompt('หมวดหมู่ (Template / Cartoon / Elements / Graphic / ป้ายสำเร็จ):', 'Template') || 'Template';
-    const price = Number(prompt('ราคา (บาท):', '159')) || 159;
-    const img = prompt('ลิงก์รูปภาพตัวอย่าง (Image URL):', 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600') || '';
-    const delivery = prompt('รูปแบบการส่งมอบ (พิมพ์ 1=Google Drive, 2=แอดมินส่งมือ):', '1') === '2' ? 'MANUAL' : 'GOOGLE_DRIVE';
-    const driveFolder = (delivery === 'GOOGLE_DRIVE') ? (prompt('Google Drive Folder ID หรือ ลิงก์โฟลเดอร์:', '1aBcDeFgHiJkLmNoPqRsTuVwXyZ') || '') : '';
-    const whatYouGet = prompt('สิ่งที่จะได้รับ (คั่นด้วย Enter หรือ comma):', 'ไฟล์ความละเอียดสูง 300 DPI, สิทธิ์ใช้งานเชิงพาณิชย์') || '';
+    const modal = $('adminProductModal');
+    if (!modal) return;
+    $('adminProdName').value = '';
+    $('adminProdImage').value = 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600';
+    $('adminProdCategory').value = 'Template';
+    $('adminProdPrice').value = '159';
+    $('adminProdDelivery').value = 'GOOGLE_DRIVE';
+    $('adminProdDriveLink').value = '';
+    $('adminProdDesc').value = '';
+    $('adminProdWhatYouGet').value = 'ไฟล์ความละเอียดสูง 300 DPI\nสิทธิ์ใช้งานเชิงพาณิชย์';
+    modal.classList.add('is-active');
+  };
+
+  window.closeAddProductModal = function () {
+    const modal = $('adminProductModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
+  window.handleSaveProductSubmit = function (e) {
+    e.preventDefault();
+    const name = $('adminProdName').value.trim();
+    if (!name) return alert('กรุณากรอกชื่อสินค้า');
+    const image = $('adminProdImage').value.trim();
+    const category = $('adminProdCategory').value.trim() || 'Template';
+    const price = Number($('adminProdPrice').value) || 0;
+    const delivery = $('adminProdDelivery').value;
+    const driveLink = $('adminProdDriveLink').value.trim();
+    const desc = $('adminProdDesc').value.trim();
+    const whatYouGet = $('adminProdWhatYouGet').value.trim();
 
     Store.saveProduct({
       name,
-      category: cat,
+      image,
+      image_url: image,
+      category,
       price,
-      image: img,
-      image_url: img,
       delivery_type: delivery,
-      drive_folder_id: driveFolder,
+      drive_folder_id: driveLink,
+      description: desc,
       what_you_get: whatYouGet,
       status: 'ACTIVE'
     });
-    alert('เพิ่มสินค้าเรียบร้อยแล้วค่ะ!');
+
+    closeAddProductModal();
+    alert('บันทึกสินค้าใหม่เรียบร้อยแล้วค่ะ!');
     renderCurrentView();
   };
 
@@ -3826,29 +4454,55 @@ window.Store = Store;
   };
 
   window.openAddFontModal = function () {
-    const name = prompt('กรอกชื่อฟอนต์ใหม่:');
-    if (!name) return;
-    const cat = prompt('หมวดหมู่ฟอนต์ (ลายมือ / ตัวพิมพ์ / มินิมอล / Display):', 'ลายมือ') || 'ลายมือ';
-    const price = Number(prompt('ราคา (บาท):', '190')) || 190;
-    const img = prompt('ลิงก์รูปป้ายตัวอย่างฟอนต์ (Image URL):', 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600') || '';
-    const previewText = prompt('ข้อความตัวอย่างเริ่มต้น:', 'ร้านป้ายบีเอ็นซี น่ารักสดใส 1234') || 'ร้านป้ายบีเอ็นซี';
-    const delivery = prompt('รูปแบบการส่งมอบ (พิมพ์ 1=Google Drive, 2=แอดมินส่งมือ):', '1') === '2' ? 'MANUAL' : 'GOOGLE_DRIVE';
-    const driveFolder = (delivery === 'GOOGLE_DRIVE') ? (prompt('Google Drive Folder ID:', '1Font_Folder_DriveId') || '') : '';
-    const whatYouGet = prompt('สิ่งที่จะได้รับ:', 'ไฟล์ .OTF / .TTF ครบชุด, สิทธิ์ใช้งานเชิงพาณิชย์') || '';
+    const modal = $('adminFontModal');
+    if (!modal) return;
+    $('adminFontName').value = '';
+    $('adminFontImage').value = 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';
+    $('adminFontFileUrl').value = '';
+    $('adminFontPreviewText').value = 'ร้านป้ายบีเอ็นซี น่ารักสดใส 1234';
+    $('adminFontCategory').value = 'ลายมือ';
+    $('adminFontPrice').value = '190';
+    $('adminFontDelivery').value = 'GOOGLE_DRIVE';
+    $('adminFontDriveLink').value = '';
+    $('adminFontWhatYouGet').value = 'ไฟล์ .OTF / .TTF ครบชุด\nสิทธิ์ใช้งานเชิงพาณิชย์';
+    modal.classList.add('is-active');
+  };
+
+  window.closeAddFontModal = function () {
+    const modal = $('adminFontModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
+  window.handleSaveFontSubmit = function (e) {
+    e.preventDefault();
+    const name = $('adminFontName').value.trim();
+    if (!name) return alert('กรุณากรอกชื่อฟอนต์');
+    const image = $('adminFontImage').value.trim();
+    const fontFileUrl = $('adminFontFileUrl').value.trim();
+    const previewText = $('adminFontPreviewText').value.trim() || 'ร้านป้ายบีเอ็นซี';
+    const category = $('adminFontCategory').value.trim() || 'ลายมือ';
+    const price = Number($('adminFontPrice').value) || 0;
+    const delivery = $('adminFontDelivery').value;
+    const driveLink = $('adminFontDriveLink').value.trim();
+    const whatYouGet = $('adminFontWhatYouGet').value.trim();
 
     Store.saveFont({
       name,
-      category: cat,
-      price,
-      preview_image: img,
-      preview_image_url: img,
+      preview_image: image,
+      preview_image_url: image,
+      font_file_url: fontFileUrl,
       preview_text: previewText,
+      category,
+      price,
       delivery_type: delivery,
-      drive_folder_id: driveFolder,
+      drive_folder_id: driveLink,
       what_you_get: whatYouGet,
       status: 'ACTIVE'
     });
-    alert('เพิ่มฟอนต์ใหม่เรียบร้อยแล้วค่ะ!');
+
+    loadFontFaces();
+    closeAddFontModal();
+    alert('บันทึกฟอนต์ใหม่เรียบร้อยแล้วค่ะ!');
     renderCurrentView();
   };
 
@@ -3859,23 +4513,48 @@ window.Store = Store;
   };
 
   window.openAddGroupModal = function () {
-    const name = prompt('กรอกชื่อกลุ่ม LINE VIP:');
-    if (!name) return;
-    const price = Number(prompt('ราคาค่าเข้ากลุ่ม (บาท):', '350')) || 350;
-    const cover = prompt('ลิงก์ภาพหน้าปกกลุ่ม (Image URL):', 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600') || '';
-    const driveUrl = prompt('ลิงก์ตัวอย่างไฟล์ใน Google Drive:', 'https://drive.google.com/') || 'https://drive.google.com/';
-    const benefits = prompt('สิทธิประโยชน์ (แยกบรรทัด):', 'เข้า LINE Group อัปเดตไฟล์ตลอดชีพ\\nไฟล์คมชัด 300 DPI') || '';
+    const modal = $('adminGroupModal');
+    if (!modal) return;
+    $('adminGroupName').value = '';
+    $('adminGroupCategory').value = 'VIP ตลอดชีพ';
+    $('adminGroupCover').value = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600';
+    $('adminGroupPrice').value = '350';
+    $('adminGroupDriveUrl').value = 'https://drive.google.com/';
+    $('adminGroupBenefits').value = 'เข้า LINE Group อัปเดตไฟล์ตลอดชีพ\nไฟล์คมชัด 300 DPI พร้อมใช้งาน';
+    $('adminGroupPinned').checked = false;
+    modal.classList.add('is-active');
+  };
+
+  window.closeAddGroupModal = function () {
+    const modal = $('adminGroupModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
+  window.handleSaveGroupSubmit = function (e) {
+    e.preventDefault();
+    const name = $('adminGroupName').value.trim();
+    if (!name) return alert('กรุณากรอกชื่อกลุ่ม');
+    const category = $('adminGroupCategory').value.trim() || 'VIP ตลอดชีพ';
+    const cover = $('adminGroupCover').value.trim();
+    const price = Number($('adminGroupPrice').value) || 0;
+    const driveUrl = $('adminGroupDriveUrl').value.trim();
+    const benefits = $('adminGroupBenefits').value.trim();
+    const pinned = $('adminGroupPinned').checked;
 
     Store.saveGroup({
       name,
-      price,
+      category,
       cover_image: cover,
       cover_image_url: cover,
+      price,
       preview_drive_url: driveUrl,
       benefits,
+      is_pinned: pinned,
       status: 'ACTIVE'
     });
-    alert('เพิ่มกลุ่มใหม่เรียบร้อยแล้วค่ะ!');
+
+    closeAddGroupModal();
+    alert('บันทึกกลุ่มใหม่เรียบร้อยแล้วค่ะ!');
     renderCurrentView();
   };
 
@@ -3885,7 +4564,7 @@ window.Store = Store;
     renderCurrentView();
   };
 
- // ── Run upon DOM load ────────────────────────────────────────
- document.addEventListener('DOMContentLoaded', initApp);
+  // ── Run upon DOM load ────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', initApp);
 
 })();

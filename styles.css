@@ -1685,3 +1685,463 @@ input[type="range"] {
   border: 1px solid var(--border);
   margin-bottom: 8px;
 }
+/* ============================================================
+   BNC GraphMate — NEW STYLES ADDITIONS
+   1:1 Hero Carousel, Shop Queue Note, Compact Horizontal Sliders,
+   and Interactive Price Menu
+   ============================================================ */
+
+/* ── 1:1 Square Carousel / Hero Slider (BNC HayMate Style) ── */
+.hero-carousel-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 1.75rem;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(222, 133, 167, 0.2);
+  border: 2px solid var(--border);
+  background-color: var(--surface-alt);
+}
+
+.hero-carousel-container {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-carousel-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  transform: scale(1.02);
+}
+
+.hero-carousel-slide.active {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+}
+
+.hero-carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-carousel-prev,
+.hero-carousel-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--primary-deep);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.hero-carousel-prev:hover,
+.hero-carousel-next:hover {
+  background: #ffffff;
+  color: var(--primary-700);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.hero-carousel-prev { left: 12px; }
+.hero-carousel-next { right: 12px; }
+
+.hero-carousel-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+.hero-carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-dark);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.hero-carousel-dot.active {
+  width: 22px;
+  border-radius: 10px;
+  background: var(--primary-deep);
+}
+
+/* ── Shop Queue & Notice Paper (GoodNotes Style on Homepage) ── */
+.queue-notebook-paper {
+  background-color: #FFFDFE;
+  background-image: 
+    linear-gradient(90deg, transparent 46px, #F7B5CD 46px, #F7B5CD 48px, transparent 48px),
+    repeating-linear-gradient(transparent, transparent 33px, #F8DBE7 33px, #F8DBE7 35px);
+  background-size: 100% 100%, 100% 35px;
+  padding: 24px 24px 22px 64px;
+  position: relative;
+  border-radius: 0 0 20px 20px;
+}
+
+@media (max-width: 640px) {
+  .queue-notebook-paper {
+    background-image: 
+      linear-gradient(90deg, transparent 32px, #F7B5CD 32px, #F7B5CD 34px, transparent 34px),
+      repeating-linear-gradient(transparent, transparent 31px, #F8DBE7 31px, #F8DBE7 33px);
+    background-size: 100% 100%, 100% 33px;
+    padding: 18px 14px 18px 44px;
+  }
+}
+
+.queue-badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFF1F5;
+  color: var(--primary-deep);
+  border: 1.5px solid var(--border);
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.queue-status-bullet {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22C55E;
+  display: inline-block;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* ── Compact Horizontal Sliders for Homepage (1 Row, Soft 1:1 Rounded Cards) ── */
+.compact-horizontal-slider {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 6px 2px 20px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-600) var(--primary-light);
+}
+
+.compact-horizontal-slider::-webkit-scrollbar {
+  height: 6px;
+}
+
+.compact-horizontal-slider::-webkit-scrollbar-thumb {
+  background: var(--primary-600);
+  border-radius: 10px;
+}
+
+.compact-horizontal-slider::-webkit-scrollbar-track {
+  background: var(--primary-light);
+  border-radius: 10px;
+}
+
+.compact-card-item {
+  flex: 0 0 220px;
+  width: 220px;
+  scroll-snap-align: start;
+  background: #ffffff;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.compact-card-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(222, 133, 167, 0.2);
+  border-color: var(--primary-600);
+}
+
+.compact-card-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  background: var(--surface-alt);
+}
+
+.compact-card-content {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.compact-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+
+.compact-card-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-light);
+}
+
+/* ── Interactive Clickable Price Menu Items ── */
+.price-menu-item.is-interactive {
+  cursor: pointer;
+}
+
+.price-menu-item.is-interactive:hover {
+  background: var(--primary-light);
+  border-color: var(--primary-deep);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(222, 133, 167, 0.15);
+}
+
+/* ── Copy Email Button in Orders ── */
+.btn-copy-email {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  color: var(--primary-deep);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: 6px;
+}
+
+.btn-copy-email:hover {
+  background: var(--primary-600);
+  color: #ffffff;
+  border-color: var(--primary-600);
+}
+
+/* ── Order Detail Modal ── */
+.order-detail-card {
+  background: #ffffff;
+  border: 1.5px solid var(--border);
+  border-radius: 22px;
+  padding: 24px;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── 10-Heart Stamp Notebook Loyalty Card (BNC GraphMate Style) ── */
+.stamp-card-notebook {
+  max-width: 680px;
+  margin: 0 auto;
+  box-shadow: 0 10px 30px rgba(222, 133, 167, 0.15);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  background: #ffffff;
+}
+
+.stamp-grid-10 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin: 1.5rem 0;
+}
+
+@media (max-width: 580px) {
+  .stamp-grid-10 {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+}
+
+.stamp-slot {
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  user-select: none;
+}
+
+.stamp-slot.is-empty {
+  border: 2px dashed #f472b6;
+  background: rgba(255, 245, 248, 0.7);
+  color: #db2777;
+}
+
+.stamp-slot.is-empty .stamp-slot-num {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  opacity: 0.65;
+}
+
+.stamp-slot.is-empty.is-reward {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #d97706;
+}
+
+.stamp-slot.is-stamped {
+  border: 2.5px solid #e11d48;
+  background: radial-gradient(circle, #ffe4e6 0%, #fecdd3 100%);
+  box-shadow: inset 0 0 10px rgba(225, 29, 72, 0.2), 0 4px 10px rgba(225, 29, 72, 0.15);
+  animation: stampPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stamp-slot.is-stamped:nth-child(odd) {
+  transform: rotate(-4deg);
+}
+
+.stamp-slot.is-stamped:nth-child(even) {
+  transform: rotate(5deg);
+}
+
+.stamp-heart-icon {
+  font-size: 1.7rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(225, 29, 72, 0.3));
+}
+
+@media (max-width: 580px) {
+  .stamp-heart-icon {
+    font-size: 1.25rem;
+  }
+  .stamp-slot.is-empty .stamp-slot-num {
+    font-size: 0.95rem;
+  }
+}
+
+.stamp-ink-ring {
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  border: 1px dashed rgba(225, 29, 72, 0.5);
+  pointer-events: none;
+}
+
+.stamp-badge-text {
+  font-size: 9px;
+  font-weight: 800;
+  color: #be123c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 1px;
+}
+
+.stamp-progress-wrapper {
+  background: #FFF1F5;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-top: 1.25rem;
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.stamp-progress-track {
+  width: 100%;
+  height: 12px;
+  background: #fce7f3;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 6px;
+  border: 1px solid var(--border-light);
+}
+
+.stamp-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f43f5e, #fb7185);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+@keyframes stampPop {
+  0% {
+    transform: scale(1.35) rotate(-15deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1) rotate(-4deg);
+    opacity: 1;
+  }
+}
+
+/* Admin Quick Stamp Control */
+.admin-stamp-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFF1F5;
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.admin-stamp-btn {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  color: var(--primary-deep);
+  font-size: 13px;
+  font-weight: 700;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.admin-stamp-btn:hover {
+  background: var(--primary-600);
+  color: #ffffff;
+}
