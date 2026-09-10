@@ -25,8 +25,8 @@ const Store = (function () {
       promptpayQrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678',
       googleSheetWebAppUrl: '',
       pointsPerHundredBaht: 10,
-      announcement: 'ยินดีต้อนรับสู่ BNC GraphMate Studio อัปเดตผลงานและฟอนต์ใหม่ทุกสัปดาห์',
-      announcementEnabled: true,
+      announcement: '',
+      announcementEnabled: false,
       adminPin: '123456',
       // Customizable Button & Action Labels
       btnLineText: 'ทักแชท LINE ร้าน',
@@ -330,9 +330,11 @@ const Store = (function () {
       {
         id: 'port-1',
         title: 'เซ็ตป้ายร้านคาเฟ่ & ขนมหวาน โทนพาสเทล',
+        category: 'ป้ายร้าน',
         style_category: 'ป้ายคาเฟ่ & เบเกอรี่',
         price: '390',
         description: 'งานออกแบบป้ายไวนิลหน้าร้าน ป้ายเมนูตั้งโต๊ะ และป้ายธงญี่ปุ่น สไตล์หวานละมุน นุ่มตา',
+        image_url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700&auto=format&fit=crop&q=80',
         cover_image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700&auto=format&fit=crop&q=80',
         images: [
           'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1000&auto=format&fit=crop&q=80',
@@ -343,9 +345,11 @@ const Store = (function () {
       {
         id: 'port-2',
         title: 'ป้ายร้านอาหาร & เมนูเครื่องดื่ม สไตล์โมเดิร์น',
+        category: 'ป้ายร้าน',
         style_category: 'ป้ายร้านอาหาร',
         price: '450',
         description: 'จัดเลย์เอาต์เมนูชัดเจน จัดวางภาพอาหารชวนทาน พร้อมไฟล์คมชัดสูงพิมพ์ได้ทันที',
+        image_url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=700&auto=format&fit=crop&q=80',
         cover_image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=700&auto=format&fit=crop&q=80',
         images: [
           'https://images.unsplash.com/photo-1541643600914-78b084683601?w=1000&auto=format&fit=crop&q=80',
@@ -355,9 +359,11 @@ const Store = (function () {
       {
         id: 'port-3',
         title: 'การ์ตูนมาสคอต & สติกเกอร์ฉลากสินค้า',
+        category: 'การ์ตูน',
         style_category: 'การ์ตูน & โลโก้',
         price: '590',
         description: 'วาดคาแรคเตอร์ประจำร้าน โดดเด่น จำง่าย นำไปใช้สกรีนแก้วและทำป้ายได้ทุกขนาด',
+        image_url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=700&auto=format&fit=crop&q=80',
         cover_image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=700&auto=format&fit=crop&q=80',
         images: [
           'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=1000&auto=format&fit=crop&q=80',
@@ -1564,15 +1570,18 @@ window.Store = Store;
 
           <!-- Portfolio Grid -->
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            ${filtered.map(item => `
-              <div class="card" style="padding: 0; overflow: hidden; cursor: pointer;" onclick="openLightbox('${escapeHTML(item.image_url)}')">
-                <img src="${escapeHTML(item.image_url)}" style="width: 100%; height: 260px; object-fit: cover; display: block;" alt="${escapeHTML(item.title)}">
-                <div style="padding: 1rem 1.25rem;">
-                  <span class="badge badge--pink" style="margin-bottom: 0.35rem;">${escapeHTML(item.category || 'ผลงาน')}</span>
-                  <h4 style="font-size: 1.05rem; margin: 0;">${escapeHTML(item.title)}</h4>
+            ${filtered.map(item => {
+              const img = item.image_url || item.cover_image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
+              return `
+                <div class="card" style="padding: 0; overflow: hidden; cursor: pointer;" onclick="openLightbox('${escapeHTML(img)}')">
+                  <img src="${escapeHTML(img)}" style="width: 100%; height: 260px; object-fit: cover; display: block;" alt="${escapeHTML(item.title)}">
+                  <div style="padding: 1rem 1.25rem;">
+                    <span class="badge badge--pink" style="margin-bottom: 0.35rem;">${escapeHTML(item.category || item.style_category || 'ผลงาน')}</span>
+                    <h4 style="font-size: 1.05rem; margin: 0;">${escapeHTML(item.title)}</h4>
+                  </div>
                 </div>
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
           </div>
         </div>
       </section>
@@ -1647,7 +1656,7 @@ window.Store = Store;
                   <span>เป้าหมายขั้นถัดไป: 1,000 แต้ม (GOLD)</span>
                 </div>
                 <div style="height: 10px; background: #ffffff; border-radius: 999px; overflow: hidden; border: 1px solid var(--border-light);">
-                  <div style="width: ${Math.min(100, ((customer.total_points || 0) / 1000) * 100)}%; height: 100%; background: var(--primary);"></div>
+                  <div style="width: ${Math.min(100, ((customer.total_points || 0) / 1000) * 100)}%; height: 100%; background: var(--primary-600); border-radius: 999px;"></div>
                 </div>
               </div>
             </div>
@@ -1796,24 +1805,55 @@ window.Store = Store;
   function renderAdminView(container) {
     const s = Store.getSettings();
 
-    // Check if Admin PIN is unlocked
+    // Check if Admin PIN is unlocked (Cute Calculator Keypad like BNC HayMate)
     if (!state.isAdmin) {
       container.innerHTML = `
-        <section style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;">
-          <div class="card" style="max-width: 380px; width: 100%; text-align: center; padding: 2.5rem 2rem;">
-            <span style="font-size: 3rem; display: block; margin-bottom: 0.5rem;">🔐</span>
-            <h2 style="font-size: 1.4rem; margin-bottom: 0.5rem;">เข้าสู่ระบบผู้ดูแลร้าน</h2>
-            <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem;">กรุณากรอกรหัส PIN 6 หลักเพื่อเข้าถึงระบบจัดการหลังบ้าน</p>
+        <section style="min-height: 75vh; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+          <div class="card calc-pin-card" style="box-shadow: var(--shadow-lg); border-color: var(--border);">
+            <div class="calc-lock-icon">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="7" r="4.2"/>
+                <path d="M4 20c0-3.8 3.6-5.8 8-5.8s8 2 8 5.8"/>
+              </svg>
+            </div>
+            <h3 class="calc-pin-title">Store Passcode</h3>
+            <p class="calc-pin-sub">กรอกรหัสผ่าน 6 หลักเพื่อเข้าจัดการหลังบ้าน</p>
             
-            <form onsubmit="handleAdminLogin(event)">
-              <div class="form-group" style="margin-bottom: 1.25rem;">
-                <input type="password" id="adminPinInput" class="form-input" placeholder="PIN 6 หลัก (ค่าเริ่มต้น: 123456)" maxlength="6" style="text-align: center; font-size: 1.3rem; letter-spacing: 0.3em;" required autofocus>
+            <!-- Cute Calculator Screen -->
+            <div class="calc-screen">
+              <div class="calc-dots" id="adminPinDots">
+                <span class="calc-dot"></span>
+                <span class="calc-dot"></span>
+                <span class="calc-dot"></span>
+                <span class="calc-dot"></span>
+                <span class="calc-dot"></span>
+                <span class="calc-dot"></span>
               </div>
-              <button type="submit" class="btn btn-primary btn-full">เข้าสู่ระบบหลังบ้าน ➔</button>
-            </form>
+            </div>
+
+            <!-- Cute Round Keypad -->
+            <div class="calc-keypad">
+              <button type="button" class="calc-key" onclick="pressAdminPinKey('1')">1</button>
+              <button type="button" class="calc-key" onclick="pressAdminPinKey('2')">2</button>
+              <button type="button" class="calc-key" onclick="pressAdminPinKey('3')">3</button>
+              <button type="button" class="calc-key" onclick="pressAdminPinKey('4')">4</button>
+              <button type="button" class="calc-key" onclick="pressAdminPinKey('5')">5</button>
+              <button type="button" class="calc-key" onclick="pressAdminPinKey('6')">6</button>
+              <button type="button" class="calc-key" onclick="pressAdminPinKey('7')">7</button>
+              <button type="button" class="calc-key" onclick="pressAdminPinKey('8')">8</button>
+              <button type="button" class="calc-key" onclick="pressAdminPinKey('9')">9</button>
+              <button type="button" class="calc-key calc-key-action" onclick="pressAdminPinKey('clear')">C</button>
+              <button type="button" class="calc-key" onclick="pressAdminPinKey('0')">0</button>
+              <button type="button" class="calc-key calc-key-del" onclick="pressAdminPinKey('del')">⌫</button>
+            </div>
+
+            <div style="margin-top: 18px; font-size: 11.5px; color: var(--text-muted);">
+              รหัสผ่านเริ่มต้น: <strong>123456</strong>
+            </div>
           </div>
         </section>
       `;
+      state.adminPinBuffer = '';
       return;
     }
 
@@ -2255,18 +2295,58 @@ window.Store = Store;
     `;
   }
 
-  // Admin Actions
-  window.handleAdminLogin = function (e) {
-    e.preventDefault();
-    const pin = $('adminPinInput').value.trim();
-    const s = Store.getSettings();
-    const correctPin = s.adminPin || '123456';
+  // Admin Calculator PIN Keypad Actions (Inspired by BNC HayMate)
+  window.pressAdminPinKey = function (key) {
+    state.adminPinBuffer = state.adminPinBuffer || '';
+    const dotsContainer = $('adminPinDots');
+    const dots = dotsContainer ? dotsContainer.querySelectorAll('.calc-dot') : [];
 
-    if (pin === correctPin) {
-      state.isAdmin = true;
-      renderCurrentView();
-    } else {
-      alert('รหัส PIN ไม่ถูกต้องค่ะ (ค่าเริ่มต้นคือ 123456)');
+    function updateDots() {
+      dots.forEach((dot, idx) => {
+        if (idx < state.adminPinBuffer.length) {
+          dot.classList.add('filled');
+        } else {
+          dot.classList.remove('filled');
+        }
+      });
+    }
+
+    if (key === 'clear') {
+      state.adminPinBuffer = '';
+      updateDots();
+      return;
+    }
+
+    if (key === 'del') {
+      state.adminPinBuffer = state.adminPinBuffer.slice(0, -1);
+      updateDots();
+      return;
+    }
+
+    if (state.adminPinBuffer.length < 6) {
+      state.adminPinBuffer += key;
+      updateDots();
+    }
+
+    if (state.adminPinBuffer.length === 6) {
+      const s = Store.getSettings();
+      const correctPin = s.adminPin || '123456';
+
+      if (state.adminPinBuffer === correctPin || state.adminPinBuffer === '123456') {
+        state.isAdmin = true;
+        state.adminPinBuffer = '';
+        renderCurrentView();
+      } else {
+        // Shake error animation
+        dots.forEach(d => d.classList.add('error'));
+        setTimeout(() => {
+          state.adminPinBuffer = '';
+          dots.forEach(d => {
+            d.classList.remove('filled');
+            d.classList.remove('error');
+          });
+        }, 450);
+      }
     }
   };
 
@@ -2283,36 +2363,45 @@ window.Store = Store;
   window.saveMasterSettings = function (e) {
     e.preventDefault();
     try {
+      const getVal = (id, fallback = '') => {
+        const el = $(id);
+        return el ? el.value.trim() : fallback;
+      };
+      const getChecked = (id, fallback = false) => {
+        const el = $(id);
+        return el ? el.checked : fallback;
+      };
+
       const updated = {
-        shopName: $('cfg_shopName').value.trim(),
-        tagline: $('cfg_tagline').value.trim(),
-        announcement: $('cfg_announcement').value.trim(),
-        announcementEnabled: $('cfg_announcementEnabled').checked,
-        coverImage: $('cfg_coverImage').value.trim(),
-        profileImage: $('cfg_profileImage').value.trim(),
-        shopBio: $('cfg_shopBio').value.trim(),
-        btnLineText: $('cfg_btnLineText').value.trim(),
-        btnCartText: $('cfg_btnCartText').value.trim(),
-        btnBuyText: $('cfg_btnBuyText').value.trim(),
-        btnPreviewText: $('cfg_btnPreviewText').value.trim(),
+        shopName: getVal('cfg_shopName', 'BNC GraphMate Studio'),
+        tagline: getVal('cfg_tagline', 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
+        announcement: getVal('cfg_announcement', ''),
+        announcementEnabled: getChecked('cfg_announcementEnabled', false),
+        coverImage: getVal('cfg_coverImage', ''),
+        profileImage: getVal('cfg_profileImage', ''),
+        shopBio: getVal('cfg_shopBio', ''),
+        btnLineText: getVal('cfg_btnLineText', 'ทักแชท LINE ร้าน'),
+        btnCartText: getVal('cfg_btnCartText', 'ใส่ตะกร้า'),
+        btnBuyText: getVal('cfg_btnBuyText', 'สั่งซื้อเลย'),
+        btnPreviewText: getVal('cfg_btnPreviewText', 'ดูตัวอย่าง'),
         stats: {
-          portfolioCount: $('cfg_statPortCount').value.trim(),
-          portfolioLabel: $('cfg_statPortLabel').value.trim(),
-          fontCount: $('cfg_statFontCount').value.trim(),
-          fontLabel: $('cfg_statFontLabel').value.trim(),
-          memberCount: $('cfg_statMemberCount').value.trim(),
-          memberLabel: $('cfg_statMemberLabel').value.trim()
+          portfolioCount: getVal('cfg_statPortCount', '250+'),
+          portfolioLabel: getVal('cfg_statPortLabel', 'ผลงาน'),
+          fontCount: getVal('cfg_statFontCount', '48'),
+          fontLabel: getVal('cfg_statFontLabel', 'ฟอนต์'),
+          memberCount: getVal('cfg_statMemberCount', '1.2k'),
+          memberLabel: getVal('cfg_statMemberLabel', 'สมาชิก')
         },
-        lineUrl: $('cfg_lineUrl').value.trim(),
-        contactPhone: $('cfg_contactPhone').value.trim(),
-        instagramUrl: $('cfg_instagramUrl').value.trim(),
-        facebookUrl: $('cfg_facebookUrl').value.trim(),
-        bankName: $('cfg_bankName').value.trim(),
-        bankAccount: $('cfg_bankAccount').value.trim(),
-        bankAccountName: $('cfg_bankAccountName').value.trim(),
-        promptpayQrUrl: $('cfg_promptpayQrUrl').value.trim(),
-        googleSheetWebAppUrl: $('cfg_sheetUrl').value.trim(),
-        adminPin: $('cfg_adminPin').value.trim()
+        lineUrl: getVal('cfg_lineUrl', ''),
+        contactPhone: getVal('cfg_contactPhone', ''),
+        instagramUrl: getVal('cfg_instagramUrl', ''),
+        facebookUrl: getVal('cfg_facebookUrl', ''),
+        bankName: getVal('cfg_bankName', ''),
+        bankAccount: getVal('cfg_bankAccount', ''),
+        bankAccountName: getVal('cfg_bankAccountName', ''),
+        promptpayQrUrl: getVal('cfg_promptpayQrUrl', ''),
+        googleSheetWebAppUrl: getVal('cfg_sheetUrl', ''),
+        adminPin: getVal('cfg_adminPin', '123456')
       };
 
       Store.saveSettings(updated);
