@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>สินค้าดิจิทัลพร้อมใช้ BNC GraphMate</title>
-<link rel="preconnect" href="https:
-<link rel="preconnect" href="https:
-<link href="https:
-<link rel="stylesheet" href="../css/main.css?v=2.2">
-<link rel="stylesheet" href="../css/components.css?v=2.2">
-<style> .page-hero { background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%); border-bottom: 1px solid var(--border-subtle); padding: 3rem 0; text-align: center; } .cat-filters { display: flex; gap: 0.6rem; overflow-x: auto; padding-bottom: 0.75rem; margin-bottom: 2rem; scrollbar-width: none; } .cat-filters::-webkit-scrollbar { display: none; } .cat-btn { background: var(--bg-primary); border: 1px solid var(--border-light); color: var(--text-muted); padding: 0.5rem 1.25rem; border-radius: var(--radius-full); font-size: 0.9rem; font-weight: 500; white-space: nowrap; cursor: pointer; transition: all var(--transition-fast); box-shadow: var(--shadow-subtle); } .cat-btn.active, .cat-btn:hover { background: var(--pink-primary); color: var(--text-white); border-color: var(--pink-primary); box-shadow: 0 4px 12px rgba(217, 111, 157, 0.2); } </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สินค้าดิจิทัลพร้อมใช้ BNC GraphMate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css?v=2.2">
+  <link rel="stylesheet" href="../css/components.css?v=2.2">
+  <style> .page-hero { background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%); border-bottom: 1px solid var(--border-subtle); padding: 3rem 0; text-align: center; } .cat-filters { display: flex; gap: 0.6rem; overflow-x: auto; padding-bottom: 0.75rem; margin-bottom: 2rem; scrollbar-width: none; } .cat-filters::-webkit-scrollbar { display: none; } .cat-btn { background: var(--bg-primary); border: 1px solid var(--border-light); color: var(--text-muted); padding: 0.5rem 1.25rem; border-radius: var(--radius-full); font-size: 0.9rem; font-weight: 500; white-space: nowrap; cursor: pointer; transition: all var(--transition-fast); box-shadow: var(--shadow-subtle); } .cat-btn.active, .cat-btn:hover { background: var(--pink-primary); color: var(--text-white); border-color: var(--pink-primary); box-shadow: 0 4px 12px rgba(217, 111, 157, 0.2); } </style>
 </head>
 <body>
 <!-- Navbar -->
@@ -136,13 +136,13 @@
 <span id="pResDeliveryType">Google Drive อัตโนมัติ</span></p>
 </div>
 <div style="display: flex; flex-direction: column; gap: 0.65rem;">
-<a href="https:
+<a href="https://drive.google.com/drive/shared-with-me" target="_blank" class="btn btn-primary btn-full">
 <a href="orders.html" class="btn btn-outline btn-full"> ดูประวัติคำสั่งซื้อทั้งหมด </a>
 </div>
 </div>
 </div>
 </div>
-<script src="https:
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script src="../js/store.js"></script>
 <script src="../js/slip-scanner.js"></script>
 <script> const navToggle = document.getElementById('navToggle'); const navMenu = document.getElementById('navMenu'); if (navToggle && navMenu) navToggle.addEventListener('click', () => navMenu.classList.toggle('is-open')); let currentProd = null; let pScannedSlip = null; let selectedCat = 'ALL'; function filterCat(cat, btn) { selectedCat = cat; document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); if (btn) btn.classList.add('active'); renderProducts(); } function renderProducts() { const prods = Store.getProducts(selectedCat); const container = document.getElementById('productsGrid'); if (!container) return; if (prods.length === 0) { container.innerHTML = ` <div class="empty-state" style="grid-column: 1/-1;">
