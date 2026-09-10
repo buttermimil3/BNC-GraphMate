@@ -446,6 +446,21 @@ button, input, textarea, select {
 .ig-avatar-wrapper {
   position: relative;
   flex-shrink: 0;
+  display: inline-block;
+  border-radius: 50%;
+  transition: transform var(--transition-bounce);
+}
+
+.ig-avatar-wrapper.has-story {
+  padding: 3.5px;
+  background: linear-gradient(135deg, #F8BFD4 0%, #EFA6C1 50%, #DE85A7 100%);
+  box-shadow: 0 4px 16px rgba(239, 166, 193, 0.4);
+  animation: pulseStory 3s ease infinite;
+}
+
+@keyframes pulseStory {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
 }
 
 .ig-avatar-img {
@@ -457,6 +472,10 @@ button, input, textarea, select {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   background-color: #ffffff;
   display: block;
+}
+
+.ig-avatar-wrapper.has-story .ig-avatar-img {
+  border: 3px solid #ffffff;
 }
 
 @media (min-width: 768px) {
@@ -1166,4 +1185,115 @@ input[type="range"]::-moz-range-track {
 .footer-copy {
   font-size: 0.86rem;
   color: var(--text-muted);
+}
+
+/* ── Receipt Card (Exact BNC HayMate Pastel Architecture) ─────── */
+.receipt-wrapper {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.receipt {
+  max-width: 390px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 24px 22px;
+  box-shadow: 0 4px 20px rgba(248, 191, 212, 0.2);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+.receipt .r-head {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.receipt .r-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  margin: 0 auto 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 24px;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 12px rgba(248, 191, 212, 0.25);
+}
+
+.receipt .r-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.receipt .r-store {
+  font-weight: 800;
+  font-size: 16.5px;
+  color: var(--text);
+  font-family: var(--font-heading);
+}
+
+.receipt .r-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.receipt .r-line {
+  border-top: 1.5px dashed var(--border);
+  margin: 12px 0;
+}
+
+.receipt .r-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.receipt .r-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.receipt .r-total {
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--primary-deep);
+}
+
+.receipt .r-footer-graphic {
+  width: 130px;
+  height: 130px;
+  margin: 14px auto 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  padding: 6px;
+}
+
+.receipt .r-footer-graphic img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 8px;
+}
+
+.receipt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
 }
