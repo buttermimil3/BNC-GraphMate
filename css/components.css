@@ -1023,3 +1023,182 @@
   padding: 0.25rem 0.65rem;
   border-radius: var(--radius-full);
 }
+
+/* ── Fullscreen Social Story Viewer Modal (FB / IG Stories) ── */
+.story-viewer-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(10, 5, 8, 0.94);
+  backdrop-filter: blur(12px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.story-viewer-modal.is-open {
+  display: flex;
+}
+
+.story-viewer-content {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 90vh;
+  max-height: 780px;
+  background-color: #1a1417;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.story-progress-bar-container {
+  display: flex;
+  gap: 4px;
+  padding: 12px 14px 6px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.story-progress-segment {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.story-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #ffffff;
+  border-radius: 2px;
+}
+
+.story-header-overlay {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  color: #ffffff;
+}
+
+.story-author-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.story-author-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--pink-primary);
+  object-fit: cover;
+}
+
+.story-author-name {
+  font-family: 'Prompt', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+
+.story-time-stamp {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.story-close-btn {
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  color: #ffffff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.story-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.story-image-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: #000000;
+  display: block;
+}
+
+.story-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.35);
+  border: none;
+  color: #ffffff;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 15;
+  transition: all var(--transition-fast);
+}
+
+.story-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.story-nav-btn--prev {
+  left: 10px;
+}
+
+.story-nav-btn--next {
+  right: 10px;
+}
+
+.story-footer-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.25rem 1rem;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.85) 100%);
+  color: #ffffff;
+  z-index: 10;
+  text-align: center;
+}
+
+.story-caption-title {
+  font-family: 'Prompt', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.story-caption-desc {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.85);
+}

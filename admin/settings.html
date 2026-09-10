@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ตั้งค่าระบบร้านค้า | BNC Admin</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https:
+  <link rel="preconnect" href="https:
+  <link href="https:
   <link rel="stylesheet" href="../css/main.css?v=2.2">
   <link rel="stylesheet" href="../css/components.css?v=2.2">
   <link rel="stylesheet" href="../css/admin.css?v=2.2">
@@ -78,18 +78,18 @@
             
             <div class="form-group">
               <label class="form-label">ลิงก์ภาพหน้าปก (Facebook-style Cover Photo)</label>
-              <input type="url" id="setCoverImage" class="form-input" placeholder="https://images.unsplash.com/photo-...">
+              <input type="url" id="setCoverImage" class="form-input" placeholder="https:
               <small style="color: var(--text-muted);">*แนะนำภาพแนวนอน อัตราส่วนประมาณ 16:6</small>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="form-group">
                 <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ทรงกลม)</label>
-                <input type="url" id="setProfileImage" class="form-input" placeholder="https://images.unsplash.com/photo-...">
+                <input type="url" id="setProfileImage" class="form-input" placeholder="https:
               </div>
               <div class="form-group">
                 <label class="form-label">ไอคอนหัวหมุดแถบสะสมแต้ม (Points Pin)</label>
-                <input type="url" id="setPointsBarIcon" class="form-input" placeholder="https://images.unsplash.com/photo-...">
+                <input type="url" id="setPointsBarIcon" class="form-input" placeholder="https:
               </div>
             </div>
 
@@ -114,19 +114,21 @@
             </div>
           </div>
 
-          <!-- Section 2: Story Highlights Bar Manager -->
+          <!-- Section 2: Daily Story & Highlights Manager -->
           <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: #ffffff;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--pink-deep); margin: 0;">
-                จัดการ Story Highlights วงกลม (ไม่จำกัดจำนวน)
-              </h3>
+              <div>
+                <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--pink-deep); margin: 0 0 0.25rem;">
+                  จัดการ Story ไฮไลท์รายวัน & วงกลมหน้าร้าน
+                </h3>
+                <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                  เพิ่มสตอรี่ประจำวัน ใส่รูปภาพ วันที่/เวลา และข้อความ เมื่อลูกค้าคลิกที่ภาพโปรไฟล์หรือวงกลม จะเปิดดูสตอรี่แบบเต็มจอเหมือน Facebook / Instagram
+                </p>
+              </div>
               <button type="button" class="btn btn-outline btn-sm" onclick="addHighlightRow()">+ เพิ่มสตอรี่ใหม่</button>
             </div>
-            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
-              แถบวงกลมแสดงไฮไลต์ใต้โปรไฟล์หน้าร้าน สามารถใส่ชื่อ ลิงก์รูปภาพ และปลายทางเมื่อคลิกได้ไม่จำกัด
-            </p>
 
-            <div id="highlightsContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div id="highlightsContainer" style="display: flex; flex-direction: column; gap: 0.85rem;">
               <!-- Dynamic rows -->
             </div>
           </div>
@@ -155,7 +157,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="form-group">
                 <label class="form-label">ลิงก์ LINE ร้าน</label>
-                <input type="url" id="setLineUrl" class="form-input" placeholder="https://line.me/ti/p/~yourid" required>
+                <input type="url" id="setLineUrl" class="form-input" placeholder="https://line.me/ti/p/~bncgraphmate">
               </div>
               <div class="form-group">
                 <label class="form-label">LINE ID สำหรับแสดงผล</label>
@@ -166,15 +168,15 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="form-group">
                 <label class="form-label">Instagram Link</label>
-                <input type="url" id="setInstagramUrl" class="form-input" placeholder="https://instagram.com/...">
+                <input type="url" id="setInstagramUrl" class="form-input" placeholder="https://instagram.com/bncgraphmate">
               </div>
               <div class="form-group">
                 <label class="form-label">Facebook Link</label>
-                <input type="url" id="setFacebookUrl" class="form-input" placeholder="https://facebook.com/...">
+                <input type="url" id="setFacebookUrl" class="form-input" placeholder="https://facebook.com/bncgraphmate">
               </div>
               <div class="form-group">
                 <label class="form-label">TikTok Link</label>
-                <input type="url" id="setTiktokUrl" class="form-input" placeholder="https://tiktok.com/@...">
+                <input type="url" id="setTiktokUrl" class="form-input" placeholder="https://tiktok.com/@bncgraphmate">
               </div>
             </div>
 
@@ -191,7 +193,7 @@
             </h3>
             <div class="form-group">
               <label class="form-label">ลิงก์ภาพ QR Code ชำระเงิน (PromptPay)</label>
-              <input type="url" id="setPromptpayQrUrl" class="form-input" placeholder="https://..." required>
+              <input type="url" id="setPromptpayQrUrl" class="form-input" placeholder="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678">
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="form-group">
@@ -210,18 +212,25 @@
           </div>
 
           <!-- Section 5: ฐานข้อมูล Google Sheet ฟรี 100% -->
-          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid #10B981; border-radius: var(--radius-lg); background: #ffffff;">
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1.5px solid #10B981; border-radius: var(--radius-lg); background: #ffffff;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
               <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: #166534; margin: 0;">
                 เชื่อมต่อ Google Sheets Database (ฟรี 100%)
               </h3>
+              <span class="badge" style="background: #DCFCE7; color: #166534; font-weight: 600;">Cloud Sync Ready</span>
             </div>
-            <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin-bottom: 1rem;">
-              คุณสามารถใช้ Google Sheet เป็น Cloud Database แทน Database อื่นๆ ได้ฟรีตลอดชีพ โดยนำโค้ดในโฟลเดอร์ <code>google-apps-script/Code.gs</code> ไปวางใน Apps Script ของชีตคุณ แล้วนำ Web App URL มาใส่ที่นี่:
+            <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 1rem;">
+              วิธีซิงก์ข้อมูล: นำโค้ดในโฟลเดอร์ <code>google-apps-script/Code.gs</code> ไปวางใน Google Apps Script ของชีตคุณ จากนั้น Deploy as Web App (เลือกสิทธิ์ Anyone) แล้วนำ Web App URL มาใส่ที่นี่ เพื่อให้ข้อมูลออเดอร์ สินค้า และการตั้งค่า ซิงก์ตรงกันทุกเครื่อง 100%
             </p>
             <div class="form-group">
               <label class="form-label">Google Sheet Web App URL</label>
-              <input type="url" id="setSheetUrl" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="url" id="setSheetUrl" class="form-input" placeholder="https://script.google.com/macros/s/.../exec" style="flex: 1;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="testSheetSync()" id="btnTestSheet" style="white-space: nowrap; border-color: #10B981; color: #166534;">
+                  ทดสอบการเชื่อมต่อ
+                </button>
+              </div>
+              <div id="sheetTestFeedback" style="margin-top: 0.6rem; font-size: 0.88rem; display: none;"></div>
             </div>
           </div>
 
@@ -280,20 +289,31 @@
       }
 
       container.innerHTML = highlightsList.map((h, idx) => {
-        return '<div style="display: grid; grid-template-columns: 140px 1fr 1fr 40px; gap: 0.5rem; align-items: center; background: var(--bg-secondary); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm);">' +
-          '<input type="text" class="form-input" placeholder="ชื่อสตอรี่" value="' + (h.title || '') + '" oninput="updateHighlight(' + idx + ', \'title\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
-          '<input type="url" class="form-input" placeholder="ลิงก์รูปภาพ" value="' + (h.img || '') + '" oninput="updateHighlight(' + idx + ', \'img\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
-          '<input type="text" class="form-input" placeholder="ปลายทาง (เช่น pages/fonts.html)" value="' + (h.link || '') + '" oninput="updateHighlight(' + idx + ', \'link\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
-          '<button type="button" class="btn btn-outline btn-sm" onclick="removeHighlight(' + idx + ')" style="padding: 0.3rem 0.5rem; color: var(--status-error-text); border-color: var(--status-error-border);">×</button>' +
+        return '<div style="display: grid; grid-template-columns: 130px 100px 1fr 40px; gap: 0.5rem; align-items: center; background: var(--bg-secondary); padding: 0.75rem 0.9rem; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">' +
+          '<div>' +
+            '<label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.15rem;">หัวข้อสตอรี่</label>' +
+            '<input type="text" class="form-input" placeholder="เช่น รีวิวร้าน" value="' + (h.title || '') + '" oninput="updateHighlight(' + idx + ', \'title\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
+          '</div>' +
+          '<div>' +
+            '<label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.15rem;">วันที่/ช่วงเวลา</label>' +
+            '<input type="text" class="form-input" placeholder="เช่น วันนี้ / 10 มี.ค." value="' + (h.day || h.date || 'วันนี้') + '" oninput="updateHighlight(' + idx + ', \'day\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
+          '</div>' +
+          '<div>' +
+            '<label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.15rem;">ลิงก์ภาพสตอรี่ (แสดงเต็มจอ)</label>' +
+            '<input type="url" class="form-input" placeholder="https://..." value="' + (h.image || h.img || '') + '" oninput="updateHighlight(' + idx + ', \'image\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
+          '</div>' +
+          '<div style="text-align: center; padding-top: 1rem;">' +
+            '<button type="button" class="btn btn-outline btn-sm" onclick="removeHighlight(' + idx + ')" style="padding: 0.35rem 0.55rem; color: var(--status-error-text); border-color: var(--status-error-border);" title="ลบสตอรี่นี้">✕</button>' +
+          '</div>' +
         '</div>';
       }).join('');
     }
 
     window.addHighlightRow = function() {
       highlightsList.push({
-        title: 'ไฮไลต์ใหม่',
-        img: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=200',
-        link: 'pages/portfolio.html'
+        title: 'สตอรี่ใหม่',
+        day: 'วันนี้',
+        image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600'
       });
       renderHighlights();
     };
@@ -301,12 +321,51 @@
     window.updateHighlight = function(index, key, val) {
       if (highlightsList[index]) {
         highlightsList[index][key] = val;
+        if (key === 'image') highlightsList[index].img = val;
       }
     };
 
     window.removeHighlight = function(index) {
       highlightsList.splice(index, 1);
       renderHighlights();
+    };
+
+    window.testSheetSync = async function() {
+      const url = document.getElementById('setSheetUrl').value.trim();
+      const feedback = document.getElementById('sheetTestFeedback');
+      const btn = document.getElementById('btnTestSheet');
+
+      if (!url || !url.startsWith('https://script.google.com')) {
+        feedback.style.display = 'block';
+        feedback.innerHTML = '<span style="color: #dc2626;">กรุณากรอก Web App URL จาก Google Apps Script ให้ถูกต้อง (ขึ้นต้นด้วย https://script.google.com)</span>';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'กำลังทดสอบเชื่อมต่อ...';
+      feedback.style.display = 'block';
+      feedback.innerHTML = '<span style="color: #2563eb;">กำลังส่งคำขอทดสอบไปยัง Google Sheets...</span>';
+
+      try {
+        const testUrl = url + (url.includes('?') ? '&' : '?') + 'action=GET_ALL';
+        const res = await fetch(testUrl, { method: 'GET' });
+        const json = await res.json();
+
+        btn.disabled = false;
+        btn.textContent = 'ทดสอบการเชื่อมต่อ';
+
+        if (json && (json.status === 'success' || json.data)) {
+          const ordersCount = (json.data && json.data.orders) ? json.data.orders.length : 0;
+          const prodsCount = (json.data && json.data.products) ? json.data.products.length : 0;
+          feedback.innerHTML = `<span style="color: #166534; font-weight: 600;">เชื่อมต่อ Google Sheets สำเร็จ 100%! พบข้อมูลในชีต: ออเดอร์ ${ordersCount} รายการ, สินค้า ${prodsCount} รายการ (ระบบจะซิงก์ข้อมูลอัตโนมัติ)</span>`;
+        } else {
+          feedback.innerHTML = `<span style="color: #d97706; font-weight: 500;">เชื่อมต่อเซิร์ฟเวอร์ได้ แต่ชีตตอบกลับว่า: ${json.message || 'โครงสร้างไม่ตรง'} กรุณาตรวจสอบโค้ด Code.gs</span>`;
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'ทดสอบการเชื่อมต่อ';
+        feedback.innerHTML = `<span style="color: #dc2626;">เกิดข้อผิดพลาดในการเชื่อมต่อ: ${err.message}<br><small style="color: var(--text-muted);">คำแนะนำ: ตรวจสอบการ Deploy ใน Google Apps Script ว่าเลือก 'Who has access' เป็น 'Anyone' หรือยังนะคะ</small></span>`;
+      }
     };
 
     document.getElementById('settingsForm').addEventListener('submit', (e) => {

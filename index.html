@@ -63,7 +63,7 @@
         <!-- Instagram Profile Section -->
         <div class="ig-profile-section">
           <div class="ig-profile-header">
-            <div class="ig-avatar-wrapper">
+            <div class="ig-avatar-wrapper" onclick="openStoryViewer(0)" style="cursor: pointer;" title="คลิกเพื่อดูไฮไลต์สตอรี่วันนี้">
               <img id="homeProfileImg" class="ig-avatar-img" src="" alt="BNC Studio Avatar">
             </div>
 
@@ -241,8 +241,37 @@
       <div class="footer__bottom">
         <p>© 2026 BNC GraphMate Studio ออกแบบและดูแลด้วยความใส่ใจ</p>
       </div>
-    </div>
   </footer>
+
+  <!-- Fullscreen Social Story Viewer Modal (FB / IG Stories) -->
+  <div class="story-viewer-modal" id="storyViewerModal">
+    <div class="story-viewer-content">
+      <div class="story-progress-bar-container" id="storyProgressBars">
+        <!-- Progress bar segments rendered dynamically -->
+      </div>
+      
+      <div class="story-header-overlay">
+        <div class="story-author-info">
+          <img id="storyAuthorAvatar" src="" class="story-author-avatar" alt="Author">
+          <div>
+            <div id="storyAuthorName" class="story-author-name">BNC GraphMate</div>
+            <div id="storyTimestamp" class="story-time-stamp">ไฮไลท์เรื่องราว</div>
+          </div>
+        </div>
+        <button class="story-close-btn" onclick="closeStoryViewer()" aria-label="ปิดสตอรี่">✕</button>
+      </div>
+
+      <img id="storyActiveImage" class="story-image-canvas" src="" alt="Story">
+
+      <button class="story-nav-btn story-nav-btn--prev" onclick="prevStory()" aria-label="สตอรี่ก่อนหน้า">‹</button>
+      <button class="story-nav-btn story-nav-btn--next" onclick="nextStory()" aria-label="สตอรี่ถัดไป">›</button>
+
+      <div class="story-footer-caption">
+        <div class="story-caption-title" id="storyCaptionTitle"></div>
+        <div class="story-caption-desc" id="storyCaptionDesc">แตะซ้าย/ขวา หรือกดลูกศรเพื่อเลื่อนดูไฮไลต์ถัดไป</div>
+      </div>
+    </div>
+  </div>
 
   <!-- Scripts -->
   <script src="js/store.js"></script>
@@ -302,13 +331,13 @@
         const highlights = s.highlights || [];
         const hlBar = document.getElementById('storyHighlightsBar');
         if (hlBar && highlights.length > 0) {
-          hlBar.innerHTML = highlights.map(h => `
-            <a href="${h.link || '#'}" class="story-highlight-item">
+          hlBar.innerHTML = highlights.map((h, idx) => `
+            <div class="story-highlight-item" onclick="openStoryViewer(${idx})" title="ดูสตอรี่: ${h.title}">
               <div class="story-ring">
                 <img src="${h.image}" alt="${h.title}" class="story-inner-img">
               </div>
               <span class="story-label">${h.title}</span>
-            </a>
+            </div>
           `).join('');
         }
       }
@@ -357,7 +386,7 @@
             <div class="card__body" style="padding-top: 1rem;">
               <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">${f.description}</p>
               <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: auto;">
-                <button class="btn btn-secondary btn-sm" onclick='CartUI.add(${JSON.stringify(f)})' style="flex: 1;">
+                <button class="btn btn-secondary btn-sm" onclick="CartUI.addById('${f.id}', 'FONT')" style="flex: 1;">
                   ใส่ตะกร้า
                 </button>
                 <a href="pages/fonts.html?id=${f.id}" class="btn btn-outline btn-sm" style="flex: 1;">
@@ -392,6 +421,99 @@
           </div>
         `).join('');
       }
+    });
+
+    // ── Story Highlights Modal Viewer Controller ────────────
+    let currentStoryIndex = 0;
+    let storyList = [];
+    let storyTimer = null;
+
+    window.openStoryViewer = function(startIndex = 0) {
+      const s = Store.getSettings();
+      storyList = (s.highlights && s.highlights.length > 0) ? s.highlights : [
+        { title: 'ยินดีต้อนรับสู่สตูดิโอ', image: s.coverImage || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600' }
+      ];
+      currentStoryIndex = Math.min(Math.max(0, startIndex), storyList.length - 1);
+
+      const modal = document.getElementById('storyViewerModal');
+      const authorAvatar = document.getElementById('storyAuthorAvatar');
+      const authorName = document.getElementById('storyAuthorName');
+
+      if (authorAvatar) authorAvatar.src = s.profileImage || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400';
+      if (authorName) authorName.textContent = s.shopName || 'BNC GraphMate';
+
+      renderStoryBars();
+      showStorySlide(currentStoryIndex);
+
+      modal.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    };
+
+    function renderStoryBars() {
+      const barContainer = document.getElementById('storyProgressBars');
+      if (!barContainer) return;
+      barContainer.innerHTML = storyList.map((_, idx) => `
+        <div class="story-progress-segment">
+          <div class="story-progress-fill" id="storyFill_${idx}"></div>
+        </div>
+      `).join('');
+    }
+
+    function showStorySlide(idx) {
+      if (idx < 0 || idx >= storyList.length) {
+        closeStoryViewer();
+        return;
+      }
+      currentStoryIndex = idx;
+      const cur = storyList[idx];
+
+      const imgEl = document.getElementById('storyActiveImage');
+      const capTitle = document.getElementById('storyCaptionTitle');
+      const timeStamp = document.getElementById('storyTimestamp');
+
+      if (imgEl) imgEl.src = cur.image || cur.img || '';
+      if (capTitle) capTitle.textContent = cur.title || 'ไฮไลท์เรื่องราว';
+      if (timeStamp) timeStamp.textContent = cur.day || cur.date || 'วันนี้';
+
+      // Update progress fills
+      storyList.forEach((_, i) => {
+        const fill = document.getElementById('storyFill_' + i);
+        if (fill) {
+          if (i < idx) fill.style.width = '100%';
+          else if (i === idx) fill.style.width = '100%';
+          else fill.style.width = '0%';
+        }
+      });
+    }
+
+    window.nextStory = function() {
+      if (currentStoryIndex < storyList.length - 1) {
+        showStorySlide(currentStoryIndex + 1);
+      } else {
+        closeStoryViewer();
+      }
+    };
+
+    window.prevStory = function() {
+      if (currentStoryIndex > 0) {
+        showStorySlide(currentStoryIndex - 1);
+      }
+    };
+
+    window.closeStoryViewer = function() {
+      const modal = document.getElementById('storyViewerModal');
+      if (modal) modal.classList.remove('is-open');
+      document.body.style.overflow = '';
+      if (storyTimer) clearInterval(storyTimer);
+    };
+
+    // Keyboard support (Escape to close, Left/Right arrows)
+    document.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('storyViewerModal');
+      if (!modal || !modal.classList.contains('is-open')) return;
+      if (e.key === 'Escape') closeStoryViewer();
+      else if (e.key === 'ArrowRight') nextStory();
+      else if (e.key === 'ArrowLeft') prevStory();
     });
   </script>
 </body>

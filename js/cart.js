@@ -239,6 +239,32 @@
       updateCartUI();
       openCartDrawer();
     },
+    addById: function (id, type) {
+      if (typeof Store === 'undefined') return;
+      let item = null;
+      if (type === 'FONT') {
+        item = Store.getAllFonts().find(f => f.id === id);
+        if (item) item.type = 'FONT';
+      } else if (type === 'PRODUCT') {
+        item = Store.getAllProducts().find(p => p.id === id);
+        if (item) item.type = 'PRODUCT';
+      } else {
+        item = Store.getAllFonts().find(f => f.id === id) || Store.getAllProducts().find(p => p.id === id);
+      }
+      if (!item) {
+        console.warn('Item not found for cart:', id, type);
+        return;
+      }
+      Store.addToCart(item);
+      updateCartUI();
+      openCartDrawer();
+    },
+    addFont: function (id) {
+      this.addById(id, 'FONT');
+    },
+    addProduct: function (id) {
+      this.addById(id, 'PRODUCT');
+    },
     remove: function (id) {
       if (typeof Store === 'undefined') return;
       Store.removeFromCart(id);

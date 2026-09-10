@@ -1,7 +1,68 @@
 <!DOCTYPE html>
 <html lang="th">
-<head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>เข้าสู่ระบบ & สมัครสมาชิก | BNC GraphMate</title> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet"> <link rel="stylesheet" href="../css/main.css?v=2.2"> <link rel="stylesheet" href="../css/components.css?v=2.2"> <style> .auth-container { min-height: calc(100vh - 80px); display: flex; align-items: center; justify-content: center; padding: 3rem 1.5rem; background: var(--bg-secondary); } .auth-box { background: var(--bg-primary); border: 1px solid var(--border-light); border-radius: var(--radius-xl); padding: 2.5rem 2rem; width: 100%; max-width: 440px; box-shadow: var(--shadow-subtle); } .auth-tabs { display: flex; border-bottom: 1px solid var(--border-light); margin-bottom: 1.75rem; } .auth-tab-btn { flex: 1; padding: 0.75rem 1rem; text-align: center; font-family: 'Prompt', sans-serif; font-weight: 600; font-size: 1rem; color: var(--text-muted); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all var(--transition-fast); } .auth-tab-btn.active { color: var(--pink-deep); border-bottom-color: var(--pink-deep); } </style>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เข้าสู่ระบบ & สมัครสมาชิก | BNC GraphMate</title>
+<link rel="preconnect" href="https:
+<link rel="preconnect" href="https:
+<link href="https:
+<link rel="stylesheet" href="../css/main.css?v=2.2">
+<link rel="stylesheet" href="../css/components.css?v=2.2">
+<style> .auth-container { min-height: calc(100vh - 80px); display: flex; align-items: center; justify-content: center; padding: 3rem 1.5rem; background: var(--bg-secondary); } .auth-box { background: var(--bg-primary); border: 1px solid var(--border-light); border-radius: var(--radius-xl); padding: 2.5rem 2rem; width: 100%; max-width: 440px; box-shadow: var(--shadow-subtle); } .auth-tabs { display: flex; border-bottom: 1px solid var(--border-light); margin-bottom: 1.75rem; } .auth-tab-btn { flex: 1; padding: 0.75rem 1rem; text-align: center; font-family: 'Prompt', sans-serif; font-weight: 600; font-size: 1rem; color: var(--text-muted); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all var(--transition-fast); } .auth-tab-btn.active { color: var(--pink-deep); border-bottom-color: var(--pink-deep); } </style>
 </head>
-<body> <!-- Navbar --> <header class="navbar"> <div class="navbar__container"> <a href="../index.html" class="navbar__brand"> <span class="navbar__logo"></span> <span class="navbar__title">BNC GraphMate</span> </a> <a href="../index.html" class="btn btn-outline btn-sm"> กลับหน้าแรก</a> </div> </header> <div class="auth-container"> <div class="auth-box"> <div class="auth-tabs"> <button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">เข้าสู่ระบบ</button> <button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">สมัครสมาชิก</button> </div> <!-- Login Form --> <form id="loginForm"> <div class="form-group"> <label class="form-label">ชื่อที่ใช้ลงทะเบียน หรือ Member Code</label> <input type="text" id="loginUsername" class="form-input" placeholder="เช่น น้องพลอย หรือ BNC-8899" required> </div> <div class="form-group"> <label class="form-label">เบอร์โทรศัพท์</label> <input type="tel" id="loginPhone" class="form-input" placeholder="08X-XXX-XXXX"> </div> <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1rem;"> เข้าสู่ระบบ </button> </form> <!-- Register Form --> <form id="registerForm" style="display: none;"> <div class="form-group"> <label class="form-label">ชื่อ-นามสกุล / ชื่อเล่น</label> <input type="text" id="regName" class="form-input" placeholder="เช่น น้องแพรว ดีไซน์" required> </div> <div class="form-group"> <label class="form-label">เบอร์โทรศัพท์ (ใช้สะสมแต้ม)</label> <input type="tel" id="regPhone" class="form-input" placeholder="089-999-8888" required> </div> <div class="form-group"> <label class="form-label">LINE ID</label> <input type="text" id="regLine" class="form-input" placeholder="เช่น praew_cute"> </div> <div class="form-group"> <label class="form-label">Email (ถ้ามี)</label> <input type="email" id="regEmail" class="form-input" placeholder="your@email.com"> </div> <button type="submit" class="btn btn-primary btn-full" style="margin-top: 1rem;"> ลงทะเบียนรับสิทธิพิเศษ & 50 แต้มฟรี </button> </form> </div> </div> <script src="../js/store.js"></script> <script> function switchAuthTab(tab) { if (tab === 'login') { document.getElementById('loginForm').style.display = 'block'; document.getElementById('registerForm').style.display = 'none'; document.getElementById('tabLoginBtn').className = 'auth-tab-btn active'; document.getElementById('tabRegisterBtn').className = 'auth-tab-btn'; } else { document.getElementById('loginForm').style.display = 'none'; document.getElementById('registerForm').style.display = 'block'; document.getElementById('tabLoginBtn').className = 'auth-tab-btn'; document.getElementById('tabRegisterBtn').className = 'auth-tab-btn active'; } } document.getElementById('loginForm').addEventListener('submit', (e) => { e.preventDefault(); const q = document.getElementById('loginUsername').value.trim(); const cust = Store.findCustomerByNameOrCode(q); if (cust) { alert('ยินดีต้อนรับกลับค่ะ คุณ' + cust.name + ' (แต้มสะสม: ' + (cust.total_points || 0) + ' คะแนน)'); window.location.href = 'points.html'; } else { alert('ไม่พบข้อมูลลูกค้า กรุณาตรวจสอบหรือกดแท็บ "สมัครสมาชิก" นะคะ'); } }); document.getElementById('registerForm').addEventListener('submit', (e) => { e.preventDefault(); const name = document.getElementById('regName').value.trim(); const phone = document.getElementById('regPhone').value.trim(); const line = document.getElementById('regLine').value.trim(); const email = document.getElementById('regEmail').value.trim(); const newCust = Store.saveCustomer({ name: name, phone: phone, line_id: line, email: email, total_points: 50 // แต้มฟรีเริ่มต้น }); // แจก Transaction แต้มฟรี const data = Store.get(); data.point_transactions.unshift({ id: Store.uid('pt'), customer_id: newCust.id, amount: 50, type: 'BONUS', description: 'โบนัสแต้มต้อนรับสมาชิกใหม่ ', created_at: new Date().toISOString() }); Store.set(data); alert(`ลงทะเบียนสำเร็จค่ะ! คุณ ${newCust.name}\nรหัสสมาชิกของคุณคือ: ${newCust.member_code}\nรับฟรี 50 คะแนนสะสมเรียบร้อยแล้วค่ะ `); window.location.href = 'points.html'; }); </script>
+<body>
+<!-- Navbar -->
+<header class="navbar">
+<div class="navbar__container">
+<a href="../index.html" class="navbar__brand">
+<span class="navbar__logo"></span>
+<span class="navbar__title">BNC GraphMate</span>
+</a>
+<a href="../index.html" class="btn btn-outline btn-sm"> กลับหน้าแรก</a>
+</div>
+</header>
+<div class="auth-container">
+<div class="auth-box">
+<div class="auth-tabs">
+<button class="auth-tab-btn active" id="tabLoginBtn" onclick="switchAuthTab('login')">เข้าสู่ระบบ</button>
+<button class="auth-tab-btn" id="tabRegisterBtn" onclick="switchAuthTab('register')">สมัครสมาชิก</button>
+</div>
+<!-- Login Form -->
+<form id="loginForm">
+<div class="form-group">
+<label class="form-label">ชื่อที่ใช้ลงทะเบียน หรือ Member Code</label>
+<input type="text" id="loginUsername" class="form-input" placeholder="เช่น น้องพลอย หรือ BNC-8899" required>
+</div>
+<div class="form-group">
+<label class="form-label">เบอร์โทรศัพท์</label>
+<input type="tel" id="loginPhone" class="form-input" placeholder="08X-XXX-XXXX">
+</div>
+<button type="submit" class="btn btn-primary btn-full" style="margin-top: 1rem;"> เข้าสู่ระบบ </button>
+</form>
+<!-- Register Form -->
+<form id="registerForm" style="display: none;">
+<div class="form-group">
+<label class="form-label">ชื่อ-นามสกุล / ชื่อเล่น</label>
+<input type="text" id="regName" class="form-input" placeholder="เช่น น้องแพรว ดีไซน์" required>
+</div>
+<div class="form-group">
+<label class="form-label">เบอร์โทรศัพท์ (ใช้สะสมแต้ม)</label>
+<input type="tel" id="regPhone" class="form-input" placeholder="089-999-8888" required>
+</div>
+<div class="form-group">
+<label class="form-label">LINE ID</label>
+<input type="text" id="regLine" class="form-input" placeholder="เช่น praew_cute">
+</div>
+<div class="form-group">
+<label class="form-label">Email (ถ้ามี)</label>
+<input type="email" id="regEmail" class="form-input" placeholder="your@email.com">
+</div>
+<button type="submit" class="btn btn-primary btn-full" style="margin-top: 1rem;"> ลงทะเบียนรับสิทธิพิเศษ & 50 แต้มฟรี </button>
+</form>
+</div>
+</div>
+<script src="../js/store.js"></script>
+<script> function switchAuthTab(tab) { if (tab === 'login') { document.getElementById('loginForm').style.display = 'block'; document.getElementById('registerForm').style.display = 'none'; document.getElementById('tabLoginBtn').className = 'auth-tab-btn active'; document.getElementById('tabRegisterBtn').className = 'auth-tab-btn'; } else { document.getElementById('loginForm').style.display = 'none'; document.getElementById('registerForm').style.display = 'block'; document.getElementById('tabLoginBtn').className = 'auth-tab-btn'; document.getElementById('tabRegisterBtn').className = 'auth-tab-btn active'; } } document.getElementById('loginForm').addEventListener('submit', (e) => { e.preventDefault(); const q = document.getElementById('loginUsername').value.trim(); const cust = Store.findCustomerByNameOrCode(q); if (cust) { alert('ยินดีต้อนรับกลับค่ะ คุณ' + cust.name + ' (แต้มสะสม: ' + (cust.total_points || 0) + ' คะแนน)'); window.location.href = 'points.html'; } else { alert('ไม่พบข้อมูลลูกค้า กรุณาตรวจสอบหรือกดแท็บ "สมัครสมาชิก" นะคะ'); } }); document.getElementById('registerForm').addEventListener('submit', (e) => { e.preventDefault(); const name = document.getElementById('regName').value.trim(); const phone = document.getElementById('regPhone').value.trim(); const line = document.getElementById('regLine').value.trim(); const email = document.getElementById('regEmail').value.trim(); const newCust = Store.saveCustomer({ name: name, phone: phone, line_id: line, email: email, total_points: 50 
 </body>
 </html>
