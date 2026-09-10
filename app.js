@@ -1575,14 +1575,14 @@ window.Store = Store;
       </div>
 
       <!-- Profile & Services Header -->
-      <section style="background-color: var(--surface-alt); padding: 1.5rem 0 2.5rem; border-bottom: 1px solid var(--border-light);">
+      <section style="background-color: var(--surface-alt); padding: 0.5rem 0 2.5rem; border-bottom: 1px solid var(--border-light);">
         <div class="container">
           
           <!-- Profile Info Row -->
           <div class="ig-profile-section" style="max-width: 680px; margin: 0 auto;">
             <div class="ig-profile-header">
               
-              <div class="ig-avatar-wrapper" style="border: 3px solid var(--primary-light);">
+              <div class="ig-avatar-wrapper fb-overlap-avatar">
                 <img src="${escapeHTML(s.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="ig-avatar-img" alt="Studio Avatar" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
               </div>
 
@@ -2250,21 +2250,14 @@ window.Store = Store;
 
           <!-- Cute GoodNotes Ruled Notebook Paper - Heart Stamp Card -->
           <div class="stamp-card-notebook">
-            <!-- Binder Header -->
-            <div class="notebook-binder-header">
+            <!-- Binder Header (Clean binder holes only) -->
+            <div class="notebook-binder-header" style="justify-content: center;">
               <div class="notebook-binder-holes">
                 <span class="notebook-hole"></span>
                 <span class="notebook-hole"></span>
                 <span class="notebook-hole"></span>
                 <span class="notebook-hole"></span>
                 <span class="notebook-hole"></span>
-              </div>
-              <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 6px;">
-                <span>สมุดสะสมแต้ม BNC GraphMate Loyalty Card</span>
-              </div>
-              <!-- Stamp Badge 0/10 in Pure White Background -->
-              <div class="queue-badge-chip stamp-badge-white">
-                <span>${currentStamps} / 10 ดวง</span>
               </div>
             </div>
 
@@ -2299,8 +2292,12 @@ window.Store = Store;
                     return `
                       <div class="stamp-slot is-stamped" title="ดวงที่ ${num}: ปั๊มแล้ว">
                         <div class="stamp-ink-ring"></div>
-                        <svg class="stamp-heart-icon" width="28" height="28" viewBox="0 0 24 24" fill="#E11D48"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        <span class="stamp-badge-text">BNC</span>
+                        ${stampCfg.stampIconUrl ? `
+                          <img src="${escapeHTML(stampCfg.stampIconUrl)}" alt="Stamp" style="width: 36px; height: 36px; object-fit: contain; z-index: 2; position: relative;" onerror="this.onerror=null;this.style.display='none';">
+                        ` : `
+                          <svg class="stamp-heart-icon" width="28" height="28" viewBox="0 0 24 24" fill="#FF5BA8"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                          <span class="stamp-badge-text" style="color: #FF2D8A;">BNC</span>
+                        `}
                       </div>
                     `;
                   } else {
@@ -2317,34 +2314,19 @@ window.Store = Store;
                 }).join('')}
               </div>
 
-              <!-- Progress & Reward Notice (Mascot on Tip of Fill) -->
-              <div class="stamp-progress-wrapper" style="box-sizing: border-box; width: 100%;">
-                <div style="flex: 1; min-width: 240px;">
-                  <div style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 700; color: var(--text);">
-                    <span>ความคืบหน้าการสะสม</span>
-                    <span style="color: var(--primary-deep); font-weight: 800;">${currentStamps} / 10 ดวง</span>
-                  </div>
-                  <div class="stamp-progress-track" style="margin-top: 8px;">
-                    <div class="stamp-progress-fill" style="width: ${Math.min(100, (currentStamps / 10) * 100)}%;">
-                      <div class="stamp-progress-mascot-tip">
-                        <img src="${escapeHTML(stampCfg.mascotIcon || s.pointsBarIcon || s.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100')}" class="stamp-progress-mascot-img" alt="Mascot" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100';">
-                      </div>
+              <!-- Card Bottom Rules with Cute Heart Icons -->
+              <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1.5px dashed #F8DBE7; font-size: 0.86rem; color: var(--text); line-height: 1.9;">
+                ${(stampCfg.rulesText || `ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊มหัวใจ 1 ดวงทันที
+สะสมครบ 10 ดวง เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี
+ติดต่อแลกรางวัลได้ทาง LINE Official ของร้าน`)
+                  .split('\n')
+                  .filter(l => l.trim())
+                  .map(line => `
+                    <div style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="#FF5BA8" style="flex-shrink: 0; margin-top: 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                      <span>${escapeHTML(line)}</span>
                     </div>
-                  </div>
-                </div>
-
-                <div style="font-size: 0.88rem; font-weight: 700; color: var(--primary-deep); margin-top: 8px;">
-                  ${isCompleted ? `
-                    <span>${escapeHTML(stampCfg.rewardText || 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ')}</span>
-                  ` : `
-                    <span>ขาดอีก <span style="font-size: 1.15rem; color: #e11d48;">${10 - currentStamps}</span> ดวง จะได้รับของขวัญฟรี</span>
-                  `}
-                </div>
-              </div>
-
-              <!-- Card Bottom Rules -->
-              <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1.5px dashed #F8DBE7; font-size: 0.82rem; color: var(--text-muted); line-height: 1.8; white-space: pre-line;">
-                ${escapeHTML(stampCfg.rulesText || 'ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊มหัวใจ 1 ดวงทันที\nสะสมครบ 10 ดวง เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี\nติดต่อแลกรางวัลได้ทาง LINE Official ของร้าน')}
+                  `).join('')}
               </div>
 
             </div>
@@ -2614,7 +2596,7 @@ window.Store = Store;
  <button type="button" class="admin-tab-btn ${state.adminTab === 'groups' ? 'active' : ''}" onclick="switchAdminTab('groups')">จัดการกลุ่ม VIP</button>
           <button type="button" class="admin-tab-btn ${state.adminTab === 'portfolio' ? 'active' : ''}" onclick="switchAdminTab('portfolio')">จัดการผลงาน</button>
           <button type="button" class="admin-tab-btn ${state.adminTab === 'stamps' ? 'active' : ''}" onclick="switchAdminTab('stamps')">บัตรสะสมแต้ม</button>
-          <button type="button" class="admin-tab-btn ${state.adminTab === 'stamps' ? 'active' : ''}" onclick="switchAdminTab('stamps')">บัตรสะสมแต้ม </button>
+          
  <button type="button" class="admin-tab-btn ${state.adminTab === 'settings' ? 'active' : ''}" onclick="switchAdminTab('settings')">ตั้งค่าร้าน (ทุกจุด)</button>
  </div>
 
@@ -3151,7 +3133,18 @@ window.Store = Store;
               <input type="text" id="cfg_stampRewardText" class="form-input" value="${escapeHTML(Store.getStampSettings().rewardText || 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ')}">
             </div>
             <div class="form-group">
-              <label class="form-label">ลิงก์รูปมาสคอตตรงปลายหลอดโปรเกรส</label>
+              <label class="form-label">รูปตราปั๊ม PNG มาสคอต (หากใส่จะใช้รูปนี้แทนรูปหัวใจ)</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="cfg_stampIconUrl" class="form-input" placeholder="https://.../mascot.png หรือเลือกไฟล์ขวามือ" value="${escapeHTML(Store.getStampSettings().stampIconUrl || '')}" style="flex: 1;">
+                <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                  เลือกรูป PNG
+                  <input type="file" accept="image/png,image/webp,image/jpeg" style="display: none;" onchange="handleStampIconUpload(event)">
+                </label>
+              </div>
+              <small style="color: var(--text-muted); font-size: 11px;">*แนะนำไฟล์ .PNG พื้นหลังโปร่งใสสำหรับปั๊มลงบนการ์ด</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ลิงก์รูปมาสคอตหน้าร้าน</label>
               <input type="text" id="cfg_stampMascotIcon" class="form-input" value="${escapeHTML(Store.getStampSettings().mascotIcon || s.profileImage || '')}">
             </div>
           </div>
@@ -4281,12 +4274,21 @@ window.Store = Store;
           </div>
           <div class="form-group" style="margin-bottom: 0.85rem;">
             <label class="form-label" style="font-weight: 700;">ลิงก์รูปป้ายตัวอย่างฟอนต์ (Image URL) <span style="color:var(--danger)">*</span></label>
-            <input type="text" id="adminFontImage" class="form-input" placeholder="https://..." required>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="adminFontImage" class="form-input" placeholder="https://... หรือเลือกไฟล์จากเครื่อง" required style="flex: 1;">
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                เลือกรูป
+                <input type="file" accept="image/*" style="display: none;" onchange="handleFontImageUpload(event)">
+              </label>
+            </div>
           </div>
-          <div class="form-group" style="margin-bottom: 0.85rem; background: #FFF1F5; padding: 10px; border-radius: 12px; border: 1.5px dashed var(--border);">
-            <label class="form-label" style="font-weight: 700; color: var(--primary-deep);">ลิงก์ไฟล์ฟอนต์จริง (.otf / .ttf / .woff)</label>
-            <input type="text" id="adminFontFileUrl" class="form-input" placeholder="https://.../font.ttf (สำหรับแสดงผลตัวพิมพ์จริงในเว็บ)">
-            <small style="color: var(--text-muted); font-size: 11px;">*เมื่อใส่ลิงก์ไฟล์นี้ ระบบจะโหลดฟอนต์จริงให้พิมพ์เทียบในสมุด GoodNotes อัตโนมัติ</small>
+          <div class="form-group" style="margin-bottom: 0.85rem; background: #FFF1F5; padding: 12px; border-radius: 14px; border: 1.5px dashed var(--border);">
+            <label class="form-label" style="font-weight: 700; color: var(--primary-deep);">อัปโหลดไฟล์ฟอนต์จริงจากเครื่อง (.otf / .ttf / .woff)</label>
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
+              <input type="file" id="adminFontFileInput" accept=".otf,.ttf,.woff,.woff2" class="form-input" style="padding: 6px 10px; background: #ffffff;" onchange="handleFontFileUpload(event)">
+            </div>
+            <input type="text" id="adminFontFileUrl" class="form-input" placeholder="หรือวางลิงก์ฟอนต์ https://.../font.ttf">
+            <small id="adminFontFileStatus" style="color: var(--primary-deep); font-weight: 600; font-size: 11px; display: block; margin-top: 4px;">*เลือกไฟล์ฟอนต์จากคอมพิวเตอร์ของคุณ ระบบจะโหลดฟอนต์เข้าสู่หน้าเว็บให้อัตโนมัติ</small>
           </div>
           <div class="form-group" style="margin-bottom: 0.85rem;">
             <label class="form-label" style="font-weight: 700;">ข้อความตัวอย่างเริ่มต้น</label>
@@ -4617,12 +4619,55 @@ window.Store = Store;
     renderCurrentView();
   };
 
+  
+  window.handleFontFileUpload = function(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const status = document.getElementById('adminFontFileStatus');
+    if (status) status.textContent = 'กำลังอ่านไฟล์ ' + file.name + '...';
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const dataUrl = evt.target.result;
+      const input = document.getElementById('adminFontFileUrl');
+      if (input) input.value = dataUrl;
+      if (status) status.textContent = 'เลือกไฟล์สำเร็จ: ' + file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+    };
+    reader.onerror = function() {
+      if (status) status.textContent = 'เกิดข้อผิดพลาดในการอ่านไฟล์ฟอนต์';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.handleFontImageUpload = function(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const input = document.getElementById('adminFontImage');
+      if (input) input.value = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.handleStampIconUpload = function(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      const input = document.getElementById('cfg_stampIconUrl');
+      if (input) input.value = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
   window.openAddFontModal = function () {
     const modal = $('adminFontModal');
     if (!modal) return;
     $('adminFontName').value = '';
     $('adminFontImage').value = 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';
     $('adminFontFileUrl').value = '';
+    if ($('adminFontFileInput')) $('adminFontFileInput').value = '';
+    if ($('adminFontFileStatus')) $('adminFontFileStatus').textContent = '';
     $('adminFontPreviewText').value = 'ร้านป้ายบีเอ็นซี น่ารักสดใส 1234';
     $('adminFontCategory').value = 'ลายมือ';
     $('adminFontPrice').value = '190';
