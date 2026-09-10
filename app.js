@@ -54,14 +54,7 @@ const Store = (function () {
       { id: 'b2', title: 'กลุ่ม VIP รวมไฟล์กราฟิก', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80', link: '#groups' },
       { id: 'b3', title: 'เทมเพลตป้ายสำเร็จรูป', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80', link: '#products' }
     ],
-    
-        stampSettings: {
-          cardTitle: getVal('cfg_stampTitle', 'บัตรสะสมแต้ม BNC GraphMate'),
-          cardSubtitle: getVal('cfg_stampSubtitle', 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี'),
-          rewardText: getVal('cfg_stampRewardText', 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ'),
-          mascotIcon: getVal('cfg_stampMascotIcon', ''),
-          rulesText: getVal('cfg_stampRules', '')
-        },
+
         queueStatus: {
       isAvailable: true,
       queueText: 'ว่างพร้อมรับ 3 คิว',
@@ -1258,6 +1251,10 @@ const Store = (function () {
  saveLocal(data);
  callCloud('SAVE_SETTINGS', { settings: data.settings });
  return data.settings;
+ },
+ getStampSettings: function () {
+ const s = this.getSettings();
+ return (s && s.stampSettings) ? s.stampSettings : {};
  }
  };
 })();
@@ -2210,7 +2207,7 @@ window.Store = Store;
 
   function renderPointsView(container) {
     const s = Store.getSettings();
-    const stampCfg = Store.getStampSettings();
+    const stampCfg = (Store.getStampSettings ? Store.getStampSettings() : (s && s.stampSettings)) || {};
     const customers = Store.getCustomers();
     const query = (state.stampSearchQuery || '').trim();
 
