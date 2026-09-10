@@ -1,13 +1,38 @@
 {
   "version": 2,
   "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/portfolio", "destination": "/pages/portfolio.html" },
+    { "source": "/fonts", "destination": "/pages/fonts.html" },
+    { "source": "/groups", "destination": "/pages/groups.html" },
+    { "source": "/products", "destination": "/pages/products.html" },
+    { "source": "/pricing", "destination": "/pages/pricing.html" },
+    { "source": "/points", "destination": "/pages/points.html" },
+    { "source": "/reviews", "destination": "/pages/reviews.html" },
+    { "source": "/orders", "destination": "/pages/orders.html" },
+    { "source": "/contact", "destination": "/pages/contact.html" },
+    { "source": "/auth", "destination": "/pages/auth.html" },
+    { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/admin/", "destination": "/admin/index.html" },
+    { "source": "/admin/portfolio", "destination": "/admin/portfolio.html" },
+    { "source": "/admin/orders", "destination": "/admin/orders.html" },
+    { "source": "/admin/slips", "destination": "/admin/slips.html" },
+    { "source": "/admin/groups", "destination": "/admin/groups.html" },
+    { "source": "/admin/products", "destination": "/admin/products.html" },
+    { "source": "/admin/fonts", "destination": "/admin/fonts.html" },
+    { "source": "/admin/points", "destination": "/admin/points.html" },
+    { "source": "/admin/reviews", "destination": "/admin/reviews.html" },
+    { "source": "/admin/settings", "destination": "/admin/settings.html" }
+  ],
   "headers": [
     {
       "source": "/css/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     },
