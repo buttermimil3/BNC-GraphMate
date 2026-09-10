@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สถานะ & ประวัติคำสั่งซื้อ 📦 | BNC GraphMate</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .orders-hero {
+      background: var(--pink-50);
+      border-bottom: 2px solid var(--pink-100);
+      padding: 2.5rem 1rem;
+      text-align: center;
+    }
+    .order-status-card {
+      background: var(--white);
+      border-radius: 1.25rem;
+      border: 2px solid var(--pink-100);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .status-badge-lg {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .badge-pending { background: #FEF3C7; color: #B45309; }
+    .badge-processing { background: #E0E7FF; color: #4338CA; }
+    .badge-completed { background: #DCFCE7; color: #15803D; }
+    .badge-failed { background: #FEE2E2; color: #B91C1C; }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="navbar__container">
+      <a href="../index.html" class="navbar__brand">
+        <span class="navbar__logo">🎨</span>
+        <span class="navbar__title">BNC GraphMate</span>
+      </a>
+      <button class="navbar__hamburger" id="navToggle" aria-label="เมนู">
+        <span class="navbar__hamburger-bar"></span>
+        <span class="navbar__hamburger-bar"></span>
+        <span class="navbar__hamburger-bar"></span>
+      </button>
+      <nav class="navbar__nav" id="navMenu">
+        <a href="../index.html" class="navbar__link">หน้าแรก</a>
+        <a href="portfolio.html" class="navbar__link">ผลงาน</a>
+        <a href="pricing.html" class="navbar__link">ราคา/บริการ</a>
+        <a href="groups.html" class="navbar__link">เข้ากลุ่ม LINE 👥</a>
+        <a href="products.html" class="navbar__link">สินค้าสำเร็จ 🛍️</a>
+        <a href="fonts.html" class="navbar__link">ฟอนต์ 🔤</a>
+        <a href="points.html" class="navbar__link">สะสมแต้ม ⭐</a>
+        <a href="reviews.html" class="navbar__link">รีวิว ❤️</a>
+        <a href="orders.html" class="navbar__link active">สถานะออเดอร์ 📦</a>
+        <a href="contact.html" class="navbar__link">ติดต่อ/LINE 💬</a>
+        <a href="../admin/orders.html" class="btn btn-outline btn-sm">⚙️ จัดการออเดอร์</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="orders-hero">
+      <div class="container">
+        <span class="badge badge--pink" style="margin-bottom: 0.5rem;">Order Tracking</span>
+        <h1 style="font-family: 'Mitr', sans-serif; font-size: 2.2rem; color: var(--gray-900); margin-bottom: 0.5rem;">
+          ตรวจสอบสถานะคำสั่งซื้อ 📦
+        </h1>
+        <p style="color: var(--gray-600); max-width: 550px; margin: 0 auto;">
+          กรอกหมายเลขคำสั่งซื้อ หรือ LINE ID เพื่อดูสถานะการดึงเข้ากลุ่มและการจัดส่งไฟล์
+        </p>
+
+        <!-- Search Bar -->
+        <div style="max-width: 480px; margin: 1.5rem auto 0; display: flex; gap: 0.5rem;">
+          <input type="text" id="orderSearchInput" class="form-input" placeholder="พิมพ์ ORD-XXXXXX หรือ LINE ID" style="background: var(--white);">
+          <button type="button" class="btn btn-primary" onclick="searchOrders()" style="white-space: nowrap;">ค้นหา ➔</button>
+        </div>
+      </div>
+    </section>
+
+    <section style="padding: 2.5rem 1rem;">
+      <div class="container" style="max-width: 750px;">
+        <div id="ordersListContainer">
+          <!-- Render dynamically -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/store.js"></script>
+  <script>
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.getElementById('navMenu');
+    if (navToggle && navMenu) navToggle.addEventListener('click', () => navMenu.classList.toggle('is-open'));
+
+    const settings = Store.getSettings();
+    const lineShopUrl = settings.lineUrl || 'https://line.me/ti/p/~bncgraphmate';
+
+    function renderOrders(filterQuery) {
+      const allOrders = Store.getOrders();
+      const groupAccess = Store.getGroupAccessList();
+      const driveAccess = Store.getDriveAccessList();
+      const container = document.getElementById('ordersListContainer');
+
+      let list = allOrders;
+      if (filterQuery) {
+        const q = filterQuery.trim().toLowerCase();
+        list = allOrders.filter(o =>
+          (o.order_number && o.order_number.toLowerCase().includes(q)) ||
+          (o.line_id && o.line_id.toLowerCase().includes(q)) ||
+          (o.customer_name && o.customer_name.toLowerCase().includes(q))
+        );
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-state__emoji">📦</span>
+            <h3 class="empty-state__title">ไม่พบรายการคำสั่งซื้อ</h3>
+            <p class="empty-state__text">กรุณาตรวจสอบหมายเลข Order หรือทำการสั่งซื้อสินค้าในหน้าร้านนะคะ 🌸</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(ord => {
+        // ตรวจสอบสถานะการจัดส่ง
+        let statusBadge = '';
+        let statusMessage = '';
+        let showLineHelp = false;
+
+        if (ord.order_type === 'GROUP') {
+          const ga = groupAccess.find(g => g.order_id === ord.id);
+          const gaStatus = ga ? ga.status : 'PENDING';
+
+          if (gaStatus === 'COMPLETED') {
+            statusBadge = '<span class="status-badge-lg badge-completed">✅ ดึงเข้ากลุ่มเรียบร้อย เข้าเช็คได้เลยค่ะ</span>';
+            statusMessage = '<p style="color: var(--success); font-weight: 500; margin-top: 0.5rem;">แอดมินได้เชิญคุณเข้าสู่ LINE Group เรียบร้อยแล้ว สามารถกดตอบรับในแอป LINE ได้ทันทีค่ะ 🌸</p>';
+          } else if (gaStatus === 'FAILED') {
+            statusBadge = '<span class="status-badge-lg badge-failed">❌ ไม่สามารถดึงเข้ากลุ่มได้</span>';
+            statusMessage = '<p style="color: var(--danger); font-weight: 500; margin-top: 0.5rem;">ไม่สามารถค้นหา LINE ID ของคุณได้ หรือยังไม่ได้เปิดรับเพื่อน กรุณาทักแชทหาแอดมินนะคะ</p>';
+            showLineHelp = true;
+          } else {
+            statusBadge = '<span class="status-badge-lg badge-pending">🕐 รอดึงเข้ากลุ่ม</span>';
+            statusMessage = '<p style="color: #B45309; font-weight: 500; margin-top: 0.5rem;">แอดมินกำลังตรวจสอบสลิปและเตรียมดึง LINE ID: <strong>' + (ord.line_id || '-') + '</strong> เข้ากลุ่มนะคะ</p>';
+          }
+        } else {
+          // PRODUCT หรือ FONT
+          const da = driveAccess.find(d => d.order_id === ord.id);
+          const daStatus = da ? da.status : 'WAITING_ADMIN';
+          const isDrive = (da && da.delivery_type === 'GOOGLE_DRIVE');
+
+          if (daStatus === 'COMPLETED' || daStatus === 'GRANTED') {
+            statusBadge = '<span class="status-badge-lg badge-completed">✅ ดึงเมลล์เรียบร้อย เข้าเช็กใน Google Drive ได้เลยค่ะ</span>';
+            statusMessage = '<p style="color: var(--success); font-weight: 500; margin-top: 0.5rem;">เพิ่มสิทธิ์เข้า Gmail <strong>' + (ord.gmail || '-') + '</strong> สำเร็จ สามารถเปิด Google Drive เข้าดูได้ทันทีค่ะ 🌸</p>';
+          } else if (daStatus === 'FAILED') {
+            statusBadge = '<span class="status-badge-lg badge-failed">❌ เกิดปัญหาในการส่งสิทธิ์</span>';
+            statusMessage = '<p style="color: var(--danger); font-weight: 500; margin-top: 0.5rem;">ไม่สามารถเพิ่มสิทธิ์ได้ กรุณาติดต่อแอดมินเพื่อขอรับไฟล์ค่ะ</p>';
+            showLineHelp = true;
+          } else {
+            if (isDrive) {
+              statusBadge = '<span class="status-badge-lg badge-processing">🔄 กำลังดำเนินการส่งสิทธิ์</span>';
+              statusMessage = '<p style="color: var(--info); font-weight: 500; margin-top: 0.5rem;">กำลังประมวลผลเพิ่ม Gmail: <strong>' + (ord.gmail || '-') + '</strong> เข้า Google Drive</p>';
+            } else {
+              statusBadge = '<span class="status-badge-lg badge-pending">🕐 รอดึงเมลล์</span>';
+              statusMessage = '<p style="color: #B45309; font-weight: 500; margin-top: 0.5rem;">แอดมินกำลังนำ Gmail: <strong>' + (ord.gmail || '-') + '</strong> ไปจัดการเพิ่มสิทธิ์ภายนอกระบบให้นะคะ</p>';
+            }
+          }
+        }
+
+        return `
+          <div class="order-status-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <span class="badge badge--pink" style="font-size: 0.8rem;">#${ord.order_number}</span>
+                <span style="font-size: 0.85rem; color: var(--gray-400); margin-left: 0.5rem;">${new Date(ord.created_at).toLocaleString('th-TH')}</span>
+                <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.25rem; color: var(--gray-900); margin-top: 0.25rem;">
+                  ${ord.item_name}
+                </h3>
+              </div>
+              <span class="price-tag">฿${ord.amount}</span>
+            </div>
+
+            <div style="background: var(--pink-50); border-radius: 1rem; padding: 1rem; margin-bottom: 1rem;">
+              <div>${statusBadge}</div>
+              <div>${statusMessage}</div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--gray-600); flex-wrap: wrap; gap: 0.5rem;">
+              <span>ชื่อผู้สั่ง: <strong>${ord.customer_name}</strong></span>
+              ${ord.line_id ? `<span>LINE: <strong>${ord.line_id}</strong></span>` : ''}
+              ${ord.gmail ? `<span>Gmail: <strong>${ord.gmail}</strong></span>` : ''}
+            </div>
+
+            ${showLineHelp ? `
+              <div style="margin-top: 1rem; text-align: center;">
+                <a href="${lineShopUrl}" target="_blank" class="btn btn-danger btn-full">
+                  💬 ทัก LINE ร้าน เพื่อติดต่อแอดมินทันที
+                </a>
+              </div>
+            ` : `
+              <div style="margin-top: 1rem; text-align: right;">
+                <a href="${lineShopUrl}" target="_blank" class="btn btn-outline btn-sm">
+                  💬 สอบถามเกี่ยวกับออเดอร์นี้
+                </a>
+              </div>
+            `}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function searchOrders() {
+      const q = document.getElementById('orderSearchInput').value;
+      renderOrders(q);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderOrders();
+    });
+  </script>
+</body>
+</html>

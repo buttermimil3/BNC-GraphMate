@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการคำสั่งซื้อ 📦 | BNC Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+        <span>🎨</span>
+        <span>BNC Admin</span>
+      </div>
+      <nav class="sidebar-nav" style="padding: 1rem 0;">
+        <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
+        <a href="orders.html" class="sidebar-link active">📦 คำสั่งซื้อ</a>
+        <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
+        <a href="groups.html" class="sidebar-link">👥 จัดการกลุ่ม LINE</a>
+        <a href="products.html" class="sidebar-link">🛍️ จัดการสินค้า</a>
+        <a href="fonts.html" class="sidebar-link">🔤 จัดการฟอนต์</a>
+        <a href="points.html" class="sidebar-link">⭐ ระบบคะแนน</a>
+        <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
+        <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
+      </nav>
+      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem;">
+        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+          รายการคำสั่งซื้อทั้งหมด (Orders) 📦
+        </h1>
+      </header>
+
+      <div style="padding: 1.5rem;">
+        <!-- Search & Filter -->
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+          <input type="text" id="orderSearchBox" class="form-input" placeholder="ค้นหาเลข Order, ชื่อลูกค้า, LINE ID..." style="max-width: 320px;" oninput="renderOrdersTable()">
+          <select id="orderTypeFilter" class="form-input" style="max-width: 160px;" onchange="renderOrdersTable()">
+            <option value="ALL">ทุกประเภท</option>
+            <option value="GROUP">LINE Group</option>
+            <option value="FONT">ฟอนต์</option>
+            <option value="PRODUCT">สินค้าดิจิทัล</option>
+          </select>
+          <select id="orderStatusFilter" class="form-input" style="max-width: 160px;" onchange="renderOrdersTable()">
+            <option value="ALL">ทุกสถานะ</option>
+            <option value="PAID">PAID (ชำระแล้ว)</option>
+            <option value="VERIFYING">VERIFYING (รอตรวจสลิป)</option>
+            <option value="REJECTED">REJECTED (ปฏิเสธ)</option>
+          </select>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="card card--flat" style="overflow-x: auto; padding: 0.5rem;">
+          <table class="table" style="width: 100%; font-size: 0.9rem;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--pink-100); text-align: left; background: var(--pink-50);">
+                <th style="padding: 0.75rem;">เลขที่ Order</th>
+                <th style="padding: 0.75rem;">ลูกค้า</th>
+                <th style="padding: 0.75rem;">สินค้า/กลุ่ม</th>
+                <th style="padding: 0.75rem;">ประเภท</th>
+                <th style="padding: 0.75rem;">ยอดเงิน</th>
+                <th style="padding: 0.75rem;">LINE / Gmail</th>
+                <th style="padding: 0.75rem;">สถานะ</th>
+                <th style="padding: 0.75rem;">การกระทำ</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTbody">
+              <!-- Render dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    function renderOrdersTable() {
+      const orders = Store.getOrders();
+      const q = document.getElementById('orderSearchBox').value.trim().toLowerCase();
+      const type = document.getElementById('orderTypeFilter').value;
+      const status = document.getElementById('orderStatusFilter').value;
+
+      let list = orders;
+      if (q) {
+        list = list.filter(o => 
+          (o.order_number && o.order_number.toLowerCase().includes(q)) ||
+          (o.customer_name && o.customer_name.toLowerCase().includes(q)) ||
+          (o.line_id && o.line_id.toLowerCase().includes(q)) ||
+          (o.gmail && o.gmail.toLowerCase().includes(q))
+        );
+      }
+      if (type !== 'ALL') list = list.filter(o => o.order_type === type);
+      if (status !== 'ALL') list = list.filter(o => o.status === status);
+
+      const tbody = document.getElementById('ordersTbody');
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--gray-400);">ไม่พบรายการคำสั่งซื้อ</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(o => `
+        <tr style="border-bottom: 1px solid var(--gray-100);">
+          <td style="padding: 0.75rem; font-weight: 600; color: var(--pink-600);">#${o.order_number}</td>
+          <td style="padding: 0.75rem;">${o.customer_name}</td>
+          <td style="padding: 0.75rem;"><strong>${o.item_name}</strong></td>
+          <td style="padding: 0.75rem;"><span class="badge badge--pink">${o.order_type}</span></td>
+          <td style="padding: 0.75rem; font-weight: 600;">฿${o.amount}</td>
+          <td style="padding: 0.75rem; font-size: 0.85rem;">
+            ${o.line_id ? `LINE: <code>${o.line_id}</code><br>` : ''}
+            ${o.gmail ? `Gmail: <code>${o.gmail}</code>` : ''}
+          </td>
+          <td style="padding: 0.75rem;">
+            <span class="badge ${o.status === 'PAID' ? 'badge--success' : o.status === 'VERIFYING' ? 'badge--warning' : 'badge--danger'}">
+              ${o.status}
+            </span>
+          </td>
+          <td style="padding: 0.75rem;">
+            <a href="slips.html" class="btn btn-outline btn-sm">ดูสลิป ➔</a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', renderOrdersTable);
+  </script>
+</body>
+</html>

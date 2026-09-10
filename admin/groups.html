@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการกลุ่ม LINE 👥 | BNC Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .modal-overlay.is-active { display: flex; }
+    .modal-box {
+      background: var(--white);
+      border-radius: 1.5rem;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.75rem;
+      position: relative;
+    }
+  </style>
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+        <span>🎨</span>
+        <span>BNC Admin</span>
+      </div>
+      <nav class="sidebar-nav" style="padding: 1rem 0;">
+        <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
+        <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
+        <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
+        <a href="groups.html" class="sidebar-link active">👥 จัดการกลุ่ม LINE</a>
+        <a href="products.html" class="sidebar-link">🛍️ จัดการสินค้า</a>
+        <a href="fonts.html" class="sidebar-link">🔤 จัดการฟอนต์</a>
+        <a href="points.html" class="sidebar-link">⭐ ระบบคะแนน</a>
+        <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
+        <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
+      </nav>
+      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+          จัดการกลุ่ม LINE & ดึงลูกค้าเข้ากลุ่ม 👥
+        </h1>
+        <button class="btn btn-primary btn-sm" onclick="openAddGroupModal()">➕ เพิ่มกลุ่มใหม่</button>
+      </header>
+
+      <div style="padding: 1.5rem;">
+        <!-- Tabs -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <button class="btn btn-primary btn-sm" id="tabPendingBtn" onclick="switchTab('pending')">🕐 รอดึงเข้ากลุ่ม</button>
+          <button class="btn btn-outline btn-sm" id="tabGroupsBtn" onclick="switchTab('groups')">📑 รายการกลุ่มทั้งหมด</button>
+        </div>
+
+        <!-- Section 1: Pending Queue -->
+        <div id="pendingTabContent">
+          <div id="pendingQueueList">
+            <!-- Render dynamically -->
+          </div>
+        </div>
+
+        <!-- Section 2: Groups List -->
+        <div id="groupsTabContent" style="display: none;">
+          <div id="adminGroupsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Render dynamically -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Group Modal -->
+  <div class="modal-overlay" id="groupModal">
+    <div class="modal-box">
+      <button onclick="closeGroupModal()" style="position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
+      <h3 style="font-family: 'Mitr', sans-serif; margin-bottom: 1.25rem;" id="modalTitle">เพิ่มกลุ่ม LINE ใหม่</h3>
+
+      <form id="groupForm">
+        <input type="hidden" id="grpId">
+        <div class="form-group">
+          <label class="form-label">ชื่อกลุ่ม</label>
+          <input type="text" id="grpName" class="form-input" placeholder="เช่น กลุ่ม VIP ป้ายกราฟิก 2026" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ราคา (บาท)</label>
+          <input type="number" id="grpPrice" class="form-input" placeholder="390" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">รายละเอียดกลุ่ม</label>
+          <textarea id="grpDesc" class="form-textarea" rows="2" placeholder="อธิบายจุดเด่นของกลุ่มนี้"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">สิ่งที่จะได้รับ (บรรทัดละ 1 ข้อ)</label>
+          <textarea id="grpBenefits" class="form-textarea" rows="3" placeholder="เข้ากลุ่มถาวร&#10;ไฟล์อัปเดตตลอดชีพ&#10;ฟอนต์ฟรี"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ลิงก์ Google Drive ดูตัวอย่าง</label>
+          <input type="url" id="grpPreviewUrl" class="form-input" placeholder="https://drive.google.com/drive/folders/...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">รูปภาพ Cover (URL)</label>
+          <input type="url" id="grpCover" class="form-input" placeholder="https://images.unsplash.com/...">
+        </div>
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" class="btn btn-outline" onclick="closeGroupModal()">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">บันทึกข้อมูล ➔</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    function switchTab(tab) {
+      if (tab === 'pending') {
+        document.getElementById('pendingTabContent').style.display = 'block';
+        document.getElementById('groupsTabContent').style.display = 'none';
+        document.getElementById('tabPendingBtn').className = 'btn btn-primary btn-sm';
+        document.getElementById('tabGroupsBtn').className = 'btn btn-outline btn-sm';
+      } else {
+        document.getElementById('pendingTabContent').style.display = 'none';
+        document.getElementById('groupsTabContent').style.display = 'block';
+        document.getElementById('tabPendingBtn').className = 'btn btn-outline btn-sm';
+        document.getElementById('tabGroupsBtn').className = 'btn btn-primary btn-sm';
+      }
+    }
+
+    function renderPendingQueue() {
+      const list = Store.getGroupAccessList();
+      const container = document.getElementById('pendingQueueList');
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-state__emoji">👥</span>
+            <h3 class="empty-state__title">ไม่มีลูกค้ารอดึงเข้ากลุ่ม</h3>
+            <p class="empty-state__text">ทุกคำสั่งซื้อเข้ากลุ่มได้รับการดำเนินการครบถ้วนแล้วค่ะ 🎉</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(item => `
+        <div class="card card--flat" style="padding: 1.25rem; margin-bottom: 1rem; border-left: 4px solid ${item.status === 'COMPLETED' ? 'var(--success)' : item.status === 'FAILED' ? 'var(--danger)' : 'var(--warning)'};">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <span class="badge ${item.status === 'COMPLETED' ? 'badge--success' : item.status === 'FAILED' ? 'badge--danger' : 'badge--warning'}">
+                ${item.status === 'COMPLETED' ? '✅ ดึงเข้ากลุ่มเรียบร้อย' : item.status === 'FAILED' ? '❌ ไม่สามารถดึงเข้ากลุ่มได้' : '🕐 รอดึงเข้ากลุ่ม'}
+              </span>
+              <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; margin: 0.35rem 0 0.15rem; color: var(--gray-900);">
+                กลุ่ม: ${item.group_name}
+              </h3>
+              <p style="font-size: 0.95rem; color: var(--gray-600);">
+                ลูกค้า: <strong>${item.customer_name}</strong> | LINE ID: <strong style="color: var(--pink-600); font-size: 1.1rem; background: var(--pink-50); padding: 0.1rem 0.5rem; border-radius: 0.25rem;">${item.line_id || '-'}</strong>
+              </p>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              ${item.status === 'PENDING' ? `
+                <button class="btn btn-success btn-sm" onclick="completeGroupAccess('${item.id}')">
+                  ✅ ดึงเข้ากลุ่มเรียบร้อย
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="failGroupAccess('${item.id}')">
+                  ❌ ไม่สำเร็จ
+                </button>
+              ` : `
+                <button class="btn btn-outline btn-sm" onclick="resetGroupAccess('${item.id}')">
+                  🔄 รีเซ็ตสถานะ
+                </button>
+              `}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderGroupsList() {
+      const groups = Store.getAllGroups();
+      const container = document.getElementById('adminGroupsGrid');
+
+      container.innerHTML = groups.map(g => `
+        <div class="card card--flat">
+          <img src="${g.cover_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600'}" style="width: 100%; height: 180px; object-fit: cover;">
+          <div class="card__body">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <h3 style="font-family: 'Mitr', sans-serif; margin: 0;">${g.name}</h3>
+              <span class="price-tag">฿${g.price}</span>
+            </div>
+            <p style="color: var(--gray-600); font-size: 0.85rem; margin: 0.5rem 0 1rem;">${g.description}</p>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn btn-outline btn-sm" onclick="openEditGroupModal('${g.id}')">✏️ แก้ไข</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}')">🗑️ ลบ</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.completeGroupAccess = function(id) {
+      Store.completeGroupAccess(id);
+      renderPendingQueue();
+    };
+
+    window.failGroupAccess = function(id) {
+      const note = prompt('ระบุเหตุผลที่ไม่สามารถดึงได้ (เช่น ไม่พบ LINE ID):', 'ไม่พบ LINE ID หรือไม่ได้เปิดรับเพื่อน');
+      if (note) {
+        Store.failGroupAccess(id, note);
+        renderPendingQueue();
+      }
+    };
+
+    window.resetGroupAccess = function(id) {
+      const data = Store.get();
+      const ga = data.group_access.find(g => g.id === id);
+      if (ga) {
+        ga.status = 'PENDING';
+        Store.set(data);
+        renderPendingQueue();
+      }
+    };
+
+    // Modal
+    const modal = document.getElementById('groupModal');
+    window.openAddGroupModal = function() {
+      document.getElementById('modalTitle').textContent = 'เพิ่มกลุ่ม LINE ใหม่';
+      document.getElementById('groupForm').reset();
+      document.getElementById('grpId').value = '';
+      modal.classList.add('is-active');
+    };
+
+    window.openEditGroupModal = function(id) {
+      const groups = Store.getAllGroups();
+      const g = groups.find(x => x.id === id);
+      if (!g) return;
+      document.getElementById('modalTitle').textContent = 'แก้ไขกลุ่ม LINE';
+      document.getElementById('grpId').value = g.id;
+      document.getElementById('grpName').value = g.name;
+      document.getElementById('grpPrice').value = g.price;
+      document.getElementById('grpDesc').value = g.description || '';
+      document.getElementById('grpBenefits').value = g.benefits || '';
+      document.getElementById('grpPreviewUrl').value = g.preview_drive_url || '';
+      document.getElementById('grpCover').value = g.cover_image || '';
+      modal.classList.add('is-active');
+    };
+
+    window.closeGroupModal = function() {
+      modal.classList.remove('is-active');
+    };
+
+    window.deleteGroup = function(id) {
+      if (confirm('ต้องการลบกลุ่มนี้หรือไม่?')) {
+        Store.deleteGroup(id);
+        renderGroupsList();
+      }
+    };
+
+    document.getElementById('groupForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('grpId').value;
+      const gData = {
+        name: document.getElementById('grpName').value.trim(),
+        price: Number(document.getElementById('grpPrice').value),
+        description: document.getElementById('grpDesc').value.trim(),
+        benefits: document.getElementById('grpBenefits').value.trim(),
+        preview_drive_url: document.getElementById('grpPreviewUrl').value.trim(),
+        cover_image: document.getElementById('grpCover').value.trim(),
+        status: 'ACTIVE'
+      };
+      if (id) gData.id = id;
+      Store.saveGroup(gData);
+      closeGroupModal();
+      renderGroupsList();
+      alert('บันทึกกลุ่มเรียบร้อยแล้วค่ะ 🌸');
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderPendingQueue();
+      renderGroupsList();
+    });
+  </script>
+</body>
+</html>

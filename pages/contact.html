@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ติดต่อเรา & แอดไลน์ร้าน 💬 | BNC GraphMate</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="navbar__container">
+      <a href="../index.html" class="navbar__brand">
+        <span class="navbar__logo">🎨</span>
+        <span class="navbar__title">BNC GraphMate</span>
+      </a>
+      <button class="navbar__hamburger" id="navToggle" aria-label="เมนู">
+        <span class="navbar__hamburger-bar"></span>
+        <span class="navbar__hamburger-bar"></span>
+        <span class="navbar__hamburger-bar"></span>
+      </button>
+      <nav class="navbar__nav" id="navMenu">
+        <a href="../index.html" class="navbar__link">หน้าแรก</a>
+        <a href="portfolio.html" class="navbar__link">ผลงาน</a>
+        <a href="pricing.html" class="navbar__link">ราคา/บริการ</a>
+        <a href="groups.html" class="navbar__link">เข้ากลุ่ม LINE 👥</a>
+        <a href="products.html" class="navbar__link">สินค้าสำเร็จ 🛍️</a>
+        <a href="fonts.html" class="navbar__link">ฟอนต์ 🔤</a>
+        <a href="points.html" class="navbar__link">สะสมแต้ม ⭐</a>
+        <a href="reviews.html" class="navbar__link">รีวิว ❤️</a>
+        <a href="orders.html" class="navbar__link">สถานะออเดอร์ 📦</a>
+        <a href="contact.html" class="navbar__link active">ติดต่อ/LINE 💬</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section style="background: var(--pink-50); border-bottom: 2px solid var(--pink-100); padding: 2.5rem 1rem; text-align: center;">
+      <div class="container">
+        <span class="badge badge--pink" style="margin-bottom: 0.5rem;">Contact Us</span>
+        <h1 style="font-family: 'Mitr', sans-serif; font-size: 2.2rem; color: var(--gray-900); margin-bottom: 0.5rem;">
+          ติดต่อร้านค้า 💬
+        </h1>
+        <p style="color: var(--gray-600); max-width: 550px; margin: 0 auto;">
+          สอบถามข้อมูลเพิ่มเติม แจ้งปัญหาการสั่งซื้อ หรือสั่งทำงานป้ายพิเศษกับแอดมินได้ตลอดเวลาค่ะ
+        </p>
+      </div>
+    </section>
+
+    <section style="padding: 3rem 1rem;">
+      <div class="container" style="max-width: 650px;">
+        <div class="card card--flat" style="border: 2px solid var(--pink-200); padding: 2rem; text-align: center;">
+          <span style="font-size: 3.5rem;">💬</span>
+          <h2 style="font-family: 'Mitr', sans-serif; font-size: 1.6rem; color: var(--gray-900); margin: 0.5rem 0;">
+            LINE Official & ช่องทางด่วน
+          </h2>
+          <p style="color: var(--gray-600); font-size: 0.95rem; margin-bottom: 1.5rem;">
+            ช่องทางที่สะดวกและรวดเร็วที่สุด กดลิงก์ด้านล่างเพื่อแชทกับแอดมินได้ทันทีค่ะ
+          </p>
+
+          <a id="mainLineBtn" href="https://line.me/ti/p/~bncgraphmate" target="_blank" class="btn btn-success btn-lg btn-full" style="font-size: 1.15rem; margin-bottom: 1.5rem;">
+            💬 เปิดแอป LINE คุยกับแอดมิน
+          </a>
+
+          <div style="background: var(--pink-50); border-radius: 1rem; padding: 1.25rem; text-align: left; font-size: 0.95rem;">
+            <p style="margin-bottom: 0.5rem;"><strong>📱 เบอร์โทรศัพท์:</strong> <span id="contactPhoneText">081-234-5678</span></p>
+            <p style="margin-bottom: 0.5rem;"><strong>💬 LINE ID:</strong> <span id="contactLineText">@bncgraphmate</span></p>
+            <p style="margin-bottom: 0.5rem;"><strong>⏰ เวลาให้บริการ:</strong> ทุกวัน 09:00 - 22:00 น.</p>
+            <p style="margin: 0;"><strong>🏢 หน้าร้าน:</strong> บริการออนไลน์ส่งไฟล์และสิทธิ์ทั่วประเทศ</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/store.js"></script>
+  <script>
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.getElementById('navMenu');
+    if (navToggle && navMenu) navToggle.addEventListener('click', () => navMenu.classList.toggle('is-open'));
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const s = Store.getSettings();
+      if (s) {
+        if (s.contactPhone) document.getElementById('contactPhoneText').textContent = s.contactPhone;
+        if (s.contactLine) document.getElementById('contactLineText').textContent = s.contactLine;
+        if (s.lineUrl) document.getElementById('mainLineBtn').href = s.lineUrl;
+      }
+    });
+  </script>
+</body>
+</html>

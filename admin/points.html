@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการคะแนนสะสม ⭐ | BNC Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+        <span>🎨</span>
+        <span>BNC Admin</span>
+      </div>
+      <nav class="sidebar-nav" style="padding: 1rem 0;">
+        <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
+        <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
+        <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
+        <a href="groups.html" class="sidebar-link">👥 จัดการกลุ่ม LINE</a>
+        <a href="products.html" class="sidebar-link">🛍️ จัดการสินค้า</a>
+        <a href="fonts.html" class="sidebar-link">🔤 จัดการฟอนต์</a>
+        <a href="points.html" class="sidebar-link active">⭐ ระบบคะแนน</a>
+        <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
+        <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
+      </nav>
+      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem;">
+        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+          จัดการคะแนนสะสม & ประวัติการรับแต้ม ⭐
+        </h1>
+      </header>
+
+      <div style="padding: 1.5rem;">
+        <!-- Search Customer -->
+        <div class="card card--flat" style="padding: 1.25rem; margin-bottom: 1.5rem; max-width: 600px;">
+          <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.1rem; margin-bottom: 0.75rem;">🔍 ค้นหาลูกค้าเพื่อปรับแต้ม</h3>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="custSearchBox" class="form-input" placeholder="พิมพ์ชื่อ, เบอร์โทร หรือ Member Code">
+            <button class="btn btn-primary" onclick="searchCustomer()">ค้นหา</button>
+          </div>
+        </div>
+
+        <!-- Customer Card & Adjust Points Form -->
+        <div id="customerAdjustBox" style="display: none; margin-bottom: 2rem;">
+          <div class="card card--flat" style="padding: 1.5rem; border: 2px solid var(--pink-200);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+              <div>
+                <h3 id="aCustName" style="font-family: 'Mitr', sans-serif; font-size: 1.35rem; margin: 0; color: var(--gray-900);"></h3>
+                <span id="aCustCode" style="color: var(--pink-600); font-weight: 600;"></span> |
+                <span id="aCustPhone" style="color: var(--gray-600);"></span>
+              </div>
+              <div style="background: var(--pink-50); border: 1px solid var(--pink-200); border-radius: 0.75rem; padding: 0.5rem 1.25rem; text-align: right;">
+                <span style="font-size: 0.8rem; color: var(--gray-600);">คะแนนปัจจุบัน:</span>
+                <div id="aCustPoints" style="font-size: 1.8rem; font-weight: 700; color: var(--pink-500); line-height: 1.1;"></div>
+              </div>
+            </div>
+
+            <!-- Form -->
+            <form id="adjustPointsForm" style="background: var(--gray-50); border-radius: 1rem; padding: 1.25rem; border: 1px solid var(--gray-200);">
+              <h4 style="font-size: 1rem; margin-bottom: 0.75rem;">📝 ปรับคะแนน (สร้าง Transaction ตรวจสอบย้อนหลัง)</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" style="margin-bottom: 1rem;">
+                <div>
+                  <label class="form-label">ประเภท</label>
+                  <select id="adjType" class="form-input">
+                    <option value="EARN">เพิ่มคะแนน (EARN)</option>
+                    <option value="BONUS">โบนัสพิเศษ (BONUS)</option>
+                    <option value="REDEEM">ตัด/ใช้คะแนน (REDEEM)</option>
+                    <option value="ADJUST">ตั้งค่าเป็น (ADJUST)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label">จำนวนคะแนน</label>
+                  <input type="number" id="adjAmount" class="form-input" placeholder="เช่น 50" required min="1">
+                </div>
+                <div>
+                  <label class="form-label">เหตุผล / บันทึกย่อ *จำเป็น</label>
+                  <input type="text" id="adjDesc" class="form-input" placeholder="เช่น ซื้อสินค้าหน้าร้าน, ปลอบใจล่าช้า" required>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <button type="submit" class="btn btn-primary">บันทึก Transaction คะแนน ➔</button>
+              </div>
+            </form>
+
+            <!-- Customer Transactions History -->
+            <h4 style="font-family: 'Mitr', sans-serif; margin-top: 1.5rem; margin-bottom: 0.5rem;">📜 ประวัติคะแนนของลูกค้ารายนี้</h4>
+            <div id="custTxBox"></div>
+          </div>
+        </div>
+
+        <!-- All Transactions Overview -->
+        <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.2rem; margin-bottom: 1rem;">
+          📊 ประวัติการทำรายการคะแนนทั้งหมด (Point Transactions Log)
+        </h3>
+        <div class="card card--flat" style="overflow-x: auto; padding: 0.5rem;">
+          <table class="table" style="width: 100%; font-size: 0.9rem;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--pink-100); text-align: left; background: var(--pink-50);">
+                <th style="padding: 0.75rem;">วันที่</th>
+                <th style="padding: 0.75rem;">ลูกค้า ID</th>
+                <th style="padding: 0.75rem;">ประเภท</th>
+                <th style="padding: 0.75rem;">รายละเอียด</th>
+                <th style="padding: 0.75rem; text-align: right;">จำนวนแต้ม</th>
+              </tr>
+            </thead>
+            <tbody id="allTxTbody">
+              <!-- Render dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    let activeCustomer = null;
+
+    function searchCustomer() {
+      const q = document.getElementById('custSearchBox').value.trim();
+      if (!q) return;
+      const c = Store.findCustomerByNameOrCode(q);
+      if (!c) {
+        alert('ไม่พบลูกค้าที่ค้นหา');
+        document.getElementById('customerAdjustBox').style.display = 'none';
+        return;
+      }
+      activeCustomer = c;
+      renderActiveCustomer();
+    }
+
+    function renderActiveCustomer() {
+      if (!activeCustomer) return;
+      document.getElementById('aCustName').textContent = activeCustomer.name;
+      document.getElementById('aCustCode').textContent = 'Code: ' + (activeCustomer.member_code || '-');
+      document.getElementById('aCustPhone').textContent = 'เบอร์: ' + (activeCustomer.phone || '-');
+      document.getElementById('aCustPoints').textContent = (activeCustomer.total_points || 0).toLocaleString();
+
+      const txList = Store.getPointTransactionsByCustomer(activeCustomer.id);
+      const txBox = document.getElementById('custTxBox');
+      if (txList.length === 0) {
+        txBox.innerHTML = '<p style="color: var(--gray-400); font-size: 0.85rem;">ยังไม่มีประวัติ</p>';
+      } else {
+        txBox.innerHTML = `
+          <table class="table" style="width: 100%; font-size: 0.85rem;">
+            ${txList.map(t => `
+              <tr style="border-bottom: 1px solid var(--gray-100);">
+                <td style="padding: 0.4rem; color: var(--gray-600);">${new Date(t.created_at).toLocaleDateString('th-TH')}</td>
+                <td style="padding: 0.4rem;"><span class="badge badge--pink">${t.type}</span></td>
+                <td style="padding: 0.4rem;">${t.description}</td>
+                <td style="padding: 0.4rem; text-align: right; font-weight: 600; color: ${t.type === 'REDEEM' ? 'var(--danger)' : 'var(--success)'};">
+                  ${t.type === 'REDEEM' ? '-' : '+'}${t.amount}
+                </td>
+              </tr>
+            `).join('')}
+          </table>
+        `;
+      }
+
+      document.getElementById('customerAdjustBox').style.display = 'block';
+    }
+
+    document.getElementById('adjustPointsForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!activeCustomer) return;
+
+      const type = document.getElementById('adjType').value;
+      const amt = Number(document.getElementById('adjAmount').value);
+      const desc = document.getElementById('adjDesc').value.trim();
+
+      const updated = Store.adjustCustomerPoints(activeCustomer.id, amt, type, desc);
+      if (updated) {
+        activeCustomer = updated;
+        renderActiveCustomer();
+        renderAllTransactions();
+        document.getElementById('adjAmount').value = '';
+        document.getElementById('adjDesc').value = '';
+        alert('บันทึกการปรับคะแนนเรียบร้อยแล้วค่ะ 🌸');
+      }
+    });
+
+    function renderAllTransactions() {
+      const data = Store.get();
+      const list = data.point_transactions || [];
+      const tbody = document.getElementById('allTxTbody');
+
+      tbody.innerHTML = list.map(t => `
+        <tr style="border-bottom: 1px solid var(--gray-100);">
+          <td style="padding: 0.75rem; color: var(--gray-600);">${new Date(t.created_at).toLocaleString('th-TH')}</td>
+          <td style="padding: 0.75rem;"><code>${t.customer_id}</code></td>
+          <td style="padding: 0.75rem;"><span class="badge badge--pink">${t.type}</span></td>
+          <td style="padding: 0.75rem;">${t.description}</td>
+          <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: ${t.type === 'REDEEM' ? 'var(--danger)' : 'var(--success)'};">
+            ${t.type === 'REDEEM' ? '-' : '+'}${t.amount}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderAllTransactions();
+      const firstCust = Store.getCustomers()[0];
+      if (firstCust) {
+        activeCustomer = firstCust;
+        renderActiveCustomer();
+      }
+    });
+  </script>
+</body>
+</html>

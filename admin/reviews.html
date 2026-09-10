@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดการรีวิวลูกค้า ❤️ | BNC Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+        <span>🎨</span>
+        <span>BNC Admin</span>
+      </div>
+      <nav class="sidebar-nav" style="padding: 1rem 0;">
+        <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
+        <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
+        <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
+        <a href="groups.html" class="sidebar-link">👥 จัดการกลุ่ม LINE</a>
+        <a href="products.html" class="sidebar-link">🛍️ จัดการสินค้า</a>
+        <a href="fonts.html" class="sidebar-link">🔤 จัดการฟอนต์</a>
+        <a href="points.html" class="sidebar-link">⭐ ระบบคะแนน</a>
+        <a href="reviews.html" class="sidebar-link active">❤️ รีวิวลูกค้า</a>
+        <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
+      </nav>
+      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem;">
+        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+          ตรวจสอบ & จัดการรีวิวลูกค้า ❤️
+        </h1>
+      </header>
+
+      <div style="padding: 1.5rem;">
+        <div id="adminReviewsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Render dynamically -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    function renderAdminReviews() {
+      const list = Store.getAllReviews();
+      const container = document.getElementById('adminReviewsGrid');
+
+      if (list.length === 0) {
+        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><p>ยังไม่มีรีวิวเข้ามา</p></div>';
+        return;
+      }
+
+      container.innerHTML = list.map(r => `
+        <div class="card card--flat" style="padding: 1.25rem; border-left: 4px solid ${r.status === 'APPROVED' ? 'var(--success)' : r.status === 'PENDING' ? 'var(--warning)' : 'var(--gray-400)'};">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+            <div>
+              <span class="badge ${r.status === 'APPROVED' ? 'badge--success' : r.status === 'PENDING' ? 'badge--warning' : 'badge--gray'}">
+                ${r.status === 'APPROVED' ? '✅ อนุมัติแล้ว (แสดงหน้าร้าน)' : r.status === 'PENDING' ? '🕐 รออนุมัติ' : '🚫 ซ่อนไว้'}
+              </span>
+              <h3 style="font-size: 1.1rem; margin: 0.35rem 0 0.1rem; color: var(--gray-900);">👤 ${r.customer_name}</h3>
+              <span style="font-size: 0.85rem; color: var(--pink-500);">สินค้า: ${r.product_name}</span>
+            </div>
+            <span style="color: #F59E0B; font-size: 1.2rem;">${'★'.repeat(r.rating || 5)}</span>
+          </div>
+
+          <p style="color: var(--gray-600); font-size: 0.95rem; margin: 0.5rem 0 1rem;">
+            "${r.message}"
+          </p>
+
+          <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            ${r.status !== 'APPROVED' ? `
+              <button class="btn btn-success btn-sm" onclick="setReviewStatus('${r.id}', 'APPROVED')">✅ อนุมัติแสดงผล</button>
+            ` : `
+              <button class="btn btn-outline btn-sm" onclick="setReviewStatus('${r.id}', 'HIDDEN')">🚫 ซ่อนรีวิว</button>
+            `}
+            <button class="btn btn-danger btn-sm" onclick="deleteReviewItem('${r.id}')">🗑️ ลบ</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.setReviewStatus = function(id, status) {
+      Store.updateReviewStatus(id, status);
+      renderAdminReviews();
+    };
+
+    window.deleteReviewItem = function(id) {
+      if (confirm('ต้องการลบรีวิวนี้หรือไม่?')) {
+        Store.deleteReview(id);
+        renderAdminReviews();
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', renderAdminReviews);
+  </script>
+</body>
+</html>

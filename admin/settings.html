@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตั้งค่าระบบร้านค้า ⚙️ | BNC Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+        <span>🎨</span>
+        <span>BNC Admin</span>
+      </div>
+      <nav class="sidebar-nav" style="padding: 1rem 0;">
+        <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
+        <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
+        <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
+        <a href="groups.html" class="sidebar-link">👥 จัดการกลุ่ม LINE</a>
+        <a href="products.html" class="sidebar-link">🛍️ จัดการสินค้า</a>
+        <a href="fonts.html" class="sidebar-link">🔤 จัดการฟอนต์</a>
+        <a href="points.html" class="sidebar-link">⭐ ระบบคะแนน</a>
+        <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
+        <a href="settings.html" class="sidebar-link active">⚙️ ตั้งค่าร้าน</a>
+      </nav>
+      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem;">
+        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+          ตั้งค่าข้อมูลร้านค้า & การเชื่อมต่อ ⚙️
+        </h1>
+      </header>
+
+      <div style="padding: 1.5rem; max-width: 800px;">
+        <form id="settingsForm">
+
+          <!-- Section 1: ข้อมูลร้าน -->
+          <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; color: var(--pink-500); margin-bottom: 1rem;">
+              🏠 ข้อมูลร้านค้า
+            </h3>
+            <div class="form-group">
+              <label class="form-label">ชื่อร้าน</label>
+              <input type="text" id="setShopName" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">คำโปรยร้าน (Tagline)</label>
+              <input type="text" id="setTagline" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ข้อความประกาศแถบด้านบน (Announcement Bar)</label>
+              <input type="text" id="setAnnouncement" class="form-input">
+            </div>
+          </div>
+
+          <!-- Section 2: ข้อมูลติดต่อ & LINE -->
+          <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; color: var(--pink-500); margin-bottom: 1rem;">
+              💬 ข้อมูลติดต่อ & LINE ร้านค้า
+            </h3>
+            <div class="form-group">
+              <label class="form-label">ลิงก์ LINE ร้าน (ใช้สำหรับปุ่ม "ทัก LINE ร้าน")</label>
+              <input type="url" id="setLineUrl" class="form-input" placeholder="https://line.me/ti/p/~yourid" required>
+              <small style="color: var(--gray-600);">*ใส่ลิงก์ LINE ส่วนตัว หรือ LINE OA ของร้านได้เลยค่ะ</small>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">LINE ID สำหรับแสดงผล</label>
+                <input type="text" id="setContactLine" class="form-input" placeholder="@bncgraphmate">
+              </div>
+              <div class="form-group">
+                <label class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
+                <input type="text" id="setContactPhone" class="form-input" placeholder="081-234-5678">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: การชำระเงิน -->
+          <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; color: var(--pink-500); margin-bottom: 1rem;">
+              💳 ข้อมูลบัญชีธนาคาร & QR ชำระเงิน
+            </h3>
+            <div class="form-group">
+              <label class="form-label">ลิงก์ภาพ QR Code ชำระเงิน (PromptPay)</label>
+              <input type="url" id="setPromptpayQrUrl" class="form-input" placeholder="https://..." required>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="form-group">
+                <label class="form-label">ชื่อธนาคาร</label>
+                <input type="text" id="setBankName" class="form-input" placeholder="กสิกรไทย">
+              </div>
+              <div class="form-group">
+                <label class="form-label">เลขที่บัญชี</label>
+                <input type="text" id="setBankAccount" class="form-input" placeholder="123-4-56789-0">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ชื่อเจ้าของบัญชี</label>
+                <input type="text" id="setBankAccountName" class="form-input" placeholder="ร้าน บีเอ็นซี">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: ฐานข้อมูล Google Sheet ฟรี 100% -->
+          <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 1.5rem; border: 2px solid var(--success);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <span style="font-size: 1.5rem;">📊</span>
+              <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.15rem; color: var(--success); margin: 0;">
+                เชื่อมต่อ Google Sheets Database (ฟรี 100%)
+              </h3>
+            </div>
+            <p style="color: var(--gray-600); font-size: 0.85rem; margin-bottom: 1rem;">
+              คุณสามารถใช้ Google Sheet เป็น Cloud Database แทน Database อื่นๆ ได้ฟรีตลอดชีพ โดยนำโค้ดในโฟลเดอร์ <code>google-apps-script/Code.gs</code> ไปวางใน Apps Script ของชีตคุณ แล้วนำ Web App URL มาใส่ที่นี่:
+            </p>
+            <div class="form-group">
+              <label class="form-label">Google Sheet Web App URL</label>
+              <input type="url" id="setSheetUrl" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
+            </div>
+          </div>
+
+          <div style="text-align: right; margin-bottom: 3rem;">
+            <button type="submit" class="btn btn-primary btn-lg">💾 บันทึกการตั้งค่าทั้งหมด ➔</button>
+          </div>
+
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const s = Store.getSettings();
+      if (!s) return;
+      document.getElementById('setShopName').value = s.shopName || '';
+      document.getElementById('setTagline').value = s.tagline || '';
+      document.getElementById('setAnnouncement').value = s.announcement || '';
+      document.getElementById('setLineUrl').value = s.lineUrl || '';
+      document.getElementById('setContactLine').value = s.contactLine || '';
+      document.getElementById('setContactPhone').value = s.contactPhone || '';
+      document.getElementById('setPromptpayQrUrl').value = s.promptpayQrUrl || '';
+      document.getElementById('setBankName').value = s.bankName || '';
+      document.getElementById('setBankAccount').value = s.bankAccount || '';
+      document.getElementById('setBankAccountName').value = s.bankAccountName || '';
+      document.getElementById('setSheetUrl').value = s.googleSheetWebAppUrl || '';
+    });
+
+    document.getElementById('settingsForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const updated = {
+        shopName: document.getElementById('setShopName').value.trim(),
+        tagline: document.getElementById('setTagline').value.trim(),
+        announcement: document.getElementById('setAnnouncement').value.trim(),
+        lineUrl: document.getElementById('setLineUrl').value.trim(),
+        contactLine: document.getElementById('setContactLine').value.trim(),
+        contactPhone: document.getElementById('setContactPhone').value.trim(),
+        promptpayQrUrl: document.getElementById('setPromptpayQrUrl').value.trim(),
+        bankName: document.getElementById('setBankName').value.trim(),
+        bankAccount: document.getElementById('setBankAccount').value.trim(),
+        bankAccountName: document.getElementById('setBankAccountName').value.trim(),
+        googleSheetWebAppUrl: document.getElementById('setSheetUrl').value.trim()
+      };
+
+      Store.saveSettings(updated);
+      alert('บันทึกการตั้งค่าเรียบร้อยแล้วค่ะ 🌸');
+      location.reload();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รีวิวจากลูกค้า ❤️ | BNC GraphMate</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .star-btn {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      color: var(--gray-200);
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+    .star-btn.active {
+      color: #F59E0B;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="navbar__container">
+      <a href="../index.html" class="navbar__brand">
+        <span class="navbar__logo">🎨</span>
+        <span class="navbar__title">BNC GraphMate</span>
+      </a>
+      <button class="navbar__hamburger" id="navToggle" aria-label="เมนู">
+        <span class="navbar__hamburger-bar"></span>
+        <span class="navbar__hamburger-bar"></span>
+        <span class="navbar__hamburger-bar"></span>
+      </button>
+      <nav class="navbar__nav" id="navMenu">
+        <a href="../index.html" class="navbar__link">หน้าแรก</a>
+        <a href="portfolio.html" class="navbar__link">ผลงาน</a>
+        <a href="pricing.html" class="navbar__link">ราคา/บริการ</a>
+        <a href="groups.html" class="navbar__link">เข้ากลุ่ม LINE 👥</a>
+        <a href="products.html" class="navbar__link">สินค้าสำเร็จ 🛍️</a>
+        <a href="fonts.html" class="navbar__link">ฟอนต์ 🔤</a>
+        <a href="points.html" class="navbar__link">สะสมแต้ม ⭐</a>
+        <a href="reviews.html" class="navbar__link active">รีวิว ❤️</a>
+        <a href="orders.html" class="navbar__link">สถานะออเดอร์ 📦</a>
+        <a href="contact.html" class="navbar__link">ติดต่อ/LINE 💬</a>
+        <a href="../admin/reviews.html" class="btn btn-outline btn-sm">⚙️ จัดการรีวิว</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section style="background: var(--pink-50); border-bottom: 2px solid var(--pink-100); padding: 2.5rem 1rem; text-align: center;">
+      <div class="container">
+        <span class="badge badge--pink" style="margin-bottom: 0.5rem;">Customer Satisfaction</span>
+        <h1 style="font-family: 'Mitr', sans-serif; font-size: 2.2rem; color: var(--gray-900); margin-bottom: 0.5rem;">
+          รีวิวจากลูกค้า ❤️
+        </h1>
+        <p style="color: var(--gray-600); max-width: 550px; margin: 0 auto 1.5rem;">
+          แสดงเฉพาะรีวิวที่ได้รับการอนุมัติจากแอดมิน เพื่อความน่าเชื่อถือและส่งมอบบริการที่ดีที่สุด
+        </p>
+        <button type="button" class="btn btn-primary" onclick="toggleReviewForm()">✍️ เขียนรีวิวของคุณ</button>
+      </div>
+    </section>
+
+    <section style="padding: 2.5rem 1rem;">
+      <div class="container" style="max-width: 800px;">
+
+        <!-- Review Submit Form -->
+        <div id="reviewFormCard" class="card card--flat" style="display: none; border: 2px solid var(--pink-200); padding: 1.75rem; margin-bottom: 2.5rem;">
+          <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin-bottom: 1rem; color: var(--pink-500);">
+            💌 เขียนรีวิวความประทับใจ
+          </h3>
+          <form id="submitReviewForm">
+            <div class="form-group">
+              <label class="form-label">ชื่อของคุณ</label>
+              <input type="text" id="revAuthorName" class="form-input" placeholder="เช่น น้องมีน คาเฟ่" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">สินค้าหรือบริการที่สั่งซื้อ</label>
+              <input type="text" id="revProductName" class="form-input" placeholder="เช่น ฟอนต์ขนมปังเนยสด หรือ กลุ่ม VIP" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ให้คะแนนความพึงพอใจ</label>
+              <div id="starPicker">
+                <button type="button" class="star-btn active" data-val="1">★</button>
+                <button type="button" class="star-btn active" data-val="2">★</button>
+                <button type="button" class="star-btn active" data-val="3">★</button>
+                <button type="button" class="star-btn active" data-val="4">★</button>
+                <button type="button" class="star-btn active" data-val="5">★</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">ข้อความรีวิว</label>
+              <textarea id="revMessage" class="form-textarea" rows="3" placeholder="ประทับใจอะไรบ้าง งานน่ารักไหม การบริการเป็นอย่างไร..." required></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">รูปภาพประกอบ (ถ้ามี - ใส่ URL รูป)</label>
+              <input type="url" id="revImageUrl" class="form-input" placeholder="https://example.com/photo.jpg">
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+              <button type="button" class="btn btn-outline" onclick="toggleReviewForm()">ยกเลิก</button>
+              <button type="submit" class="btn btn-primary">ส่งรีวิวให้แอดมินตรวจ ➔</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Approved Reviews Grid -->
+        <div id="reviewsListGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Render dynamically -->
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script src="../js/store.js"></script>
+  <script>
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.getElementById('navMenu');
+    if (navToggle && navMenu) navToggle.addEventListener('click', () => navMenu.classList.toggle('is-open'));
+
+    let currentRating = 5;
+
+    // Star Picker
+    const starBtns = document.querySelectorAll('.star-btn');
+    starBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentRating = Number(btn.getAttribute('data-val'));
+        starBtns.forEach(b => {
+          const v = Number(b.getAttribute('data-val'));
+          if (v <= currentRating) b.classList.add('active');
+          else b.classList.remove('active');
+        });
+      });
+    });
+
+    function toggleReviewForm() {
+      const card = document.getElementById('reviewFormCard');
+      card.style.display = card.style.display === 'none' ? 'block' : 'none';
+      if (card.style.display === 'block') card.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Submit Review
+    document.getElementById('submitReviewForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('revAuthorName').value.trim();
+      const prod = document.getElementById('revProductName').value.trim();
+      const msg = document.getElementById('revMessage').value.trim();
+      const img = document.getElementById('revImageUrl').value.trim();
+
+      Store.addReview({
+        customer_name: name,
+        product_name: prod,
+        rating: currentRating,
+        message: msg,
+        image_url: img
+      });
+
+      alert('ขอบคุณสำหรับรีวิวค่ะ! รีวิวของคุณถูกส่งไปยังแอดมินแล้ว และจะแสดงบนหน้าเว็บเมื่อผ่านการตรวจสอบนะคะ 🌸');
+      document.getElementById('submitReviewForm').reset();
+      toggleReviewForm();
+    });
+
+    function renderApprovedReviews() {
+      const list = Store.getApprovedReviews();
+      const container = document.getElementById('reviewsListGrid');
+      if (!container) return;
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="grid-column: 1/-1;">
+            <span class="empty-state__emoji">💌</span>
+            <h3 class="empty-state__title">ยังไม่มีรีวิวที่แสดงในขณะนี้</h3>
+            <p class="empty-state__text">มาร่วมเป็นคนแรกที่ส่งรีวิวความประทับใจกันนะคะ 🌸</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(r => `
+        <div class="card card--flat review-card">
+          ${r.image_url ? `<img src="${r.image_url}" alt="Review photo" style="width: 100%; height: 180px; object-fit: cover; border-top-left-radius: var(--radius-2xl); border-top-right-radius: var(--radius-2xl);">` : ''}
+          <div class="card__body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="font-weight: 600; color: var(--gray-900);">👤 ${r.customer_name}</span>
+              <span style="color: #F59E0B; font-size: 1.1rem;">${'★'.repeat(r.rating || 5)}</span>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--pink-500); font-weight: 500; margin-bottom: 0.5rem;">
+              สั่งซื้อ: ${r.product_name}
+            </div>
+            <p style="color: var(--gray-600); font-size: 0.95rem; line-height: 1.5; margin-bottom: 0.75rem;">
+              "${r.message}"
+            </p>
+            <span style="font-size: 0.8rem; color: var(--gray-400);">${new Date(r.created_at).toLocaleDateString('th-TH')}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', renderApprovedReviews);
+  </script>
+</body>
+</html>

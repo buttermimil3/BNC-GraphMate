@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตรวจสอบสลิปการโอนเงิน 🧳 | BNC Admin</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/admin.css">
+  <style>
+    .slip-card-admin {
+      background: var(--white);
+      border-radius: 1.25rem;
+      border: 1px solid var(--gray-200);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .slip-img-holder {
+      background: var(--gray-100);
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+    }
+    .slip-img-holder img {
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+        <span>🎨</span>
+        <span>BNC Admin</span>
+      </div>
+      <nav class="sidebar-nav" style="padding: 1rem 0;">
+        <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
+        <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
+        <a href="slips.html" class="sidebar-link active">🧳 ตรวจสอบสลิป</a>
+        <a href="groups.html" class="sidebar-link">👥 จัดการกลุ่ม LINE</a>
+        <a href="products.html" class="sidebar-link">🛍️ จัดการสินค้า</a>
+        <a href="fonts.html" class="sidebar-link">🔤 จัดการฟอนต์</a>
+        <a href="points.html" class="sidebar-link">⭐ ระบบคะแนน</a>
+        <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
+        <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
+      </nav>
+      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem;">
+        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+          ตรวจสอบสลิปการโอนเงิน (Slip Verification) 🧳
+        </h1>
+      </header>
+
+      <div style="padding: 1.5rem;">
+        <!-- Filters -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <button class="btn btn-primary btn-sm" onclick="filterSlips('VERIFYING', this)">รอตรวจสอบ</button>
+          <button class="btn btn-outline btn-sm" onclick="filterSlips('ALL', this)">ทั้งหมด</button>
+          <button class="btn btn-outline btn-sm" onclick="filterSlips('PAID', this)">อนุมัติแล้ว</button>
+          <button class="btn btn-outline btn-sm" onclick="filterSlips('REJECTED', this)">ปฏิเสธ</button>
+        </div>
+
+        <!-- Slips Grid -->
+        <div id="slipsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <!-- Render dynamically -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    let currentFilter = 'VERIFYING';
+
+    function filterSlips(status, btn) {
+      currentFilter = status;
+      document.querySelectorAll('.admin-main button').forEach(b => b.className = 'btn btn-outline btn-sm');
+      if (btn) btn.className = 'btn btn-primary btn-sm';
+      renderSlips();
+    }
+
+    function renderSlips() {
+      const payments = Store.getPayments();
+      const orders = Store.getOrders();
+      const container = document.getElementById('slipsGrid');
+
+      let list = payments;
+      if (currentFilter !== 'ALL') {
+        list = payments.filter(p => p.verification_status === currentFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="grid-column: 1/-1;">
+            <span class="empty-state__emoji">🎉</span>
+            <h3 class="empty-state__title">ไม่มีรายการสลิปในสถานะนี้</h3>
+            <p class="empty-state__text">แอดมินจัดการสลิปเรียบร้อยหมดแล้วค่ะ</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(pay => {
+        const ord = orders.find(o => o.id === pay.order_id);
+        const orderNum = ord ? ord.order_number : pay.order_id;
+        const itemName = ord ? ord.item_name : 'ไม่ระบุสินค้า';
+        const custName = ord ? ord.customer_name : 'ลูกค้า';
+        const lineId = ord ? ord.line_id : '-';
+
+        return `
+          <div class="slip-card-admin">
+            <div class="slip-img-holder" onclick="window.open('${pay.slip_image_url || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c'}')">
+              <img src="${pay.slip_image_url || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c'}" alt="Slip Image">
+            </div>
+            <div style="padding: 1rem; flex: 1; display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                <span class="badge badge--pink">#${orderNum}</span>
+                <span class="price-tag price-tag--sm">฿${pay.amount}</span>
+              </div>
+              <h4 style="margin: 0.25rem 0; font-size: 1rem; color: var(--gray-900);">${itemName}</h4>
+              <p style="font-size: 0.85rem; color: var(--gray-600); margin-bottom: 0.5rem;">
+                👤 ${custName} | LINE: <code>${lineId}</code>
+              </p>
+
+              <!-- QR Analysis Box -->
+              <div style="background: var(--pink-50); border-radius: 0.5rem; padding: 0.5rem; font-size: 0.8rem; margin-bottom: 1rem;">
+                <strong>🔍 ข้อมูล QR สลิป:</strong><br>
+                Ref: <code>${pay.qr_trans_ref || 'MANUAL-CHECK'}</code>
+              </div>
+
+              <div style="margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                ${pay.verification_status === 'VERIFYING' ? `
+                  <button class="btn btn-success btn-sm" onclick="approveSlip('${pay.id}')">✅ ยืนยันยอด</button>
+                  <button class="btn btn-danger btn-sm" onclick="rejectSlip('${pay.id}')">❌ ปฏิเสธ</button>
+                ` : `
+                  <div style="grid-column: 1/-1; text-align: center; font-weight: 600; font-size: 0.85rem; color: ${pay.verification_status === 'PAID' ? 'var(--success)' : 'var(--danger)'};">
+                    ${pay.verification_status === 'PAID' ? '✅ ยืนยันแล้ว' : '❌ ปฏิเสธสลิป'}
+                  </div>
+                `}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.approveSlip = function(paymentId) {
+      if (confirm('ยืนยันการตรวจสอบสลิปนี้? ระบบจะอัปเดตสถานะออเดอร์และมอบแต้มให้ลูกค้าโดยอัตโนมัติ')) {
+        Store.approvePayment(paymentId);
+        renderSlips();
+      }
+    };
+
+    window.rejectSlip = function(paymentId) {
+      const reason = prompt('ระบุเหตุผลที่ปฏิเสธสลิป:', 'สลิปไม่ถูกต้อง หรือยอดเงินไม่ตรง');
+      if (reason) {
+        Store.rejectPayment(paymentId, reason);
+        renderSlips();
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', renderSlips);
+  </script>
+</body>
+</html>

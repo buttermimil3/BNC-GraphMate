@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard 📊 | BNC GraphMate</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
+        <span>🎨</span>
+        <span>BNC Admin</span>
+      </div>
+      <nav class="sidebar-nav" style="padding: 1rem 0;">
+        <a href="index.html" class="sidebar-link active">📊 แดชบอร์ด</a>
+        <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
+        <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
+        <a href="groups.html" class="sidebar-link">👥 จัดการกลุ่ม LINE</a>
+        <a href="products.html" class="sidebar-link">🛍️ จัดการสินค้า</a>
+        <a href="fonts.html" class="sidebar-link">🔤 จัดการฟอนต์</a>
+        <a href="points.html" class="sidebar-link">⭐ ระบบคะแนน</a>
+        <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
+        <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
+      </nav>
+      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <!-- Topbar -->
+      <header class="admin-topbar" style="background: var(--white); border-bottom: 1px solid var(--pink-100); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="font-family: 'Mitr', sans-serif; font-size: 1.3rem; margin: 0; color: var(--gray-900);">
+          ภาพรวมร้านค้า (Dashboard) 📊
+        </h1>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <span class="badge badge--pink">ผู้ดูแลระบบ</span>
+        </div>
+      </header>
+
+      <div style="padding: 1.5rem;">
+        <!-- Stats Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4" style="margin-bottom: 1.75rem;">
+          <div class="stat-card" style="background: var(--white); border-radius: 1rem; border-left: 4px solid var(--pink-500); padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--gray-600);">ยอดขายรวม</span>
+            <div id="statTotalRevenue" style="font-family: 'Mitr', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--pink-500); margin: 0.25rem 0;">฿0</div>
+            <span style="font-size: 0.8rem; color: var(--success);">ยอดคำสั่งซื้อสำเร็จ</span>
+          </div>
+          <div class="stat-card" style="background: var(--white); border-radius: 1rem; border-left: 4px solid var(--info); padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--gray-600);">ออเดอร์ทั้งหมด</span>
+            <div id="statTotalOrders" style="font-family: 'Mitr', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--info); margin: 0.25rem 0;">0</div>
+            <span style="font-size: 0.8rem; color: var(--gray-400);">รายการ</span>
+          </div>
+          <div class="stat-card" style="background: var(--white); border-radius: 1rem; border-left: 4px solid var(--warning); padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--gray-600);">สลิปรอตรวจสอบ</span>
+            <div id="statPendingSlips" style="font-family: 'Mitr', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--warning); margin: 0.25rem 0;">0</div>
+            <a href="slips.html" style="font-size: 0.8rem; color: var(--warning); text-decoration: underline;">ไปหน้าตรวจสลิป ➔</a>
+          </div>
+          <div class="stat-card" style="background: var(--white); border-radius: 1rem; border-left: 4px solid var(--success); padding: 1.25rem;">
+            <span style="font-size: 0.85rem; color: var(--gray-600);">จำนวนลูกค้า</span>
+            <div id="statTotalCustomers" style="font-family: 'Mitr', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--success); margin: 0.25rem 0;">0</div>
+            <span style="font-size: 0.8rem; color: var(--gray-400);">คน</span>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card card--flat" style="padding: 1.25rem; margin-bottom: 1.75rem;">
+          <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--gray-900);">
+            ⚡ ทางลัดจัดการด่วน (Quick Actions)
+          </h3>
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="slips.html" class="btn btn-primary btn-sm">🧳 ตรวจสลิปโอนเงิน</a>
+            <a href="groups.html?tab=pending" class="btn btn-secondary btn-sm">👥 รอดึงเข้ากลุ่ม LINE</a>
+            <a href="fonts.html?tab=pending" class="btn btn-secondary btn-sm">🔤 รอดึงเมลล์ฟอนต์</a>
+            <a href="products.html?action=new" class="btn btn-outline btn-sm">➕ เพิ่มสินค้าสำเร็จ</a>
+            <a href="fonts.html?action=new" class="btn btn-outline btn-sm">➕ เพิ่มฟอนต์</a>
+            <a href="groups.html?action=new" class="btn btn-outline btn-sm">➕ เพิ่มกลุ่ม LINE</a>
+          </div>
+        </div>
+
+        <!-- Pending Items 2 Columns -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Left: รอดึงเข้ากลุ่ม -->
+          <div class="card card--flat" style="padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.1rem; color: var(--gray-900); margin: 0;">
+                👥 ลูกค้ารอดึงเข้ากลุ่ม LINE
+              </h3>
+              <a href="groups.html" style="font-size: 0.85rem; color: var(--pink-500);">ดูทั้งหมด ➔</a>
+            </div>
+            <div id="dashPendingGroups">
+              <!-- Render dynamically -->
+            </div>
+          </div>
+
+          <!-- Right: รอดึงเมลล์ (Manual Delivery) -->
+          <div class="card card--flat" style="padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-family: 'Mitr', sans-serif; font-size: 1.1rem; color: var(--gray-900); margin: 0;">
+                🔤 รอดึงเมลล์ (ฟอนต์/สินค้า Manual)
+              </h3>
+              <a href="fonts.html" style="font-size: 0.85rem; color: var(--pink-500);">ดูทั้งหมด ➔</a>
+            </div>
+            <div id="dashPendingMails">
+              <!-- Render dynamically -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../js/store.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const orders = Store.getOrders();
+      const payments = Store.getPayments();
+      const customers = Store.getCustomers();
+      const groupAccess = Store.getGroupAccessList();
+      const driveAccess = Store.getDriveAccessList();
+
+      // Stats
+      const paidOrders = orders.filter(o => o.status === 'PAID');
+      const totalRev = paidOrders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+      const pendingSlips = payments.filter(p => p.verification_status === 'VERIFYING').length;
+
+      document.getElementById('statTotalRevenue').textContent = '฿' + totalRev.toLocaleString();
+      document.getElementById('statTotalOrders').textContent = orders.length;
+      document.getElementById('statPendingSlips').textContent = pendingSlips;
+      document.getElementById('statTotalCustomers').textContent = customers.length;
+
+      // Pending Groups
+      const pendingGroupList = groupAccess.filter(g => g.status === 'PENDING').slice(0, 5);
+      const pgBox = document.getElementById('dashPendingGroups');
+      if (pendingGroupList.length === 0) {
+        pgBox.innerHTML = '<p style="color: var(--gray-400); font-size: 0.9rem; text-align: center; padding: 1rem 0;">ไม่มีรายการรอดึงเข้ากลุ่ม 🎉</p>';
+      } else {
+        pgBox.innerHTML = pendingGroupList.map(item => `
+          <div style="background: var(--pink-50); border-radius: 0.75rem; padding: 0.75rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong>${item.customer_name}</strong> (LINE: <code>${item.line_id || '-'}</code>)<br>
+              <span style="font-size: 0.8rem; color: var(--gray-600);">${item.group_name}</span>
+            </div>
+            <button class="btn btn-success btn-sm" onclick="completeGroup('${item.id}')">ดึงเข้ากลุ่มเรียบร้อย</button>
+          </div>
+        `).join('');
+      }
+
+      // Pending Mails (Manual)
+      const pendingMailList = driveAccess.filter(d => d.status === 'WAITING_ADMIN').slice(0, 5);
+      const pmBox = document.getElementById('dashPendingMails');
+      if (pendingMailList.length === 0) {
+        pmBox.innerHTML = '<p style="color: var(--gray-400); font-size: 0.9rem; text-align: center; padding: 1rem 0;">ไม่มีรายการรอดึงเมลล์ 🎉</p>';
+      } else {
+        pmBox.innerHTML = pendingMailList.map(item => `
+          <div style="background: var(--pink-50); border-radius: 0.75rem; padding: 0.75rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong>${item.customer_name}</strong> (${item.gmail || '-' })<br>
+              <span style="font-size: 0.8rem; color: var(--gray-600);">${item.item_name}</span>
+            </div>
+            <button class="btn btn-success btn-sm" onclick="completeMail('${item.id}')">ดึงเมลล์เรียบร้อย</button>
+          </div>
+        `).join('');
+      }
+    });
+
+    window.completeGroup = function(id) {
+      Store.completeGroupAccess(id);
+      location.reload();
+    };
+
+    window.completeMail = function(id) {
+      Store.completeDriveAccess(id);
+      location.reload();
+    };
+  </script>
+</body>
+</html>
