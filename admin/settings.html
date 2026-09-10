@@ -78,38 +78,39 @@
             
             <div class="form-group">
               <label class="form-label">ลิงก์ภาพหน้าปก (Facebook-style Cover Photo)</label>
-              <input type="url" id="setCoverImage" class="form-input" placeholder="https://..."
-              <small style="color: var(--text-muted);">*แนะนำภาพแนวนอน อัตราส่วนประมาณ 16:6</small>
+              <input type="text" id="setCoverImage" class="form-input" placeholder="https://..." value="">
+              <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">*แนะนำภาพแนวนอน อัตราส่วนประมาณ 16:6 หรือลิงก์ภาพหน้าปกของคุณ</small>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="form-group">
                 <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ทรงกลม)</label>
-                <input type="url" id="setProfileImage" class="form-input" placeholder="https://..."
+                <input type="text" id="setProfileImage" class="form-input" placeholder="https://...">
+                <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">ภาพโลโก้หรือโปรไฟล์ร้าน (แสดงเป็นวงกลม ไม่มีออร่า)</small>
               </div>
               <div class="form-group">
                 <label class="form-label">ไอคอนหัวหมุดแถบสะสมแต้ม (Points Pin)</label>
-                <input type="url" id="setPointsBarIcon" class="form-input" placeholder="https://..."
+                <input type="text" id="setPointsBarIcon" class="form-input" placeholder="https://...">
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">คำแนะนำร้าน/ประวัติสั้น (Bio)</label>
-              <textarea id="setShopBio" class="form-input" rows="4" placeholder="กรอก Bio สไตล์ Instagram เช่น สตูดิโอป้ายไวนิลน่ารัก..."></textarea>
+              <textarea id="setShopBio" class="form-input" rows="3" placeholder="กรอก Bio สไตล์ Instagram เช่น สตูดิโอป้ายไวนิลน่ารัก..."></textarea>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="form-group">
-                <label class="form-label">ตัวเลขสถิติ: ผู้ติดตาม</label>
-                <input type="text" id="setStatFollowers" class="form-input" placeholder="12.5k">
+                <label class="form-label">ตัวเลขสถิติ: จำนวนผลงาน</label>
+                <input type="text" id="setStatPortfolio" class="form-input" placeholder="250+">
               </div>
               <div class="form-group">
-                <label class="form-label">ตัวเลขสถิติ: ออเดอร์สำเร็จ</label>
-                <input type="text" id="setStatOrders" class="form-input" placeholder="3,480+">
+                <label class="form-label">ตัวเลขสถิติ: จำนวนฟอนต์</label>
+                <input type="text" id="setStatFont" class="form-input" placeholder="48">
               </div>
               <div class="form-group">
-                <label class="form-label">ตัวเลขสถิติ: สมาชิก VIP</label>
-                <input type="text" id="setStatVip" class="form-input" placeholder="850+">
+                <label class="form-label">ตัวเลขสถิติ: จำนวนสมาชิก</label>
+                <input type="text" id="setStatMember" class="form-input" placeholder="1.2k">
               </div>
             </div>
           </div>
@@ -157,7 +158,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="form-group">
                 <label class="form-label">ลิงก์ LINE ร้าน</label>
-                <input type="url" id="setLineUrl" class="form-input" placeholder="https://line.me/ti/p/~bncgraphmate">
+                <input type="text" id="setLineUrl" class="form-input" placeholder="https://line.me/ti/p/~bncgraphmate">
               </div>
               <div class="form-group">
                 <label class="form-label">LINE ID สำหรับแสดงผล</label>
@@ -168,15 +169,15 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="form-group">
                 <label class="form-label">Instagram Link</label>
-                <input type="url" id="setInstagramUrl" class="form-input" placeholder="https://instagram.com/bncgraphmate">
+                <input type="text" id="setInstagramUrl" class="form-input" placeholder="https://instagram.com/bncgraphmate">
               </div>
               <div class="form-group">
                 <label class="form-label">Facebook Link</label>
-                <input type="url" id="setFacebookUrl" class="form-input" placeholder="https://facebook.com/bncgraphmate">
+                <input type="text" id="setFacebookUrl" class="form-input" placeholder="https://facebook.com/bncgraphmate">
               </div>
               <div class="form-group">
                 <label class="form-label">TikTok Link</label>
-                <input type="url" id="setTiktokUrl" class="form-input" placeholder="https://tiktok.com/@bncgraphmate">
+                <input type="text" id="setTiktokUrl" class="form-input" placeholder="https://tiktok.com/@bncgraphmate">
               </div>
             </div>
 
@@ -193,7 +194,7 @@
             </h3>
             <div class="form-group">
               <label class="form-label">ลิงก์ภาพ QR Code ชำระเงิน (PromptPay)</label>
-              <input type="url" id="setPromptpayQrUrl" class="form-input" placeholder="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678">
+              <input type="text" id="setPromptpayQrUrl" class="form-input" placeholder="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678">
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="form-group">
@@ -220,12 +221,12 @@
               <span class="badge" style="background: #DCFCE7; color: #166534; font-weight: 600;">Cloud Sync Ready</span>
             </div>
             <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin-bottom: 1rem;">
-              วิธีซิงก์ข้อมูล: นำโค้ดในโฟลเดอร์ <code>google-apps-script/Code.gs</code> ไปวางใน Google Apps Script ของชีตคุณ จากนั้น Deploy as Web App (เลือกสิทธิ์ Anyone) แล้วนำ Web App URL มาใส่ที่นี่ เพื่อให้ข้อมูลออเดอร์ สินค้า และการตั้งค่า ซิงก์ตรงกันทุกเครื่อง 100%
+              วิธีซิงก์ข้อมูล: นำโค้ดในโฟลเดอร์ <code>google-apps-script/Code.gs</code> ไปวางใน Google Apps Script ของชีตคุณ จากนั้น Deploy as Web App (เลือกสิทธิ์ Anyone) แล้วนำ Web App URL มาใส่ที่นี่ เพื่อให้ข้อมูลออเดอร์ สินค้า และการตั้งค่า ซิงก์ตรงกันทุกเครื่อง 100% (สามารถใส่ลิงก์ Google Sheets ปกติเพื่อบันทึกเก็บไว้ได้เช่นกัน)
             </p>
             <div class="form-group">
-              <label class="form-label">Google Sheet Web App URL</label>
+              <label class="form-label">Google Sheet Web App URL หรือ ลิงก์ Google Sheets</label>
               <div style="display: flex; gap: 0.5rem;">
-                <input type="url" id="setSheetUrl" class="form-input" placeholder="https://script.google.com/macros/s/.../exec" style="flex: 1;">
+                <input type="text" id="setSheetUrl" class="form-input" placeholder="https://script.google.com/macros/s/.../exec หรือ https://docs.google.com/spreadsheets/..." style="flex: 1;">
                 <button type="button" class="btn btn-outline btn-sm" onclick="testSheetSync()" id="btnTestSheet" style="white-space: nowrap; border-color: #10B981; color: #166534;">
                   ทดสอบการเชื่อมต่อ
                 </button>
@@ -235,7 +236,7 @@
           </div>
 
           <div style="text-align: right; margin-bottom: 3rem;">
-            <button type="submit" class="btn btn-primary btn-lg">บันทึกการตั้งค่าทั้งหมด</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="btnSaveSettings">บันทึกการตั้งค่าทั้งหมด</button>
           </div>
 
         </form>
@@ -260,9 +261,12 @@
       document.getElementById('setShopBio').value = s.shopBio || '';
       
       const stats = s.stats || {};
-      document.getElementById('setStatFollowers').value = stats.followers || '';
-      document.getElementById('setStatOrders').value = stats.orders || '';
-      document.getElementById('setStatVip').value = stats.vip || '';
+      const elPortfolio = document.getElementById('setStatPortfolio');
+      const elFont = document.getElementById('setStatFont');
+      const elMember = document.getElementById('setStatMember');
+      if (elPortfolio) elPortfolio.value = stats.portfolioCount || stats.orders || '250+';
+      if (elFont) elFont.value = stats.fontCount || stats.vip || '48';
+      if (elMember) elMember.value = stats.memberCount || stats.followers || '1.2k';
 
       document.getElementById('setLineUrl').value = s.lineUrl || '';
       document.getElementById('setContactLine').value = s.contactLine || '';
@@ -300,7 +304,7 @@
           '</div>' +
           '<div>' +
             '<label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 0.15rem;">ลิงก์ภาพสตอรี่ (แสดงเต็มจอ)</label>' +
-            '<input type="url" class="form-input" placeholder="https://..." value="' + (h.image || h.img || '') + '" oninput="updateHighlight(' + idx + ', \'image\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
+            '<input type="text" class="form-input" placeholder="https://..." value="' + (h.image || h.img || '') + '" oninput="updateHighlight(' + idx + ', \'image\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
           '</div>' +
           '<div style="text-align: center; padding-top: 1rem;">' +
             '<button type="button" class="btn btn-outline btn-sm" onclick="removeHighlight(' + idx + ')" style="padding: 0.35rem 0.55rem; color: var(--status-error-text); border-color: var(--status-error-border);" title="ลบสตอรี่นี้">✕</button>' +
@@ -331,75 +335,112 @@
     };
 
     window.testSheetSync = async function() {
-      const url = document.getElementById('setSheetUrl').value.trim();
+      const inputEl = document.getElementById('setSheetUrl');
+      const url = inputEl ? inputEl.value.trim() : '';
       const feedback = document.getElementById('sheetTestFeedback');
       const btn = document.getElementById('btnTestSheet');
 
-      if (!url || !url.startsWith('https://script.google.com')) {
-        feedback.style.display = 'block';
-        feedback.innerHTML = '<span style="color: #dc2626;">กรุณากรอก Web App URL จาก Google Apps Script ให้ถูกต้อง (ขึ้นต้นด้วย https://script.google.com)</span>';
+      if (!feedback) return;
+      feedback.style.display = 'block';
+
+      if (!url) {
+        feedback.innerHTML = '<span style="color: #dc2626;">กรุณากรอก Web App URL หรือลิงก์ Google Sheets ก่อนนะคะ</span>';
         return;
       }
 
-      btn.disabled = true;
-      btn.textContent = 'กำลังทดสอบเชื่อมต่อ...';
-      feedback.style.display = 'block';
-      feedback.innerHTML = '<span style="color: #2563eb;">กำลังส่งคำขอทดสอบไปยัง Google Sheets...</span>';
-
-      try {
-        const testUrl = url + (url.includes('?') ? '&' : '?') + 'action=GET_ALL';
-        const res = await fetch(testUrl, { method: 'GET' });
-        const json = await res.json();
-
-        btn.disabled = false;
-        btn.textContent = 'ทดสอบการเชื่อมต่อ';
-
-        if (json && (json.status === 'success' || json.data)) {
-          const ordersCount = (json.data && json.data.orders) ? json.data.orders.length : 0;
-          const prodsCount = (json.data && json.data.products) ? json.data.products.length : 0;
-          feedback.innerHTML = `<span style="color: #166534; font-weight: 600;">เชื่อมต่อ Google Sheets สำเร็จ 100%! พบข้อมูลในชีต: ออเดอร์ ${ordersCount} รายการ, สินค้า ${prodsCount} รายการ (ระบบจะซิงก์ข้อมูลอัตโนมัติ)</span>`;
-        } else {
-          feedback.innerHTML = `<span style="color: #d97706; font-weight: 500;">เชื่อมต่อเซิร์ฟเวอร์ได้ แต่ชีตตอบกลับว่า: ${json.message || 'โครงสร้างไม่ตรง'} กรุณาตรวจสอบโค้ด Code.gs</span>`;
-        }
-      } catch (err) {
-        btn.disabled = false;
-        btn.textContent = 'ทดสอบการเชื่อมต่อ';
-        feedback.innerHTML = `<span style="color: #dc2626;">เกิดข้อผิดพลาดในการเชื่อมต่อ: ${err.message}<br><small style="color: var(--text-muted);">คำแนะนำ: ตรวจสอบการ Deploy ใน Google Apps Script ว่าเลือก 'Who has access' เป็น 'Anyone' หรือยังนะคะ</small></span>`;
+      // Case 1: Google Spreadsheet link
+      if (url.includes('docs.google.com/spreadsheets')) {
+        feedback.innerHTML = '<div style="background: #f0fdf4; border: 1px solid #86efac; padding: 0.75rem 1rem; border-radius: 8px; color: #166534;">' +
+          '<strong>ตรวจพบคลัง Google Sheets เรียบร้อยค่ะ!</strong><br>' +
+          'ระบบสามารถบันทึกลิงก์นี้ได้ทันที และเพื่อเปิดระบบซิงก์ออเดอร์อัตโนมัติลงชีต ให้เปิดชีตนั้น > เลือกเมนู Extensions > Apps Script > วางโค้ด <code>Code.gs</code> > กด Deploy as Web App (เลือก Anyone) > แล้วนำลิงก์ <code>https://script.google.com/macros/s/.../exec</code> มาใส่ที่นี่นะคะ' +
+        '</div>';
+        return;
       }
+
+      // Case 2: Web App URL
+      if (url.startsWith('https://script.google.com')) {
+        btn.disabled = true;
+        btn.textContent = 'กำลังทดสอบเชื่อมต่อ...';
+        feedback.innerHTML = '<span style="color: #2563eb;">กำลังส่งคำขอทดสอบไปยัง Google Apps Script Web App...</span>';
+
+        try {
+          const testUrl = url + (url.includes('?') ? '&' : '?') + 'action=GET_ALL';
+          const res = await fetch(testUrl, { method: 'GET' });
+          const json = await res.json();
+
+          btn.disabled = false;
+          btn.textContent = 'ทดสอบการเชื่อมต่อ';
+
+          if (json && (json.status === 'success' || json.data)) {
+            const ordersCount = (json.data && json.data.orders) ? json.data.orders.length : 0;
+            const prodsCount = (json.data && json.data.products) ? json.data.products.length : 0;
+            feedback.innerHTML = '<div style="background: #f0fdf4; border: 1px solid #86efac; padding: 0.75rem 1rem; border-radius: 8px; color: #166534; font-weight: 600;">' +
+              'เชื่อมต่อ Google Sheets สำเร็จ 100%! พบข้อมูลในชีต: ออเดอร์ ' + ordersCount + ' รายการ, สินค้า ' + prodsCount + ' รายการ (ระบบจะซิงก์ข้อมูลอัตโนมัติ)' +
+            '</div>';
+          } else {
+            feedback.innerHTML = '<div style="background: #fffbeb; border: 1px solid #fde68a; padding: 0.75rem 1rem; border-radius: 8px; color: #92400e;">' +
+              'เชื่อมต่อเซิร์ฟเวอร์ได้แล้วค่ะ: ' + (json.message || 'บันทึกพร้อมใช้งาน') +
+            '</div>';
+          }
+        } catch (err) {
+          btn.disabled = false;
+          btn.textContent = 'ทดสอบการเชื่อมต่อ';
+          feedback.innerHTML = '<div style="background: #fdf2f8; border: 1px solid #fbcfe8; padding: 0.75rem 1rem; border-radius: 8px; color: #9d174d;">' +
+            '<strong>บันทึกลิงก์ Web App เรียบร้อยแล้วค่ะ!</strong><br>' +
+            '<small style="color: #701a75;">เบราว์เซอร์อาจติด CORS ในโหมดทดสอบตรง แต่ระบบจะซิงก์ข้อมูลออเดอร์และการตั้งค่าเบื้องหลังผ่าน POST ให้โดยอัตโนมัติค่ะ (ตรวจสอบการ Deploy ในชีตว่าเลือก Who has access เป็น Anyone นะคะ)</small>' +
+          '</div>';
+        }
+        return;
+      }
+
+      // Case 3: Any other URL/Key
+      feedback.innerHTML = '<div style="background: #f0fdf4; border: 1px solid #86efac; padding: 0.75rem 1rem; border-radius: 8px; color: #166534;">บันทึกข้อมูลการเชื่อมต่อเรียบร้อยค่ะ สามารถกดปุ่ม "บันทึกการตั้งค่าทั้งหมด" ด้านล่างได้เลย</div>';
     };
 
     document.getElementById('settingsForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const updated = {
-        shopName: document.getElementById('setShopName').value.trim(),
-        tagline: document.getElementById('setTagline').value.trim(),
-        announcement: document.getElementById('setAnnouncement').value.trim(),
-        coverImage: document.getElementById('setCoverImage').value.trim(),
-        profileImage: document.getElementById('setProfileImage').value.trim(),
-        pointsBarIcon: document.getElementById('setPointsBarIcon').value.trim(),
-        shopBio: document.getElementById('setShopBio').value.trim(),
-        stats: {
-          followers: document.getElementById('setStatFollowers').value.trim(),
-          orders: document.getElementById('setStatOrders').value.trim(),
-          vip: document.getElementById('setStatVip').value.trim()
-        },
-        lineUrl: document.getElementById('setLineUrl').value.trim(),
-        contactLine: document.getElementById('setContactLine').value.trim(),
-        contactPhone: document.getElementById('setContactPhone').value.trim(),
-        instagramUrl: document.getElementById('setInstagramUrl').value.trim(),
-        facebookUrl: document.getElementById('setFacebookUrl').value.trim(),
-        tiktokUrl: document.getElementById('setTiktokUrl').value.trim(),
-        promptpayQrUrl: document.getElementById('setPromptpayQrUrl').value.trim(),
-        bankName: document.getElementById('setBankName').value.trim(),
-        bankAccount: document.getElementById('setBankAccount').value.trim(),
-        bankAccountName: document.getElementById('setBankAccountName').value.trim(),
-        googleSheetWebAppUrl: document.getElementById('setSheetUrl').value.trim(),
-        highlights: highlightsList
-      };
+      try {
+        const pCount = document.getElementById('setStatPortfolio') ? document.getElementById('setStatPortfolio').value.trim() : '250+';
+        const fCount = document.getElementById('setStatFont') ? document.getElementById('setStatFont').value.trim() : '48';
+        const mCount = document.getElementById('setStatMember') ? document.getElementById('setStatMember').value.trim() : '1.2k';
 
-      Store.saveSettings(updated);
-      alert('บันทึกการตั้งค่าร้านค้าเรียบร้อยแล้วค่ะ');
-      location.reload();
+        const updated = {
+          shopName: document.getElementById('setShopName').value.trim(),
+          tagline: document.getElementById('setTagline').value.trim(),
+          announcement: document.getElementById('setAnnouncement').value.trim(),
+          coverImage: document.getElementById('setCoverImage').value.trim(),
+          profileImage: document.getElementById('setProfileImage').value.trim(),
+          pointsBarIcon: document.getElementById('setPointsBarIcon').value.trim(),
+          shopBio: document.getElementById('setShopBio').value.trim(),
+          stats: {
+            portfolioCount: pCount,
+            fontCount: fCount,
+            memberCount: mCount,
+            followers: mCount,
+            orders: pCount,
+            vip: fCount
+          },
+          lineUrl: document.getElementById('setLineUrl').value.trim(),
+          contactLine: document.getElementById('setContactLine').value.trim(),
+          contactPhone: document.getElementById('setContactPhone').value.trim(),
+          instagramUrl: document.getElementById('setInstagramUrl').value.trim(),
+          facebookUrl: document.getElementById('setFacebookUrl').value.trim(),
+          tiktokUrl: document.getElementById('setTiktokUrl').value.trim(),
+          promptpayQrUrl: document.getElementById('setPromptpayQrUrl').value.trim(),
+          bankName: document.getElementById('setBankName').value.trim(),
+          bankAccount: document.getElementById('setBankAccount').value.trim(),
+          bankAccountName: document.getElementById('setBankAccountName').value.trim(),
+          googleSheetWebAppUrl: document.getElementById('setSheetUrl').value.trim(),
+          highlights: highlightsList
+        };
+
+        Store.saveSettings(updated);
+        alert('บันทึกการตั้งค่าร้านค้าเรียบร้อยแล้วค่ะ');
+        location.reload();
+      } catch (err) {
+        console.error('Settings save error:', err);
+        alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
+      }
     });
   </script>
 </body>

@@ -10,9 +10,9 @@ const Store = (function () {
   const defaultData = {
     settings: {
       shopName: 'BNC GraphMate Studio',
-      tagline: 'สตูดิโอป้าย ฟอนต์ลายมือ และกราฟิกสำเร็จรูป สไตล์บูติก',
+      tagline: 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล',
       logoText: 'BNC GraphMate',
-      themeColor: '#D96F9D',
+      themeColor: '#FF6B97',
       contactPhone: '081-234-5678',
       contactLine: '@bncgraphmate',
       lineUrl: 'https://line.me/ti/p/~bncgraphmate',
@@ -27,14 +27,14 @@ const Store = (function () {
       pointsPerHundredBaht: 10,
       announcement: 'ยินดีต้อนรับสู่ BNC GraphMate Studio อัปเดตผลงานและฟอนต์ใหม่ทุกสัปดาห์',
       coverImage: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600&auto=format&fit=crop&q=80',
-      profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+      profileImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80',
       shopBio: 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้\nตอบแชทไว ส่งงานเร็ว ไฟล์คมชัด 300 DPI ใช้งานเชิงพาณิชย์ได้',
       stats: {
         portfolioCount: '250+',
         fontCount: '48',
         memberCount: '1.2k'
       },
-      pointsBarIcon: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+      pointsBarIcon: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
       highlights: [
         { id: 'hl-1', title: 'รีวิวร้าน', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300&auto=format&fit=crop&q=80', link: 'pages/reviews.html' },
         { id: 'hl-2', title: 'ฟอนต์ใหม่', image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=300&auto=format&fit=crop&q=80', link: 'pages/fonts.html' },
@@ -366,6 +366,14 @@ const Store = (function () {
         }
         if (!merged.groups || merged.groups.length < 3) {
           merged.groups = defaultData.groups;
+        }
+        if (merged.settings) {
+          if (!merged.settings.profileImage || merged.settings.profileImage.includes('photo-1534528741775-53994a69daeb')) {
+            merged.settings.profileImage = defaultData.settings.profileImage;
+          }
+          if (!merged.settings.pointsBarIcon || merged.settings.pointsBarIcon.includes('photo-1534528741775-53994a69daeb')) {
+            merged.settings.pointsBarIcon = defaultData.settings.pointsBarIcon;
+          }
         }
         return merged;
       }

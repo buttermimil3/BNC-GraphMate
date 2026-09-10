@@ -356,21 +356,23 @@
 }
 
 /* ── Modals ───────────────────────────────────────────────── */
-.modal-overlay {
+.modal-overlay,
+.modal-backdrop {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(63, 52, 56, 0.45);
+  background: rgba(35, 20, 28, 0.6);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 99999;
   padding: 1.25rem;
 }
 
-.modal-overlay.is-active {
-  display: flex;
+.modal-overlay.is-active,
+.modal-backdrop.is-active {
+  display: flex !important;
 }
 
 .modal-box {
@@ -601,17 +603,17 @@
 /* ── Facebook Cover & Instagram Profile Header ────────────── */
 .fb-cover-banner {
   width: 100%;
-  height: 240px;
+  height: 220px;
   border-radius: var(--radius-xl);
   overflow: hidden;
   position: relative;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 4px 18px rgba(255, 107, 151, 0.08);
   background-color: var(--bg-surface);
 }
 
 @media (min-width: 768px) {
   .fb-cover-banner {
-    height: 320px;
+    height: 280px;
   }
 }
 
@@ -624,27 +626,27 @@
 
 .ig-profile-section {
   position: relative;
-  padding: 0 1.5rem 1.5rem;
-  margin-top: -50px;
+  padding: 0 1.25rem 1.5rem;
+  margin-top: -55px;
 }
 
 @media (min-width: 768px) {
   .ig-profile-section {
     margin-top: -65px;
-    padding: 0 2.5rem 2rem;
+    padding: 0 2rem 2rem;
   }
 }
 
 .ig-profile-header {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 768px) {
   .ig-profile-header {
     flex-direction: row;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: 2rem;
   }
 }
@@ -660,20 +662,27 @@
   border-radius: 50%;
   object-fit: cover;
   border: 4px solid #ffffff;
-  box-shadow: 0 4px 16px rgba(60, 30, 45, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   background-color: #ffffff;
   display: block;
 }
 
 @media (min-width: 768px) {
   .ig-avatar-img {
-    width: 135px;
-    height: 135px;
+    width: 130px;
+    height: 130px;
   }
 }
 
 .ig-info {
   flex-grow: 1;
+  padding-top: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .ig-info {
+    padding-top: 72px; /* Pushes shop title, stats, bio, and buttons completely below cover photo */
+  }
 }
 
 .ig-name-row {
@@ -701,20 +710,28 @@
 
 .ig-stats-row {
   display: flex;
-  gap: 1.5rem;
-  margin: 0.75rem 0 1rem;
+  gap: 0.75rem;
+  margin: 0.75rem 0 1.1rem;
+  flex-wrap: wrap;
 }
 
 .ig-stat-item {
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
+  background: var(--bg-surface);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .ig-stat-item strong {
   font-family: 'Prompt', sans-serif;
-  color: var(--text-main);
+  color: var(--pink-deep);
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
 }
 
 .ig-bio-text {
@@ -768,11 +785,12 @@
   height: 68px;
   border-radius: 50%;
   padding: 2.5px;
-  background: linear-gradient(135deg, var(--pink-soft), var(--pink-primary));
+  background: transparent;
+  border: 2px solid var(--pink-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(217, 111, 157, 0.2);
+  box-shadow: none;
 }
 
 .story-inner-img {

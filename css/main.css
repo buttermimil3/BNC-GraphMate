@@ -11,29 +11,29 @@
 :root {
   /* Surface colors */
   --bg-primary:    #FFFFFF;
-  --bg-secondary:  #FFF8FB;
-  --bg-subtle:     #FFF3F7;
-  --bg-surface:    #FDECF3;
-  --bg-accent-soft:#F9E2EC;
+  --bg-secondary:  #FFF7FA;   /* Fresh light pastel blush */
+  --bg-subtle:     #FFF0F5;   /* Sweet milky pink */
+  --bg-surface:    #FFEBF2;   /* Soft pastel card bg */
+  --bg-accent-soft:#FFDEEB;
 
-  /* Brand Pink Palette */
-  --pink-pastel:   #FDECF3;
-  --pink-soft:     #EFA6C1;
-  --pink-medium:   #E88FB1;
-  --pink-primary:  #D96F9D;   /* Main CTA / Button text */
-  --pink-dark:     #C45987;   /* Hover state */
-  --pink-deep:     #9E3F68;
+  /* Brand Pink Palette (Sweet, Bright, Fresh Pastel - NOT dirty or dark) */
+  --pink-pastel:   #FFF0F5;
+  --pink-soft:     #FFC4D6;   /* Strawberry milk */
+  --pink-medium:   #FFA3BE;   /* Sweet pastel pink */
+  --pink-primary:  #FF6B97;   /* Main button & highlight - vibrant sweet pastel pink */
+  --pink-dark:     #F05080;   /* Hover state */
+  --pink-deep:     #D6336C;   /* Deep berry pink for headings & contrast text */
 
   /* Typography / Text Palette */
-  --text-main:     #3F3438;   /* Warm charcoal */
-  --text-muted:    #8B7C82;   /* Soft mauve gray */
-  --text-light:    #B2A5AA;
+  --text-main:     #2D2427;   /* Crisp clean dark charcoal (no muddy brown) */
+  --text-muted:    #786A70;   /* Clean soft charcoal gray */
+  --text-light:    #B5A6AD;
   --text-white:    #FFFFFF;
 
   /* Borders & Dividers */
-  --border-subtle: #F6E6ED;
-  --border-light:  #F1DEE6;
-  --border-medium: #E5CAD5;
+  --border-subtle: #FEE5EE;
+  --border-light:  #FCD1DF;
+  --border-medium: #F8B4CA;
 
   /* Friendly Status Chips (Soft Pastels) */
   --status-pending-bg:   #FFFBEB;

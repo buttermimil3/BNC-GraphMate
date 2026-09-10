@@ -66,7 +66,7 @@
         </div>
         <div style="display: flex; gap: 0.5rem;">
           <button class="btn btn-outline btn-sm" onclick="CartUI.clear()" style="width: 35%;">ล้างตะกร้า</button>
-          <button class="btn btn-primary btn-sm btn-full" onclick="CartUI.openCheckout()">สั่งซื้อทั้งหมด ➔</button>
+          <button class="btn btn-primary btn-sm btn-full" onclick="CartUI.openCheckout()" style="font-weight: 600;">ชำระเงินทันที ➔</button>
         </div>
       </div>
     `;
@@ -165,31 +165,31 @@
   function createCheckoutModal() {
     checkoutModal = document.createElement('div');
     checkoutModal.id = 'cartCheckoutModal';
-    checkoutModal.className = 'modal-backdrop';
+    checkoutModal.className = 'modal-backdrop modal-overlay';
     checkoutModal.style.display = 'none';
     checkoutModal.innerHTML = `
       <div class="modal-box" style="max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 2rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.85rem;">
           <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
-            สั่งซื้อสินค้าในตะกร้า
+            ชำระเงิน & ยืนยันการสั่งซื้อ
           </h3>
-          <button onclick="CartUI.closeCheckout()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">✕</button>
+          <button onclick="CartUI.closeCheckout()" style="background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted); line-height: 1;">✕</button>
         </div>
 
         <!-- Order Summary -->
         <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
-          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">รายการสินค้าที่จะสั่งซื้อ:</div>
-          <div id="checkoutItemsSummary" style="font-size: 0.92rem; line-height: 1.5; color: var(--text-main); margin-bottom: 0.75rem;"></div>
-          <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed var(--border-light); padding-top: 0.5rem;">
+          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">รายการสินค้าในตะกร้า:</div>
+          <div id="checkoutItemsSummary" style="font-size: 0.92rem; line-height: 1.6; color: var(--text-main); margin-bottom: 0.75rem;"></div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed var(--border-light); padding-top: 0.65rem;">
             <span style="font-weight: 600; color: var(--text-main);">ยอดชำระทั้งหมด:</span>
-            <span id="checkoutGrandTotal" style="font-family: 'Prompt', sans-serif; font-size: 1.45rem; font-weight: 700; color: var(--pink-deep);">฿0</span>
+            <span id="checkoutGrandTotal" style="font-family: 'Prompt', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--pink-deep);">฿0</span>
           </div>
         </div>
 
         <!-- Payment Info -->
-        <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; text-align: center;">
-          <div style="font-weight: 600; color: var(--pink-deep); margin-bottom: 0.35rem;">สแกนโอนชำระเงินผ่าน QR Code</div>
-          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.85rem;" id="checkoutBankInfo"></div>
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; text-align: center;">
+          <div style="font-weight: 600; color: var(--pink-deep); margin-bottom: 0.35rem;">สแกนโอนชำระเงินผ่าน QR Code พร้อมเพย์</div>
+          <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.85rem;" id="checkoutBankInfo"></div>
           <img id="checkoutQrImg" src="" alt="QR Code พร้อมเพย์" style="max-width: 190px; height: auto; border-radius: var(--radius-md); border: 1px solid var(--border-light); background: #fff; padding: 0.5rem; margin: 0 auto; display: block;">
         </div>
 
@@ -201,19 +201,20 @@
           </div>
 
           <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">Gmail สำหรับรับสิทธิ์ไฟล์ Google Drive <span style="color: var(--pink-primary);">*</span></label>
+            <label class="form-label">Gmail สำหรับรับสิทธิ์ Google Drive <span style="color: var(--pink-primary);">*</span></label>
             <input type="email" id="chkCustGmail" class="form-input" placeholder="example@gmail.com" required>
-            <small style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">ระบบจะแชร์ไฟล์และดึงเมลล์นี้เข้า Google Drive ของคุณโดยอัตโนมัติ</small>
+            <small style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">ระบบจะแชร์และดึงเมลล์นี้เข้า Google Drive ของคุณโดยอัตโนมัติ</small>
           </div>
 
           <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">LINE ID สำหรับรับการแจ้งเตือน</label>
+            <label class="form-label">LINE ID สำหรับติดต่อและแจ้งเตือน</label>
             <input type="text" id="chkCustLine" class="form-input" placeholder="ไอดี LINE ของคุณ">
           </div>
 
           <div class="form-group" style="margin-bottom: 1.5rem;">
-            <label class="form-label">แนบสลิปการโอนเงิน <span style="color: var(--pink-primary);">*</span></label>
-            <input type="file" id="chkSlipInput" accept="image/*" class="form-input" required onchange="CartUI.previewSlip(event)">
+            <label class="form-label">แนบสลิปการโอนเงิน (ถ้ามี)</label>
+            <input type="file" id="chkSlipInput" accept="image/*" class="form-input" onchange="CartUI.previewSlip(event)">
+            <small style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">แนบสลิปที่นี่ หรือแจ้งโอนทาง LINE ร้านภายหลังได้ค่ะ</small>
             <div id="chkSlipPreviewBox" style="display: none; margin-top: 0.75rem; text-align: center;">
               <img id="chkSlipPreviewImg" src="" style="max-height: 180px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
             </div>
@@ -221,12 +222,18 @@
 
           <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
             <button type="button" class="btn btn-outline" onclick="CartUI.closeCheckout()">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary" id="btnSubmitMultiOrder">ยืนยันการโอนเงิน & ส่งออเดอร์ ➔</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitMultiOrder">ยืนยันการชำระเงิน & สั่งซื้อ ➔</button>
           </div>
         </form>
       </div>
     `;
     document.body.appendChild(checkoutModal);
+
+    checkoutModal.addEventListener('click', (e) => {
+      if (e.target === checkoutModal) {
+        CartUI.closeCheckout();
+      }
+    });
   }
 
   // Public API
@@ -281,7 +288,14 @@
     },
     openCheckout: function () {
       const cart = Store.getCart();
-      if (cart.length === 0) return;
+      if (cart.length === 0) {
+        alert('กรุณาเลือกสินค้าใส่ตะกร้าก่อนนะคะ');
+        return;
+      }
+
+      if (!checkoutModal) {
+        createCheckoutModal();
+      }
 
       const s = Store.getSettings();
       const summaryBox = document.getElementById('checkoutItemsSummary');
@@ -304,11 +318,13 @@
       }
 
       closeCartDrawer();
+      checkoutModal.classList.add('is-active');
       checkoutModal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
     },
     closeCheckout: function () {
       if (checkoutModal) {
+        checkoutModal.classList.remove('is-active');
         checkoutModal.style.display = 'none';
         document.body.style.overflow = '';
       }
@@ -324,38 +340,60 @@
       reader.readAsDataURL(file);
     },
     submitCheckout: function (e) {
-      e.preventDefault();
+      if (e) e.preventDefault();
       const cart = Store.getCart();
-      if (cart.length === 0) return;
+      if (cart.length === 0) {
+        alert('ไม่มีสินค้าในตะกร้าค่ะ');
+        return;
+      }
 
       const btn = document.getElementById('btnSubmitMultiOrder');
-      btn.disabled = true;
-      btn.textContent = 'กำลังบันทึกออเดอร์...';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'กำลังบันทึกออเดอร์...';
+      }
 
-      const slipImg = document.getElementById('chkSlipPreviewImg').src || '';
-      const custInfo = {
-        customer_name: document.getElementById('chkCustName').value.trim(),
-        gmail: document.getElementById('chkCustGmail').value.trim(),
-        line_id: document.getElementById('chkCustLine').value.trim()
-      };
+      try {
+        const previewImg = document.getElementById('chkSlipPreviewImg');
+        const slipImg = (previewImg && previewImg.src) ? previewImg.src : '';
+        const custNameEl = document.getElementById('chkCustName');
+        const custGmailEl = document.getElementById('chkCustGmail');
+        const custLineEl = document.getElementById('chkCustLine');
 
-      const payInfo = {
-        slip_image_url: slipImg
-      };
+        const custInfo = {
+          customer_name: (custNameEl && custNameEl.value.trim()) || 'ลูกค้าทั่วไป',
+          gmail: (custGmailEl && custGmailEl.value.trim()) || '',
+          line_id: (custLineEl && custLineEl.value.trim()) || ''
+        };
 
-      const result = Store.checkoutMultiItems(cart, custInfo, payInfo);
+        const payInfo = {
+          slip_image_url: slipImg
+        };
 
-      btn.disabled = false;
-      btn.textContent = 'ยืนยันการโอนเงิน & ส่งออเดอร์ ➔';
-      CartUI.closeCheckout();
+        const result = Store.checkoutMultiItems(cart, custInfo, payInfo);
 
-      alert(`สั่งซื้อสำเร็จเรียบร้อยค่ะ!\nหมายเลขออเดอร์ของคุณคือ #${result.order.order_number}\nแอดมินจะตรวจสอบสลิปและดำเนินการดึงสิทธิ์ให้โดยเร็วค่ะ`);
-      
-      // If user is in fonts page or products page, redirect or reload
-      if (window.location.pathname.includes('pages/')) {
-        window.location.href = 'orders.html';
-      } else {
-        window.location.href = 'pages/orders.html';
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'ยืนยันการชำระเงิน & สั่งซื้อ ➔';
+        }
+        CartUI.closeCheckout();
+
+        const orderNum = (result && result.order) ? result.order.order_number : '';
+        alert(`สั่งซื้อสำเร็จเรียบร้อยค่ะ!\nหมายเลขออเดอร์ของคุณคือ #${orderNum}\nแอดมินจะตรวจสอบสลิปและดำเนินการดึงสิทธิ์ให้โดยเร็วค่ะ`);
+        
+        // Redirect to orders page
+        if (window.location.pathname.includes('pages/')) {
+          window.location.href = 'orders.html';
+        } else {
+          window.location.href = 'pages/orders.html';
+        }
+      } catch (err) {
+        console.error('Checkout error:', err);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'ยืนยันการชำระเงิน & สั่งซื้อ ➔';
+        }
+        alert('เกิดข้อผิดพลาดในการบันทึกคำสั่งซื้อ: ' + err.message);
       }
     }
   };
