@@ -407,9 +407,12 @@
   border: 1px dashed var(--border-light);
 }
 
-.empty-state__emoji {
-  font-size: 2.8rem;
-  display: block;
+.empty-state__icon {
+  font-size: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pink-primary);
   margin-bottom: 0.75rem;
 }
 
@@ -424,4 +427,599 @@
 .empty-state__text {
   font-size: 0.92rem;
   color: var(--text-muted);
+}
+
+/* ── Shopping Cart Drawer ─────────────────────────────────── */
+.cart-floating-btn {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 990;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--pink-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 0.75rem 1.25rem;
+  font-family: 'Prompt', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(217, 111, 157, 0.35);
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.cart-floating-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(217, 111, 157, 0.45);
+  background-color: var(--pink-dark);
+}
+
+.cart-floating-btn.has-items {
+  animation: cartPulse 2.5s infinite;
+}
+
+@keyframes cartPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.cart-badge {
+  background-color: #ffffff;
+  color: var(--pink-deep);
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  padding: 0.15rem 0.5rem;
+  line-height: 1;
+}
+
+.cart-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(45, 30, 38, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 1001;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.cart-backdrop.is-open {
+  display: block;
+  opacity: 1;
+}
+
+.cart-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  max-width: 90vw;
+  background-color: var(--bg-primary);
+  box-shadow: -8px 0 30px rgba(50, 30, 40, 0.15);
+  z-index: 1002;
+  transform: translateX(100%);
+  transition: transform var(--transition-base);
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-drawer.is-open {
+  transform: translateX(0);
+}
+
+.cart-drawer__header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cart-drawer__close {
+  background: none;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.cart-drawer__close:hover {
+  background-color: var(--bg-surface);
+  color: var(--pink-deep);
+}
+
+.cart-drawer__body {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.cart-item__title {
+  font-family: 'Prompt', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0.15rem 0;
+}
+
+.cart-item__price {
+  font-family: 'Prompt', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--pink-deep);
+}
+
+.cart-item__remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-light);
+  padding: 0.35rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.cart-item__remove:hover {
+  color: #dc2626;
+  background-color: #fee2e2;
+}
+
+.cart-drawer__footer {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+  background-color: var(--bg-primary);
+}
+
+/* ── Facebook Cover & Instagram Profile Header ────────────── */
+.fb-cover-banner {
+  width: 100%;
+  height: 240px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow-card);
+  background-color: var(--bg-surface);
+}
+
+@media (min-width: 768px) {
+  .fb-cover-banner {
+    height: 320px;
+  }
+}
+
+.fb-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ig-profile-section {
+  position: relative;
+  padding: 0 1.5rem 1.5rem;
+  margin-top: -50px;
+}
+
+@media (min-width: 768px) {
+  .ig-profile-section {
+    margin-top: -65px;
+    padding: 0 2.5rem 2rem;
+  }
+}
+
+.ig-profile-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .ig-profile-header {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 2rem;
+  }
+}
+
+.ig-avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.ig-avatar-img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 16px rgba(60, 30, 45, 0.12);
+  background-color: #ffffff;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .ig-avatar-img {
+    width: 135px;
+    height: 135px;
+  }
+}
+
+.ig-info {
+  flex-grow: 1;
+}
+
+.ig-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.ig-shop-title {
+  font-family: 'Prompt', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.ig-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pink-primary);
+}
+
+.ig-stats-row {
+  display: flex;
+  gap: 1.5rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.ig-stat-item {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+.ig-stat-item strong {
+  font-family: 'Prompt', sans-serif;
+  color: var(--text-main);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.ig-bio-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  white-space: pre-line;
+  max-width: 680px;
+  margin-bottom: 1.25rem;
+}
+
+.ig-actions-row {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── Story Highlights Bar ─────────────────────────────────── */
+.story-highlights-bar {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding: 1.25rem 0.5rem 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.story-highlights-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.story-highlight-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  flex-shrink: 0;
+  width: 76px;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+
+.story-highlight-item:hover {
+  transform: translateY(-3px);
+}
+
+.story-ring {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  padding: 2.5px;
+  background: linear-gradient(135deg, var(--pink-soft), var(--pink-primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(217, 111, 157, 0.2);
+}
+
+.story-inner-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffffff;
+  background-color: var(--bg-surface);
+  display: block;
+}
+
+.story-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-main);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 72px;
+}
+
+/* ── Pink Checkbox & Multiply Dropdown ────────────────────── */
+.pink-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--pink-soft);
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  background-color: #ffffff;
+  transition: all var(--transition-fast);
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.pink-checkbox:checked {
+  background-color: var(--pink-primary);
+  border-color: var(--pink-primary);
+}
+
+.pink-checkbox:checked::before {
+  content: "";
+  width: 8px;
+  height: 5px;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.multiply-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.multiply-dropdown__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background-color: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.multiply-dropdown__menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.35rem;
+  background-color: #ffffff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 0.75rem;
+  min-width: 220px;
+  z-index: 100;
+}
+
+.multiply-dropdown__menu.is-open {
+  display: block;
+}
+
+.multiply-dropdown__item {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--text-main);
+}
+
+.multiply-dropdown__item:hover {
+  background-color: var(--bg-surface);
+}
+
+/* ── Font Slider with Live Scale Bubble ───────────────────── */
+.font-slider-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.slider-scale-bubble {
+  position: absolute;
+  top: -34px;
+  transform: translateX(-50%);
+  background-color: var(--pink-primary);
+  color: #ffffff;
+  font-family: 'Prompt', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(217, 111, 157, 0.3);
+  transition: opacity 0.15s;
+}
+
+.slider-scale-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px 4px 0;
+  border-style: solid;
+  border-color: var(--pink-primary) transparent transparent;
+}
+
+/* ── Cute Progress Bar with Tip Pin ───────────────────────── */
+.progress-bar-container {
+  width: 100%;
+  height: 18px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  position: relative;
+  margin: 1.5rem 0 1rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--pink-soft), var(--pink-primary));
+  border-radius: var(--radius-full);
+  position: relative;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.progress-bar-pin {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 2.5px solid var(--pink-primary);
+  box-shadow: 0 4px 10px rgba(217, 111, 157, 0.3);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.progress-bar-pin img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Portfolio Style Cards & Gallery Modal ─────────────────── */
+.portfolio-style-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-subtle);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+}
+
+.portfolio-style-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+
+.portfolio-cover-holder {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  background-color: var(--bg-secondary);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.portfolio-cover-holder img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.portfolio-cover-holder:hover img {
+  transform: scale(1.04);
+}
+
+.portfolio-price-tag {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  color: var(--pink-deep);
+  font-family: 'Prompt', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.portfolio-count-badge {
+  position: absolute;
+  bottom: 0.85rem;
+  right: 0.85rem;
+  background-color: rgba(40, 20, 30, 0.7);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
 }

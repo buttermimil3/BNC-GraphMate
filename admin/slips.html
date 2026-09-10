@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ตรวจสอบสลิปการโอนเงิน 🧳 | BNC Admin</title>
+  <title>ตรวจสอบสลิปการโอนเงิน  | BNC Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -45,50 +45,53 @@
     <aside class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-brand">
         <a href="index.html" class="sidebar-brand-title">
-          <span>🎨</span>
+          <span></span>
           <span>BNC Admin</span>
         </a>
       </div>
       <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link">
-          <span class="sidebar-icon">📊</span>
+          
           <span>แดชบอร์ด</span>
         </a>
         <a href="orders.html" class="sidebar-link">
-          <span class="sidebar-icon">📦</span>
+          
           <span>คำสั่งซื้อ</span>
         </a>
         <a href="slips.html" class="sidebar-link active">
-          <span class="sidebar-icon">🧳</span>
+          
           <span>ตรวจสอบสลิป</span>
         </a>
         <a href="groups.html" class="sidebar-link">
-          <span class="sidebar-icon">👥</span>
+          
           <span>จัดการกลุ่ม LINE</span>
         </a>
         <a href="products.html" class="sidebar-link">
-          <span class="sidebar-icon">🛍️</span>
+          
           <span>จัดการสินค้า</span>
         </a>
         <a href="fonts.html" class="sidebar-link">
-          <span class="sidebar-icon">🔤</span>
+          
           <span>จัดการฟอนต์</span>
         </a>
+        <a href="portfolio.html" class="sidebar-link">
+          <span>จัดการผลงาน</span>
+        </a>
         <a href="points.html" class="sidebar-link">
-          <span class="sidebar-icon">⭐</span>
+          
           <span>ระบบคะแนน</span>
         </a>
         <a href="reviews.html" class="sidebar-link">
-          <span class="sidebar-icon">❤️</span>
+          
           <span>รีวิวลูกค้า</span>
         </a>
         <a href="settings.html" class="sidebar-link">
-          <span class="sidebar-icon">⚙️</span>
+          
           <span>ตั้งค่าร้าน</span>
         </a>
       </nav>
       <div class="sidebar-footer">
-        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full"> ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
@@ -96,7 +99,7 @@
       <header class="admin-topbar">
         <div class="admin-topbar-left">
           <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
-            ตรวจสอบสลิปการโอนเงิน (Slip Verification) 🧳
+            ตรวจสอบสลิปการโอนเงิน (Slip Verification) 
           </h1>
         </div>
       </header>
@@ -143,7 +146,7 @@
       if (list.length === 0) {
         container.innerHTML = `
           <div class="empty-state" style="grid-column: 1/-1;">
-            <span class="empty-state__emoji">🎉</span>
+            <span class="empty-state__emoji"></span>
             <h3 class="empty-state__title">ไม่มีรายการสลิปในสถานะนี้</h3>
             <p class="empty-state__text">แอดมินจัดการสลิปเรียบร้อยหมดแล้วค่ะ</p>
           </div>
@@ -170,22 +173,22 @@
               </div>
               <h4 style="font-family: 'Prompt', sans-serif; margin: 0.35rem 0; font-size: 1rem; color: var(--text-main);">${itemName}</h4>
               <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-                👤 ${custName} | LINE: <code style="color: var(--pink-deep); background: var(--bg-surface); padding: 2px 6px; border-radius: 4px;">${lineId}</code>
+                 ${custName} | LINE: <code style="color: var(--pink-deep); background: var(--bg-surface); padding: 2px 6px; border-radius: 4px;">${lineId}</code>
               </p>
 
               <!-- QR Analysis Box -->
               <div style="background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 0.65rem 0.85rem; font-size: 0.82rem; margin-bottom: 1.25rem;">
-                <strong style="color: var(--text-main);">🔍 ข้อมูล QR สลิป:</strong><br>
+                <strong style="color: var(--text-main);"> ข้อมูล QR สลิป:</strong><br>
                 Ref: <code style="font-size: 0.8rem;">${pay.qr_trans_ref || 'MANUAL-CHECK'}</code>
               </div>
 
               <div style="margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
                 ${pay.verification_status === 'VERIFYING' ? `
-                  <button class="btn btn-success btn-sm" onclick="approveSlip('${pay.id}')">✅ ยืนยันยอด</button>
-                  <button class="btn btn-danger btn-sm" onclick="rejectSlip('${pay.id}')">❌ ปฏิเสธ</button>
+                  <button class="btn btn-success btn-sm" onclick="approveSlip('${pay.id}')"> ยืนยันยอด</button>
+                  <button class="btn btn-danger btn-sm" onclick="rejectSlip('${pay.id}')"> ปฏิเสธ</button>
                 ` : `
                   <div style="grid-column: 1/-1; text-align: center; font-weight: 600; font-size: 0.85rem; padding: 0.35rem 0; border-radius: var(--radius-sm); background: ${pay.verification_status === 'PAID' ? '#F0FDF4' : '#FFF1F2'}; color: ${pay.verification_status === 'PAID' ? '#166534' : '#9F1239'};">
-                    ${pay.verification_status === 'PAID' ? '✅ ยืนยันแล้ว' : '❌ ปฏิเสธสลิป'}
+                    ${pay.verification_status === 'PAID' ? ' ยืนยันแล้ว' : ' ปฏิเสธสลิป'}
                   </div>
                 `}
               </div>

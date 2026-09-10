@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>จัดการรีวิวลูกค้า ❤️ | BNC Admin</title>
+  <title>จัดการรีวิวลูกค้า  | BNC Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,50 +18,53 @@
     <aside class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-brand">
         <a href="index.html" class="sidebar-brand-title">
-          <span>🎨</span>
+          <span></span>
           <span>BNC Admin</span>
         </a>
       </div>
       <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link">
-          <span class="sidebar-icon">📊</span>
+          
           <span>แดชบอร์ด</span>
         </a>
         <a href="orders.html" class="sidebar-link">
-          <span class="sidebar-icon">📦</span>
+          
           <span>คำสั่งซื้อ</span>
         </a>
         <a href="slips.html" class="sidebar-link">
-          <span class="sidebar-icon">🧳</span>
+          
           <span>ตรวจสอบสลิป</span>
         </a>
         <a href="groups.html" class="sidebar-link">
-          <span class="sidebar-icon">👥</span>
+          
           <span>จัดการกลุ่ม LINE</span>
         </a>
         <a href="products.html" class="sidebar-link">
-          <span class="sidebar-icon">🛍️</span>
+          
           <span>จัดการสินค้า</span>
         </a>
         <a href="fonts.html" class="sidebar-link">
-          <span class="sidebar-icon">🔤</span>
+          
           <span>จัดการฟอนต์</span>
         </a>
+        <a href="portfolio.html" class="sidebar-link">
+          <span>จัดการผลงาน</span>
+        </a>
         <a href="points.html" class="sidebar-link">
-          <span class="sidebar-icon">⭐</span>
+          
           <span>ระบบคะแนน</span>
         </a>
         <a href="reviews.html" class="sidebar-link active">
-          <span class="sidebar-icon">❤️</span>
+          
           <span>รีวิวลูกค้า</span>
         </a>
         <a href="settings.html" class="sidebar-link">
-          <span class="sidebar-icon">⚙️</span>
+          
           <span>ตั้งค่าร้าน</span>
         </a>
       </nav>
       <div class="sidebar-footer">
-        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full"> ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
@@ -69,7 +72,7 @@
       <header class="admin-topbar">
         <div class="admin-topbar-left">
           <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
-            ตรวจสอบ & จัดการรีวิวลูกค้า ❤️
+            ตรวจสอบ & จัดการรีวิวลูกค้า 
           </h1>
         </div>
       </header>
@@ -90,7 +93,7 @@
       const container = document.getElementById('adminReviewsGrid');
 
       if (list.length === 0) {
-        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><p>ยังไม่มีรีวิวเข้ามาค่ะ 🌸</p></div>';
+        container.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><p>ยังไม่มีรีวิวเข้ามาค่ะ </p></div>';
         return;
       }
 
@@ -99,12 +102,12 @@
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
             <div>
               <span class="badge" style="background: ${r.status === 'APPROVED' ? '#F0FDF4' : r.status === 'PENDING' ? '#FFFBEB' : '#F4F4F5'}; color: ${r.status === 'APPROVED' ? '#166534' : r.status === 'PENDING' ? '#92400E' : '#52525B'}; font-weight: 600;">
-                ${r.status === 'APPROVED' ? '✅ อนุมัติแล้ว (แสดงหน้าร้าน)' : r.status === 'PENDING' ? '🕐 รออนุมัติ' : '🚫 ซ่อนไว้'}
+                ${r.status === 'APPROVED' ? ' อนุมัติแล้ว (แสดงหน้าร้าน)' : r.status === 'PENDING' ? ' รออนุมัติ' : ' ซ่อนไว้'}
               </span>
-              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; margin: 0.5rem 0 0.15rem; color: var(--text-main);">👤 ${r.customer_name}</h3>
+              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; margin: 0.5rem 0 0.15rem; color: var(--text-main);"> ${r.customer_name}</h3>
               <span style="font-size: 0.85rem; color: var(--pink-deep); font-weight: 500;">สินค้า: ${r.product_name}</span>
             </div>
-            <span style="color: #F59E0B; font-size: 1.15rem;">${'★'.repeat(r.rating || 5)}</span>
+            <span style="color: #F59E0B; font-size: 1.15rem;">${''.repeat(r.rating || 5)}</span>
           </div>
 
           <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0.5rem 0 1.25rem;">
@@ -113,11 +116,11 @@
 
           <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
             ${r.status !== 'APPROVED' ? `
-              <button class="btn btn-success btn-sm" onclick="setReviewStatus('${r.id}', 'APPROVED')">✅ อนุมัติแสดงผล</button>
+              <button class="btn btn-success btn-sm" onclick="setReviewStatus('${r.id}', 'APPROVED')"> อนุมัติแสดงผล</button>
             ` : `
-              <button class="btn btn-outline btn-sm" onclick="setReviewStatus('${r.id}', 'HIDDEN')">🚫 ซ่อนรีวิว</button>
+              <button class="btn btn-outline btn-sm" onclick="setReviewStatus('${r.id}', 'HIDDEN')"> ซ่อนรีวิว</button>
             `}
-            <button class="btn btn-danger btn-sm" onclick="deleteReviewItem('${r.id}')">🗑️ ลบ</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteReviewItem('${r.id}')"> ลบ</button>
           </div>
         </div>
       `).join('');

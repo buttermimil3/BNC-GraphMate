@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ตั้งค่าระบบร้านค้า ⚙️ | BNC Admin</title>
+  <title>ตั้งค่าระบบร้านค้า | BNC Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,50 +18,43 @@
     <aside class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-brand">
         <a href="index.html" class="sidebar-brand-title">
-          <span>🎨</span>
           <span>BNC Admin</span>
         </a>
       </div>
       <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link">
-          <span class="sidebar-icon">📊</span>
           <span>แดชบอร์ด</span>
         </a>
         <a href="orders.html" class="sidebar-link">
-          <span class="sidebar-icon">📦</span>
           <span>คำสั่งซื้อ</span>
         </a>
         <a href="slips.html" class="sidebar-link">
-          <span class="sidebar-icon">🧳</span>
           <span>ตรวจสอบสลิป</span>
         </a>
         <a href="groups.html" class="sidebar-link">
-          <span class="sidebar-icon">👥</span>
           <span>จัดการกลุ่ม LINE</span>
         </a>
         <a href="products.html" class="sidebar-link">
-          <span class="sidebar-icon">🛍️</span>
           <span>จัดการสินค้า</span>
         </a>
         <a href="fonts.html" class="sidebar-link">
-          <span class="sidebar-icon">🔤</span>
           <span>จัดการฟอนต์</span>
         </a>
+        <a href="portfolio.html" class="sidebar-link">
+          <span>จัดการผลงาน</span>
+        </a>
         <a href="points.html" class="sidebar-link">
-          <span class="sidebar-icon">⭐</span>
           <span>ระบบคะแนน</span>
         </a>
         <a href="reviews.html" class="sidebar-link">
-          <span class="sidebar-icon">❤️</span>
           <span>รีวิวลูกค้า</span>
         </a>
         <a href="settings.html" class="sidebar-link active">
-          <span class="sidebar-icon">⚙️</span>
           <span>ตั้งค่าร้าน</span>
         </a>
       </nav>
       <div class="sidebar-footer">
-        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full">ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
@@ -69,59 +62,132 @@
       <header class="admin-topbar">
         <div class="admin-topbar-left">
           <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
-            ตั้งค่าข้อมูลร้านค้า & การเชื่อมต่อ ⚙️
+            ตั้งค่าข้อมูลร้านค้า & หน้าแรก & การเชื่อมต่อ
           </h1>
         </div>
       </header>
 
-      <div style="padding: 2rem 1.75rem; max-width: 800px;">
+      <div style="padding: 2rem 1.75rem; max-width: 860px;">
         <form id="settingsForm">
 
-          <!-- Section 1: ข้อมูลร้าน -->
-          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
+          <!-- Section 1: หน้าโปรไฟล์ร้าน (Cover / Profile / Bio) -->
+          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: #ffffff;">
             <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--pink-deep); margin-bottom: 1.25rem;">
-              🏠 ข้อมูลร้านค้า
+              รูปภาพหน้าปก & โปรไฟล์ & Bio ร้านค้า
             </h3>
+            
             <div class="form-group">
-              <label class="form-label">ชื่อร้าน</label>
-              <input type="text" id="setShopName" class="form-input" required>
+              <label class="form-label">ลิงก์ภาพหน้าปก (Facebook-style Cover Photo)</label>
+              <input type="url" id="setCoverImage" class="form-input" placeholder="https://images.unsplash.com/photo-...">
+              <small style="color: var(--text-muted);">*แนะนำภาพแนวนอน อัตราส่วนประมาณ 16:6</small>
             </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ทรงกลม)</label>
+                <input type="url" id="setProfileImage" class="form-input" placeholder="https://images.unsplash.com/photo-...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ไอคอนหัวหมุดแถบสะสมแต้ม (Points Pin)</label>
+                <input type="url" id="setPointsBarIcon" class="form-input" placeholder="https://images.unsplash.com/photo-...">
+              </div>
+            </div>
+
             <div class="form-group">
-              <label class="form-label">คำโปรยร้าน (Tagline)</label>
-              <input type="text" id="setTagline" class="form-input">
+              <label class="form-label">คำแนะนำร้าน/ประวัติสั้น (Bio)</label>
+              <textarea id="setShopBio" class="form-input" rows="4" placeholder="กรอก Bio สไตล์ Instagram เช่น สตูดิโอป้ายไวนิลน่ารัก..."></textarea>
             </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="form-group">
+                <label class="form-label">ตัวเลขสถิติ: ผู้ติดตาม</label>
+                <input type="text" id="setStatFollowers" class="form-input" placeholder="12.5k">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ตัวเลขสถิติ: ออเดอร์สำเร็จ</label>
+                <input type="text" id="setStatOrders" class="form-input" placeholder="3,480+">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ตัวเลขสถิติ: สมาชิก VIP</label>
+                <input type="text" id="setStatVip" class="form-input" placeholder="850+">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Story Highlights Bar Manager -->
+          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: #ffffff;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--pink-deep); margin: 0;">
+                จัดการ Story Highlights วงกลม (ไม่จำกัดจำนวน)
+              </h3>
+              <button type="button" class="btn btn-outline btn-sm" onclick="addHighlightRow()">+ เพิ่มสตอรี่ใหม่</button>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1rem;">
+              แถบวงกลมแสดงไฮไลต์ใต้โปรไฟล์หน้าร้าน สามารถใส่ชื่อ ลิงก์รูปภาพ และปลายทางเมื่อคลิกได้ไม่จำกัด
+            </p>
+
+            <div id="highlightsContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
+              <!-- Dynamic rows -->
+            </div>
+          </div>
+
+          <!-- Section 3: ข้อมูลร้าน & โซเชียลมีเดีย -->
+          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: #ffffff;">
+            <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--pink-deep); margin-bottom: 1.25rem;">
+              ข้อมูลร้าน & ช่องทางติดต่อ Social Links
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">ชื่อร้าน</label>
+                <input type="text" id="setShopName" class="form-input" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">คำโปรยร้าน (Tagline)</label>
+                <input type="text" id="setTagline" class="form-input">
+              </div>
+            </div>
+
             <div class="form-group">
               <label class="form-label">ข้อความประกาศแถบด้านบน (Announcement Bar)</label>
               <input type="text" id="setAnnouncement" class="form-input">
             </div>
-          </div>
 
-          <!-- Section 2: ข้อมูลติดต่อ & LINE -->
-          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
-            <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--pink-deep); margin-bottom: 1.25rem;">
-              💬 ข้อมูลติดต่อ & LINE ร้านค้า
-            </h3>
-            <div class="form-group">
-              <label class="form-label">ลิงก์ LINE ร้าน (ใช้สำหรับปุ่ม "ทัก LINE ร้าน")</label>
-              <input type="url" id="setLineUrl" class="form-input" placeholder="https://line.me/ti/p/~yourid" required>
-              <small style="color: var(--text-muted);">*ใส่ลิงก์ LINE ส่วนตัว หรือ LINE OA ของร้านได้เลยค่ะ</small>
-            </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="form-group">
+                <label class="form-label">ลิงก์ LINE ร้าน</label>
+                <input type="url" id="setLineUrl" class="form-input" placeholder="https://line.me/ti/p/~yourid" required>
+              </div>
               <div class="form-group">
                 <label class="form-label">LINE ID สำหรับแสดงผล</label>
                 <input type="text" id="setContactLine" class="form-input" placeholder="@bncgraphmate">
               </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div class="form-group">
-                <label class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
-                <input type="text" id="setContactPhone" class="form-input" placeholder="081-234-5678">
+                <label class="form-label">Instagram Link</label>
+                <input type="url" id="setInstagramUrl" class="form-input" placeholder="https://instagram.com/...">
               </div>
+              <div class="form-group">
+                <label class="form-label">Facebook Link</label>
+                <input type="url" id="setFacebookUrl" class="form-input" placeholder="https://facebook.com/...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">TikTok Link</label>
+                <input type="url" id="setTiktokUrl" class="form-input" placeholder="https://tiktok.com/@...">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
+              <input type="text" id="setContactPhone" class="form-input" placeholder="081-234-5678">
             </div>
           </div>
 
-          <!-- Section 3: การชำระเงิน -->
-          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
+          <!-- Section 4: การชำระเงิน -->
+          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: #ffffff;">
             <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: var(--pink-deep); margin-bottom: 1.25rem;">
-              💳 ข้อมูลบัญชีธนาคาร & QR ชำระเงิน
+              ข้อมูลบัญชีธนาคาร & QR ชำระเงิน
             </h3>
             <div class="form-group">
               <label class="form-label">ลิงก์ภาพ QR Code ชำระเงิน (PromptPay)</label>
@@ -143,10 +209,9 @@
             </div>
           </div>
 
-          <!-- Section 4: ฐานข้อมูล Google Sheet ฟรี 100% -->
-          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid #10B981; border-radius: var(--radius-lg); background: var(--bg-primary);">
+          <!-- Section 5: ฐานข้อมูล Google Sheet ฟรี 100% -->
+          <div class="card card--flat" style="padding: 1.75rem; margin-bottom: 1.75rem; border: 1px solid #10B981; border-radius: var(--radius-lg); background: #ffffff;">
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-              <span style="font-size: 1.4rem;">📊</span>
               <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.15rem; font-weight: 600; color: #166534; margin: 0;">
                 เชื่อมต่อ Google Sheets Database (ฟรี 100%)
               </h3>
@@ -161,7 +226,7 @@
           </div>
 
           <div style="text-align: right; margin-bottom: 3rem;">
-            <button type="submit" class="btn btn-primary btn-lg">💾 บันทึกการตั้งค่าทั้งหมด ➔</button>
+            <button type="submit" class="btn btn-primary btn-lg">บันทึกการตั้งค่าทั้งหมด</button>
           </div>
 
         </form>
@@ -172,21 +237,77 @@
   <script src="../js/store.js"></script>
   <script src="../js/admin-nav.js"></script>
   <script>
+    let highlightsList = [];
+
     document.addEventListener('DOMContentLoaded', () => {
       const s = Store.getSettings();
       if (!s) return;
       document.getElementById('setShopName').value = s.shopName || '';
       document.getElementById('setTagline').value = s.tagline || '';
       document.getElementById('setAnnouncement').value = s.announcement || '';
+      document.getElementById('setCoverImage').value = s.coverImage || '';
+      document.getElementById('setProfileImage').value = s.profileImage || '';
+      document.getElementById('setPointsBarIcon').value = s.pointsBarIcon || '';
+      document.getElementById('setShopBio').value = s.shopBio || '';
+      
+      const stats = s.stats || {};
+      document.getElementById('setStatFollowers').value = stats.followers || '';
+      document.getElementById('setStatOrders').value = stats.orders || '';
+      document.getElementById('setStatVip').value = stats.vip || '';
+
       document.getElementById('setLineUrl').value = s.lineUrl || '';
       document.getElementById('setContactLine').value = s.contactLine || '';
       document.getElementById('setContactPhone').value = s.contactPhone || '';
+      document.getElementById('setInstagramUrl').value = s.instagramUrl || '';
+      document.getElementById('setFacebookUrl').value = s.facebookUrl || '';
+      document.getElementById('setTiktokUrl').value = s.tiktokUrl || '';
+
       document.getElementById('setPromptpayQrUrl').value = s.promptpayQrUrl || '';
       document.getElementById('setBankName').value = s.bankName || '';
       document.getElementById('setBankAccount').value = s.bankAccount || '';
       document.getElementById('setBankAccountName').value = s.bankAccountName || '';
       document.getElementById('setSheetUrl').value = s.googleSheetWebAppUrl || '';
+
+      highlightsList = (s.highlights && Array.isArray(s.highlights)) ? [...s.highlights] : [];
+      renderHighlights();
     });
+
+    function renderHighlights() {
+      const container = document.getElementById('highlightsContainer');
+      if (highlightsList.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.88rem;">ยังไม่มีรายการสตอรี่ (กดปุ่ม + เพิ่มสตอรี่ใหม่)</p>';
+        return;
+      }
+
+      container.innerHTML = highlightsList.map((h, idx) => {
+        return '<div style="display: grid; grid-template-columns: 140px 1fr 1fr 40px; gap: 0.5rem; align-items: center; background: var(--bg-secondary); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm);">' +
+          '<input type="text" class="form-input" placeholder="ชื่อสตอรี่" value="' + (h.title || '') + '" oninput="updateHighlight(' + idx + ', \'title\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
+          '<input type="url" class="form-input" placeholder="ลิงก์รูปภาพ" value="' + (h.img || '') + '" oninput="updateHighlight(' + idx + ', \'img\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
+          '<input type="text" class="form-input" placeholder="ปลายทาง (เช่น pages/fonts.html)" value="' + (h.link || '') + '" oninput="updateHighlight(' + idx + ', \'link\', this.value)" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">' +
+          '<button type="button" class="btn btn-outline btn-sm" onclick="removeHighlight(' + idx + ')" style="padding: 0.3rem 0.5rem; color: var(--status-error-text); border-color: var(--status-error-border);">×</button>' +
+        '</div>';
+      }).join('');
+    }
+
+    window.addHighlightRow = function() {
+      highlightsList.push({
+        title: 'ไฮไลต์ใหม่',
+        img: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=200',
+        link: 'pages/portfolio.html'
+      });
+      renderHighlights();
+    };
+
+    window.updateHighlight = function(index, key, val) {
+      if (highlightsList[index]) {
+        highlightsList[index][key] = val;
+      }
+    };
+
+    window.removeHighlight = function(index) {
+      highlightsList.splice(index, 1);
+      renderHighlights();
+    };
 
     document.getElementById('settingsForm').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -194,18 +315,31 @@
         shopName: document.getElementById('setShopName').value.trim(),
         tagline: document.getElementById('setTagline').value.trim(),
         announcement: document.getElementById('setAnnouncement').value.trim(),
+        coverImage: document.getElementById('setCoverImage').value.trim(),
+        profileImage: document.getElementById('setProfileImage').value.trim(),
+        pointsBarIcon: document.getElementById('setPointsBarIcon').value.trim(),
+        shopBio: document.getElementById('setShopBio').value.trim(),
+        stats: {
+          followers: document.getElementById('setStatFollowers').value.trim(),
+          orders: document.getElementById('setStatOrders').value.trim(),
+          vip: document.getElementById('setStatVip').value.trim()
+        },
         lineUrl: document.getElementById('setLineUrl').value.trim(),
         contactLine: document.getElementById('setContactLine').value.trim(),
         contactPhone: document.getElementById('setContactPhone').value.trim(),
+        instagramUrl: document.getElementById('setInstagramUrl').value.trim(),
+        facebookUrl: document.getElementById('setFacebookUrl').value.trim(),
+        tiktokUrl: document.getElementById('setTiktokUrl').value.trim(),
         promptpayQrUrl: document.getElementById('setPromptpayQrUrl').value.trim(),
         bankName: document.getElementById('setBankName').value.trim(),
         bankAccount: document.getElementById('setBankAccount').value.trim(),
         bankAccountName: document.getElementById('setBankAccountName').value.trim(),
-        googleSheetWebAppUrl: document.getElementById('setSheetUrl').value.trim()
+        googleSheetWebAppUrl: document.getElementById('setSheetUrl').value.trim(),
+        highlights: highlightsList
       };
 
       Store.saveSettings(updated);
-      alert('บันทึกการตั้งค่าเรียบร้อยแล้วค่ะ 🌸');
+      alert('บันทึกการตั้งค่าร้านค้าเรียบร้อยแล้วค่ะ');
       location.reload();
     });
   </script>

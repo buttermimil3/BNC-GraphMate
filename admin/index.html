@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard 📊 | BNC GraphMate</title>
+  <title>Admin Dashboard  | BNC GraphMate</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,50 +18,53 @@
     <aside class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-brand">
         <a href="index.html" class="sidebar-brand-title">
-          <span>🎨</span>
+          <span></span>
           <span>BNC Admin</span>
         </a>
       </div>
       <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link active">
-          <span class="sidebar-icon">📊</span>
+          
           <span>แดชบอร์ด</span>
         </a>
         <a href="orders.html" class="sidebar-link">
-          <span class="sidebar-icon">📦</span>
+          
           <span>คำสั่งซื้อ</span>
         </a>
         <a href="slips.html" class="sidebar-link">
-          <span class="sidebar-icon">🧳</span>
+          
           <span>ตรวจสอบสลิป</span>
         </a>
         <a href="groups.html" class="sidebar-link">
-          <span class="sidebar-icon">👥</span>
+          
           <span>จัดการกลุ่ม LINE</span>
         </a>
         <a href="products.html" class="sidebar-link">
-          <span class="sidebar-icon">🛍️</span>
+          
           <span>จัดการสินค้า</span>
         </a>
         <a href="fonts.html" class="sidebar-link">
-          <span class="sidebar-icon">🔤</span>
+          
           <span>จัดการฟอนต์</span>
         </a>
+        <a href="portfolio.html" class="sidebar-link">
+          <span>จัดการผลงาน</span>
+        </a>
         <a href="points.html" class="sidebar-link">
-          <span class="sidebar-icon">⭐</span>
+          
           <span>ระบบคะแนน</span>
         </a>
         <a href="reviews.html" class="sidebar-link">
-          <span class="sidebar-icon">❤️</span>
+          
           <span>รีวิวลูกค้า</span>
         </a>
         <a href="settings.html" class="sidebar-link">
-          <span class="sidebar-icon">⚙️</span>
+          
           <span>ตั้งค่าร้าน</span>
         </a>
       </nav>
       <div class="sidebar-footer">
-        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full"> ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
@@ -71,12 +74,12 @@
       <header class="admin-topbar">
         <div class="admin-topbar-left">
           <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
-            ภาพรวมร้านค้า (Dashboard) 📊
+            ภาพรวมร้านค้า (Dashboard) 
           </h1>
         </div>
         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
           <button class="btn btn-outline btn-sm" id="btnSyncCloud" onclick="manualSyncCloud()" style="background: var(--bg-surface); border-color: var(--pink-soft); color: var(--pink-deep); font-size: 0.85rem;">
-            🔄 ซิงก์ข้อมูล Google Sheet
+             ซิงก์ข้อมูล Google Sheet
           </button>
           <span class="badge badge--primary">Admin Studio</span>
         </div>
@@ -88,16 +91,16 @@
           <div class="stat-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
               <span class="stat-card__label">ยอดขายรวม</span>
-              <span>💰</span>
+              <span></span>
             </div>
             <div id="statTotalRevenue" class="stat-card__value" style="color: var(--pink-deep);">฿0</div>
-            <span style="font-size: 0.8rem; color: #166534; font-weight: 500;">✓ คำสั่งซื้อที่ชำระแล้ว</span>
+            <span style="font-size: 0.8rem; color: #166534; font-weight: 500;"> คำสั่งซื้อที่ชำระแล้ว</span>
           </div>
 
           <div class="stat-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
               <span class="stat-card__label">ออเดอร์ทั้งหมด</span>
-              <span>📦</span>
+              <span></span>
             </div>
             <div id="statTotalOrders" class="stat-card__value" style="color: var(--text-main);">0</div>
             <span style="font-size: 0.8rem; color: var(--text-muted);">รายการคำสั่งซื้อ</span>
@@ -106,16 +109,16 @@
           <div class="stat-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
               <span class="stat-card__label">สลิปรอตรวจสอบ</span>
-              <span>🧳</span>
+              <span></span>
             </div>
             <div id="statPendingSlips" class="stat-card__value" style="color: #B45309;">0</div>
-            <a href="slips.html" style="font-size: 0.8rem; color: #B45309; text-decoration: underline; font-weight: 500;">ไปหน้าตรวจสลิป ➔</a>
+            <a href="slips.html" style="font-size: 0.8rem; color: #B45309; text-decoration: underline; font-weight: 500;">ไปหน้าตรวจสลิป </a>
           </div>
 
           <div class="stat-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
               <span class="stat-card__label">สมาชิกทั้งหมด</span>
-              <span>👤</span>
+              <span></span>
             </div>
             <div id="statTotalCustomers" class="stat-card__value" style="color: var(--text-main);">0</div>
             <span style="font-size: 0.8rem; color: var(--text-muted);">ลูกค้าในระบบ</span>
@@ -125,15 +128,15 @@
         <!-- Quick Actions -->
         <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 2rem;">
           <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
-            ⚡ ทางลัดจัดการด่วน (Quick Actions)
+             ทางลัดจัดการด่วน (Quick Actions)
           </h3>
           <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-            <a href="slips.html" class="btn btn-primary btn-sm">🧳 ตรวจสลิปโอนเงิน</a>
-            <a href="groups.html?tab=pending" class="btn btn-secondary btn-sm">👥 รอดึงเข้ากลุ่ม LINE</a>
-            <a href="fonts.html?tab=pending" class="btn btn-secondary btn-sm">🔤 รอดึงเมลล์ฟอนต์</a>
-            <a href="products.html?action=new" class="btn btn-outline btn-sm">➕ เพิ่มสินค้าสำเร็จ</a>
-            <a href="fonts.html?action=new" class="btn btn-outline btn-sm">➕ เพิ่มฟอนต์</a>
-            <a href="groups.html?action=new" class="btn btn-outline btn-sm">➕ เพิ่มกลุ่ม LINE</a>
+            <a href="slips.html" class="btn btn-primary btn-sm"> ตรวจสลิปโอนเงิน</a>
+            <a href="groups.html?tab=pending" class="btn btn-secondary btn-sm"> รอดึงเข้ากลุ่ม LINE</a>
+            <a href="fonts.html?tab=pending" class="btn btn-secondary btn-sm"> รอดึงเมลล์ฟอนต์</a>
+            <a href="products.html?action=new" class="btn btn-outline btn-sm"> เพิ่มสินค้าสำเร็จ</a>
+            <a href="fonts.html?action=new" class="btn btn-outline btn-sm"> เพิ่มฟอนต์</a>
+            <a href="groups.html?action=new" class="btn btn-outline btn-sm"> เพิ่มกลุ่ม LINE</a>
           </div>
         </div>
 
@@ -144,9 +147,9 @@
           <div class="card card--flat" style="padding: 1.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
               <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin: 0;">
-                👥 ลูกค้ารอดึงเข้ากลุ่ม LINE
+                 ลูกค้ารอดึงเข้ากลุ่ม LINE
               </h3>
-              <a href="groups.html" style="font-size: 0.85rem; color: var(--pink-deep); font-weight: 500;">ดูทั้งหมด ➔</a>
+              <a href="groups.html" style="font-size: 0.85rem; color: var(--pink-deep); font-weight: 500;">ดูทั้งหมด </a>
             </div>
             <div id="dashPendingGroups">
               <!-- Render dynamically -->
@@ -157,9 +160,9 @@
           <div class="card card--flat" style="padding: 1.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
               <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin: 0;">
-                🔤 รอดึงเมลล์ (ฟอนต์/สินค้า Manual)
+                 รอดึงเมลล์ (ฟอนต์/สินค้า Manual)
               </h3>
-              <a href="fonts.html" style="font-size: 0.85rem; color: var(--pink-deep); font-weight: 500;">ดูทั้งหมด ➔</a>
+              <a href="fonts.html" style="font-size: 0.85rem; color: var(--pink-deep); font-weight: 500;">ดูทั้งหมด </a>
             </div>
             <div id="dashPendingMails">
               <!-- Render dynamically -->
@@ -196,7 +199,7 @@
       const pendingGroupList = groupAccess.filter(g => g.status === 'PENDING').slice(0, 5);
       const pgBox = document.getElementById('dashPendingGroups');
       if (pendingGroupList.length === 0) {
-        pgBox.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1.5rem 0;">ไม่มีรายการรอดึงเข้ากลุ่ม 🎉</p>';
+        pgBox.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1.5rem 0;">ไม่มีรายการรอดึงเข้ากลุ่ม </p>';
       } else {
         pgBox.innerHTML = pendingGroupList.map(item => `
           <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
@@ -213,7 +216,7 @@
       const pendingMailList = driveAccess.filter(d => d.status === 'WAITING_ADMIN').slice(0, 5);
       const pmBox = document.getElementById('dashPendingMails');
       if (pendingMailList.length === 0) {
-        pmBox.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1.5rem 0;">ไม่มีรายการรอดึงเมลล์ 🎉</p>';
+        pmBox.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1.5rem 0;">ไม่มีรายการรอดึงเมลล์ </p>';
       } else {
         pmBox.innerHTML = pendingMailList.map(item => `
           <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
@@ -244,7 +247,7 @@
       await Store.syncFromCloud(() => {
         location.reload();
       });
-      btn.textContent = '🔄 ซิงก์ข้อมูล Google Sheet';
+      btn.textContent = ' ซิงก์ข้อมูล Google Sheet';
       btn.disabled = false;
     };
 

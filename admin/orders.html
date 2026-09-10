@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>จัดการคำสั่งซื้อ 📦 | BNC Admin</title>
+  <title>จัดการคำสั่งซื้อ  | BNC Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,50 +18,53 @@
     <aside class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-brand">
         <a href="index.html" class="sidebar-brand-title">
-          <span>🎨</span>
+          <span></span>
           <span>BNC Admin</span>
         </a>
       </div>
       <nav class="sidebar-nav">
         <a href="index.html" class="sidebar-link">
-          <span class="sidebar-icon">📊</span>
+          
           <span>แดชบอร์ด</span>
         </a>
         <a href="orders.html" class="sidebar-link active">
-          <span class="sidebar-icon">📦</span>
+          
           <span>คำสั่งซื้อ</span>
         </a>
         <a href="slips.html" class="sidebar-link">
-          <span class="sidebar-icon">🧳</span>
+          
           <span>ตรวจสอบสลิป</span>
         </a>
         <a href="groups.html" class="sidebar-link">
-          <span class="sidebar-icon">👥</span>
+          
           <span>จัดการกลุ่ม LINE</span>
         </a>
         <a href="products.html" class="sidebar-link">
-          <span class="sidebar-icon">🛍️</span>
+          
           <span>จัดการสินค้า</span>
         </a>
         <a href="fonts.html" class="sidebar-link">
-          <span class="sidebar-icon">🔤</span>
+          
           <span>จัดการฟอนต์</span>
         </a>
+        <a href="portfolio.html" class="sidebar-link">
+          <span>จัดการผลงาน</span>
+        </a>
         <a href="points.html" class="sidebar-link">
-          <span class="sidebar-icon">⭐</span>
+          
           <span>ระบบคะแนน</span>
         </a>
         <a href="reviews.html" class="sidebar-link">
-          <span class="sidebar-icon">❤️</span>
+          
           <span>รีวิวลูกค้า</span>
         </a>
         <a href="settings.html" class="sidebar-link">
-          <span class="sidebar-icon">⚙️</span>
+          
           <span>ตั้งค่าร้าน</span>
         </a>
       </nav>
       <div class="sidebar-footer">
-        <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
+        <a href="../index.html" class="btn btn-outline btn-sm btn-full"> ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
@@ -69,7 +72,7 @@
       <header class="admin-topbar">
         <div class="admin-topbar-left">
           <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
-            รายการคำสั่งซื้อทั้งหมด (Orders) 📦
+            รายการคำสั่งซื้อทั้งหมด (Orders) 
           </h1>
         </div>
       </header>
@@ -156,11 +159,11 @@
           </td>
           <td style="padding: 0.85rem;">
             <span class="badge" style="background: ${o.status === 'PAID' ? '#F0FDF4' : o.status === 'VERIFYING' ? '#FFFBEB' : '#FFF1F2'}; color: ${o.status === 'PAID' ? '#166534' : o.status === 'VERIFYING' ? '#92400E' : '#9F1239'}; font-weight: 600;">
-              ${o.status === 'PAID' ? '✅ ชำระแล้ว' : o.status === 'VERIFYING' ? '🕐 รอตรวจสลิป' : '❌ ปฏิเสธ'}
+              ${o.status === 'PAID' ? ' ชำระแล้ว' : o.status === 'VERIFYING' ? ' รอตรวจสลิป' : ' ปฏิเสธ'}
             </span>
           </td>
           <td style="padding: 0.85rem;">
-            <a href="slips.html" class="btn btn-outline btn-sm">ดูสลิป ➔</a>
+            <a href="slips.html" class="btn btn-outline btn-sm">ดูสลิป </a>
           </td>
         </tr>
       `).join('');

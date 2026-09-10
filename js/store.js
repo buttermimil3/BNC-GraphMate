@@ -9,20 +9,40 @@ const Store = (function () {
   // ข้อมูลเริ่มต้นสำหรับระบบเมื่อเปิดใช้งานครั้งแรก
   const defaultData = {
     settings: {
-      shopName: 'BNC GraphMate ร้านป้าย & กราฟิก',
-      tagline: 'ป้ายสวย ฟอนต์น่ารัก กราฟิกสำเร็จรูป สไตล์น่ารักขี้เล่น',
-      logoText: '🎨 BNC GraphMate',
-      themeColor: '#FF2D8A',
+      shopName: 'BNC GraphMate Studio',
+      tagline: 'สตูดิโอป้าย ฟอนต์ลายมือ และกราฟิกสำเร็จรูป สไตล์บูติก',
+      logoText: 'BNC GraphMate',
+      themeColor: '#D96F9D',
       contactPhone: '081-234-5678',
       contactLine: '@bncgraphmate',
       lineUrl: 'https://line.me/ti/p/~bncgraphmate',
+      instagramUrl: 'https://instagram.com/bncgraphmate',
+      facebookUrl: 'https://facebook.com/bncgraphmate',
+      tiktokUrl: 'https://tiktok.com/@bncgraphmate',
       bankName: 'ธนาคารกสิกรไทย (KBank)',
       bankAccount: '123-4-56789-0',
       bankAccountName: 'ร้าน บีเอ็นซี กราฟเมท',
       promptpayQrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678',
-      googleSheetWebAppUrl: '', // URL จาก Google Apps Script Web App
+      googleSheetWebAppUrl: '',
       pointsPerHundredBaht: 10,
-      announcement: 'ยินดีต้อนรับสู่ BNC GraphMate! มีฟอนต์ใหม่และกลุ่มทรัพยากรป้ายอัปเดตทุกสัปดาห์ 🌸'
+      announcement: 'ยินดีต้อนรับสู่ BNC GraphMate Studio อัปเดตผลงานและฟอนต์ใหม่ทุกสัปดาห์',
+      coverImage: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600&auto=format&fit=crop&q=80',
+      profileImage: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80',
+      shopBio: 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้\nตอบแชทไว ส่งงานเร็ว ไฟล์คมชัด 300 DPI ใช้งานเชิงพาณิชย์ได้',
+      stats: {
+        portfolioCount: '250+',
+        fontCount: '48',
+        memberCount: '1.2k'
+      },
+      pointsBarIcon: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+      highlights: [
+        { id: 'hl-1', title: 'รีวิวร้าน', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=300&auto=format&fit=crop&q=80', link: 'pages/reviews.html' },
+        { id: 'hl-2', title: 'ฟอนต์ใหม่', image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=300&auto=format&fit=crop&q=80', link: 'pages/fonts.html' },
+        { id: 'hl-3', title: 'เข้ากลุ่ม VIP', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80', link: 'pages/groups.html' },
+        { id: 'hl-4', title: 'สินค้าสำเร็จ', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&auto=format&fit=crop&q=80', link: 'pages/products.html' },
+        { id: 'hl-5', title: 'วิธีสั่งซื้อ', image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300&auto=format&fit=crop&q=80', link: 'pages/pricing.html' },
+        { id: 'hl-6', title: 'สะสมแต้ม', image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&auto=format&fit=crop&q=80', link: 'pages/points.html' }
+      ]
     },
     customers: [
       {
@@ -41,6 +61,7 @@ const Store = (function () {
       {
         id: 'grp-1',
         name: 'กลุ่ม VIP ป้าย & กราฟิกสุดคิ้วท์ 2026',
+        category: 'VIP ตลอดชีพ',
         description: 'รวมไฟล์ป้ายสำเร็จ ไฟล์ตกแต่ง การ์ตูนไดคัท ฟอนต์ และอัปเดตไฟล์ใหม่ตลอดชีพ',
         cover_image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=80',
         price: 390,
@@ -52,6 +73,7 @@ const Store = (function () {
       {
         id: 'grp-2',
         name: 'กลุ่มคาแรกเตอร์การ์ตูน & บอร์ดตกแต่ง',
+        category: 'การ์ตูน & คาแรกเตอร์',
         description: 'เน้นงานการ์ตูนเด็ก คาแรคเตอร์น่ารัก สำหรับทำป้ายร้านอาหาร ขนม เบเกอรี่',
         cover_image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=600&auto=format&fit=crop&q=80',
         price: 250,
@@ -59,6 +81,30 @@ const Store = (function () {
         benefits: 'การ์ตูนวาดมือความละเอียดสูง 300 DPI\nพาเลทสีและเทมเพลตแต่งร้าน\nใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์',
         status: 'ACTIVE',
         created_at: new Date(Date.now() - 10 * 86400000).toISOString()
+      },
+      {
+        id: 'grp-3',
+        name: 'กลุ่มป้ายสำเร็จ & ไฟล์ไดคัท 300 DPI',
+        category: 'ไฟล์ตกแต่ง & ป้าย',
+        description: 'ไฟล์กราฟิกความละเอียดสูงสำหรับงานพิมพ์ป้ายโดยเฉพาะ',
+        cover_image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&auto=format&fit=crop&q=80',
+        price: 290,
+        preview_drive_url: 'https://drive.google.com/',
+        benefits: 'ไฟล์ป้ายพร้อมสกรีน/พิมพ์ไวนิล\nแก้ไขข้อความและราคาได้ง่าย\nอัปเดตไฟล์เทศกาลตลอดทั้งปี',
+        status: 'ACTIVE',
+        created_at: new Date(Date.now() - 5 * 86400000).toISOString()
+      },
+      {
+        id: 'grp-4',
+        name: 'กลุ่มฟอนต์ลายมือเชิงพาณิชย์ Font Club',
+        category: 'ฟอนต์',
+        description: 'รวมฟอนต์น่ารัก ลิขสิทธิ์แท้ ใช้ทำป้าย โฆษณา และสินค้าได้ไม่จำกัด',
+        cover_image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80',
+        price: 350,
+        preview_drive_url: 'https://drive.google.com/',
+        benefits: 'ดาวน์โหลดไฟล์ฟอนต์ OTF/TTF ติดตั้งได้ทันที\nใช้ได้ทั้ง iOS, Android, Windows, Mac\nมีใบรับรองสิทธิ์การใช้งานเชิงพาณิชย์',
+        status: 'ACTIVE',
+        created_at: new Date(Date.now() - 2 * 86400000).toISOString()
       }
     ],
     products: [
@@ -127,7 +173,7 @@ const Store = (function () {
         category: 'ตัวพิมพ์',
         description: 'ฟอนต์ตัวพิมพ์เส้นหนา นุ่มฟู สไตล์เกาหลี ญี่ปุ่น ใช้ทำหัวข้อป้ายสะดุดตามาก (ตัวแทนจัดส่ง)',
         price: 180,
-        preview_text: 'ยินดีต้อนรับ สั่งซื้อสินค้าได้ที่นี่เลยนะคะ 🌸',
+        preview_text: 'ยินดีต้อนรับ สั่งซื้อสินค้าได้ที่นี่เลยนะคะ',
         preview_image: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80',
         delivery_type: 'MANUAL',
         drive_folder_id: '',
@@ -241,7 +287,7 @@ const Store = (function () {
         customer_id: 'cust-demo-1',
         amount: 500,
         type: 'BONUS',
-        description: 'แต้มต้อนรับสมัครสมาชิก BNC GraphMate 🌸',
+        description: 'แต้มต้อนรับสมาชิก BNC GraphMate',
         created_at: new Date(Date.now() - 30 * 86400000).toISOString()
       },
       {
@@ -260,7 +306,7 @@ const Store = (function () {
         customer_name: 'น้องพลอย',
         product_name: 'กลุ่ม VIP ป้าย & กราฟิกสุดคิ้วท์ 2026',
         rating: 5,
-        message: 'คุ้มมากกก ไฟล์เยอะจุใจ แอดมินดึงเข้ากลุ่มไวมาก งานน่ารักตรงปกสุดๆ ค่ะ แนะนำเลย 💕',
+        message: 'คุ้มค่ามาก ไฟล์เยอะจุใจ แอดมินดึงเข้ากลุ่มไวมาก งานน่ารักตรงปก แนะนำเลยค่ะ',
         image_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80',
         status: 'APPROVED',
         created_at: new Date(Date.now() - 1 * 86400000).toISOString()
@@ -269,10 +315,40 @@ const Store = (function () {
     portfolio: [
       {
         id: 'port-1',
-        title: 'ป้ายไวนิลหน้าร้าน ขนมปังปิ้งเตาถ่าน',
-        category: 'ป้าย',
-        description: 'ออกแบบป้ายไวนิลสีชมพูพาสเทล พร้อมภาพการ์ตูนวาดมือ',
-        image_url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&auto=format&fit=crop&q=80'
+        title: 'เซ็ตป้ายร้านคาเฟ่ & ขนมหวาน โทนพาสเทล',
+        style_category: 'ป้ายคาเฟ่ & เบเกอรี่',
+        price: '390',
+        description: 'งานออกแบบป้ายไวนิลหน้าร้าน ป้ายเมนูตั้งโต๊ะ และป้ายธงญี่ปุ่น สไตล์หวานละมุน นุ่มตา',
+        cover_image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700&auto=format&fit=crop&q=80',
+        images: [
+          'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1000&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1000&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1000&auto=format&fit=crop&q=80'
+        ]
+      },
+      {
+        id: 'port-2',
+        title: 'ป้ายร้านอาหาร & เมนูเครื่องดื่ม สไตล์โมเดิร์น',
+        style_category: 'ป้ายร้านอาหาร',
+        price: '450',
+        description: 'จัดเลย์เอาต์เมนูชัดเจน จัดวางภาพอาหารชวนทาน พร้อมไฟล์คมชัดสูงพิมพ์ได้ทันที',
+        cover_image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=700&auto=format&fit=crop&q=80',
+        images: [
+          'https://images.unsplash.com/photo-1541643600914-78b084683601?w=1000&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=1000&auto=format&fit=crop&q=80'
+        ]
+      },
+      {
+        id: 'port-3',
+        title: 'การ์ตูนมาสคอต & สติกเกอร์ฉลากสินค้า',
+        style_category: 'การ์ตูน & โลโก้',
+        price: '590',
+        description: 'วาดคาแรคเตอร์ประจำร้าน โดดเด่น จำง่าย นำไปใช้สกรีนแก้วและทำป้ายได้ทุกขนาด',
+        cover_image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=700&auto=format&fit=crop&q=80',
+        images: [
+          'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=1000&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80'
+        ]
       }
     ]
   };
@@ -283,7 +359,15 @@ const Store = (function () {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        return Object.assign({}, defaultData, parsed);
+        const merged = Object.assign({}, defaultData, parsed);
+        merged.settings = Object.assign({}, defaultData.settings, parsed.settings || {});
+        if (!merged.portfolio || merged.portfolio.length === 0) {
+          merged.portfolio = defaultData.portfolio;
+        }
+        if (!merged.groups || merged.groups.length < 3) {
+          merged.groups = defaultData.groups;
+        }
+        return merged;
       }
     } catch (e) {
       console.warn('Load local cache failed', e);
@@ -764,13 +848,136 @@ const Store = (function () {
       callCloud('DELETE_REVIEW', { id: id });
     },
 
+    // Portfolio
     getPortfolio: function () {
-      return loadLocal().portfolio || [];
+      const p = loadLocal().portfolio;
+      return (p && p.length > 0) ? p : defaultData.portfolio;
+    },
+    savePortfolioItem: function (item) {
+      const data = loadLocal();
+      data.portfolio = data.portfolio || [];
+      if (!item.id) {
+        item.id = uid('port');
+        item.created_at = new Date().toISOString();
+        data.portfolio.unshift(item);
+      } else {
+        const idx = data.portfolio.findIndex(p => p.id === item.id);
+        if (idx !== -1) data.portfolio[idx] = Object.assign({}, data.portfolio[idx], item);
+        else data.portfolio.unshift(item);
+      }
+      saveLocal(data);
+      callCloud('SAVE_PORTFOLIO', { item: item });
+      return item;
+    },
+    deletePortfolioItem: function (id) {
+      const data = loadLocal();
+      data.portfolio = (data.portfolio || []).filter(p => p.id !== id);
+      saveLocal(data);
+      callCloud('DELETE_PORTFOLIO', { id: id });
+    },
+
+    // Cart System (Multi-item order for Fonts & Products)
+    getCart: function () {
+      try {
+        const c = localStorage.getItem('BNC_CART_V1');
+        return c ? JSON.parse(c) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    saveCart: function (cartItems) {
+      try {
+        localStorage.setItem('BNC_CART_V1', JSON.stringify(cartItems));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cart: cartItems } }));
+        }
+      } catch (e) {}
+    },
+    addToCart: function (item) {
+      const cart = this.getCart();
+      const exists = cart.find(i => i.id === item.id);
+      if (!exists) {
+        cart.push(item);
+        this.saveCart(cart);
+      }
+      return cart;
+    },
+    removeFromCart: function (itemId) {
+      let cart = this.getCart();
+      cart = cart.filter(i => i.id !== itemId);
+      this.saveCart(cart);
+      return cart;
+    },
+    clearCart: function () {
+      this.saveCart([]);
+    },
+    checkoutMultiItems: function (items, customerInfo, paymentInfo) {
+      const data = loadLocal();
+      const oId = uid('ord');
+      const oNum = orderNum();
+      const totalAmount = items.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+      const itemNames = items.map(i => i.name).join(', ');
+
+      const newOrder = {
+        id: oId,
+        order_number: oNum,
+        customer_id: customerInfo.customer_id || 'guest',
+        customer_name: customerInfo.customer_name || 'ลูกค้าทั่วไป',
+        order_type: 'MULTI',
+        items: items,
+        item_name: itemNames,
+        amount: totalAmount,
+        status: 'VERIFYING',
+        line_id: customerInfo.line_id || '',
+        gmail: customerInfo.gmail || '',
+        notes: customerInfo.notes || '',
+        created_at: new Date().toISOString()
+      };
+
+      const pId = uid('pay');
+      const newPayment = {
+        id: pId,
+        order_id: oId,
+        amount: totalAmount,
+        slip_image_url: paymentInfo.slip_image_url || '',
+        verification_status: 'VERIFYING',
+        qr_ref: paymentInfo.qr_ref || '',
+        qr_trans_ref: paymentInfo.qr_trans_ref || '',
+        qr_date: paymentInfo.qr_date || '',
+        verified_at: null
+      };
+
+      // Create drive access for each item
+      items.forEach(item => {
+        data.drive_access.unshift({
+          id: uid('da'),
+          order_id: oId,
+          customer_id: newOrder.customer_id,
+          customer_name: newOrder.customer_name,
+          item_id: item.id,
+          item_name: item.name,
+          item_type: item.type || 'FONT',
+          delivery_type: item.delivery_type || 'MANUAL',
+          gmail: customerInfo.gmail || '',
+          drive_id: item.drive_folder_id || '',
+          status: (item.delivery_type === 'GOOGLE_DRIVE') ? 'WAITING_EMAIL' : 'WAITING_ADMIN',
+          completed_at: null
+        });
+      });
+
+      data.orders.unshift(newOrder);
+      data.payments.unshift(newPayment);
+      saveLocal(data);
+      this.clearCart();
+
+      callCloud('CREATE_ORDER', { orderInfo: newOrder, paymentInfo: newPayment });
+      return { order: newOrder, payment: newPayment };
     },
 
     // Settings
     getSettings: function () {
-      return loadLocal().settings || defaultData.settings;
+      const local = loadLocal();
+      return Object.assign({}, defaultData.settings, local.settings || {});
     },
     saveSettings: function (newSettings) {
       const data = loadLocal();
