@@ -2399,16 +2399,6 @@ window.Store = Store;
     }
   }
 
-  
-    // Play sequential sound effect for each stamped heart
-    if (currentStamps > 0 && typeof playPopSound === 'function') {
-      for (let i = 0; i < currentStamps; i++) {
-        setTimeout(() => {
-          if (typeof playPopSound === 'function') playPopSound();
-        }, i * 160);
-      }
-    }
-
   function renderReviewsView(container) {
     const allReviews = Store.getAllReviews();
     const pinnedReviews = allReviews.filter(r => r.is_pinned);
