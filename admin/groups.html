@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>จัดการกลุ่ม LINE 👥 | BNC Admin</title>
-  <link rel="stylesheet" href="../css/main.css">
-  <link rel="stylesheet" href="../css/components.css">
-  <link rel="stylesheet" href="../css/admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css?v=2.2">
+  <link rel="stylesheet" href="../css/components.css?v=2.2">
+  <link rel="stylesheet" href="../css/admin.css?v=2.2">
   <style>
     .modal-overlay {
       position: fixed;
@@ -34,32 +37,64 @@
 <body class="admin-body">
 
   <div class="admin-layout">
-    <aside class="admin-sidebar">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-brand">
-        <span>🎨</span>
-        <span>BNC Admin</span>
+        <a href="index.html" class="sidebar-brand-title">
+          <span>🎨</span>
+          <span>BNC Admin</span>
+        </a>
       </div>
       <nav class="sidebar-nav">
-        <a href="index.html" class="sidebar-link">📊 แดชบอร์ด</a>
-        <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
-        <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
-        <a href="groups.html" class="sidebar-link active">👥 จัดการกลุ่ม LINE</a>
-        <a href="products.html" class="sidebar-link">🛍️ จัดการสินค้า</a>
-        <a href="fonts.html" class="sidebar-link">🔤 จัดการฟอนต์</a>
-        <a href="points.html" class="sidebar-link">⭐ ระบบคะแนน</a>
-        <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
-        <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
+        <a href="index.html" class="sidebar-link">
+          <span class="sidebar-icon">📊</span>
+          <span>แดชบอร์ด</span>
+        </a>
+        <a href="orders.html" class="sidebar-link">
+          <span class="sidebar-icon">📦</span>
+          <span>คำสั่งซื้อ</span>
+        </a>
+        <a href="slips.html" class="sidebar-link">
+          <span class="sidebar-icon">🧳</span>
+          <span>ตรวจสอบสลิป</span>
+        </a>
+        <a href="groups.html" class="sidebar-link active">
+          <span class="sidebar-icon">👥</span>
+          <span>จัดการกลุ่ม LINE</span>
+        </a>
+        <a href="products.html" class="sidebar-link">
+          <span class="sidebar-icon">🛍️</span>
+          <span>จัดการสินค้า</span>
+        </a>
+        <a href="fonts.html" class="sidebar-link">
+          <span class="sidebar-icon">🔤</span>
+          <span>จัดการฟอนต์</span>
+        </a>
+        <a href="points.html" class="sidebar-link">
+          <span class="sidebar-icon">⭐</span>
+          <span>ระบบคะแนน</span>
+        </a>
+        <a href="reviews.html" class="sidebar-link">
+          <span class="sidebar-icon">❤️</span>
+          <span>รีวิวลูกค้า</span>
+        </a>
+        <a href="settings.html" class="sidebar-link">
+          <span class="sidebar-icon">⚙️</span>
+          <span>ตั้งค่าร้าน</span>
+        </a>
       </nav>
-      <div style="padding: 1.25rem; margin-top: auto; border-top: 1px solid var(--border-light);">
+      <div class="sidebar-footer">
         <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
       </div>
     </aside>
 
     <main class="admin-main">
       <header class="admin-topbar">
-        <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
-          จัดการกลุ่ม LINE & ดึงลูกค้าเข้ากลุ่ม 👥
-        </h1>
+        <div class="admin-topbar-left">
+          <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
+            จัดการกลุ่ม LINE & ดึงลูกค้าเข้ากลุ่ม 👥
+          </h1>
+        </div>
         <button class="btn btn-primary btn-sm" onclick="openAddGroupModal()">➕ เพิ่มกลุ่มใหม่</button>
       </header>
 
@@ -128,6 +163,7 @@
   </div>
 
   <script src="../js/store.js"></script>
+  <script src="../js/admin-nav.js"></script>
   <script>
     function switchTab(tab) {
       if (tab === 'pending') {

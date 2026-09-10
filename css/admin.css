@@ -1,21 +1,27 @@
 /* ============================================================
-   BNC GraphMate — admin.css (Boutique Admin Management)
-   Clean, practical, matching shop theme without generic template bloat
+   BNC GraphMate — admin.css (Boutique Admin Studio)
+   Clean, professional, responsive, matching boutique pink theme
    ============================================================ */
 
 .admin-body {
-  background-color: #FAFAFA;
+  background-color: var(--bg-secondary);
+  color: var(--text-main);
   min-height: 100vh;
+  font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .admin-layout {
   display: flex;
   min-height: 100vh;
+  position: relative;
+  background-color: var(--bg-secondary);
 }
 
-/* ── Admin Sidebar ────────────────────────────────────────── */
+/* ── Admin Sidebar (Desktop & Tablet) ─────────────────────── */
 .admin-sidebar {
   width: 250px;
+  min-width: 250px;
+  max-width: 250px;
   background-color: var(--bg-primary);
   border-right: 1px solid var(--border-light);
   display: flex;
@@ -25,10 +31,19 @@
   top: 0;
   height: 100vh;
   z-index: 100;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
 }
 
 .sidebar-brand {
-  padding: 1.5rem;
+  padding: 1.35rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-light);
+  background-color: var(--bg-primary);
+}
+
+.sidebar-brand-title {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -36,20 +51,41 @@
   font-weight: 700;
   font-size: 1.15rem;
   color: var(--pink-primary);
-  border-bottom: 1px solid var(--border-light);
+  text-decoration: none;
+}
+
+.sidebar-close-btn {
+  display: none;
+  background: none;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 1rem;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-close-btn:hover {
+  background-color: var(--bg-surface);
+  color: var(--pink-deep);
 }
 
 .sidebar-nav {
-  padding: 1rem 0.75rem;
+  padding: 1rem 0.85rem;
   display: flex;
-  flex-direction: column;
+  flex-direction: column !important;
   gap: 0.35rem;
   flex-grow: 1;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .sidebar-link {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 1rem;
@@ -58,6 +94,7 @@
   color: var(--text-muted);
   border-radius: var(--radius-md);
   text-decoration: none;
+  white-space: nowrap;
   transition: all var(--transition-fast);
 }
 
@@ -72,25 +109,81 @@
   font-weight: 600;
 }
 
-/* ── Admin Main View ──────────────────────────────────────── */
+.sidebar-icon {
+  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  padding: 1.25rem;
+  margin-top: auto;
+  border-top: 1px solid var(--border-light);
+  background-color: var(--bg-primary);
+}
+
+/* ── Admin Main Container ─────────────────────────────────── */
 .admin-main {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  background-color: var(--bg-secondary);
 }
 
 .admin-topbar {
-  height: 64px;
+  min-height: 64px;
   background-color: var(--bg-primary);
   border-bottom: 1px solid var(--border-light);
-  padding: 0 1.75rem;
+  padding: 0.75rem 1.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   position: sticky;
   top: 0;
   z-index: 90;
+}
+
+.admin-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.sidebar-toggle-btn {
+  display: none;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.75rem;
+  font-size: 1.15rem;
+  cursor: pointer;
+  color: var(--text-main);
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-toggle-btn:hover {
+  background-color: var(--bg-surface);
+  color: var(--pink-primary);
+  border-color: var(--pink-primary);
+}
+
+.admin-sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(50, 30, 40, 0.4);
+  backdrop-filter: blur(3px);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity var(--transition-base);
 }
 
 /* ── Stat Cards ───────────────────────────────────────────── */
@@ -102,6 +195,12 @@
   box-shadow: var(--shadow-subtle);
   display: flex;
   flex-direction: column;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-card);
+  transform: translateY(-2px);
 }
 
 .stat-card__label {
@@ -141,6 +240,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-bottom: 1px solid var(--border-light);
+  background-color: var(--bg-primary);
 }
 
 .table td {
@@ -148,6 +248,7 @@
   vertical-align: middle;
   border-bottom: 1px solid var(--border-subtle);
   color: var(--text-main);
+  font-size: 0.92rem;
 }
 
 .table tr:last-child td {
@@ -158,28 +259,48 @@
   background-color: var(--bg-secondary);
 }
 
-/* ── Mobile View for Admin ────────────────────────────────── */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  background-color: var(--bg-primary);
+}
+
+/* ── Responsive Behavior (Tablet & Mobile) ────────────────── */
 @media (max-width: 860px) {
-  .admin-layout {
-    flex-direction: column;
+  .sidebar-toggle-btn {
+    display: inline-flex;
+  }
+
+  .sidebar-close-btn {
+    display: inline-flex;
   }
 
   .admin-sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    border-right: none;
-    border-bottom: 1px solid var(--border-light);
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 270px;
+    max-width: 85vw;
+    height: 100vh;
+    z-index: 1000;
+    transform: translateX(-100%);
+    box-shadow: 6px 0 24px rgba(60, 30, 45, 0.12);
   }
 
-  .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    padding: 0.75rem;
+  .admin-sidebar.is-open {
+    transform: translateX(0);
   }
 
-  .sidebar-link {
-    font-size: 0.85rem;
-    padding: 0.4rem 0.75rem;
+  .admin-sidebar-backdrop.is-open {
+    display: block;
+    opacity: 1;
+  }
+
+  .admin-topbar {
+    padding: 0.75rem 1rem;
   }
 }

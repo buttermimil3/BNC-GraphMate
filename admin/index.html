@@ -4,31 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard 📊 | BNC GraphMate</title>
-  <link rel="stylesheet" href="../css/main.css">
-  <link rel="stylesheet" href="../css/components.css">
-  <link rel="stylesheet" href="../css/admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css?v=2.2">
+  <link rel="stylesheet" href="../css/components.css?v=2.2">
+  <link rel="stylesheet" href="../css/admin.css?v=2.2">
 </head>
 <body class="admin-body">
 
   <div class="admin-layout">
     <!-- Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
-      <div class="sidebar-brand" style="padding: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'Mitr', sans-serif; font-size: 1.2rem; color: var(--pink-500); border-bottom: 1px solid var(--pink-100);">
-        <span>🎨</span>
-        <span>BNC Admin</span>
+      <div class="sidebar-brand">
+        <a href="index.html" class="sidebar-brand-title">
+          <span>🎨</span>
+          <span>BNC Admin</span>
+        </a>
       </div>
-      <nav class="sidebar-nav" style="padding: 1rem 0;">
-        <a href="index.html" class="sidebar-link active">📊 แดชบอร์ด</a>
-        <a href="orders.html" class="sidebar-link">📦 คำสั่งซื้อ</a>
-        <a href="slips.html" class="sidebar-link">🧳 ตรวจสอบสลิป</a>
-        <a href="groups.html" class="sidebar-link">👥 จัดการกลุ่ม LINE</a>
-        <a href="products.html" class="sidebar-link">🛍️ จัดการสินค้า</a>
-        <a href="fonts.html" class="sidebar-link">🔤 จัดการฟอนต์</a>
-        <a href="points.html" class="sidebar-link">⭐ ระบบคะแนน</a>
-        <a href="reviews.html" class="sidebar-link">❤️ รีวิวลูกค้า</a>
-        <a href="settings.html" class="sidebar-link">⚙️ ตั้งค่าร้าน</a>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="sidebar-link active">
+          <span class="sidebar-icon">📊</span>
+          <span>แดชบอร์ด</span>
+        </a>
+        <a href="orders.html" class="sidebar-link">
+          <span class="sidebar-icon">📦</span>
+          <span>คำสั่งซื้อ</span>
+        </a>
+        <a href="slips.html" class="sidebar-link">
+          <span class="sidebar-icon">🧳</span>
+          <span>ตรวจสอบสลิป</span>
+        </a>
+        <a href="groups.html" class="sidebar-link">
+          <span class="sidebar-icon">👥</span>
+          <span>จัดการกลุ่ม LINE</span>
+        </a>
+        <a href="products.html" class="sidebar-link">
+          <span class="sidebar-icon">🛍️</span>
+          <span>จัดการสินค้า</span>
+        </a>
+        <a href="fonts.html" class="sidebar-link">
+          <span class="sidebar-icon">🔤</span>
+          <span>จัดการฟอนต์</span>
+        </a>
+        <a href="points.html" class="sidebar-link">
+          <span class="sidebar-icon">⭐</span>
+          <span>ระบบคะแนน</span>
+        </a>
+        <a href="reviews.html" class="sidebar-link">
+          <span class="sidebar-icon">❤️</span>
+          <span>รีวิวลูกค้า</span>
+        </a>
+        <a href="settings.html" class="sidebar-link">
+          <span class="sidebar-icon">⚙️</span>
+          <span>ตั้งค่าร้าน</span>
+        </a>
       </nav>
-      <div style="padding: 1.5rem; margin-top: auto; border-top: 1px solid var(--gray-200);">
+      <div class="sidebar-footer">
         <a href="../index.html" class="btn btn-outline btn-sm btn-full">🏠 ไปหน้าร้านค้า</a>
       </div>
     </aside>
@@ -37,44 +69,61 @@
     <main class="admin-main">
       <!-- Topbar -->
       <header class="admin-topbar">
-        <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
-          ภาพรวมร้านค้า (Dashboard) 📊
-        </h1>
-        <div style="display: flex; gap: 0.75rem; align-items: center;">
-          <button class="btn btn-outline btn-sm" id="btnSyncCloud" onclick="manualSyncCloud()" style="background: var(--bg-surface); border-color: var(--pink-primary); color: var(--pink-deep); font-size: 0.85rem;">
+        <div class="admin-topbar-left">
+          <h1 style="font-family: 'Prompt', sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--text-main);">
+            ภาพรวมร้านค้า (Dashboard) 📊
+          </h1>
+        </div>
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <button class="btn btn-outline btn-sm" id="btnSyncCloud" onclick="manualSyncCloud()" style="background: var(--bg-surface); border-color: var(--pink-soft); color: var(--pink-deep); font-size: 0.85rem;">
             🔄 ซิงก์ข้อมูล Google Sheet
           </button>
-          <span class="badge" style="background: var(--bg-surface); color: var(--pink-deep); font-weight: 600;">Admin Studio</span>
+          <span class="badge badge--primary">Admin Studio</span>
         </div>
       </header>
 
-      <div style="padding: 2rem 1.75rem;">
+      <div style="padding: 1.75rem 1.75rem;">
         <!-- Stats Row -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5" style="margin-bottom: 2rem;">
-          <div class="stat-card" style="border-left: 4px solid var(--pink-deep);">
-            <span class="stat-card__label">ยอดขายรวม</span>
+          <div class="stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span class="stat-card__label">ยอดขายรวม</span>
+              <span>💰</span>
+            </div>
             <div id="statTotalRevenue" class="stat-card__value" style="color: var(--pink-deep);">฿0</div>
             <span style="font-size: 0.8rem; color: #166534; font-weight: 500;">✓ คำสั่งซื้อที่ชำระแล้ว</span>
           </div>
-          <div class="stat-card" style="border-left: 4px solid #3B82F6;">
-            <span class="stat-card__label">ออเดอร์ทั้งหมด</span>
-            <div id="statTotalOrders" class="stat-card__value" style="color: #1E40AF;">0</div>
+
+          <div class="stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span class="stat-card__label">ออเดอร์ทั้งหมด</span>
+              <span>📦</span>
+            </div>
+            <div id="statTotalOrders" class="stat-card__value" style="color: var(--text-main);">0</div>
             <span style="font-size: 0.8rem; color: var(--text-muted);">รายการคำสั่งซื้อ</span>
           </div>
-          <div class="stat-card" style="border-left: 4px solid #F59E0B;">
-            <span class="stat-card__label">สลิปรอตรวจสอบ</span>
+
+          <div class="stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span class="stat-card__label">สลิปรอตรวจสอบ</span>
+              <span>🧳</span>
+            </div>
             <div id="statPendingSlips" class="stat-card__value" style="color: #B45309;">0</div>
             <a href="slips.html" style="font-size: 0.8rem; color: #B45309; text-decoration: underline; font-weight: 500;">ไปหน้าตรวจสลิป ➔</a>
           </div>
-          <div class="stat-card" style="border-left: 4px solid #10B981;">
-            <span class="stat-card__label">สมาชิกทั้งหมด</span>
-            <div id="statTotalCustomers" class="stat-card__value" style="color: #047857;">0</div>
+
+          <div class="stat-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span class="stat-card__label">สมาชิกทั้งหมด</span>
+              <span>👤</span>
+            </div>
+            <div id="statTotalCustomers" class="stat-card__value" style="color: var(--text-main);">0</div>
             <span style="font-size: 0.8rem; color: var(--text-muted);">ลูกค้าในระบบ</span>
           </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
+        <div class="card card--flat" style="padding: 1.5rem; margin-bottom: 2rem;">
           <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.05rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main);">
             ⚡ ทางลัดจัดการด่วน (Quick Actions)
           </h3>
@@ -92,9 +141,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           <!-- Left: รอดึงเข้ากลุ่ม -->
-          <div class="card card--flat" style="padding: 1.5rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
+          <div class="card card--flat" style="padding: 1.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin: 0;">
+              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin: 0;">
                 👥 ลูกค้ารอดึงเข้ากลุ่ม LINE
               </h3>
               <a href="groups.html" style="font-size: 0.85rem; color: var(--pink-deep); font-weight: 500;">ดูทั้งหมด ➔</a>
@@ -105,9 +154,9 @@
           </div>
 
           <!-- Right: รอดึงเมลล์ (Manual Delivery) -->
-          <div class="card card--flat" style="padding: 1.5rem; border: 1px solid var(--border-light); border-radius: var(--radius-lg); background: var(--bg-primary);">
+          <div class="card card--flat" style="padding: 1.5rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin: 0;">
+              <h3 style="font-family: 'Prompt', sans-serif; font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin: 0;">
                 🔤 รอดึงเมลล์ (ฟอนต์/สินค้า Manual)
               </h3>
               <a href="fonts.html" style="font-size: 0.85rem; color: var(--pink-deep); font-weight: 500;">ดูทั้งหมด ➔</a>
@@ -124,6 +173,7 @@
   </div>
 
   <script src="../js/store.js"></script>
+  <script src="../js/admin-nav.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const orders = Store.getOrders();
@@ -146,13 +196,13 @@
       const pendingGroupList = groupAccess.filter(g => g.status === 'PENDING').slice(0, 5);
       const pgBox = document.getElementById('dashPendingGroups');
       if (pendingGroupList.length === 0) {
-        pgBox.innerHTML = '<p style="color: var(--gray-400); font-size: 0.9rem; text-align: center; padding: 1rem 0;">ไม่มีรายการรอดึงเข้ากลุ่ม 🎉</p>';
+        pgBox.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1.5rem 0;">ไม่มีรายการรอดึงเข้ากลุ่ม 🎉</p>';
       } else {
         pgBox.innerHTML = pendingGroupList.map(item => `
-          <div style="background: var(--pink-50); border-radius: 0.75rem; padding: 0.75rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+          <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             <div>
-              <strong>${item.customer_name}</strong> (LINE: <code>${item.line_id || '-'}</code>)<br>
-              <span style="font-size: 0.8rem; color: var(--gray-600);">${item.group_name}</span>
+              <strong style="color: var(--text-main);">${item.customer_name}</strong> (LINE: <code style="background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-light);">${item.line_id || '-'}</code>)<br>
+              <span style="font-size: 0.82rem; color: var(--text-muted);">${item.group_name}</span>
             </div>
             <button class="btn btn-success btn-sm" onclick="completeGroup('${item.id}')">ดึงเข้ากลุ่มเรียบร้อย</button>
           </div>
@@ -163,13 +213,13 @@
       const pendingMailList = driveAccess.filter(d => d.status === 'WAITING_ADMIN').slice(0, 5);
       const pmBox = document.getElementById('dashPendingMails');
       if (pendingMailList.length === 0) {
-        pmBox.innerHTML = '<p style="color: var(--gray-400); font-size: 0.9rem; text-align: center; padding: 1rem 0;">ไม่มีรายการรอดึงเมลล์ 🎉</p>';
+        pmBox.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 1.5rem 0;">ไม่มีรายการรอดึงเมลล์ 🎉</p>';
       } else {
         pmBox.innerHTML = pendingMailList.map(item => `
-          <div style="background: var(--pink-50); border-radius: 0.75rem; padding: 0.75rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+          <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 0.65rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
             <div>
-              <strong>${item.customer_name}</strong> (${item.gmail || '-' })<br>
-              <span style="font-size: 0.8rem; color: var(--gray-600);">${item.item_name}</span>
+              <strong style="color: var(--text-main);">${item.customer_name}</strong> (<span style="color: var(--pink-deep);">${item.gmail || '-'}</span>)<br>
+              <span style="font-size: 0.82rem; color: var(--text-muted);">${item.item_name}</span>
             </div>
             <button class="btn btn-success btn-sm" onclick="completeMail('${item.id}')">ดึงเมลล์เรียบร้อย</button>
           </div>
