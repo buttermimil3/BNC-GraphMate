@@ -1336,3 +1336,352 @@ input[type="range"]::-moz-range-track {
   user-select: none;
   -webkit-user-drag: none;
 }
+
+
+/* ============================================================
+   GLOBAL PASTEL PINK SCROLLBARS & SLIDERS (Requirement 6)
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary-600);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-700);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-600) var(--bg);
+}
+
+input[type="range"] {
+  accent-color: var(--primary-600) !important;
+}
+
+/* ============================================================
+   GOODNOTES LINED NOTEBOOK PAPER FONT TESTER & COMPARISON
+   ============================================================ */
+.notebook-paper-container {
+  background: #FFFDFE;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(222, 133, 167, 0.15);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+}
+
+.notebook-binder-header {
+  background: linear-gradient(to bottom, #FDF2F7, #FAE4EE);
+  border-bottom: 1.5px solid var(--border);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notebook-binder-holes {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.notebook-hole {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #E8BFD1;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 1px #ffffff;
+  position: relative;
+}
+
+.notebook-hole::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 3px;
+  width: 8px;
+  height: 8px;
+  border: 2.5px solid #F3C3D7;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.goodnotes-paper {
+  background-color: #FFFDFE;
+  background-image: 
+    linear-gradient(90deg, transparent 46px, #F7B5CD 46px, #F7B5CD 48px, transparent 48px),
+    repeating-linear-gradient(transparent, transparent 33px, #F8DBE7 33px, #F8DBE7 35px);
+  background-size: 100% 100%, 100% 35px;
+  padding: 22px 24px 22px 64px;
+  min-height: 180px;
+  position: relative;
+  border-radius: 0 0 18px 18px;
+}
+
+@media (max-width: 640px) {
+  .goodnotes-paper {
+    background-image: 
+      linear-gradient(90deg, transparent 32px, #F7B5CD 32px, #F7B5CD 34px, transparent 34px),
+      repeating-linear-gradient(transparent, transparent 31px, #F8DBE7 31px, #F8DBE7 33px);
+    background-size: 100% 100%, 100% 33px;
+    padding: 16px 14px 16px 44px;
+  }
+}
+
+.font-compare-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .font-compare-split {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.font-compare-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 14px rgba(222, 133, 167, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.font-compare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1.5px dashed var(--border);
+}
+
+.font-compare-text-display {
+  line-height: 1.5;
+  color: var(--text);
+  word-break: break-word;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* ============================================================
+   SQUARE GALLERY GRID (1:1 Aspect Ratio, No Captions)
+   ============================================================ */
+.square-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .square-gallery-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .square-gallery-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+}
+
+.square-gallery-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface-alt);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  border: 1.5px solid var(--border-light);
+}
+
+.square-gallery-item:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 10px 24px rgba(222, 133, 167, 0.25);
+  border-color: var(--primary-600);
+}
+
+.square-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+
+.square-gallery-item:hover img {
+  transform: scale(1.06);
+}
+
+.square-gallery-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(222, 133, 167, 0.25);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  display: grid;
+  place-items: center;
+}
+
+.square-gallery-item:hover .square-gallery-overlay {
+  opacity: 1;
+}
+
+.square-gallery-overlay-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--primary-deep);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ============================================================
+   PRICING MENU LIST CARD (Before Gallery Grid)
+   ============================================================ */
+.price-menu-card {
+  background: #ffffff;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 2.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.price-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .price-menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .price-menu-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 24px;
+  }
+}
+
+.price-menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: all 0.15s ease;
+}
+
+.price-menu-item:hover {
+  background: var(--primary-light);
+  border-color: var(--primary-600);
+  transform: translateY(-1px);
+}
+
+.price-menu-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.price-menu-price {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--primary-deep);
+  background: #ffffff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+/* ============================================================
+   PINNED REVIEWS (White-Pink Note Paper with Pushpin)
+   ============================================================ */
+.pinned-reviews-board {
+  margin-bottom: 2.5rem;
+}
+
+.pinned-review-card {
+  background: #ffffff;
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  padding: 24px 20px 18px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(222, 133, 167, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pinned-review-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(222, 133, 167, 0.24);
+}
+
+.pushpin-pin {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #FFA3C6, #DE85A7);
+  border: 2px solid #ffffff;
+  box-shadow: 0 3px 8px rgba(178, 76, 116, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  z-index: 5;
+  display: grid;
+  place-items: center;
+}
+
+.pushpin-pin::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+}
+
+.pinned-tape-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--primary-light);
+  color: var(--primary-deep);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}

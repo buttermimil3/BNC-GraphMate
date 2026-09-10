@@ -1103,7 +1103,32 @@ const Store = (function () {
  },
 
  // Settings
- getSettings: function () {
+ getHighlights: function () {
+    const s = this.getSettings();
+    return Array.isArray(s.highlights) ? s.highlights : (defaultData.settings.highlights || []);
+  },
+  saveHighlights: function (list) {
+    return this.saveSettings({ highlights: list });
+  },
+  savePaymentAccounts: function (list) {
+    return this.saveSettings({ paymentAccounts: list });
+  },
+  saveContactChannels: function (list) {
+    return this.saveSettings({ contactChannels: list });
+  },
+  togglePinReview: function (id) {
+    const data = loadLocal();
+    const rev = data.reviews.find(r => r.id === id);
+    if (rev) {
+      rev.is_pinned = !rev.is_pinned;
+      saveLocal(data);
+      callCloud('UPDATE_REVIEW_PIN', { id: id, is_pinned: rev.is_pinned });
+      return rev.is_pinned;
+    }
+    return false;
+  },
+
+  getSettings: function () {
  const local = loadLocal();
  return Object.assign({}, defaultData.settings, local.settings || {});
  },
@@ -1477,104 +1502,197 @@ window.Store = Store;
  }
 
  // ============================================================
- // VIEW: FONTS (Live Tester + Compare + Add to Cart)
- // ============================================================
- function renderFontsView(container) {
- const s = Store.getSettings();
- const fonts = Store.getAllFonts();
- const categories = ['ALL', 'ลายมือ', 'หัวป้าย', 'ตัวพิมพ์', 'น่ารัก'];
+ // VIEW: FONTS (GoodNotes Ruled Notebook Tester + iPhone Split Compare)
+  // ============================================================
+  function renderFontsView(container) {
+    const s = Store.getSettings();
+    const fonts = Store.getAllFonts();
+    const categories = ['ALL', 'ลายมือ', 'หัวป้าย', 'ตัวพิมพ์', 'น่ารัก'];
 
- // Filter
- const filtered = fonts.filter(f => {
- const matchCat = state.fontTester.category === 'ALL' || f.category === state.fontTester.category;
- const matchSearch = !state.fontTester.search || f.name.toLowerCase().includes(state.fontTester.search.toLowerCase());
- return matchCat && matchSearch;
- });
+    // Filter
+    const filtered = fonts.filter(f => {
+      const matchCat = state.fontTester.category === 'ALL' || f.category === state.fontTester.category;
+      const matchSearch = !state.fontTester.search || f.name.toLowerCase().includes(state.fontTester.search.toLowerCase());
+      return matchCat && matchSearch;
+    });
 
- container.innerHTML = `
- <section style="padding: 2.5rem 0 4rem;">
- <div class="container">
- 
- <div class="section-header">
- <span class="section-tag">Interactive Font Tester</span>
- <h2 class="section-title">ทดสอบฟอนต์ลายมือสด</h2>
- <p class="section-desc">พิมพ์ข้อความและปรับขนาดตัวอักษรเพื่อดูตัวอย่างจริงก่อนตัดสินใจสั่งซื้อ</p>
- </div>
+    const fontA = fonts.find(f => f.id === state.fontTester.compareFontId1) || fonts[0] || {};
+    const fontB = fonts.find(f => f.id === state.fontTester.compareFontId2) || fonts[1] || fonts[0] || {};
 
- <!-- Font Tester Control Box -->
- <div class="font-tester-box">
- <div class="grid grid-cols-1 md:grid-cols-3 gap-4" style="align-items: center;">
- <div style="grid-column: span 2;">
- <label class="form-label">พิมพ์ข้อความทดสอบที่นี่</label>
- <input type="text" id="fontTesterInput" class="form-input" value="${escapeHTML(state.fontTester.text)}" placeholder="พิมพ์ข้อความทดสอบ..." oninput="handleTesterTextInput(this.value)">
- </div>
- <div>
- <div style="display: flex; justify-content: space-between; margin-bottom: 0.4rem;">
- <label class="form-label" style="margin: 0;">ขนาดตัวอักษร</label>
- <span style="font-weight: 700; color: var(--primary-deep);" id="fontSizeDisplay">${state.fontTester.size}px</span>
- </div>
- <input type="range" min="18" max="80" value="${state.fontTester.size}" class="form-input" style="padding: 0.2rem; cursor: pointer;" oninput="handleTesterSizeInput(this.value)">
- </div>
- </div>
- </div>
+    container.innerHTML = `
+      <section style="padding: 2.5rem 0 4rem;">
+        <div class="container">
+          
+          <div class="section-header">
+            <span class="section-tag">Interactive Font Tester</span>
+            <h2 class="section-title">ทดสอบ & เปรียบเทียบฟอนต์ลายมือสด</h2>
+            <p class="section-desc">ลองพิมพ์ข้อความเทียบฟอนต์ 2 แบบบนกระดาษลายเส้น GoodNotes เพื่อเลือกแบบที่ถูกใจที่สุด</p>
+          </div>
 
- <!-- Category Filters & Search -->
- <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
- <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
- ${categories.map(c => `
- <button type="button" class="btn ${state.fontTester.category === c ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="filterFontCat('${c}')">
- ${c === 'ALL' ? 'ทั้งหมด' : c}
- </button>
- `).join('')}
- </div>
- <div style="min-width: 240px;">
- <input type="text" class="form-input" placeholder="ค้นหาชื่อฟอนต์..." value="${escapeHTML(state.fontTester.search)}" oninput="handleFontSearch(this.value)" style="padding: 0.45rem 0.85rem; font-size: 0.9rem;">
- </div>
- </div>
+          <!-- GoodNotes Ruled Notebook Paper - Font Tester & Comparison (iPhone Split Style) -->
+          <div class="notebook-paper-container">
+            <div class="notebook-binder-header">
+              <div class="notebook-binder-holes">
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+                <span class="notebook-hole"></span>
+              </div>
+              <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 6px;">
+                <span>📝 GoodNotes Ruled Paper Tester & Split Compare</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted);">
+                ฟีลพิมพ์บนสมุดโน้ต
+              </div>
+            </div>
 
- <!-- Fonts Grid -->
- <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
- ${filtered.length > 0 ? filtered.map(f => renderFontCard(f, s)).join('') : `
- <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
- <h4>ไม่พบฟอนต์ที่ค้นหา</h4>
- <p>ลองเปลี่ยนคำค้นหาหรือเลือกหมวดหมู่อื่นดูนะคะ</p>
- </div>
- `}
- </div>
+            <div class="goodnotes-paper">
+              <!-- Controls Row: Synchronized Text Input & Pink Size Slider -->
+              <div style="display: grid; grid-template-columns: 1fr auto; gap: 14px; margin-bottom: 20px; align-items: center;">
+                <div>
+                  <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">พิมพ์ข้อความทดสอบ (แสดงสดทั้ง 2 ฟอนต์)</label>
+                  <input type="text" id="fontCompareInput" class="form-input" style="background: rgba(255,255,255,0.95); font-size: 15px; border-radius: 12px;" value="${escapeHTML(state.fontTester.text)}" placeholder="พิมพ์ข้อความทดสอบฟอนต์ที่นี่..." oninput="handleCompareTextInput(this.value)">
+                </div>
+                <div style="min-width: 170px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 4px;">
+                    <span>ขนาดฟอนต์</span>
+                    <span style="color: var(--primary-deep);" id="fontCompareSizeVal">${state.fontTester.size}px</span>
+                  </div>
+                  <input type="range" min="16" max="44" value="${state.fontTester.size}" style="cursor: pointer; width: 100%;" oninput="handleCompareSizeInput(this.value)">
+                </div>
+              </div>
 
- </div>
- </section>
- `;
- }
+              <!-- iPhone-style Split Comparison Panes -->
+              <div class="font-compare-split">
+                <!-- Font A Pane -->
+                <div class="font-compare-card">
+                  <div class="font-compare-header">
+                    <div style="flex: 1;">
+                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block;">ฟอนต์ที่ 1 (Font A)</label>
+                      <select class="form-input" style="padding: 6px 10px; font-size: 13px; font-weight: 700; border-radius: 10px;" onchange="handleCompareFontChange(1, this.value)">
+                        ${fonts.map(f => `<option value="${f.id}" ${f.id === fontA.id ? 'selected' : ''}>${escapeHTML(f.name)} (฿${f.price})</option>`).join('')}
+                      </select>
+                    </div>
+                    <span class="badge badge--pink" style="font-size: 11px; height: fit-content;">Font A</span>
+                  </div>
 
- window.handleTesterTextInput = function (val) {
- state.fontTester.text = val;
- document.querySelectorAll('.font-preview-text').forEach(el => {
- el.textContent = val || 'ร้านป้ายบีเอ็นซี น่ารักสดใส';
- });
- };
+                  <div class="font-compare-text-display font-display-a" style="font-size: ${state.fontTester.size}px; font-family: 'Prompt', sans-serif;">
+                    ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
+                  </div>
 
- window.handleTesterSizeInput = function (val) {
- state.fontTester.size = val;
- const disp = $('fontSizeDisplay');
- if (disp) disp.textContent = val + 'px';
- document.querySelectorAll('.font-preview-text').forEach(el => {
- el.style.fontSize = val + 'px';
- });
- };
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1.5px dashed var(--border);">
+                    <div>
+                      <span style="font-size: 11px; color: var(--text-muted);">${escapeHTML(fontA?.category || 'ลายมือ')}</span>
+                      <div style="font-size: 15px; font-weight: 800; color: var(--primary-deep);">฿${Number(fontA?.price || 0).toLocaleString()}</div>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                      <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${fontA?.id}', 'FONT')">ใส่ตะกร้า</button>
+                      <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${fontA?.id}', 'FONT')">สั่งซื้อเลย</button>
+                    </div>
+                  </div>
+                </div>
 
- window.filterFontCat = function (cat) {
- state.fontTester.category = cat;
- renderCurrentView();
- };
+                <!-- Font B Pane -->
+                <div class="font-compare-card">
+                  <div class="font-compare-header">
+                    <div style="flex: 1;">
+                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block;">ฟอนต์ที่ 2 (Font B)</label>
+                      <select class="form-input" style="padding: 6px 10px; font-size: 13px; font-weight: 700; border-radius: 10px;" onchange="handleCompareFontChange(2, this.value)">
+                        ${fonts.map(f => `<option value="${f.id}" ${f.id === fontB.id ? 'selected' : ''}>${escapeHTML(f.name)} (฿${f.price})</option>`).join('')}
+                      </select>
+                    </div>
+                    <span class="badge badge--pink" style="font-size: 11px; height: fit-content;">Font B</span>
+                  </div>
 
- window.handleFontSearch = function (q) {
- state.fontTester.search = q;
- renderCurrentView();
- };
+                  <div class="font-compare-text-display font-display-b" style="font-size: ${state.fontTester.size}px; font-family: 'IBM Plex Sans Thai', sans-serif;">
+                    ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
+                  </div>
 
- // ============================================================
- // VIEW: PRODUCTS (Digital Assets Catalog + Add to Cart)
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1.5px dashed var(--border);">
+                    <div>
+                      <span style="font-size: 11px; color: var(--text-muted);">${escapeHTML(fontB?.category || 'ลายมือ')}</span>
+                      <div style="font-size: 15px; font-weight: 800; color: var(--primary-deep);">฿${Number(fontB?.price || 0).toLocaleString()}</div>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                      <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${fontB?.id}', 'FONT')">ใส่ตะกร้า</button>
+                      <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${fontB?.id}', 'FONT')">สั่งซื้อเลย</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category Filters & Search -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              ${categories.map(c => `
+                <button type="button" class="btn ${state.fontTester.category === c ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="filterFontCat('${c}')">
+                  ${c === 'ALL' ? 'ทั้งหมด' : c}
+                </button>
+              `).join('')}
+            </div>
+            <div style="min-width: 240px;">
+              <input type="text" class="form-input" placeholder="ค้นหาชื่อฟอนต์..." value="${escapeHTML(state.fontTester.search)}" oninput="handleFontSearch(this.value)" style="padding: 0.45rem 0.85rem; font-size: 0.9rem;">
+            </div>
+          </div>
+
+          <!-- Fonts Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            ${filtered.length > 0 ? filtered.map(f => renderFontCard(f, s)).join('') : `
+              <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+                <h4>ไม่พบฟอนต์ที่ค้นหา</h4>
+                <p>ลองเปลี่ยนคำค้นหาหรือเลือกหมวดหมู่อื่นดูนะคะ</p>
+              </div>
+            `}
+          </div>
+
+        </div>
+      </section>
+    `;
+  }
+
+  window.handleCompareTextInput = function (val) {
+    state.fontTester.text = val;
+    document.querySelectorAll('.font-compare-text-display, .font-preview-text').forEach(el => {
+      el.textContent = val || 'ร้านป้ายบีเอ็นซี น่ารักสดใส';
+    });
+  };
+
+  window.handleCompareSizeInput = function (val) {
+    state.fontTester.size = val;
+    const disp = $('fontCompareSizeVal');
+    if (disp) disp.textContent = val + 'px';
+    document.querySelectorAll('.font-compare-text-display').forEach(el => {
+      el.style.fontSize = val + 'px';
+    });
+  };
+
+  window.handleCompareFontChange = function (slot, fontId) {
+    if (slot === 1) state.fontTester.compareFontId1 = fontId;
+    else state.fontTester.compareFontId2 = fontId;
+    renderCurrentView();
+  };
+
+  window.setCompareFont = function (id) {
+    state.fontTester.compareFontId2 = id;
+    renderCurrentView();
+    const el = document.querySelector('.notebook-paper-container');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  window.filterFontCat = function (cat) {
+    state.fontTester.category = cat;
+    renderCurrentView();
+  };
+
+  window.handleFontSearch = function (q) {
+    state.fontTester.search = q;
+    renderCurrentView();
+  };
+
+  // VIEW: PRODUCTS (Digital Assets Catalog + Add to Cart)
  // ============================================================
  function renderProductsView(container) {
  const s = Store.getSettings();
@@ -1691,7 +1809,7 @@ window.Store = Store;
   };
 
   // ============================================================
-  // VIEW: PORTFOLIO (Gallery with Multi-Image Grid & Carousel Lightbox)
+  // VIEW: PORTFOLIO (Square 1:1 Gallery & Price Menu Card - Requirements 3 & 4)
   // ============================================================
   function renderPortfolioView(container) {
     const s = Store.getSettings();
@@ -1708,13 +1826,13 @@ window.Store = Store;
       <section style="padding: 2.5rem 0 4rem;">
         <div class="container">
           <div class="section-header">
-            <span class="section-tag">Our Works</span>
-            <h2 class="section-title">แกลเลอรีผลงานที่ผ่านมา</h2>
-            <p class="section-desc">รวมตัวอย่างผลงานออกแบบป้าย ฟอนต์ และกราฟิกจริงที่ส่งมอบให้ลูกค้า คลิกที่ภาพเพื่อดูขนาดใหญ่แบบสไลด์</p>
+            <span class="section-tag">Our Works & Gallery</span>
+            <h2 class="section-title">แกลเลอรีผลงาน & อัตราค่าบริการ</h2>
+            <p class="section-desc">รวมตัวอย่างผลงานกราฟิกสไตล์คิ้วท์น่ารัก และตารางราคาป้ายสำเร็จรูปยอดนิยม</p>
           </div>
 
-          <!-- Category Filter Tabs -->
-          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2.5rem;">
+          <!-- Category Filter Tabs at Top (Requirement 3) -->
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem;">
             ${categories.map(c => `
               <button type="button" class="btn ${state.portfolioFilter === c ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="filterPortfolioCat('${c}')">
                 ${c === 'ALL' ? 'ทั้งหมด' : c}
@@ -1722,78 +1840,59 @@ window.Store = Store;
             `).join('')}
           </div>
 
-          <!-- Rich Photo Gallery Grid (Clean Visuals, No Clutter) -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+          <!-- Standard Price Menu Card Before Gallery (Requirement 4) -->
+          <div class="price-menu-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1.5px dashed var(--border); padding-bottom: 0.75rem;">
+              <div>
+                <h3 style="font-size: 1.15rem; margin: 0; color: var(--primary-deep);">📋 ตารางอัตราค่าบริการ & รายการราคาป้ายยอดนิยม</h3>
+                <small style="color: var(--text-muted); font-size: 0.82rem;">ราคามาตรฐานงานออกแบบสำเร็จรูป พร้อมจัดส่งไฟล์ความละเอียดสูง 300 DPI</small>
+              </div>
+              <span class="badge badge--pink">อัปเดต 2026</span>
+            </div>
+
+            <div class="price-menu-grid">
+              <div class="price-menu-item">
+                <span class="price-menu-title">🏷️ ป้ายเครดิต</span>
+                <span class="price-menu-price">฿129</span>
+              </div>
+              <div class="price-menu-item">
+                <span class="price-menu-title">⭐ ป้ายแอพพรี</span>
+                <span class="price-menu-price">฿199</span>
+              </div>
+              <div class="price-menu-item">
+                <span class="price-menu-title">🎮 ป้ายเติมเกม</span>
+                <span class="price-menu-price">฿189</span>
+              </div>
+              <div class="price-menu-item">
+                <span class="price-menu-title">💳 ป้ายเปิดร้าน / ป้ายเลขบัญชี</span>
+                <span class="price-menu-price">฿150</span>
+              </div>
+              <div class="price-menu-item">
+                <span class="price-menu-title">🍰 ป้ายโปรโมชั่น / บอร์ดเมนู</span>
+                <span class="price-menu-price">฿250</span>
+              </div>
+              <div class="price-menu-item">
+                <span class="price-menu-title">✨ งานป้ายสั่งทำพิเศษ (Custom)</span>
+                <span class="price-menu-price">฿390</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pure Square Image Gallery (1:1 Ratio, No Captions - Requirement 3) -->
+          <div class="square-gallery-grid">
             ${filtered.map((item, idx) => {
               const img = item.image_url || item.cover_image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
               return `
-                <div class="card" style="padding: 0; overflow: hidden; cursor: pointer; border-radius: var(--radius-md); transition: transform 0.2s ease, box-shadow 0.2s ease;" onclick="openLightbox(${idx})" title="คลิกเพื่อดูรูปขยาย">
-                  <div style="position: relative; overflow: hidden;">
-                    <img src="${escapeHTML(img)}" style="width: 100%; height: 230px; object-fit: cover; display: block; transition: transform 0.3s ease;" alt="${escapeHTML(item.title)}">
-                    <span class="badge badge--pink" style="position: absolute; top: 10px; left: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
-                      ${escapeHTML(item.category || item.style_category || 'ผลงาน')}
-                    </span>
-                  </div>
-                  <div style="padding: 0.9rem 1rem;">
-                    <h4 style="font-size: 0.95rem; margin: 0 0 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(item.title)}</h4>
-                    <small style="color: var(--text-muted); font-size: 0.8rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">${escapeHTML(item.description || item.style_category || '')}</small>
+                <div class="square-gallery-item" onclick="openLightbox(${idx})" title="คลิกเพื่อดูรูปขยาย">
+                  <img src="${escapeHTML(img)}" alt="Portfolio Graphic" loading="lazy">
+                  <div class="square-gallery-overlay">
+                    <div class="square-gallery-overlay-icon">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                    </div>
                   </div>
                 </div>
               `;
             }).join('')}
-          </div>
-
-          <!-- Dedicated Pricing & Service Packages Section (Separated from Photos) -->
-          <div style="margin-top: 4.5rem; padding-top: 3.5rem; border-top: 1.5px dashed var(--border);">
-            <div class="section-header" style="text-align: center; margin-bottom: 2.5rem;">
-              <span class="section-tag">Rates & Packages</span>
-              <h3 class="section-title">อัตราค่าบริการ & แพ็กเกจงานออกแบบสั่งทำ</h3>
-              <p class="section-desc">ราคามาตรฐานสำหรับงานออกแบบใหม่ตามความต้องการของลูกค้า ส่งมอบไฟล์ความละเอียดสูง 300 DPI พร้อมใช้งานเชิงพาณิชย์</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <!-- Package 1 -->
-              <div class="card" style="display: flex; flex-direction: column; text-align: center; padding: 2rem 1.5rem; border-color: var(--border);">
-                <span class="badge badge--pink" style="margin: 0 auto 0.75rem;">ยอดนิยม</span>
-                <h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">ออกแบบป้ายร้าน & ไวนิล</h4>
-                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-deep); margin-bottom: 1rem;">฿390 <small style="font-size: 0.85rem; font-weight: 400; color: var(--text-muted);">/ ชิ้นงาน</small></div>
-                <ul style="text-align: left; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 1.5rem; flex-grow: 1; padding-left: 1.2rem;">
-                  <li>ไฟล์ PSD / PNG พร้อมพิมพ์ 300 DPI</li>
-                  <li>แก้ไขงานได้ 3 ครั้งตามต้องการ</li>
-                  <li>ส่งแบบร่างแรกภายใน 24-48 ชม.</li>
-                  <li>สิทธิ์ใช้งานเชิงพาณิชย์ตลอดชีพ</li>
-                </ul>
-                <a href="${escapeHTML(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="_blank" class="btn btn-primary btn-sm">สอบถามคิวงานทาง LINE</a>
-              </div>
-
-              <!-- Package 2 -->
-              <div class="card" style="display: flex; flex-direction: column; text-align: center; padding: 2rem 1.5rem; border-color: var(--primary-600); box-shadow: 0 6px 20px rgba(248, 191, 212, 0.3);">
-                <span class="badge badge--pink" style="margin: 0 auto 0.75rem;">คุ้มค่าที่สุด</span>
-                <h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">ออกแบบเมนูอาหาร & เครื่องดื่ม</h4>
-                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-deep); margin-bottom: 1rem;">฿450 <small style="font-size: 0.85rem; font-weight: 400; color: var(--text-muted);">/ หน้า</small></div>
-                <ul style="text-align: left; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 1.5rem; flex-grow: 1; padding-left: 1.2rem;">
-                  <li>จัดเลย์เอาต์เมนูชัดเจน น่าทาน</li>
-                  <li>ไดคัทรูปภาพอาหารฟรี 10-15 ภาพ</li>
-                  <li>ไฟล์ PDF คมชัดสูงสำหรับส่งโรงพิมพ์</li>
-                  <li>ส่งมอบเทมเพลตสำหรับแก้ไขราคาเองได้</li>
-                </ul>
-                <a href="${escapeHTML(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="_blank" class="btn btn-primary btn-sm">สอบถามคิวงานทาง LINE</a>
-              </div>
-
-              <!-- Package 3 -->
-              <div class="card" style="display: flex; flex-direction: column; text-align: center; padding: 2rem 1.5rem; border-color: var(--border);">
-                <span class="badge badge--pink" style="margin: 0 auto 0.75rem;">พรีเมียม</span>
-                <h4 style="font-size: 1.25rem; margin-bottom: 0.5rem;">วาดการ์ตูนมาสคอต & โลโก้</h4>
-                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-deep); margin-bottom: 1rem;">฿590 <small style="font-size: 0.85rem; font-weight: 400; color: var(--text-muted);">/ คาแรกเตอร์</small></div>
-                <ul style="text-align: left; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 1.5rem; flex-grow: 1; padding-left: 1.2rem;">
-                  <li>วาดมือเอกลักษณ์เฉพาะ ไม่ซ้ำใคร</li>
-                  <li>ไฟล์เวกเตอร์ AI/SVG + PNG โปร่งใส</li>
-                  <li>นำไปสกรีนแก้ว ถุงขนม และเสื้อได้</li>
-                  <li>ใบรับรองสิทธิ์และเอกสารยืนยันลิขสิทธิ์</li>
-                </ul>
-                <a href="${escapeHTML(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="_blank" class="btn btn-primary btn-sm">สอบถามคิวงานทาง LINE</a>
-              </div>
-            </div>
           </div>
 
         </div>
@@ -1806,185 +1905,85 @@ window.Store = Store;
     renderCurrentView();
   };
 
-  // Carousel Lightbox Functions (Support Prev, Next, Keyboard)
-  window.openLightbox = function (indexOrUrl) {
-    const list = state.lightboxList || Store.getPortfolio();
-    if (typeof indexOrUrl === 'number') {
-      state.lightboxIndex = indexOrUrl;
-    } else {
-      const idx = list.findIndex(item => (item.image_url === indexOrUrl || item.cover_image === indexOrUrl));
-      state.lightboxIndex = idx >= 0 ? idx : 0;
-    }
+  // VIEW: REVIEWS (Pinned Notes & Customer Testimonials - Requirement 7)
+  // ============================================================
+  function renderReviewsView(container) {
+    const allReviews = Store.getAllReviews();
+    const pinnedReviews = allReviews.filter(r => r.is_pinned);
+    const regularReviews = allReviews.filter(r => !r.is_pinned);
 
-    updateLightboxView();
-    const modal = $('lightboxModal');
-    if (modal) modal.classList.add('is-active');
-  };
+    container.innerHTML = `
+      <section style="padding: 2.5rem 0 4rem;">
+        <div class="container" style="max-width: 920px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <span class="section-tag">Testimonials</span>
+              <h2 class="section-title" style="margin: 0;">รีวิวและความประทับใจจากลูกค้า</h2>
+              <p class="section-desc" style="margin: 0.35rem 0 0;">คำชมและความประทับใจจากลูกค้าที่สั่งทำป้ายและซื้อฟอนต์กับ BNC GraphMate</p>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="openReviewModal()">+ เขียนรีวิวร้าน</button>
+          </div>
 
-  window.closeLightbox = function () {
-    const modal = $('lightboxModal');
-    if (modal) modal.classList.remove('is-active');
-  };
+          <!-- Pinned Reviews Board (White-Pink Note Paper with Pushpin) -->
+          ${pinnedReviews.length > 0 ? `
+            <div class="pinned-reviews-board">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem;">
+                <span style="font-size: 1.3rem;">📌</span>
+                <h3 style="margin: 0; font-size: 1.15rem; color: var(--primary-deep);">รีวิวปักหมุดแนะนำ</h3>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                ${pinnedReviews.map(r => `
+                  <div class="pinned-review-card">
+                    <div class="pushpin-pin"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                      <span class="pinned-tape-badge">📌 รีวิวแนะนำ</span>
+                      <span style="color: #F59E0B; font-size: 1rem;">${'★'.repeat(r.rating || 5)}</span>
+                    </div>
+                    <div style="font-weight: 700; color: var(--text); font-size: 1.05rem; margin-bottom: 4px;">${escapeHTML(r.customer_name || 'ลูกค้า')}</div>
+                    ${r.product_name ? `<span class="badge badge--pink" style="margin-bottom: 0.6rem; display: inline-block;">${escapeHTML(r.product_name)}</span>` : ''}
+                    <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 0 0 0.75rem;">${escapeHTML(r.message)}</p>
+                    ${state.isAdmin ? `
+                      <div style="text-align: right; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px;">ปลดหมุด</button>
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
 
-  window.prevLightbox = function (e) {
-    if (e && e.stopPropagation) e.stopPropagation();
-    const list = state.lightboxList || Store.getPortfolio();
-    if (list.length === 0) return;
-    state.lightboxIndex = (state.lightboxIndex - 1 + list.length) % list.length;
-    updateLightboxView();
-  };
+          <!-- Regular Reviews Grid -->
+          <div style="margin-top: 2rem;">
+            <h4 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--text-muted);">รีวิวทั้งหมด (${allReviews.length} รีวิว)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              ${regularReviews.map(r => `
+                <div class="card">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+                    <span style="font-weight: 700; color: var(--text); font-size: 1rem;">${escapeHTML(r.customer_name || 'ลูกค้า')}</span>
+                    <span style="color: #F59E0B; font-size: 1rem;">${'★'.repeat(r.rating || 5)}</span>
+                  </div>
+                  ${r.product_name ? `<span class="badge badge--pink" style="margin-bottom: 0.5rem;">${escapeHTML(r.product_name)}</span>` : ''}
+                  <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin: 0 0 0.75rem;">${escapeHTML(r.message)}</p>
+                  ${state.isAdmin ? `
+                    <div style="text-align: right; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px;">
+                      <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px;">📌 ปักหมุด</button>
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
 
-  window.nextLightbox = function (e) {
-    if (e && e.stopPropagation) e.stopPropagation();
-    const list = state.lightboxList || Store.getPortfolio();
-    if (list.length === 0) return;
-    state.lightboxIndex = (state.lightboxIndex + 1) % list.length;
-    updateLightboxView();
-  };
-
-  function updateLightboxView() {
-    const list = state.lightboxList || Store.getPortfolio();
-    if (list.length === 0) return;
-    const item = list[state.lightboxIndex] || list[0];
-    const imgEl = $('lightboxImg');
-    const capEl = $('lightboxCaption');
-    if (imgEl) {
-      imgEl.src = item.image_url || item.cover_image || '';
-    }
-    if (capEl) {
-      capEl.innerHTML = `(${state.lightboxIndex + 1} / ${list.length}) ${escapeHTML(item.title || '')} — <span style="color: var(--primary-600);">${escapeHTML(item.category || '')}</span>`;
-    }
+        </div>
+      </section>
+    `;
   }
 
- function renderPointsView(container) {
- let customer = null;
- if (state.searchPointsQuery) {
- const customers = Store.getCustomers();
- customer = customers.find(c =>
- (c.name && c.name.toLowerCase().includes(state.searchPointsQuery.toLowerCase())) ||
- (c.member_code && c.member_code.toLowerCase().includes(state.searchPointsQuery.toLowerCase())) ||
- (c.line_id && c.line_id.toLowerCase().includes(state.searchPointsQuery.toLowerCase()))
- );
- }
-
- container.innerHTML = `
- <section style="padding: 2.5rem 0 4rem;">
- <div class="container" style="max-width: 760px;">
- <div class="section-header">
- <span class="section-tag">Rewards & Member Club</span>
- <h2 class="section-title">ตรวจสอบคะแนนสะสม BNC Club</h2>
- <p class="section-desc">กรอกชื่อ หรือรหัสสมาชิก เพื่อเช็กแต้มสะสมและสิทธิประโยชน์ VIP ของคุณ</p>
- </div>
-
- <!-- Search Card -->
- <div class="card" style="margin-bottom: 2rem; text-align: center; padding: 2rem;">
- <div style="display: flex; gap: 0.5rem; max-width: 500px; margin: 0 auto 0.5rem;">
- <input type="text" id="pointsSearchInput" class="form-input" placeholder="กรอกชื่อ หรือรหัสสมาชิก เช่น BNC-8899" value="${escapeHTML(state.searchPointsQuery)}">
- <button type="button" class="btn btn-primary" onclick="searchPoints()">ค้นหา</button>
- </div>
- <small style="color: var(--text-muted);">*ชื่อที่ใช้สั่งซื้อหรือรหัสสมาชิกที่ได้รับจากร้านค้า</small>
- </div>
-
- <!-- Results -->
- ${customer ? `
- <div class="card" style="margin-bottom: 2rem; border-color: var(--primary-soft);">
- <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
- <div>
- <h3 style="margin: 0 0 0.25rem;">คุณ ${escapeHTML(customer.name)}</h3>
- <span class="badge badge--pink">รหัส: ${escapeHTML(customer.member_code)}</span>
- </div>
- <div style="text-align: right;">
- <span style="font-size: 0.82rem; color: var(--text-muted); display: block;">คะแนนสะสมทั้งหมด</span>
- <span style="font-family: var(--font-heading); font-size: 2rem; font-weight: 700; color: var(--primary-deep);">${customer.total_points || 0} แต้ม</span>
- </div>
- </div>
-
- <!-- Tier Progress -->
- <div style="background: var(--surface-alt); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
- <div style="display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 600; margin-bottom: 0.4rem;">
- <span>ระดับปัจจุบัน: <strong style="color: var(--primary);">${escapeHTML(customer.member_level || 'BRONZE')}</strong></span>
- <span>เป้าหมายขั้นถัดไป: 1,000 แต้ม (GOLD)</span>
- </div>
- <div style="height: 10px; background: #ffffff; border-radius: 999px; overflow: hidden; border: 1px solid var(--border-light);">
- <div style="width: ${Math.min(100, ((customer.total_points || 0) / 1000) * 100)}%; height: 100%; background: var(--primary-600); border-radius: 999px;"></div>
- </div>
- </div>
- </div>
- ` : (state.searchPointsQuery ? `
- <div class="card" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
- <h4>ไม่พบข้อมูลสมาชิก "${escapeHTML(state.searchPointsQuery)}"</h4>
- <p>กรุณาตรวจสอบการสะกดชื่อ หรือทักแชทสอบถามแอดมินทาง LINE ได้นะคะ</p>
- </div>
- ` : '')}
-
- <!-- Member Levels Info -->
- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
- <div class="card" style="text-align: center; padding: 1.25rem;">
- <span style="font-size: 1.8rem; display: block; margin-bottom: 0.25rem;"></span>
- <h4 style="margin-bottom: 0.25rem;">BRONZE</h4>
- <small style="color: var(--text-muted);">0 - 499 แต้ม</small>
- <p style="font-size: 0.82rem; margin-top: 0.5rem;">รับส่วนลด 5% ทุกคำสั่งซื้อ</p>
- </div>
- <div class="card" style="text-align: center; padding: 1.25rem; border-color: var(--primary-soft);">
- <span style="font-size: 1.8rem; display: block; margin-bottom: 0.25rem;"></span>
- <h4 style="margin-bottom: 0.25rem; color: var(--primary-deep);">SILVER</h4>
- <small style="color: var(--text-muted);">500 - 999 แต้ม</small>
- <p style="font-size: 0.82rem; margin-top: 0.5rem;">รับส่วนลด 10% + ของแถมพิเศษ</p>
- </div>
- <div class="card" style="text-align: center; padding: 1.25rem;">
- <span style="font-size: 1.8rem; display: block; margin-bottom: 0.25rem;"></span>
- <h4 style="margin-bottom: 0.25rem;">GOLD VIP</h4>
- <small style="color: var(--text-muted);">1,000+ แต้ม</small>
- <p style="font-size: 0.82rem; margin-top: 0.5rem;">รับส่วนลด 15% + สิทธิ์เข้ากลุ่มลับ</p>
- </div>
- </div>
-
- </div>
- </section>
- `;
- }
-
- window.searchPoints = function () {
- const input = $('pointsSearchInput');
- if (input) {
- state.searchPointsQuery = input.value.trim();
- renderCurrentView();
- }
- };
-
- // ============================================================
- // VIEW: REVIEWS (Customer Reviews & Submit Modal)
- // ============================================================
- function renderReviewsView(container) {
- const reviews = Store.getReviews();
-
- container.innerHTML = `
- <section style="padding: 2.5rem 0 4rem;">
- <div class="container" style="max-width: 860px;">
- <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
- <div>
- <span class="section-tag">Testimonials</span>
- <h2 class="section-title" style="margin: 0;">รีวิวและความประทับใจจากลูกค้า</h2>
- </div>
- <button type="button" class="btn btn-primary" onclick="openReviewModal()">+ เขียนรีวิวร้าน</button>
- </div>
-
- <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
- ${reviews.map(r => `
- <div class="card">
- <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
- <span style="font-weight: 700; color: var(--text);">${escapeHTML(r.customer_name || 'ลูกค้า')}</span>
- <span style="color: #F59E0B; font-size: 1rem;">${'★'.repeat(r.rating || 5)}</span>
- </div>
- ${r.product_name ? `<span class="badge badge--pink" style="margin-bottom: 0.5rem;">${escapeHTML(r.product_name)}</span>` : ''}
- <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin: 0;">${escapeHTML(r.message)}</p>
- </div>
- `).join('')}
- </div>
- </div>
- </section>
- `;
- }
+  window.togglePinReview = function (id) {
+    Store.togglePinReview(id);
+    renderCurrentView();
+  };
 
  window.openReviewModal = function () {
  const modal = $('reviewModal');
@@ -2368,106 +2367,151 @@ window.Store = Store;
 
  // ── Master Admin Settings Tab (100% Configurable) ─────────────
  function renderAdminSettingsTab(s) {
- const stats = s.stats || {};
- const highlights = Array.isArray(s.highlights) ? s.highlights : [];
+    const stats = s.stats || {};
+    const highlights = Store.getHighlights();
 
- return `
- <form id="masterSettingsForm" onsubmit="saveMasterSettings(event)">
- 
- <!-- 1. General & Header Settings -->
- <div class="card" style="margin-bottom: 1.5rem;">
- <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ข้อมูลร้าน & แถบประกาศหัวเว็บ</h3>
- <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
- <div class="form-group">
- <label class="form-label">ชื่อร้านค้า</label>
- <input type="text" id="cfg_shopName" class="form-input" value="${escapeHTML(s.shopName || '')}" required>
- </div>
- <div class="form-group">
- <label class="form-label">สโลแกน / คำโปรย</label>
- <input type="text" id="cfg_tagline" class="form-input" value="${escapeHTML(s.tagline || '')}">
- </div>
- </div>
- <div class="form-group">
- <label class="form-label">ข้อความแถบประกาศด้านบน (Ticker)</label>
- <input type="text" id="cfg_announcement" class="form-input" value="${escapeHTML(s.announcement || '')}">
- </div>
- <div style="display: flex; align-items: center; gap: 0.5rem;">
- <input type="checkbox" id="cfg_announcementEnabled" ${s.announcementEnabled ? 'checked' : ''} style="accent-color: var(--primary); width: 18px; height: 18px;">
- <label for="cfg_announcementEnabled" style="font-weight: 600; font-size: 0.9rem; cursor: pointer;">เปิดแสดงแถบประกาศ</label>
- </div>
- </div>
+    return `
+      <form id="masterSettingsForm" onsubmit="saveMasterSettings(event)">
+        
+        <!-- 1. General & Header Settings -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ข้อมูลร้าน & แถบประกาศหัวเว็บ</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label">ชื่อร้านค้า</label>
+              <input type="text" id="cfg_shopName" class="form-input" value="${escapeHTML(s.shopName || '')}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">สโลแกน / คำโปรย</label>
+              <input type="text" id="cfg_tagline" class="form-input" value="${escapeHTML(s.tagline || '')}">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ข้อความแถบประกาศด้านบน (Ticker)</label>
+            <input type="text" id="cfg_announcement" class="form-input" value="${escapeHTML(s.announcement || '')}">
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" id="cfg_announcementEnabled" ${s.announcementEnabled ? 'checked' : ''} style="accent-color: var(--primary-600); width: 18px; height: 18px;">
+            <label for="cfg_announcementEnabled" style="font-weight: 600; font-size: 0.9rem; cursor: pointer;">เปิดแสดงแถบประกาศ</label>
+          </div>
+        </div>
 
- <!-- 2. Profile Cover, Avatar & Bio (NO AURA) -->
- <div class="card" style="margin-bottom: 1.5rem;">
- <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">รูปภาพหน้าปก, โปรไฟล์ และ Bio</h3>
- <div class="form-group">
- <label class="form-label">ลิงก์ภาพหน้าปก (Facebook Cover Style)</label>
- <input type="text" id="cfg_coverImage" class="form-input" value="${escapeHTML(s.coverImage || '')}">
- <small style="color: var(--text-muted);">*แนะนำภาพแนวนอน อัตราส่วน 16:6</small>
- </div>
- <div class="form-group">
- <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ขอบขาวเรียบ ไม่มีออร่า)</label>
- <input type="text" id="cfg_profileImage" class="form-input" value="${escapeHTML(s.profileImage || '')}">
- </div>
- <div class="form-group">
- <label class="form-label">คำแนะนำร้านค้า (Bio)</label>
- <textarea id="cfg_shopBio" class="form-textarea" rows="3">${escapeHTML(s.shopBio || '')}</textarea>
- </div>
- </div>
+        <!-- 2. Profile Cover, Avatar & Bio -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">รูปภาพหน้าปก, โปรไฟล์ และ Bio</h3>
+          <div class="form-group">
+            <label class="form-label">ลิงก์ภาพหน้าปก (Facebook Cover Style)</label>
+            <input type="text" id="cfg_coverImage" class="form-input" value="${escapeHTML(s.coverImage || '')}">
+            <small style="color: var(--text-muted);">*แนะนำภาพแนวนอน อัตราส่วน 16:6</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ขอบชมพูพาสเทลเรียบ)</label>
+            <input type="text" id="cfg_profileImage" class="form-input" value="${escapeHTML(s.profileImage || '')}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">คำแนะนำร้านค้า (Bio)</label>
+            <textarea id="cfg_shopBio" class="form-textarea" rows="3">${escapeHTML(s.shopBio || '')}</textarea>
+          </div>
+        </div>
 
- <!-- 3. Customizable Button Labels (แก้ได้ยันตัวหนังสือบนปุ่ม) -->
- <div class="card" style="margin-bottom: 1.5rem;">
- <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ข้อความบนปุ่มกดทุกจุด (Button Labels)</h3>
- <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">สามารถเปลี่ยนคำที่แสดงบนปุ่มต่างๆ ทั้งเว็บได้ตามต้องการ</p>
- <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
- <div class="form-group">
- <label class="form-label">ปุ่มทักแชท LINE</label>
- <input type="text" id="cfg_btnLineText" class="form-input" value="${escapeHTML(s.btnLineText || 'ทักแชท LINE ร้าน')}">
- </div>
- <div class="form-group">
- <label class="form-label">ปุ่มใส่ตะกร้า</label>
- <input type="text" id="cfg_btnCartText" class="form-input" value="${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}">
- </div>
- <div class="form-group">
- <label class="form-label">ปุ่มสั่งซื้อ</label>
- <input type="text" id="cfg_btnBuyText" class="form-input" value="${escapeHTML(s.btnBuyText || 'สั่งซื้อเลย')}">
- </div>
- <div class="form-group">
- <label class="form-label">ปุ่มดูตัวอย่าง</label>
- <input type="text" id="cfg_btnPreviewText" class="form-input" value="${escapeHTML(s.btnPreviewText || 'ดูตัวอย่าง')}">
- </div>
- </div>
- </div>
+        <!-- 3. Story Highlights Management (100% Active) -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <h3 style="color: var(--primary-deep); margin: 0 0 0.25rem;">ไฮไลต์สตอรี่หน้าร้าน (Story Highlights)</h3>
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">จัดการวงกลมไฮไลต์หน้าโปรไฟล์ เพิ่ม ลบ หรือเปลี่ยนรูปภาพได้เอง</p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddHighlightForm()">+ เพิ่มไฮไลต์ใหม่</button>
+          </div>
 
- <!-- 4. Stats Pills (ตัวเลขและข้อความสถิติ) -->
- <div class="card" style="margin-bottom: 1.5rem;">
- <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ตัวเลขและข้อความสถิติหน้าแรก</h3>
- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
- <div class="form-group">
- <label class="form-label">สถิติ 1 (ตัวเลข & คำอธิบาย)</label>
- <div style="display: flex; gap: 0.5rem;">
- <input type="text" id="cfg_statPortCount" class="form-input" value="${escapeHTML(stats.portfolioCount || '250+')}" style="width: 45%;">
- <input type="text" id="cfg_statPortLabel" class="form-input" value="${escapeHTML(stats.portfolioLabel || 'ผลงาน')}">
- </div>
- </div>
- <div class="form-group">
- <label class="form-label">สถิติ 2 (ตัวเลข & คำอธิบาย)</label>
- <div style="display: flex; gap: 0.5rem;">
- <input type="text" id="cfg_statFontCount" class="form-input" value="${escapeHTML(stats.fontCount || '48')}" style="width: 45%;">
- <input type="text" id="cfg_statFontLabel" class="form-input" value="${escapeHTML(stats.fontLabel || 'ฟอนต์')}">
- </div>
- </div>
- <div class="form-group">
- <label class="form-label">สถิติ 3 (ตัวเลข & คำอธิบาย)</label>
- <div style="display: flex; gap: 0.5rem;">
- <input type="text" id="cfg_statMemberCount" class="form-input" value="${escapeHTML(stats.memberCount || '1.2k')}" style="width: 45%;">
- <input type="text" id="cfg_statMemberLabel" class="form-input" value="${escapeHTML(stats.memberLabel || 'สมาชิก')}">
- </div>
- </div>
- </div>
- </div>
+          <!-- Add Highlight Form -->
+          <div id="addHighlightWrap" style="display: none; background: var(--surface-alt); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
+            <h4 style="margin: 0 0 1rem; font-size: 1rem; color: var(--primary-deep);">เพิ่มไฮไลต์สตอรี่ใหม่</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="form-group">
+                <label class="form-label">ชื่อไฮไลต์</label>
+                <input type="text" id="newHlTitle" class="form-input" placeholder="เช่น รีวิว, ฟอนต์ใหม่">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ลิงก์รูปภาพ (URL)</label>
+                <input type="text" id="newHlImage" class="form-input" placeholder="https://images.unsplash.com/...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ลิงก์ปลายทางเมื่อคลิก</label>
+                <input type="text" id="newHlLink" class="form-input" placeholder="#reviews หรือ URL">
+              </div>
+            </div>
+            <div style="text-align: right; margin-top: 0.75rem;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddHighlightForm()" style="margin-right: 0.5rem;">ยกเลิก</button>
+              <button type="button" class="btn btn-primary btn-sm" onclick="saveNewHighlight()">บันทึกไฮไลต์</button>
+            </div>
+          </div>
 
-         <!-- 5. Dynamic Social & Contact Channels -->
+          <!-- Highlights List -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3" id="adminHighlightsList">
+            ${highlights.map((hl, idx) => `
+              <div style="background: var(--surface-alt); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem 0.5rem; text-align: center; position: relative;">
+                <img src="${escapeHTML(hl.image)}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; margin: 0 auto 6px; display: block; border: 2.5px solid var(--primary-600);" onerror="this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100';">
+                <div style="font-weight: 700; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(hl.title)}</div>
+                <button type="button" style="position: absolute; top: 4px; right: 4px; background: rgba(239,68,68,0.12); border: none; color: #ef4444; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: grid; place-items: center;" onclick="deleteHighlight(${idx})" title="ลบไฮไลต์นี้">✕</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- 4. Customizable Button Labels -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ข้อความบนปุ่มกดทุกจุด (Button Labels)</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">สามารถเปลี่ยนคำที่แสดงบนปุ่มต่างๆ ทั้งเว็บได้ตามต้องการ</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="form-group">
+              <label class="form-label">ปุ่มทักแชท LINE</label>
+              <input type="text" id="cfg_btnLineText" class="form-input" value="${escapeHTML(s.btnLineText || 'ทักแชท LINE ร้าน')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ปุ่มใส่ตะกร้า</label>
+              <input type="text" id="cfg_btnCartText" class="form-input" value="${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ปุ่มสั่งซื้อ</label>
+              <input type="text" id="cfg_btnBuyText" class="form-input" value="${escapeHTML(s.btnBuyText || 'สั่งซื้อเลย')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ปุ่มดูตัวอย่าง</label>
+              <input type="text" id="cfg_btnPreviewText" class="form-input" value="${escapeHTML(s.btnPreviewText || 'ดูตัวอย่าง')}">
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Stats Pills -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ตัวเลขและข้อความสถิติหน้าแรก</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="form-group">
+              <label class="form-label">สถิติ 1 (ตัวเลข & คำอธิบาย)</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="cfg_statPortCount" class="form-input" value="${escapeHTML(stats.portfolioCount || '250+')}" style="width: 45%;">
+                <input type="text" id="cfg_statPortLabel" class="form-input" value="${escapeHTML(stats.portfolioLabel || 'ผลงาน')}">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">สถิติ 2 (ตัวเลข & คำอธิบาย)</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="cfg_statFontCount" class="form-input" value="${escapeHTML(stats.fontCount || '48')}" style="width: 45%;">
+                <input type="text" id="cfg_statFontLabel" class="form-input" value="${escapeHTML(stats.fontLabel || 'ฟอนต์')}">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">สถิติ 3 (ตัวเลข & คำอธิบาย)</label>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="cfg_statMemberCount" class="form-input" value="${escapeHTML(stats.memberCount || '1.2k')}" style="width: 45%;">
+                <input type="text" id="cfg_statMemberLabel" class="form-input" value="${escapeHTML(stats.memberLabel || 'สมาชิก')}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Dynamic Social & Contact Channels (100% Active) -->
         <div class="card" style="margin-bottom: 1.5rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
             <div>
@@ -2478,7 +2522,7 @@ window.Store = Store;
           </div>
 
           <!-- Add Contact Form (Toggleable) -->
-          <div id="addContactWrap" style="display: none; background: var(--surface-alt); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; border: 1.5px solid var(--primary-soft);">
+          <div id="addContactWrap" style="display: none; background: var(--surface-alt); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
             <h4 style="margin: 0 0 1rem; font-size: 1rem; color: var(--primary-deep);">เพิ่มช่องทางติดต่อใหม่</h4>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="form-group">
@@ -2515,18 +2559,18 @@ window.Store = Store;
           </div>
         </div>
 
-        <!-- 6. Dynamic Payment Accounts & QR Codes -->
+        <!-- 7. Dynamic Payment Accounts & QR Codes (100% Active) -->
         <div class="card" style="margin-bottom: 1.5rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
             <div>
               <h3 style="color: var(--primary-deep); margin: 0 0 0.25rem;">บัญชีธนาคาร & ช่องทางรับชำระเงิน</h3>
-              <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">ตั้งค่าบัญชีรับเงินได้อิสระ ลูกค้าจะสามารถเลือกชำระได้ตามบัญชีที่เปิดไว้</p>
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">ตั้งค่าบัญชีรับเงินได้อิสระ ลูกค้าจะสามารถสแกน QR หรือโอนตามบัญชีที่เปิดไว้</p>
             </div>
             <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddAccountForm()">+ เพิ่มบัญชีรับเงิน</button>
           </div>
 
           <!-- Add Payment Account Form (Toggleable) -->
-          <div id="addAccountWrap" style="display: none; background: var(--surface-alt); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; border: 1.5px solid var(--primary-soft);">
+          <div id="addAccountWrap" style="display: none; background: var(--surface-alt); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
             <h4 style="margin: 0 0 1rem; font-size: 1rem; color: var(--primary-deep);">เพิ่มบัญชีธนาคาร / กระเป๋าเงินใหม่</h4>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="form-group">
@@ -2568,39 +2612,188 @@ window.Store = Store;
           </div>
         </div>
 
-        <!-- 7. Google Sheets Sync & Web App -->
- <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #10B981;">
- <h3 style="color: #166534; margin-bottom: 0.5rem;">ฐานข้อมูล Google Sheets (ฟรี 100%)</h3>
- <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">ใส่ Google Apps Script Web App URL เพื่อซิงก์ออเดอร์และข้อมูลตรงกันทุกเครื่อง</p>
- <div class="form-group">
- <label class="form-label">Web App URL หรือ ลิงก์ Google Sheets</label>
- <div style="display: flex; gap: 0.5rem;">
- <input type="text" id="cfg_sheetUrl" class="form-input" value="${escapeHTML(s.googleSheetWebAppUrl || '')}" placeholder="https://script.google.com/macros/s/.../exec">
- <button type="button" class="btn btn-outline" style="border-color: #10B981; color: #166534; white-space: nowrap;" onclick="testAdminSheetSync()">ทดสอบการเชื่อมต่อ</button>
- </div>
- <div id="adminSheetFeedback" style="margin-top: 0.5rem; font-size: 0.88rem; display: none;"></div>
- </div>
- </div>
+        <!-- 8. Google Sheets Sync & Web App (100% Active) -->
+        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #10B981;">
+          <h3 style="color: #166534; margin-bottom: 0.5rem;">ฐานข้อมูล Google Sheets (ฟรี 100%)</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">ใส่ Google Apps Script Web App URL เพื่อซิงก์ออเดอร์และข้อมูลตรงกันทุกเครื่อง</p>
+          <div class="form-group">
+            <label class="form-label">Web App URL หรือ ลิงก์ Google Sheets</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="cfg_sheetUrl" class="form-input" value="${escapeHTML(s.googleSheetWebAppUrl || '')}" placeholder="https://script.google.com/macros/s/.../exec">
+              <button type="button" class="btn btn-outline" style="border-color: #10B981; color: #166534; white-space: nowrap;" onclick="testAdminSheetSync()">ทดสอบการเชื่อมต่อ</button>
+            </div>
+            <div id="adminSheetFeedback" style="margin-top: 0.5rem; font-size: 0.88rem; display: none;"></div>
+          </div>
+        </div>
 
- <!-- 8. Admin PIN -->
- <div class="card" style="margin-bottom: 2rem;">
- <h3 style="color: var(--primary-deep); margin-bottom: 1rem;">รหัสความปลอดภัย Admin PIN</h3>
- <div class="form-group" style="max-width: 280px;">
- <label class="form-label">รหัสผ่านเข้าหลังบ้าน (6 หลัก)</label>
- <input type="password" id="cfg_adminPin" class="form-input" value="${escapeHTML(s.adminPin || '123456')}" maxlength="6" style="letter-spacing: 0.2em; text-align: center; font-size: 1.2rem;">
- </div>
- </div>
+        <!-- 9. Admin PIN -->
+        <div class="card" style="margin-bottom: 2rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 1rem;">รหัสความปลอดภัย Admin PIN</h3>
+          <div class="form-group" style="max-width: 280px;">
+            <label class="form-label">รหัสผ่านเข้าหลังบ้าน (6 หลัก)</label>
+            <input type="password" id="cfg_adminPin" class="form-input" value="${escapeHTML(s.adminPin || '123456')}" maxlength="6" style="letter-spacing: 0.2em; text-align: center; font-size: 1.2rem;">
+          </div>
+        </div>
 
- <!-- Submit Button -->
- <div style="text-align: right; margin-bottom: 3rem;">
- <button type="submit" class="btn btn-primary btn-lg">บันทึกการตั้งค่าทั้งหมด </button>
- </div>
+        <!-- Submit Button -->
+        <div style="text-align: right; margin-bottom: 3rem;">
+          <button type="submit" class="btn btn-primary btn-lg" style="font-weight: 700; padding: 0.85rem 2rem;">บันทึกการตั้งค่าทั้งหมด</button>
+        </div>
 
- </form>
- `;
- }
+      </form>
+    `;
+  }
 
- // Admin Calculator PIN Keypad Actions (Inspired by BNC HayMate)
+  // ============================================================
+  // SETTINGS ACTION HANDLERS (100% Active & Operational)
+  // ============================================================
+  window.toggleAddContactForm = function () {
+    const wrap = $('addContactWrap');
+    if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.saveNewContactChannel = function () {
+    const platform = ($('newContactPlatform')?.value || '').trim();
+    const value = ($('newContactValue')?.value || '').trim();
+    const url = ($('newContactUrl')?.value || '').trim();
+    if (!platform || !value) {
+      alert('กรุณากรอกแพลตฟอร์มและข้อความที่แสดง');
+      return;
+    }
+    const channels = Store.getContactChannels();
+    channels.push({ id: 'cc-' + Date.now(), platform, value, url: url || '#' });
+    Store.saveContactChannels(channels);
+    renderCurrentView();
+  };
+
+  window.deleteContactChannel = function (idx) {
+    if (!confirm('ต้องการลบช่องทางติดต่อนี้ใช่หรือไม่?')) return;
+    const channels = Store.getContactChannels();
+    channels.splice(idx, 1);
+    Store.saveContactChannels(channels);
+    renderCurrentView();
+  };
+
+  window.toggleAddAccountForm = function () {
+    const wrap = $('addAccountWrap');
+    if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.saveNewPaymentAccount = function () {
+    const bankName = ($('newAccBank')?.value || '').trim();
+    const accountNo = ($('newAccNo')?.value || '').trim();
+    const accountName = ($('newAccName')?.value || '').trim();
+    const qrUrl = ($('newAccQr')?.value || '').trim();
+    if (!bankName || !accountNo) {
+      alert('กรุณากรอกชื่อธนาคารและเลขที่บัญชี');
+      return;
+    }
+    const accounts = Store.getPaymentAccounts();
+    accounts.push({ id: 'acc-' + Date.now(), bankName, accountNo, accountName, qrUrl });
+    Store.savePaymentAccounts(accounts);
+    renderCurrentView();
+  };
+
+  window.deletePaymentAccount = function (idx) {
+    if (!confirm('ต้องการลบบัญชีรับเงินนี้ใช่หรือไม่?')) return;
+    const accounts = Store.getPaymentAccounts();
+    accounts.splice(idx, 1);
+    Store.savePaymentAccounts(accounts);
+    renderCurrentView();
+  };
+
+  window.toggleAddHighlightForm = function () {
+    const wrap = $('addHighlightWrap');
+    if (wrap) wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.saveNewHighlight = function () {
+    const title = ($('newHlTitle')?.value || '').trim();
+    const image = ($('newHlImage')?.value || '').trim();
+    const link = ($('newHlLink')?.value || '').trim();
+    if (!title || !image) {
+      alert('กรุณากรอกชื่อไฮไลต์และลิงก์รูปภาพ');
+      return;
+    }
+    const highlights = Store.getHighlights();
+    highlights.push({ id: 'hl-' + Date.now(), title, image, link: link || '#home' });
+    Store.saveHighlights(highlights);
+    renderCurrentView();
+  };
+
+  window.deleteHighlight = function (idx) {
+    if (!confirm('ต้องการลบไฮไลต์นี้ใช่หรือไม่?')) return;
+    const highlights = Store.getHighlights();
+    highlights.splice(idx, 1);
+    Store.saveHighlights(highlights);
+    renderCurrentView();
+  };
+
+  window.testAdminSheetSync = function () {
+    const url = ($('cfg_sheetUrl')?.value || '').trim();
+    const feedback = $('adminSheetFeedback');
+    if (!url) {
+      alert('กรุณากรอก Web App URL ก่อนทดสอบ');
+      return;
+    }
+    if (feedback) {
+      feedback.style.display = 'block';
+      feedback.style.color = '#d97706';
+      feedback.textContent = '🔄 กำลังส่งข้อมูลทดสอบการเชื่อมต่อไปยัง Google Sheets...';
+    }
+    fetch(url + '?action=PING', { method: 'GET', mode: 'no-cors' })
+      .then(() => {
+        if (feedback) {
+          feedback.style.color = '#166534';
+          feedback.innerHTML = '✅ เชื่อมต่อและส่งคำขอไปยัง Google Apps Script สำเร็จ!';
+        }
+      })
+      .catch(err => {
+        if (feedback) {
+          feedback.style.color = '#991b1b';
+          feedback.textContent = '❌ การเชื่อมต่อล้มเหลว: ' + err.message;
+        }
+      });
+  };
+
+  window.saveMasterSettings = function (e) {
+    e.preventDefault();
+    const getVal = (id, def = '') => {
+      const el = $(id);
+      return el ? el.value.trim() : def;
+    };
+
+    const updated = {
+      shopName: getVal('cfg_shopName', 'BNC GraphMate Studio'),
+      tagline: getVal('cfg_tagline'),
+      announcement: getVal('cfg_announcement'),
+      announcementEnabled: $('cfg_announcementEnabled')?.checked || false,
+      coverImage: getVal('cfg_coverImage'),
+      profileImage: getVal('cfg_profileImage'),
+      shopBio: getVal('cfg_shopBio'),
+      btnLineText: getVal('cfg_btnLineText', 'ทักแชท LINE ร้าน'),
+      btnCartText: getVal('cfg_btnCartText', 'ใส่ตะกร้า'),
+      btnBuyText: getVal('cfg_btnBuyText', 'สั่งซื้อเลย'),
+      btnPreviewText: getVal('cfg_btnPreviewText', 'ดูตัวอย่าง'),
+      stats: {
+        portfolioCount: getVal('cfg_statPortCount', '250+'),
+        portfolioLabel: getVal('cfg_statPortLabel', 'ผลงาน'),
+        fontCount: getVal('cfg_statFontCount', '48'),
+        fontLabel: getVal('cfg_statFontLabel', 'ฟอนต์'),
+        memberCount: getVal('cfg_statMemberCount', '1.2k'),
+        memberLabel: getVal('cfg_statMemberLabel', 'สมาชิก')
+      },
+      googleSheetWebAppUrl: getVal('cfg_sheetUrl'),
+      adminPin: getVal('cfg_adminPin', '123456')
+    };
+
+    Store.saveSettings(updated);
+    alert('บันทึกการตั้งค่าทั้งหมดเรียบร้อยแล้วค่ะ!');
+    renderNavbar();
+    renderCurrentView();
+  };
+
+  // Admin Calculator PIN Keypad Actions (Inspired by BNC HayMate)
  window.pressAdminPinKey = function (key) {
  state.adminPinBuffer = state.adminPinBuffer || '';
  const dotsContainer = $('adminPinDots');
@@ -2822,18 +3015,19 @@ window.Store = Store;
           <h3 style="font-size: 1.15rem; margin: 0; font-weight: 700;">${escapeHTML(f.name)}</h3>
         </div>
 
-        <!-- Live Font Preview Area -->
-        <div class="font-preview-area">
-          <div class="font-preview-text" style="font-size: clamp(18px, 4vw, ${state.fontTester.size}px); font-weight: 500; word-break: break-word;">
+        <!-- Live Font Preview Area (Moderate & Elegant Size - Requirement 2) -->
+        <div class="font-preview-area" style="padding: 0.9rem 1.25rem; min-height: 54px;">
+          <div class="font-preview-text" style="font-size: 19px; font-weight: 500; word-break: break-word; line-height: 1.4; color: var(--text);">
             ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี ฟอนต์ลายมือน่ารัก 1234')}
           </div>
         </div>
 
         <div class="product-card__body">
           <p class="product-card__desc">${escapeHTML(f.description || '')}</p>
-          <div class="product-card__footer">
+        <div class="product-card__footer">
             <div class="product-price">฿${Number(f.price || 0).toLocaleString()}</div>
             <div style="display: flex; gap: 0.35rem;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="setCompareFont('${f.id}')" title="นำฟอนต์นี้ไปเทียบในสมุด GoodNotes ด้านบน">เทียบ</button>
               <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${f.id}', 'FONT')">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                 ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
@@ -3533,6 +3727,163 @@ window.Store = Store;
  alert('ขอบคุณสำหรับรีวิวนะคะ! รีวิวของคุณถูกบันทึกเรียบร้อยค่ะ');
  renderCurrentView();
  };
+
+
+  // ── Lightbox & Image Carousel Handlers ───────────────────────
+  window.openLightbox = function (target) {
+    const modal = $('lightboxModal');
+    const img = $('lightboxImg');
+    const cap = $('lightboxCaption');
+    if (!modal || !img) return;
+
+    if (typeof target === 'number') {
+      const portItems = Store.getPortfolio();
+      state.lightboxList = portItems.map(p => ({
+        url: p.image_url || p.cover_image || '',
+        title: p.title || '',
+        category: p.category || ''
+      }));
+      state.lightboxIndex = target;
+      const cur = state.lightboxList[target] || { url: '', title: '' };
+      img.src = cur.url;
+      if (cap) cap.textContent = cur.title ? (cur.title + (cur.category ? ' (' + cur.category + ')' : '')) : '';
+    } else if (typeof target === 'string') {
+      state.lightboxList = [{ url: target, title: '' }];
+      state.lightboxIndex = 0;
+      img.src = target;
+      if (cap) cap.textContent = '';
+    }
+    modal.classList.add('is-active');
+  };
+
+  window.closeLightbox = function () {
+    const modal = $('lightboxModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
+  window.prevLightbox = function (e) {
+    if (e) e.stopPropagation();
+    if (!state.lightboxList || state.lightboxList.length <= 1) return;
+    state.lightboxIndex = (state.lightboxIndex - 1 + state.lightboxList.length) % state.lightboxList.length;
+    const cur = state.lightboxList[state.lightboxIndex];
+    const img = $('lightboxImg');
+    const cap = $('lightboxCaption');
+    if (img) img.src = cur.url;
+    if (cap) cap.textContent = cur.title ? (cur.title + (cur.category ? ' (' + cur.category + ')' : '')) : '';
+  };
+
+  window.nextLightbox = function (e) {
+    if (e) e.stopPropagation();
+    if (!state.lightboxList || state.lightboxList.length <= 1) return;
+    state.lightboxIndex = (state.lightboxIndex + 1) % state.lightboxList.length;
+    const cur = state.lightboxList[state.lightboxIndex];
+    const img = $('lightboxImg');
+    const cap = $('lightboxCaption');
+    if (img) img.src = cur.url;
+    if (cap) cap.textContent = cur.title ? (cur.title + (cur.category ? ' (' + cur.category + ')' : '')) : '';
+  };
+
+  // Keyboard navigation for Lightbox
+  window.addEventListener('keydown', (e) => {
+    const modal = $('lightboxModal');
+    if (modal && modal.classList.contains('is-active')) {
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowLeft') prevLightbox();
+      else if (e.key === 'ArrowRight') nextLightbox();
+    }
+  });
+
+  // ── Admin Modal Handlers (Products, Fonts, Groups) ───────────
+  window.openAddProductModal = function () {
+    const name = prompt('กรอกชื่อสินค้าใหม่:');
+    if (!name) return;
+    const cat = prompt('หมวดหมู่ (Template / Cartoon / Elements / Graphic / ป้ายสำเร็จ):', 'Template') || 'Template';
+    const price = Number(prompt('ราคา (บาท):', '159')) || 159;
+    const img = prompt('ลิงก์รูปภาพตัวอย่าง (Image URL):', 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600') || '';
+    const delivery = prompt('รูปแบบการส่งมอบ (พิมพ์ 1=Google Drive, 2=แอดมินส่งมือ):', '1') === '2' ? 'MANUAL' : 'GOOGLE_DRIVE';
+    const driveFolder = (delivery === 'GOOGLE_DRIVE') ? (prompt('Google Drive Folder ID หรือ ลิงก์โฟลเดอร์:', '1aBcDeFgHiJkLmNoPqRsTuVwXyZ') || '') : '';
+    const whatYouGet = prompt('สิ่งที่จะได้รับ (คั่นด้วย Enter หรือ comma):', 'ไฟล์ความละเอียดสูง 300 DPI, สิทธิ์ใช้งานเชิงพาณิชย์') || '';
+
+    Store.saveProduct({
+      name,
+      category: cat,
+      price,
+      image: img,
+      image_url: img,
+      delivery_type: delivery,
+      drive_folder_id: driveFolder,
+      what_you_get: whatYouGet,
+      status: 'ACTIVE'
+    });
+    alert('เพิ่มสินค้าเรียบร้อยแล้วค่ะ!');
+    renderCurrentView();
+  };
+
+  window.deleteProduct = function (id) {
+    if (!confirm('ยืนยันการลบสินค้านี้ใช่หรือไม่?')) return;
+    Store.deleteProduct(id);
+    renderCurrentView();
+  };
+
+  window.openAddFontModal = function () {
+    const name = prompt('กรอกชื่อฟอนต์ใหม่:');
+    if (!name) return;
+    const cat = prompt('หมวดหมู่ฟอนต์ (ลายมือ / ตัวพิมพ์ / มินิมอล / Display):', 'ลายมือ') || 'ลายมือ';
+    const price = Number(prompt('ราคา (บาท):', '190')) || 190;
+    const img = prompt('ลิงก์รูปป้ายตัวอย่างฟอนต์ (Image URL):', 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600') || '';
+    const previewText = prompt('ข้อความตัวอย่างเริ่มต้น:', 'ร้านป้ายบีเอ็นซี น่ารักสดใส 1234') || 'ร้านป้ายบีเอ็นซี';
+    const delivery = prompt('รูปแบบการส่งมอบ (พิมพ์ 1=Google Drive, 2=แอดมินส่งมือ):', '1') === '2' ? 'MANUAL' : 'GOOGLE_DRIVE';
+    const driveFolder = (delivery === 'GOOGLE_DRIVE') ? (prompt('Google Drive Folder ID:', '1Font_Folder_DriveId') || '') : '';
+    const whatYouGet = prompt('สิ่งที่จะได้รับ:', 'ไฟล์ .OTF / .TTF ครบชุด, สิทธิ์ใช้งานเชิงพาณิชย์') || '';
+
+    Store.saveFont({
+      name,
+      category: cat,
+      price,
+      preview_image: img,
+      preview_image_url: img,
+      preview_text: previewText,
+      delivery_type: delivery,
+      drive_folder_id: driveFolder,
+      what_you_get: whatYouGet,
+      status: 'ACTIVE'
+    });
+    alert('เพิ่มฟอนต์ใหม่เรียบร้อยแล้วค่ะ!');
+    renderCurrentView();
+  };
+
+  window.deleteFont = function (id) {
+    if (!confirm('ยืนยันการลบฟอนต์นี้ใช่หรือไม่?')) return;
+    Store.deleteFont(id);
+    renderCurrentView();
+  };
+
+  window.openAddGroupModal = function () {
+    const name = prompt('กรอกชื่อกลุ่ม LINE VIP:');
+    if (!name) return;
+    const price = Number(prompt('ราคาค่าเข้ากลุ่ม (บาท):', '350')) || 350;
+    const cover = prompt('ลิงก์ภาพหน้าปกกลุ่ม (Image URL):', 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600') || '';
+    const driveUrl = prompt('ลิงก์ตัวอย่างไฟล์ใน Google Drive:', 'https://drive.google.com/') || 'https://drive.google.com/';
+    const benefits = prompt('สิทธิประโยชน์ (แยกบรรทัด):', 'เข้า LINE Group อัปเดตไฟล์ตลอดชีพ\\nไฟล์คมชัด 300 DPI') || '';
+
+    Store.saveGroup({
+      name,
+      price,
+      cover_image: cover,
+      cover_image_url: cover,
+      preview_drive_url: driveUrl,
+      benefits,
+      status: 'ACTIVE'
+    });
+    alert('เพิ่มกลุ่มใหม่เรียบร้อยแล้วค่ะ!');
+    renderCurrentView();
+  };
+
+  window.deleteGroup = function (id) {
+    if (!confirm('ยืนยันการลบกลุ่มนี้ใช่หรือไม่?')) return;
+    Store.deleteGroup(id);
+    renderCurrentView();
+  };
 
  // ── Run upon DOM load ────────────────────────────────────────
  document.addEventListener('DOMContentLoaded', initApp);
