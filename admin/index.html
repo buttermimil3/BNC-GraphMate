@@ -41,6 +41,9 @@
           ภาพรวมร้านค้า (Dashboard) 📊
         </h1>
         <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <button class="btn btn-outline btn-sm" id="btnSyncCloud" onclick="manualSyncCloud()" style="background: var(--pink-50); border-color: var(--pink-300);">
+            🔄 ซิงก์ข้อมูล Google Sheet
+          </button>
           <span class="badge badge--pink">ผู้ดูแลระบบ</span>
         </div>
       </header>
@@ -183,6 +186,24 @@
       Store.completeDriveAccess(id);
       location.reload();
     };
+
+    window.manualSyncCloud = async function() {
+      const btn = document.getElementById('btnSyncCloud');
+      btn.textContent = '⏳ กำลังดึงข้อมูลจากชีต...';
+      btn.disabled = true;
+      await Store.syncFromCloud(() => {
+        location.reload();
+      });
+      btn.textContent = '🔄 ซิงก์ข้อมูล Google Sheet';
+      btn.disabled = false;
+    };
+
+    // Auto-sync ทุก 30 วินาที เพื่อให้ออเดอร์ใหม่จากลูกค้าเด้งเข้ามาอัตโนมัติ
+    setInterval(() => {
+      Store.syncFromCloud(() => {
+        location.reload();
+      });
+    }, 30000);
   </script>
 </body>
 </html>

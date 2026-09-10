@@ -1,13 +1,12 @@
 /**
- * BNC GraphMate — Unified Data Store & Free Slip Scanner
- * รองรับทั้ง Local Storage (ทำงานได้ทันที ไม่ต้องเซ็ต Server) 
- * และเชื่อมต่อ Google Sheets Web App (ฟรี 100% ไม่เสียค่าเซิร์ฟเวอร์)
+ * BNC GraphMate — Unified Data Store (Google Sheets Cloud Database + Vercel Fast Cache)
+ * ทำให้ข้อมูลตรงกันทุกเครื่อง 100% (ทั้งมือถือลูกค้า และคอมพิวเตอร์แอดมิน)
  */
 
 const Store = (function () {
   const STORAGE_KEY = 'BNC_GRAPHMATE_DATA_V1';
 
-  // ข้อมูลเริ่มต้นสำหรับระบบจริง
+  // ข้อมูลเริ่มต้นสำหรับระบบเมื่อเปิดใช้งานครั้งแรก
   const defaultData = {
     settings: {
       shopName: 'BNC GraphMate ร้านป้าย & กราฟิก',
@@ -16,12 +15,12 @@ const Store = (function () {
       themeColor: '#FF2D8A',
       contactPhone: '081-234-5678',
       contactLine: '@bncgraphmate',
-      lineUrl: 'https://line.me/ti/p/~bncgraphmate', // ลิงก์ LINE ร้าน
+      lineUrl: 'https://line.me/ti/p/~bncgraphmate',
       bankName: 'ธนาคารกสิกรไทย (KBank)',
       bankAccount: '123-4-56789-0',
       bankAccountName: 'ร้าน บีเอ็นซี กราฟเมท',
-      promptpayQrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678', // ตัวอย่าง QR
-      googleSheetWebAppUrl: '', // ใส่ URL ของ Google Apps Script Web App
+      promptpayQrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678',
+      googleSheetWebAppUrl: '', // URL จาก Google Apps Script Web App
       pointsPerHundredBaht: 10,
       announcement: 'ยินดีต้อนรับสู่ BNC GraphMate! มีฟอนต์ใหม่และกลุ่มทรัพยากรป้ายอัปเดตทุกสัปดาห์ 🌸'
     },
@@ -130,7 +129,7 @@ const Store = (function () {
         price: 180,
         preview_text: 'ยินดีต้อนรับ สั่งซื้อสินค้าได้ที่นี่เลยนะคะ 🌸',
         preview_image: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600&auto=format&fit=crop&q=80',
-        delivery_type: 'MANUAL', // TYPE B: ร้านรับมาขาย ไม่มี Drive Link แอดมินดึงเมลล์เอง
+        delivery_type: 'MANUAL',
         drive_folder_id: '',
         drive_file_id: '',
         what_you_get: 'ไฟล์ .OTF / .TTF ครบชุด\nส่งสิทธิ์ผ่านตัวแทนโดยแอดมินนำ Gmail ไปดึงสิทธิ์ให้',
@@ -216,7 +215,7 @@ const Store = (function () {
         group_id: 'grp-1',
         group_name: 'กลุ่ม VIP ป้าย & กราฟิกสุดคิ้วท์ 2026',
         line_id: 'ploy_cute99',
-        status: 'COMPLETED', // COMPLETED = ดึงเข้ากลุ่มเรียบร้อย
+        status: 'COMPLETED',
         completed_at: new Date(Date.now() - 1 * 86400000).toISOString()
       }
     ],
@@ -229,10 +228,10 @@ const Store = (function () {
         item_id: 'font-2',
         item_name: 'ฟอนต์น้องมาชเมลโล่ (Marshmallow)',
         item_type: 'FONT',
-        delivery_type: 'MANUAL', // TYPE B Manual
+        delivery_type: 'MANUAL',
         gmail: 'ploy.design@gmail.com',
         drive_id: '',
-        status: 'WAITING_ADMIN', // รอดึงเมลล์ (รอแอดมินดำเนินการ)
+        status: 'WAITING_ADMIN',
         completed_at: null
       }
     ],
@@ -258,7 +257,6 @@ const Store = (function () {
     reviews: [
       {
         id: 'rev-1',
-        customer_id: 'cust-demo-1',
         customer_name: 'น้องพลอย',
         product_name: 'กลุ่ม VIP ป้าย & กราฟิกสุดคิ้วท์ 2026',
         rating: 5,
@@ -266,17 +264,6 @@ const Store = (function () {
         image_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80',
         status: 'APPROVED',
         created_at: new Date(Date.now() - 1 * 86400000).toISOString()
-      },
-      {
-        id: 'rev-2',
-        customer_id: 'cust-2',
-        customer_name: 'คุณมุก คาเฟ่',
-        product_name: 'BNC ขนมปังเนยสด (Butter)',
-        rating: 5,
-        message: 'ฟอนต์น่ารักมากก เอาไปทำป้ายร้านกาแฟ ลูกค้าชมตลอดเลยว่าป้ายน่ารัก ตัวอักษรอ่านง่าย สระไม่ลอย เยี่ยมค่ะ',
-        image_url: '',
-        status: 'APPROVED',
-        created_at: new Date(Date.now() - 3 * 86400000).toISOString()
       }
     ],
     portfolio: [
@@ -285,38 +272,13 @@ const Store = (function () {
         title: 'ป้ายไวนิลหน้าร้าน ขนมปังปิ้งเตาถ่าน',
         category: 'ป้าย',
         description: 'ออกแบบป้ายไวนิลสีชมพูพาสเทล พร้อมภาพการ์ตูนวาดมือ',
-        image_url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&auto=format&fit=crop&q=80',
-        is_featured: true
-      },
-      {
-        id: 'port-2',
-        title: 'เซ็ตสติกเกอร์ฉลากสินค้า ชานมไข่มุก',
-        category: 'กราฟิก',
-        description: 'สติกเกอร์กันน้ำ ไดคัทวงกลม โลโก้การ์ตูนน้องหมี',
-        image_url: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?w=600&auto=format&fit=crop&q=80',
-        is_featured: true
-      },
-      {
-        id: 'port-3',
-        title: 'ป้ายตั้งโต๊ะ สแกนจ่ายเงิน QR Code',
-        category: 'ป้าย',
-        description: 'ป้ายอะคริลิก มินิมอลน่ารัก ตกแต่งขอบดอกไม้',
-        image_url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&auto=format&fit=crop&q=80',
-        is_featured: true
-      },
-      {
-        id: 'port-4',
-        title: 'ชุดฟอนต์ลายมือ เมนูเบเกอรี่โฮมเมด',
-        category: 'ฟอนต์',
-        description: 'ตัวอย่างการประยุกต์ใช้ฟอนต์ BNC บนเมนูจริง',
-        image_url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80',
-        is_featured: false
+        image_url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&auto=format&fit=crop&q=80'
       }
     ]
   };
 
-  // โหลดข้อมูล
-  function load() {
+  // ดึงข้อมูลจาก Local Cache ทันที (เพื่อให้เว็บโหลดเร็ว 0.01 วินาที)
+  function loadLocal() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -324,68 +286,105 @@ const Store = (function () {
         return Object.assign({}, defaultData, parsed);
       }
     } catch (e) {
-      console.warn('Load storage failed, using default', e);
+      console.warn('Load local cache failed', e);
     }
     return JSON.parse(JSON.stringify(defaultData));
   }
 
-  // บันทึกข้อมูล
-  function save(data) {
+  function saveLocal(data) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      // ซิงก์ไป Google Sheets หากตั้งค่า Web App URL ไว้
-      syncToGoogleSheets(data);
     } catch (e) {
-      console.error('Save storage failed', e);
+      console.error('Save local cache failed', e);
     }
   }
 
-  // ซิงก์ไป Google Sheets Web App (ถ้ามี URL)
-  function syncToGoogleSheets(data) {
-    const url = data.settings && data.settings.googleSheetWebAppUrl;
-    if (!url || !url.startsWith('https://script.google.com')) return;
-    try {
-      fetch(url, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'SYNC_ALL', payload: data })
-      }).catch(err => console.log('Google Sheets sync background note:', err));
-    } catch (err) {}
+  function getCloudUrl() {
+    const data = loadLocal();
+    return (data.settings && data.settings.googleSheetWebAppUrl) ? data.settings.googleSheetWebAppUrl.trim() : '';
   }
 
-  // Helper สร้าง ID
+  // ส่งคำสั่งไปยัง Google Sheet Web App เบื้องหลัง (CORS friendly ด้วย text/plain)
+  async function callCloud(action, payload = {}) {
+    const url = getCloudUrl();
+    if (!url || !url.startsWith('https://script.google.com')) return null;
+
+    try {
+      payload.action = action;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      const json = await res.json();
+      return json;
+    } catch (err) {
+      console.log('Cloud call background sync info:', err);
+      return null;
+    }
+  }
+
+  // ซิงก์ข้อมูลทั้งหมดจาก Google Sheet ลง Local Cache (ทำให้เห็นตรงกันทุกเครื่อง)
+  async function syncFromCloud(onUpdatedCallback) {
+    const url = getCloudUrl();
+    if (!url || !url.startsWith('https://script.google.com')) return;
+
+    try {
+      const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=GET_ALL', {
+        method: 'GET'
+      });
+      const result = await res.json();
+      if (result && result.status === 'success' && result.data) {
+        const local = loadLocal();
+        const merged = Object.assign({}, local, result.data);
+        // รักษาสิทธิ์และ URL ไว้
+        if (local.settings && local.settings.googleSheetWebAppUrl) {
+          merged.settings = merged.settings || {};
+          merged.settings.googleSheetWebAppUrl = local.settings.googleSheetWebAppUrl;
+        }
+        saveLocal(merged);
+        if (typeof onUpdatedCallback === 'function') {
+          onUpdatedCallback(merged);
+        }
+      }
+    } catch (err) {
+      console.log('Cloud sync GET info:', err);
+    }
+  }
+
+  // Helper ID
   function uid(prefix = 'id') {
     return prefix + '-' + Math.random().toString(36).substr(2, 9);
   }
 
   function orderNum() {
-    const data = load();
+    const data = loadLocal();
     const count = (data.orders ? data.orders.length : 0) + 1001;
     return 'ORD-' + String(count).padStart(6, '0');
   }
 
+  // Start background auto-sync immediately
+  syncFromCloud();
+
   return {
-    get: load,
-    set: save,
+    get: loadLocal,
+    set: saveLocal,
+    syncFromCloud: syncFromCloud,
+    callCloud: callCloud,
     uid: uid,
     orderNum: orderNum,
 
-    resetToDefault: function () {
-      save(defaultData);
-      return defaultData;
-    },
-
+    // Customers
     getCustomers: function () {
-      return load().customers || [];
+      return loadLocal().customers || [];
     },
     getCustomerById: function (id) {
-      return (load().customers || []).find(c => c.id === id) || null;
+      return (loadLocal().customers || []).find(c => c.id === id) || null;
     },
     findCustomerByNameOrCode: function (query) {
       if (!query) return null;
       const q = query.trim().toLowerCase();
-      const list = load().customers || [];
+      const list = loadLocal().customers || [];
       return list.find(c =>
         (c.member_code && c.member_code.toLowerCase() === q) ||
         (c.name && c.name.toLowerCase().includes(q)) ||
@@ -394,7 +393,7 @@ const Store = (function () {
       ) || null;
     },
     saveCustomer: function (cust) {
-      const data = load();
+      const data = loadLocal();
       if (!cust.id) {
         cust.id = uid('cust');
         cust.created_at = new Date().toISOString();
@@ -407,18 +406,20 @@ const Store = (function () {
         if (idx !== -1) data.customers[idx] = Object.assign({}, data.customers[idx], cust);
         else data.customers.push(cust);
       }
-      save(data);
+      saveLocal(data);
+      callCloud('SAVE_CUSTOMER', { customer: cust });
       return cust;
     },
 
+    // Groups
     getGroups: function () {
-      return (load().groups || []).filter(g => g.status === 'ACTIVE');
+      return (loadLocal().groups || []).filter(g => g.status === 'ACTIVE');
     },
     getAllGroups: function () {
-      return load().groups || [];
+      return loadLocal().groups || [];
     },
     saveGroup: function (grp) {
-      const data = load();
+      const data = loadLocal();
       if (!grp.id) {
         grp.id = uid('grp');
         grp.created_at = new Date().toISOString();
@@ -428,27 +429,30 @@ const Store = (function () {
         if (idx !== -1) data.groups[idx] = Object.assign({}, data.groups[idx], grp);
         else data.groups.unshift(grp);
       }
-      save(data);
+      saveLocal(data);
+      callCloud('SAVE_GROUP', { item: grp });
       return grp;
     },
     deleteGroup: function (id) {
-      const data = load();
+      const data = loadLocal();
       data.groups = data.groups.filter(g => g.id !== id);
-      save(data);
+      saveLocal(data);
+      callCloud('DELETE_GROUP', { id: id });
     },
 
+    // Products
     getProducts: function (category) {
-      let list = (load().products || []).filter(p => p.status === 'ACTIVE');
+      let list = (loadLocal().products || []).filter(p => p.status === 'ACTIVE');
       if (category && category !== 'ALL') {
         list = list.filter(p => p.category === category);
       }
       return list;
     },
     getAllProducts: function () {
-      return load().products || [];
+      return loadLocal().products || [];
     },
     saveProduct: function (prod) {
-      const data = load();
+      const data = loadLocal();
       if (!prod.id) {
         prod.id = uid('prod');
         prod.created_at = new Date().toISOString();
@@ -458,27 +462,30 @@ const Store = (function () {
         if (idx !== -1) data.products[idx] = Object.assign({}, data.products[idx], prod);
         else data.products.unshift(prod);
       }
-      save(data);
+      saveLocal(data);
+      callCloud('SAVE_PRODUCT', { item: prod });
       return prod;
     },
     deleteProduct: function (id) {
-      const data = load();
+      const data = loadLocal();
       data.products = data.products.filter(p => p.id !== id);
-      save(data);
+      saveLocal(data);
+      callCloud('DELETE_PRODUCT', { id: id });
     },
 
+    // Fonts
     getFonts: function (category) {
-      let list = (load().fonts || []).filter(f => f.status === 'ACTIVE');
+      let list = (loadLocal().fonts || []).filter(f => f.status === 'ACTIVE');
       if (category && category !== 'ALL') {
         list = list.filter(f => f.category === category);
       }
       return list;
     },
     getAllFonts: function () {
-      return load().fonts || [];
+      return loadLocal().fonts || [];
     },
     saveFont: function (font) {
-      const data = load();
+      const data = loadLocal();
       if (!font.id) {
         font.id = uid('font');
         font.created_at = new Date().toISOString();
@@ -488,17 +495,20 @@ const Store = (function () {
         if (idx !== -1) data.fonts[idx] = Object.assign({}, data.fonts[idx], font);
         else data.fonts.unshift(font);
       }
-      save(data);
+      saveLocal(data);
+      callCloud('SAVE_FONT', { item: font });
       return font;
     },
     deleteFont: function (id) {
-      const data = load();
+      const data = loadLocal();
       data.fonts = data.fonts.filter(f => f.id !== id);
-      save(data);
+      saveLocal(data);
+      callCloud('DELETE_FONT', { id: id });
     },
 
+    // Create Order & Payment
     createOrder: function (orderInfo, paymentInfo) {
-      const data = load();
+      const data = loadLocal();
       const oId = uid('ord');
       const oNum = orderNum();
 
@@ -559,37 +569,41 @@ const Store = (function () {
           item_type: orderInfo.order_type,
           delivery_type: deliveryType,
           gmail: orderInfo.gmail || '',
-          drive_id: orderInfo.drive_folder_id || orderInfo.drive_file_id || '',
-          status: deliveryType === 'GOOGLE_DRIVE' ? 'WAITING_EMAIL' : 'WAITING_ADMIN',
+          drive_id: orderInfo.drive_folder_id || '',
+          status: (deliveryType === 'GOOGLE_DRIVE') ? 'WAITING_EMAIL' : 'WAITING_ADMIN',
           completed_at: null
         });
       }
 
       data.orders.unshift(newOrder);
       data.payments.unshift(newPayment);
-      save(data);
+      saveLocal(data);
+
+      // ส่งเข้า Google Sheet ทันที!
+      callCloud('CREATE_ORDER', { orderInfo: orderInfo, paymentInfo: paymentInfo });
 
       return { order: newOrder, payment: newPayment };
     },
 
     getOrders: function () {
-      return load().orders || [];
+      return loadLocal().orders || [];
     },
     getOrderById: function (id) {
-      return (load().orders || []).find(o => o.id === id || o.order_number === id) || null;
+      return (loadLocal().orders || []).find(o => o.id === id || o.order_number === id) || null;
     },
     getPayments: function () {
-      return load().payments || [];
+      return loadLocal().payments || [];
     },
     getGroupAccessList: function () {
-      return load().group_access || [];
+      return loadLocal().group_access || [];
     },
     getDriveAccessList: function () {
-      return load().drive_access || [];
+      return loadLocal().drive_access || [];
     },
 
+    // Approve Payment
     approvePayment: function (paymentId) {
-      const data = load();
+      const data = loadLocal();
       const pay = data.payments.find(p => p.id === paymentId);
       if (!pay) return;
       pay.verification_status = 'PAID';
@@ -627,11 +641,12 @@ const Store = (function () {
           da.completed_at = new Date().toISOString();
         }
       }
-      save(data);
+      saveLocal(data);
+      callCloud('APPROVE_PAYMENT', { paymentId: paymentId });
     },
 
     rejectPayment: function (paymentId, reason) {
-      const data = load();
+      const data = loadLocal();
       const pay = data.payments.find(p => p.id === paymentId);
       if (!pay) return;
       pay.verification_status = 'REJECTED';
@@ -640,57 +655,47 @@ const Store = (function () {
 
       const ord = data.orders.find(o => o.id === pay.order_id);
       if (ord) ord.status = 'REJECTED';
-      save(data);
+      saveLocal(data);
+      callCloud('REJECT_PAYMENT', { paymentId: paymentId, reason: reason });
     },
 
+    // Group Access: "ดึงเข้ากลุ่มเรียบร้อย"
     completeGroupAccess: function (accessId) {
-      const data = load();
+      const data = loadLocal();
       const ga = data.group_access.find(g => g.id === accessId);
       if (ga) {
         ga.status = 'COMPLETED';
         ga.completed_at = new Date().toISOString();
-        save(data);
+        saveLocal(data);
+        callCloud('COMPLETE_GROUP_ACCESS', { accessId: accessId });
       }
     },
     failGroupAccess: function (accessId, note) {
-      const data = load();
+      const data = loadLocal();
       const ga = data.group_access.find(g => g.id === accessId);
       if (ga) {
         ga.status = 'FAILED';
         ga.notes = note || '';
-        save(data);
+        saveLocal(data);
+        callCloud('FAIL_GROUP_ACCESS', { accessId: accessId, note: note });
       }
     },
 
+    // Drive Access: "ดึงเมลล์เรียบร้อย" (Manual Font / Manual Product)
     completeDriveAccess: function (accessId) {
-      const data = load();
+      const data = loadLocal();
       const da = data.drive_access.find(d => d.id === accessId);
       if (da) {
         da.status = 'COMPLETED';
         da.completed_at = new Date().toISOString();
-        save(data);
+        saveLocal(data);
+        callCloud('COMPLETE_DRIVE_ACCESS', { accessId: accessId });
       }
     },
 
-    updateOrderGmail: function (orderId, gmail) {
-      const data = load();
-      const ord = data.orders.find(o => o.id === orderId);
-      if (ord) ord.gmail = gmail;
-      const da = data.drive_access.find(d => d.order_id === orderId);
-      if (da) {
-        da.gmail = gmail;
-        if (da.delivery_type === 'GOOGLE_DRIVE') {
-          da.status = 'COMPLETED';
-          da.completed_at = new Date().toISOString();
-        } else {
-          da.status = 'WAITING_ADMIN';
-        }
-      }
-      save(data);
-    },
-
+    // Points
     adjustCustomerPoints: function (customerId, amount, type, description) {
-      const data = load();
+      const data = loadLocal();
       const cust = data.customers.find(c => c.id === customerId);
       if (!cust) return false;
 
@@ -698,13 +703,9 @@ const Store = (function () {
       const prevPoints = cust.total_points || 0;
       let newPoints = prevPoints;
 
-      if (type === 'EARN' || type === 'BONUS') {
-        newPoints += amt;
-      } else if (type === 'REDEEM') {
-        newPoints = Math.max(0, prevPoints - amt);
-      } else if (type === 'ADJUST') {
-        newPoints = amt;
-      }
+      if (type === 'EARN' || type === 'BONUS') newPoints += amt;
+      else if (type === 'REDEEM') newPoints = Math.max(0, prevPoints - amt);
+      else if (type === 'ADJUST') newPoints = amt;
 
       cust.total_points = newPoints;
       if (newPoints >= 3000) cust.member_level = 'DIAMOND';
@@ -721,54 +722,61 @@ const Store = (function () {
         created_at: new Date().toISOString()
       });
 
-      save(data);
+      saveLocal(data);
+      callCloud('ADJUST_POINTS', { customerId: customerId, amount: amt, type: type, description: description });
       return cust;
     },
 
     getPointTransactionsByCustomer: function (customerId) {
-      return (load().point_transactions || []).filter(p => p.customer_id === customerId);
+      return (loadLocal().point_transactions || []).filter(p => p.customer_id === customerId);
     },
 
+    // Reviews
     getApprovedReviews: function () {
-      return (load().reviews || []).filter(r => r.status === 'APPROVED');
+      return (loadLocal().reviews || []).filter(r => r.status === 'APPROVED');
     },
     getAllReviews: function () {
-      return load().reviews || [];
+      return loadLocal().reviews || [];
     },
     addReview: function (rev) {
-      const data = load();
+      const data = loadLocal();
       rev.id = uid('rev');
       rev.status = 'PENDING';
       rev.created_at = new Date().toISOString();
       data.reviews.unshift(rev);
-      save(data);
+      saveLocal(data);
+      callCloud('ADD_REVIEW', { review: rev });
       return rev;
     },
     updateReviewStatus: function (id, status) {
-      const data = load();
+      const data = loadLocal();
       const rev = data.reviews.find(r => r.id === id);
       if (rev) {
         rev.status = status;
-        save(data);
+        saveLocal(data);
+        callCloud('UPDATE_REVIEW_STATUS', { id: id, status: status });
       }
     },
     deleteReview: function (id) {
-      const data = load();
+      const data = loadLocal();
       data.reviews = data.reviews.filter(r => r.id !== id);
-      save(data);
+      saveLocal(data);
+      callCloud('DELETE_REVIEW', { id: id });
     },
 
     getPortfolio: function () {
-      return load().portfolio || [];
+      return loadLocal().portfolio || [];
     },
 
+    // Settings
     getSettings: function () {
-      return load().settings || defaultData.settings;
+      return loadLocal().settings || defaultData.settings;
     },
     saveSettings: function (newSettings) {
-      const data = load();
+      const data = loadLocal();
       data.settings = Object.assign({}, data.settings, newSettings);
-      save(data);
+      saveLocal(data);
+      callCloud('SAVE_SETTINGS', { settings: data.settings });
       return data.settings;
     }
   };

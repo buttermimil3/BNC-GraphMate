@@ -223,6 +223,16 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       renderOrders();
+      // ดึงข้อมูลสดจาก Google Sheet ทันทีที่เปิดหน้า
+      Store.syncFromCloud(() => {
+        renderOrders();
+      });
+      // เช็คสถานะใหม่ทุก 15 วินาที เพื่อให้ลูกค้าเห็นสถานะเปลี่ยนเป็นสีเขียวทันทีที่แอดมินอนุมัติ
+      setInterval(() => {
+        Store.syncFromCloud(() => {
+          renderOrders();
+        });
+      }, 15000);
     });
   </script>
 </body>
