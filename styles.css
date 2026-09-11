@@ -2373,24 +2373,32 @@ select option {
   user-select: none;
   -webkit-user-drag: none;
   touch-action: none;
-  filter: drop-shadow(0 6px 14px rgba(244, 114, 182, 0.28));
+  filter: drop-shadow(0 8px 16px rgba(244, 114, 182, 0.35));
   transition: filter 0.2s ease, transform 0.15s ease;
   z-index: 100000;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
 }
 
 .falling-mascot-item:active {
   cursor: grabbing !important;
-  filter: drop-shadow(0 12px 24px rgba(244, 114, 182, 0.45));
-  transform: scale(1.18);
+  filter: drop-shadow(0 14px 26px rgba(244, 114, 182, 0.55));
+  transform: scale(1.15);
 }
 
 .falling-mascot-img {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   object-fit: contain;
   display: block;
   pointer-events: none;
   -webkit-user-drag: none;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
 }
 
 .mascot-bubble-talk {

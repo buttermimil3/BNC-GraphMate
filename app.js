@@ -1704,14 +1704,15 @@ window.Store = Store;
     container.className = 'falling-mascot-container';
     document.body.appendChild(container);
 
-    // Cute pastel character avatars / stickers (PNG with transparent backgrounds)
+    // Cute pastel character PNG stickers (100% transparent PNG, no circle container)
     const mascotConfigs = [
       {
         id: 'mascot-1',
         name: 'น้องกระต่ายพาสเทล',
-        png: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=200&auto=format&fit=crop&q=80',
+        png: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
+        fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f430.png',
         quotes: ['หวัดดีฮับ! ♡', 'ยินดีต้อนรับนะค้า', 'พาหนูบินหน่อย~', 'เย้! BNC น่ารักจัง'],
-        speed: 0.75,
+        speed: 0.65,
         xPercent: 18,
         startY: -120,
         swaySpeed: 0.02,
@@ -1720,10 +1721,11 @@ window.Store = Store;
       {
         id: 'mascot-2',
         name: 'น้องหมีสตูดิโอ',
-        png: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80',
+        png: 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
+        fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43b.png',
         quotes: ['แวะดูฟอนต์ได้น้า', 'อย่าทิ้งเค้านะ!', 'ลอยละล่องงง~', 'ร้านน่ารักม้ากก'],
-        speed: 0.55,
-        xPercent: 52,
+        speed: 0.5,
+        xPercent: 50,
         startY: -180,
         swaySpeed: 0.015,
         swayAmp: 30
@@ -1731,13 +1733,14 @@ window.Store = Store;
       {
         id: 'mascot-3',
         name: 'น้องแมวโมจิ',
-        png: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=200&auto=format&fit=crop&q=80',
+        png: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
+        fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f431.png',
         quotes: ['เหมียววว~ จับได้ด้วย!', 'ป้ายสวยทุกชิ้นเลย', 'ดึงหนูเล่นได้น้า ♡', 'รัก BNC ที่สุด'],
-        speed: 0.65,
+        speed: 0.58,
         xPercent: 82,
         startY: -100,
         swaySpeed: 0.018,
-        swayAmp: 20
+        swayAmp: 22
       }
     ];
 
@@ -1748,12 +1751,9 @@ window.Store = Store;
       
       const img = document.createElement('img');
       img.src = cfg.png;
+      img.onerror = () => { if (cfg.fallbackPng && img.src !== cfg.fallbackPng) img.src = cfg.fallbackPng; };
       img.className = 'falling-mascot-img';
       img.alt = cfg.name;
-      img.style.borderRadius = '50%';
-      img.style.border = '2.5px solid #FBCFE8';
-      img.style.background = '#FFFDFE';
-      img.style.padding = '3px';
 
       el.appendChild(img);
       container.appendChild(el);
