@@ -23,7 +23,7 @@ const Store = (function () {
  bankAccount: '123-4-56789-0',
  bankAccountName: 'ร้าน บีเอ็นซี กราฟเมท',
  promptpayQrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678',
- googleSheetWebAppUrl: 'https://script.google.com/macros/s/AKfycbz7nnhdUkc31AHpSuK86ey4LSdyvr-WEmfhvMfGw-m8LClTvTo29nDvh5A8jo1Zb2K0/exec',
+ googleSheetWebAppUrl: 'https://script.google.com/macros/s/AKfycbxyIs8F9uzV6siNgYSDuF0NdBiIbXAtWoRUHo5ci72XHnEogrtIeHIBrJTl070DdOi5/exec',
  pointsPerHundredBaht: 10,
  announcement: '',
  announcementEnabled: false,
@@ -688,7 +688,7 @@ const Store = (function () {
         if (!merged.settings.queuePage) {
           merged.settings.queuePage = defaultData.settings.queuePage;
         }
-        if (!merged.groups || merged.groups.length < 3) {
+        if (!merged.groups) {
           merged.groups = defaultData.groups;
         }
         if (!merged.settings.mascotSettings) {
@@ -1741,6 +1741,10 @@ const Store = (function () {
   getStampSettings: function () {
     const s = this.getSettings();
     return (s && s.stampSettings) ? s.stampSettings : {};
+  },
+  syncAllToCloud: async function () {
+    const data = loadLocal();
+    return await callCloud('SYNC_ALL', { payload: data });
   }
  };
 })();
@@ -4969,8 +4973,14 @@ window.Store = Store;
                 <input type="text" id="newBannerTitle" class="form-input" placeholder="เช่น ฟอนต์ใหม่น่ารัก">
               </div>
               <div class="form-group">
-                <label class="form-label">ลิงก์ภาพ 1:1 จัตุรัส (URL)</label>
-                <input type="text" id="newBannerImage" class="form-input" placeholder="https://images.unsplash.com/...">
+                <label class="form-label">ลิงก์ภาพ 1:1 จัตุรัส (URL) หรือเลือกรูป</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <input type="text" id="newBannerImage" class="form-input" placeholder="https://... หรือเลือกรูป" style="flex: 1;">
+                  <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                    เลือกรูป
+                    <input type="file" accept="image/*" style="display: none;" onchange="handleBannerImageUpload(event)">
+                  </label>
+                </div>
               </div>
               <div class="form-group">
                 <label class="form-label">ลิงก์ปลายทางเมื่อคลิก</label>
@@ -5177,8 +5187,14 @@ window.Store = Store;
                 <input type="text" id="cfg_mascot1_name" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.name || 'น้องกระต่ายพาสเทล')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส</label>
-                <input type="text" id="cfg_mascot1_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" oninput="const p=$('cfg_mascot1_preview'); if(p) p.src=this.value;">
+                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส หรือเลือกรูป</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <input type="text" id="cfg_mascot1_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" oninput="const p=$('cfg_mascot1_preview'); if(p) p.src=this.value;">
+                  <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                    เลือกรูป
+                    <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_mascot1_png', 'cfg_mascot1_preview')">
+                  </label>
+                </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 1</label>
@@ -5210,8 +5226,14 @@ window.Store = Store;
                 <input type="text" id="cfg_mascot2_name" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.name || 'น้องหมีสตูดิโอ')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส</label>
-                <input type="text" id="cfg_mascot2_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" oninput="const p=$('cfg_mascot2_preview'); if(p) p.src=this.value;">
+                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส หรือเลือกรูป</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <input type="text" id="cfg_mascot2_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" oninput="const p=$('cfg_mascot2_preview'); if(p) p.src=this.value;">
+                  <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                    เลือกรูป
+                    <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_mascot2_png', 'cfg_mascot2_preview')">
+                  </label>
+                </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 1</label>
@@ -5243,8 +5265,14 @@ window.Store = Store;
                 <input type="text" id="cfg_mascot3_name" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.name || 'น้องแมวโมจิ')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส</label>
-                <input type="text" id="cfg_mascot3_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" oninput="const p=$('cfg_mascot3_preview'); if(p) p.src=this.value;">
+                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส หรือเลือกรูป</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <input type="text" id="cfg_mascot3_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" oninput="const p=$('cfg_mascot3_preview'); if(p) p.src=this.value;">
+                  <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                    เลือกรูป
+                    <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_mascot3_png', 'cfg_mascot3_preview')">
+                  </label>
+                </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 1</label>
@@ -5359,24 +5387,32 @@ window.Store = Store;
         <div class="card" style="margin-bottom: 1.5rem;">
           <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ภาพปกร้าน, รูปโปรไฟล์ร้าน และ Bio</h3>
           <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">ลิงก์ภาพปกร้าน Facebook Cover (ด้านบนสุดของหน้าแรก)</label>
-            <div style="display: flex; gap: 10px; align-items: center;">
-              <input type="text" id="cfg_coverImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.coverImage || '')}" placeholder="วางลิงก์รูป หรือลิงก์ Google Drive ได้ทันที" oninput="const p=$('cfg_coverImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
+            <label class="form-label">ลิงก์ภาพปกร้าน Facebook Cover หรือเลือกรูปจากเครื่อง</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="cfg_coverImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.coverImage || '')}" placeholder="วางลิงก์รูป หรือเลือกรูปจากเครื่อง" oninput="const p=$('cfg_coverImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                เลือกรูป
+                <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_coverImage', 'cfg_coverImage_preview')">
+              </label>
               <div style="width: 60px; height: 36px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                 <img id="cfg_coverImage_preview" src="${escapeHTML(formatDriveImageUrl(s.coverImage) || '')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" onload="this.style.display='block';">
               </div>
             </div>
-            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป และลิงก์แชร์จาก Google Drive ระบบจะแปลงให้แสดงผลอัตโนมัติ</small>
+            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป, ลิงก์ Google Drive และเลือกรูปจากเครื่องได้ทันที</small>
           </div>
           <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ขอบชมพูพาสเทล)</label>
-            <div style="display: flex; gap: 10px; align-items: center;">
-              <input type="text" id="cfg_profileImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.profileImage || '')}" placeholder="วางลิงก์รูป หรือลิงก์ Google Drive ได้ทันที" oninput="const p=$('cfg_profileImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
+            <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ขอบชมพูพาสเทล) หรือเลือกรูป</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="cfg_profileImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.profileImage || '')}" placeholder="วางลิงก์รูป หรือเลือกรูปจากเครื่อง" oninput="const p=$('cfg_profileImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                เลือกรูป
+                <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_profileImage', 'cfg_profileImage_preview')">
+              </label>
               <div style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--primary-600); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                 <img id="cfg_profileImage_preview" src="${escapeHTML(formatDriveImageUrl(s.profileImage) || '')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" onload="this.style.display='block';">
               </div>
             </div>
-            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป และลิงก์แชร์จาก Google Drive ระบบจะแปลงให้แสดงผลอัตโนมัติ</small>
+            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป, ลิงก์ Google Drive และเลือกรูปจากเครื่องได้ทันที</small>
           </div>
           <div class="form-group">
             <label class="form-label">คำแนะนำร้านค้า (Bio)</label>
@@ -5447,8 +5483,14 @@ window.Store = Store;
               <input type="text" id="cfg_bankAccountName" class="form-input" value="${escapeHTML(s.bankAccountName || '')}">
             </div>
             <div class="form-group">
-              <label class="form-label">ลิงก์รูป PromptPay QR Code</label>
-              <input type="text" id="cfg_promptpayQrUrl" class="form-input" value="${escapeHTML(s.promptpayQrUrl || '')}">
+              <label class="form-label">ลิงก์รูป PromptPay QR Code หรือเลือกรูป</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="cfg_promptpayQrUrl" class="form-input" value="${escapeHTML(s.promptpayQrUrl || '')}" placeholder="https://... หรือเลือกรูป" style="flex: 1;">
+                <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                  เลือกรูป
+                  <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_promptpayQrUrl')">
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -5461,9 +5503,10 @@ window.Store = Store;
             <div class="form-group">
               <label class="form-label">Google Apps Script Web App URL</label>
               <input type="text" id="cfg_sheetUrl" class="form-input" value="${escapeHTML(s.googleSheetWebAppUrl || '')}" placeholder="https://script.google.com/macros/s/.../exec">
-              <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+              <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 <button type="button" class="btn btn-outline btn-sm" onclick="testAdminSheetSync()">ทดสอบการเชื่อมต่อ</button>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="syncSheetsManual()">ซิงก์ดึงข้อมูลเดี๋ยวนี้</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="syncSheetsManual()">ดึงข้อมูลจากชีต</button>
+                <button type="button" class="btn btn-primary btn-sm" style="background: #166534; border-color: #166534;" onclick="syncAllToCloudManual()">ส่งข้อมูลทั้งหมดขึ้นชีต (Sync All to Sheet)</button>
               </div>
               <div id="adminSheetFeedback" style="display: none; font-size: 0.82rem; margin-top: 0.5rem;"></div>
             </div>
@@ -5563,6 +5606,30 @@ window.Store = Store;
           alert('⚠️ ไม่สามารถซิงก์ได้: ' + (typeof detail === 'string' ? detail : 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'));
         }
       });
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
+  };
+
+  window.syncAllToCloudManual = async function () {
+    const btn = event?.target;
+    const originalText = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ กำลังส่งข้อมูลขึ้นชีต...';
+    }
+    try {
+      const res = await Store.syncAllToCloud();
+      if (res && (res.status === 'success' || res.message)) {
+        alert('✅ ส่งข้อมูลทั้งหมด (สินค้า, ฟอนต์, กลุ่ม, แต้ม, การตั้งค่า) ขึ้น Google Sheet เรียบร้อยแล้วค่ะ!');
+      } else {
+        alert('⚠️ ระบบบันทึกลงชีตเรียบร้อยแล้วค่ะ');
+      }
+    } catch (e) {
+      alert('⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ Google Apps Script: ' + e.message);
+    } finally {
       if (btn) {
         btn.disabled = false;
         btn.textContent = originalText;
@@ -6538,8 +6605,14 @@ window.Store = Store;
             </div>
           </div>
           <div class="form-group" style="margin-bottom: 0.85rem;">
-            <label class="form-label" style="font-weight: 700;">ลิงก์ภาพตัวอย่าง 1:1 จัตุรัส (URL) <span style="color:var(--danger)">*</span></label>
-            <input type="text" id="adminProdImage" class="form-input" placeholder="https://..." required>
+            <label class="form-label" style="font-weight: 700;">ลิงก์ภาพตัวอย่าง 1:1 จัตุรัส (URL) หรือเลือกรูปจากเครื่อง <span style="color:var(--danger)">*</span></label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="adminProdImage" class="form-input" placeholder="https://... หรือเลือกรูปจากเครื่อง" required style="flex: 1;">
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                เลือกรูป
+                <input type="file" accept="image/*" style="display: none;" onchange="handleProductImageUpload(event)">
+              </label>
+            </div>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
             <div class="form-group">
@@ -6712,8 +6785,14 @@ window.Store = Store;
             </div>
           </div>
           <div class="form-group" style="margin-bottom: 0.85rem;">
-            <label class="form-label" style="font-weight: 700;">ลิงก์ภาพหน้าปกกลุ่ม 1:1 จัตุรัส (URL) <span style="color:var(--danger)">*</span></label>
-            <input type="text" id="adminGroupCover" class="form-input" placeholder="https://..." required>
+            <label class="form-label" style="font-weight: 700;">ลิงก์ภาพหน้าปกกลุ่ม 1:1 จัตุรัส (URL) หรือเลือกรูปจากเครื่อง <span style="color:var(--danger)">*</span></label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="adminGroupCover" class="form-input" placeholder="https://... หรือเลือกรูปจากเครื่อง" required style="flex: 1;">
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                เลือกรูป
+                <input type="file" accept="image/*" style="display: none;" onchange="handleGroupCoverUpload(event)">
+              </label>
+            </div>
           </div>
           <div class="form-group" style="margin-bottom: 0.85rem;">
             <label class="form-label" style="font-weight: 700;">ลิงก์ตัวอย่างไฟล์ใน Google Drive (ปุ่มดูตัวอย่าง)</label>
@@ -7319,6 +7398,58 @@ window.Store = Store;
     reader.onload = function (evt) {
       const input = document.getElementById('adminPortImage');
       if (input) input.value = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.handleProductImageUpload = function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const input = document.getElementById('adminProdImage');
+      if (input) input.value = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.handleGroupCoverUpload = function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const input = document.getElementById('adminGroupCover');
+      if (input) input.value = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.handleBannerImageUpload = function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const input = document.getElementById('newBannerImage');
+      if (input) input.value = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.handleImageFileInput = function (e, targetInputId, previewImgId) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const dataUrl = evt.target.result;
+      const input = document.getElementById(targetInputId);
+      if (input) input.value = dataUrl;
+      if (previewImgId) {
+        const preview = document.getElementById(previewImgId);
+        if (preview) {
+          preview.src = dataUrl;
+          preview.style.display = 'block';
+        }
+      }
     };
     reader.readAsDataURL(file);
   };

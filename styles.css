@@ -2007,9 +2007,11 @@ input[type="range"] {
   }
 }
 
+/* ── Classic White Postage Stamp with Perforated Scalloped Edge ── */
 .stamp-slot {
   aspect-ratio: 1 / 1;
-  border-radius: 16px;
+  background: #ffffff;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2017,39 +2019,46 @@ input[type="range"] {
   position: relative;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   user-select: none;
+  box-shadow: 0 2px 8px rgba(113, 81, 91, 0.08);
+  /* Postage Stamp Perforated / Scalloped Edge Effect */
+  outline: 2px dashed #FFB7CE;
+  outline-offset: -5px;
+  border: 3px solid #ffffff;
+  box-sizing: border-box;
 }
 
 .stamp-slot.is-empty {
-  border: 2px dashed #E2A3B7;
-  background: rgba(255, 247, 249, 0.85);
+  background: #ffffff;
   color: #C68EA0;
+  outline-color: #F3C4D3;
 }
 
 .stamp-slot.is-empty .stamp-slot-num {
   font-family: var(--font-heading);
   font-size: 1.15rem;
   font-weight: 700;
-  opacity: 0.75;
+  opacity: 0.65;
+  color: #C68EA0;
 }
 
 .stamp-slot.is-empty.is-reward {
-  border-color: #f59e0b;
-  background: #fffbeb;
+  outline-color: #f59e0b;
   color: #d97706;
 }
 
 .stamp-slot.is-stamped {
-  border: 2px solid #FFB7CE;
-  background: #FFF0F5;
-  box-shadow: 0 3px 8px rgba(113, 81, 91, 0.08);
+  background: #ffffff;
+  outline: 2.5px dashed #FFB7CE;
+  outline-offset: -6px;
+  box-shadow: 0 4px 12px rgba(113, 81, 91, 0.12);
 }
 
 .stamp-slot.is-stamped:nth-child(odd) {
-  transform: rotate(-2.5deg);
+  transform: rotate(-2deg);
 }
 
 .stamp-slot.is-stamped:nth-child(even) {
-  transform: rotate(2.5deg);
+  transform: rotate(2deg);
 }
 
 .stamp-heart-icon,
@@ -2070,16 +2079,16 @@ input[type="range"] {
 
 .stamp-ink-ring {
   position: absolute;
-  inset: 3px;
-  border-radius: 12px;
-  border: 1px dashed rgba(226, 163, 183, 0.45);
+  inset: 7px;
+  border-radius: 4px;
+  border: 1px dashed rgba(255, 183, 206, 0.55);
   pointer-events: none;
 }
 
 .stamp-badge-text {
   font-size: 9px;
   font-weight: 800;
-  color: #DB2777;
+  color: #71515B;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 1px;
