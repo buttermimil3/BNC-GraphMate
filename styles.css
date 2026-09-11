@@ -11,31 +11,31 @@
 }
 
 :root {
-  /* Authentic BNC HayMate Sweet Soft Pastel Pink Palette */
-  --primary:         #F8BFD4;   /* Soft sweet strawberry milk pink */
-  --primary-hover:   #F4A3C0;   /* Gentle pastel blush hover */
-  --primary-600:     #EFA6C1;   /* Soft warm pastel button (zero neon) */
-  --primary-700:     #DE85A7;   /* Muted pastel berry */
-  --primary-soft:    #FCE3EE;   /* Soft candy milk tint */
-  --primary-light:   #FDF1F6;   /* Light blush */
-  --primary-subtle:  #FFF8FB;   /* Warm soft pink blush */
-  --primary-deep:    #9D174D;   /* Gentle contrast text */
-  --accent-text:     #9D174D;
+  /* Baby Pink #FFB7CE Color Palette Scheme */
+  --primary:         #FFB7CE;   /* Baby Pink */
+  --primary-hover:   #FABBCF;   /* Gentle blush hover */
+  --primary-600:     #E2A3B7;   /* Medium baby pink */
+  --primary-700:     #C68EA0;   /* Muted rose tone */
+  --primary-soft:    #FFDFE9;   /* Soft baby pink tint */
+  --primary-light:   #FFE7EE;   /* Very light baby pink */
+  --primary-subtle:  #FFF7F9;   /* Purest subtle pink background tint */
+  --primary-deep:    #71515B;   /* Elegant deep contrast text */
+  --accent-text:     #71515B;
 
-  /* Neutral Surfaces - Clean Warm White */
-  --bg:              #FFF8FB;   /* BNC HayMate signature soft blush white background */
+  /* Neutral Surfaces - Clean Warm Baby Pink White */
+  --bg:              #FFF7F9;   /* Softest baby pink white */
   --card:            #FFFFFF;
   --surface:         #FFFFFF;
-  --surface-alt:     #FDF1F6;
-  --border:          #F3DCE6;   /* Subtle soft pastel border */
-  --border-light:    #FCE9F1;
-  --border-dark:     #E8BFD1;
+  --surface-alt:     #FFEFF4;   /* Soft baby blush surface */
+  --border:          #FFDFE9;   /* Crisp soft baby pink border */
+  --border-light:    #FFE7EE;
+  --border-dark:     #FABBCF;
 
-  /* Typography - Soft Warm Charcoal (Zero harsh contrast) */
-  --text:            #2D3748;   /* Soft warm dark charcoal */
-  --text-secondary:  #4A5568;   /* Soft slate gray */
-  --text-muted:      #718096;   /* Gentle neutral muted text */
-  --text-light:      #A0AEC0;
+  /* Typography - Soft Warm Charcoal & Cocoa */
+  --text:            #38282D;   /* Dark warm cocoa-slate */
+  --text-secondary:  #71515B;   /* Medium slate pink */
+  --text-muted:      #8D6672;   /* Neutral gentle muted text */
+  --text-light:      #AA7A89;
   --text-white:      #FFFFFF;
 
   /* Status Chips (All in soft pastel tones) */
@@ -51,21 +51,21 @@
   --danger-text:     #9F1239;
   --danger-border:   #FECDD3;
 
-  --info-bg:         #FDF1F6;
-  --info-text:       #9D174D;
-  --info-border:     #F3DCE6;
+  --info-bg:         #FFEFF4;
+  --info-text:       #71515B;
+  --info-border:     #FFDFE9;
 
-  /* Radii & Shadows - Flat & Subtle (Zero neon glow) */
+  /* Radii & Shadows - Clean, Flat & Subtle (Zero neon glow) */
   --radius-sm:       10px;
   --radius-md:       16px;
   --radius-lg:       22px;
   --radius-xl:       28px;
   --radius-full:     9999px;
 
-  --shadow-sm:       0 1px 4px rgba(244, 114, 182, 0.05);
-  --shadow-md:       0 4px 12px rgba(244, 114, 182, 0.08);
-  --shadow-lg:       0 8px 24px rgba(244, 114, 182, 0.1);
-  --shadow-card:     0 2px 10px rgba(0, 0, 0, 0.03);
+  --shadow-sm:       0 1px 3px rgba(113, 81, 91, 0.05);
+  --shadow-md:       0 4px 10px rgba(113, 81, 91, 0.08);
+  --shadow-lg:       0 8px 20px rgba(113, 81, 91, 0.1);
+  --shadow-card:     0 2px 8px rgba(113, 81, 91, 0.04);
 
   --font-base:       'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-heading:    'Prompt', sans-serif;
@@ -103,7 +103,7 @@ button, input, textarea, select {
 /* ── BABY PINK PASTEL CHECKBOX & RADIO ACROSS ALL BROWSERS ── */
 input[type="checkbox"],
 input[type="radio"] {
-  accent-color: #EFA6C1 !important;
+  accent-color: #E2A3B7 !important;
   cursor: pointer;
   width: 17px;
   height: 17px;
@@ -114,7 +114,7 @@ input[type="radio"] {
 
 input[type="checkbox"]:focus-visible,
 input[type="radio"]:focus-visible {
-  outline: 2px solid #EFA6C1;
+  outline: 2px solid #E2A3B7;
   outline-offset: 2px;
 }
 
@@ -1079,13 +1079,13 @@ input[type="range"]::-moz-range-track {
 .calc-dot.filled {
   background: var(--primary-600);
   border-color: var(--primary-600);
-  box-shadow: 0 0 8px rgba(239, 166, 193, 0.5);
+  box-shadow: none;
 }
 
 .calc-dot.error {
   border-color: var(--danger) !important;
   background: var(--danger) !important;
-  box-shadow: 0 0 12px rgba(229, 139, 148, 0.5);
+  box-shadow: none;
   animation: pinShake 0.35s ease;
 }
 
@@ -2009,7 +2009,7 @@ input[type="range"] {
 
 .stamp-slot {
   aspect-ratio: 1 / 1;
-  border-radius: 50%;
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2020,16 +2020,16 @@ input[type="range"] {
 }
 
 .stamp-slot.is-empty {
-  border: 2px dashed #f472b6;
-  background: rgba(255, 245, 248, 0.7);
-  color: #db2777;
+  border: 2px dashed #E2A3B7;
+  background: rgba(255, 247, 249, 0.85);
+  color: #C68EA0;
 }
 
 .stamp-slot.is-empty .stamp-slot-num {
   font-family: var(--font-heading);
   font-size: 1.15rem;
   font-weight: 700;
-  opacity: 0.65;
+  opacity: 0.75;
 }
 
 .stamp-slot.is-empty.is-reward {
@@ -2039,27 +2039,28 @@ input[type="range"] {
 }
 
 .stamp-slot.is-stamped {
-  border: 2px solid #F472B6;
-  background: #FFF5F8;
-  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.22);
+  border: 2px solid #FFB7CE;
+  background: #FFF0F5;
+  box-shadow: 0 3px 8px rgba(113, 81, 91, 0.08);
 }
 
 .stamp-slot.is-stamped:nth-child(odd) {
-  transform: rotate(-3deg);
+  transform: rotate(-2.5deg);
 }
 
 .stamp-slot.is-stamped:nth-child(even) {
-  transform: rotate(3deg);
+  transform: rotate(2.5deg);
 }
 
-.stamp-heart-icon {
+.stamp-heart-icon,
+.stamp-note-icon {
   font-size: 1.6rem;
   line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(244, 114, 182, 0.25));
 }
 
 @media (max-width: 580px) {
-  .stamp-heart-icon {
+  .stamp-heart-icon,
+  .stamp-note-icon {
     font-size: 1.25rem;
   }
   .stamp-slot.is-empty .stamp-slot-num {
@@ -2069,9 +2070,9 @@ input[type="range"] {
 
 .stamp-ink-ring {
   position: absolute;
-  inset: 2px;
-  border-radius: 50%;
-  border: 1px dashed rgba(244, 114, 182, 0.45);
+  inset: 3px;
+  border-radius: 12px;
+  border: 1px dashed rgba(226, 163, 183, 0.45);
   pointer-events: none;
 }
 
@@ -2225,39 +2226,38 @@ input[type="range"] {
 /* ── WHITE STAMP BADGE 0/10 ── */
 .stamp-badge-white {
   background: #ffffff !important;
-  border: 1.5px solid #FBCFE8 !important;
-  color: #9D174D !important;
+  border: 1.5px solid #FFDFE9 !important;
+  color: #71515B !important;
   font-weight: 700 !important;
   padding: 4px 14px !important;
   border-radius: 999px !important;
-  box-shadow: 0 1px 4px rgba(244, 114, 182, 0.08) !important;
+  box-shadow: 0 1px 3px rgba(113, 81, 91, 0.05) !important;
 }
 
 /* ── INTERACTIVE PRICE MENU ACTIVE STATE (Sweet Pink Boutique) ── */
 .price-menu-item.is-active {
-  background: #FFF5F8 !important;
-  border-color: #FBCFE8 !important;
+  background: #FFF7F9 !important;
+  border-color: #FFDFE9 !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 3px 10px rgba(244, 114, 182, 0.12) !important;
+  box-shadow: 0 2px 8px rgba(113, 81, 91, 0.07) !important;
 }
 
 .price-menu-item.is-active .price-menu-name {
-  color: #9D174D !important;
+  color: #71515B !important;
   font-weight: 700 !important;
 }
 
 .price-menu-item.is-active .price-menu-price {
-  color: #9D174D !important;
+  color: #C68EA0 !important;
   font-weight: 800 !important;
 }
 
-/* ── ROUNDED PASTEL PINK DROPDOWNS ACROSS ENTIRE WEB ── */
+/* Custom Styled Select Dropdown (Warm Pastel Pink Border) */
 select, .form-select {
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
   appearance: none !important;
+  -webkit-appearance: none !important;
   background-color: #ffffff !important;
-  border: 1.5px solid #FBCFE8 !important;
+  border: 1.5px solid #FFDFE9 !important;
   border-radius: 14px !important;
   padding: 0.65rem 2.2rem 0.65rem 1rem !important;
   color: var(--text) !important;
@@ -2265,17 +2265,17 @@ select, .form-select {
   font-size: 0.92rem !important;
   font-weight: 500 !important;
   cursor: pointer !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23DE85A7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23C68EA0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 14px center !important;
   background-size: 14px !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 2px 6px rgba(244, 114, 182, 0.08) !important;
+  box-shadow: 0 1px 3px rgba(113, 81, 91, 0.05) !important;
 }
 
 select:focus, .form-select:focus {
-  border-color: #F472B6 !important;
-  box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.2) !important;
+  border-color: #E2A3B7 !important;
+  box-shadow: 0 0 0 3px rgba(226, 163, 183, 0.25) !important;
   outline: none !important;
 }
 
@@ -2465,10 +2465,10 @@ select option {
 }
 
 .step-item.is-done .step-dot {
-  background: #F472B6;
-  border-color: #F472B6;
+  background: #E2A3B7;
+  border-color: #E2A3B7;
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(244, 114, 182, 0.2);
+  box-shadow: 0 1px 3px rgba(113, 81, 91, 0.08);
 }
 
 .step-label {
@@ -2478,7 +2478,7 @@ select option {
 }
 
 .step-item.is-done .step-label {
-  color: #9D174D;
+  color: #71515B;
   font-weight: 700;
 }
 
@@ -2493,34 +2493,34 @@ select.form-input,
   -moz-appearance: none !important;
   appearance: none !important;
   background-color: #ffffff !important;
-  border: 1.5px solid #F3DCE6 !important;
+  border: 1.5px solid #FFDFE9 !important;
   border-radius: 16px !important;
   padding: 0.65rem 2.4rem 0.65rem 1.1rem !important;
-  color: #2D3748 !important;
+  color: #38282D !important;
   font-family: inherit !important;
   font-size: 0.92rem !important;
   font-weight: 500 !important;
   cursor: pointer !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23DE85A7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23C68EA0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 14px center !important;
   background-size: 14px !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 1px 4px rgba(239, 166, 193, 0.1) !important;
+  box-shadow: 0 1px 3px rgba(113, 81, 91, 0.05) !important;
   outline: none !important;
 }
 
 select:focus,
 select.form-input:focus,
 .form-select:focus {
-  border-color: #EFA6C1 !important;
-  box-shadow: 0 0 0 3px rgba(239, 166, 193, 0.2) !important;
+  border-color: #E2A3B7 !important;
+  box-shadow: 0 0 0 3px rgba(226, 163, 183, 0.25) !important;
   outline: none !important;
 }
 
 select option {
   background-color: #ffffff !important;
-  color: #2D3748 !important;
+  color: #38282D !important;
   padding: 10px 14px !important;
   font-size: 0.92rem !important;
 }
@@ -2534,13 +2534,13 @@ select option {
   position: relative;
   background-color: #ffffff;
   background-image: 
-    linear-gradient(rgba(239, 166, 193, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(239, 166, 193, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(226, 163, 183, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 163, 183, 0.08) 1px, transparent 1px);
   background-size: 20px 20px;
   border-radius: 24px;
-  border: 1.5px solid #F3DCE6;
+  border: 1.5px solid #FFDFE9;
   padding: 2.25rem 2rem 1.75rem;
-  box-shadow: 0 6px 20px rgba(239, 166, 193, 0.15);
+  box-shadow: 0 4px 14px rgba(113, 81, 91, 0.06);
   margin-bottom: 2rem;
   overflow: visible;
 }
@@ -2553,10 +2553,10 @@ select option {
   transform: translateX(-50%) rotate(-1deg);
   width: 140px;
   height: 28px;
-  background: rgba(248, 191, 212, 0.7);
-  border: 1px dashed #EFA6C1;
+  background: rgba(255, 183, 206, 0.7);
+  border: 1px dashed #E2A3B7;
   border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(113, 81, 91, 0.06);
   z-index: 10;
   pointer-events: none;
 }
@@ -2568,11 +2568,11 @@ select option {
   right: 28px;
   width: 22px;
   height: 44px;
-  border: 3px solid #EFA6C1;
+  border: 3px solid #E2A3B7;
   border-radius: 12px 12px 0 0;
   border-bottom: none;
   z-index: 15;
-  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 1px 2px 4px rgba(113, 81, 91, 0.06);
 }
 
 .paper-clip-decor::after {
@@ -2582,7 +2582,7 @@ select option {
   left: 2px;
   right: 2px;
   bottom: -6px;
-  border: 2px solid #EFA6C1;
+  border: 2px solid #E2A3B7;
   border-radius: 8px 8px 0 0;
   border-bottom: none;
 }

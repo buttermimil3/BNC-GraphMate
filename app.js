@@ -707,9 +707,52 @@ const Store = (function () {
           if (merged.settings.pointsBarIcon) {
             merged.settings.pointsBarIcon = formatDriveImageUrl(merged.settings.pointsBarIcon);
           }
+          if (Array.isArray(merged.settings.homeBanners)) {
+            merged.settings.homeBanners.forEach(b => { if (b && b.image) b.image = formatDriveImageUrl(b.image); });
+          }
           if (!merged.settings.profileImage) {
             merged.settings.profileImage = defaultData.settings.profileImage;
           }
+        }
+        if (Array.isArray(merged.products)) {
+          merged.products.forEach(p => {
+            if (p) {
+              if (p.image) p.image = formatDriveImageUrl(p.image);
+              if (p.image_url) p.image_url = formatDriveImageUrl(p.image_url);
+            }
+          });
+        }
+        if (Array.isArray(merged.fonts)) {
+          merged.fonts.forEach(f => {
+            if (f) {
+              if (f.preview_image) f.preview_image = formatDriveImageUrl(f.preview_image);
+              if (f.preview_image_url) f.preview_image_url = formatDriveImageUrl(f.preview_image_url);
+              if (f.image_url) f.image_url = formatDriveImageUrl(f.image_url);
+            }
+          });
+        }
+        if (Array.isArray(merged.groups)) {
+          merged.groups.forEach(g => {
+            if (g) {
+              if (g.cover_image) g.cover_image = formatDriveImageUrl(g.cover_image);
+              if (g.cover_image_url) g.cover_image_url = formatDriveImageUrl(g.cover_image_url);
+            }
+          });
+        }
+        if (Array.isArray(merged.portfolio)) {
+          merged.portfolio.forEach(item => {
+            if (item && item.image_url) item.image_url = formatDriveImageUrl(item.image_url);
+          });
+        }
+        if (Array.isArray(merged.reviews)) {
+          merged.reviews.forEach(r => {
+            if (r) {
+              if (r.image_url) r.image_url = formatDriveImageUrl(r.image_url);
+              if (Array.isArray(r.images)) {
+                r.images = r.images.map(img => formatDriveImageUrl(img));
+              }
+            }
+          });
         }
         return merged;
       }
@@ -778,9 +821,54 @@ const Store = (function () {
         merged.settings.googleSheetWebAppUrl = local.settings?.googleSheetWebAppUrl || defaultData.settings.googleSheetWebAppUrl;
         
         // Sanitize all Drive URLs upon incoming sync
-        if (merged.settings.coverImage) merged.settings.coverImage = formatDriveImageUrl(merged.settings.coverImage);
-        if (merged.settings.profileImage) merged.settings.profileImage = formatDriveImageUrl(merged.settings.profileImage);
-        if (merged.settings.pointsBarIcon) merged.settings.pointsBarIcon = formatDriveImageUrl(merged.settings.pointsBarIcon);
+        if (merged.settings) {
+          if (merged.settings.coverImage) merged.settings.coverImage = formatDriveImageUrl(merged.settings.coverImage);
+          if (merged.settings.profileImage) merged.settings.profileImage = formatDriveImageUrl(merged.settings.profileImage);
+          if (merged.settings.pointsBarIcon) merged.settings.pointsBarIcon = formatDriveImageUrl(merged.settings.pointsBarIcon);
+          if (Array.isArray(merged.settings.homeBanners)) {
+            merged.settings.homeBanners.forEach(b => { if (b && b.image) b.image = formatDriveImageUrl(b.image); });
+          }
+        }
+        if (Array.isArray(merged.products)) {
+          merged.products.forEach(p => {
+            if (p) {
+              if (p.image) p.image = formatDriveImageUrl(p.image);
+              if (p.image_url) p.image_url = formatDriveImageUrl(p.image_url);
+            }
+          });
+        }
+        if (Array.isArray(merged.fonts)) {
+          merged.fonts.forEach(f => {
+            if (f) {
+              if (f.preview_image) f.preview_image = formatDriveImageUrl(f.preview_image);
+              if (f.preview_image_url) f.preview_image_url = formatDriveImageUrl(f.preview_image_url);
+              if (f.image_url) f.image_url = formatDriveImageUrl(f.image_url);
+            }
+          });
+        }
+        if (Array.isArray(merged.groups)) {
+          merged.groups.forEach(g => {
+            if (g) {
+              if (g.cover_image) g.cover_image = formatDriveImageUrl(g.cover_image);
+              if (g.cover_image_url) g.cover_image_url = formatDriveImageUrl(g.cover_image_url);
+            }
+          });
+        }
+        if (Array.isArray(merged.portfolio)) {
+          merged.portfolio.forEach(item => {
+            if (item && item.image_url) item.image_url = formatDriveImageUrl(item.image_url);
+          });
+        }
+        if (Array.isArray(merged.reviews)) {
+          merged.reviews.forEach(r => {
+            if (r) {
+              if (r.image_url) r.image_url = formatDriveImageUrl(r.image_url);
+              if (Array.isArray(r.images)) {
+                r.images = r.images.map(img => formatDriveImageUrl(img));
+              }
+            }
+          });
+        }
         
         saveLocal(merged);
         if (typeof onUpdatedCallback === 'function') {
@@ -870,6 +958,8 @@ const Store = (function () {
  },
  saveGroup: function (grp) {
  const data = loadLocal();
+ if (grp.cover_image) grp.cover_image = formatDriveImageUrl(grp.cover_image);
+ if (grp.cover_image_url) grp.cover_image_url = formatDriveImageUrl(grp.cover_image_url);
  if (!grp.id) {
  grp.id = uid('grp');
  grp.created_at = new Date().toISOString();
@@ -903,6 +993,8 @@ const Store = (function () {
  },
  saveProduct: function (prod) {
  const data = loadLocal();
+ if (prod.image) prod.image = formatDriveImageUrl(prod.image);
+ if (prod.image_url) prod.image_url = formatDriveImageUrl(prod.image_url);
  if (!prod.id) {
  prod.id = uid('prod');
  prod.created_at = new Date().toISOString();
@@ -973,6 +1065,9 @@ const Store = (function () {
  },
  saveFont: function (font) {
  const data = loadLocal();
+ if (font.preview_image) font.preview_image = formatDriveImageUrl(font.preview_image);
+ if (font.preview_image_url) font.preview_image_url = formatDriveImageUrl(font.preview_image_url);
+ if (font.image_url) font.image_url = formatDriveImageUrl(font.image_url);
  if (!font.id) {
  font.id = uid('font');
  font.created_at = new Date().toISOString();
@@ -1254,6 +1349,10 @@ const Store = (function () {
  },
  addReview: function (rev) {
  const data = loadLocal();
+ if (rev.image_url) rev.image_url = formatDriveImageUrl(rev.image_url);
+ if (Array.isArray(rev.images)) {
+ rev.images = rev.images.map(img => formatDriveImageUrl(img));
+ }
  rev.id = uid('rev');
  rev.status = 'PENDING';
  rev.created_at = new Date().toISOString();
@@ -1285,6 +1384,7 @@ const Store = (function () {
  },
     savePortfolioItem: function (item) {
       const data = loadLocal();
+      if (item.image_url) item.image_url = formatDriveImageUrl(item.image_url);
       data.portfolio = data.portfolio || [];
       if (!item.id) {
         item.id = uid('port');
@@ -1521,6 +1621,11 @@ const Store = (function () {
       return Array.isArray(s.homeBanners) && s.homeBanners.length > 0 ? s.homeBanners : (defaultData.settings.homeBanners || []);
     },
     saveHomeBanners: function (list) {
+      if (Array.isArray(list)) {
+        list.forEach(b => {
+          if (b && b.image) b.image = formatDriveImageUrl(b.image);
+        });
+      }
       return this.saveSettings({ homeBanners: list });
     },
     getQueueStatus: function () {
@@ -1612,17 +1717,31 @@ const Store = (function () {
  { id: 'cc-4', platform: 'เบอร์โทรศัพท์', value: s.contactPhone || '081-234-5678', url: 'tel:' + (s.contactPhone || '0812345678') }
  ];
  },
- saveSettings: function (newSettings) {
- const data = loadLocal();
- data.settings = Object.assign({}, data.settings, newSettings);
- saveLocal(data);
- callCloud('SAVE_SETTINGS', { settings: data.settings });
- return data.settings;
- },
- getStampSettings: function () {
- const s = this.getSettings();
- return (s && s.stampSettings) ? s.stampSettings : {};
- }
+  saveSettings: function (newSettings) {
+    const data = loadLocal();
+    if (newSettings.coverImage) newSettings.coverImage = formatDriveImageUrl(newSettings.coverImage);
+    if (newSettings.profileImage) newSettings.profileImage = formatDriveImageUrl(newSettings.profileImage);
+    if (newSettings.pointsBarIcon) newSettings.pointsBarIcon = formatDriveImageUrl(newSettings.pointsBarIcon);
+    if (newSettings.promptpayQrUrl) newSettings.promptpayQrUrl = formatDriveImageUrl(newSettings.promptpayQrUrl);
+    if (newSettings.stampSettings && newSettings.stampSettings.stampIconUrl) {
+      newSettings.stampSettings.stampIconUrl = formatDriveImageUrl(newSettings.stampSettings.stampIconUrl);
+    }
+    if (newSettings.mascotSettings) {
+      ['mascot1', 'mascot2', 'mascot3'].forEach(mKey => {
+        if (newSettings.mascotSettings[mKey] && newSettings.mascotSettings[mKey].png) {
+          newSettings.mascotSettings[mKey].png = formatDriveImageUrl(newSettings.mascotSettings[mKey].png);
+        }
+      });
+    }
+    data.settings = Object.assign({}, data.settings, newSettings);
+    saveLocal(data);
+    callCloud('SAVE_SETTINGS', { settings: data.settings });
+    return data.settings;
+  },
+  getStampSettings: function () {
+    const s = this.getSettings();
+    return (s && s.stampSettings) ? s.stampSettings : {};
+  }
  };
 })();
 
@@ -3358,9 +3477,9 @@ window.Store = Store;
         <div class="container" style="max-width: 800px;">
           
           <div class="section-header">
-            <span class="section-tag">Heart Stamp Loyalty Card</span>
+            <span class="section-tag">Loyalty Stamp Card</span>
             <h2 class="section-title">${escapeHTML(stampCfg.cardTitle || 'บัตรสะสมแต้ม BNC GraphMate')}</h2>
-            <p class="section-desc">${escapeHTML(stampCfg.cardSubtitle || 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที')}</p>
+            <p class="section-desc">${escapeHTML(stampCfg.cardSubtitle || 'สะสมตราปั๊มครบ 10 ช่อง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที')}</p>
           </div>
 
           <!-- Customer Search Input -->
@@ -3412,23 +3531,32 @@ window.Store = Store;
                 </div>
               </div>
 
-              <!-- 10-Heart Stamp Grid (2 Rows x 5 Columns, No decorative emojis in text) -->
+              <!-- 10-Stamp Grid (2 Rows x 5 Columns, Cute Musical Note / Custom Stamp Icon) -->
               <div class="stamp-grid-10">
                 ${Array.from({ length: 10 }).map((_, idx) => {
                   const num = idx + 1;
                   const isStamped = num <= currentStamps;
+                  const customStampImg = stampCfg.stampIconUrl || stampCfg.mascotIcon;
 
                   if (isStamped) {
                     return `
                       <div class="stamp-slot is-stamped" style="animation: stampBouncePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: ${idx * 160}ms;" title="ดวงที่ ${num}: ปั๊มแล้ว">
-                        <svg class="stamp-img-icon" viewBox="0 0 24 24" fill="#F472B6" style="filter: drop-shadow(0 2px 4px rgba(244, 114, 182, 0.4));">
-                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                        </svg>
+                        <div class="stamp-ink-ring"></div>
+                        ${customStampImg ? `
+                          <img src="${escapeHTML(formatDriveImageUrl(customStampImg))}" alt="Stamp" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.outerHTML='<svg class=\\'stamp-note-icon\\' viewBox=\\'0 0 24 24\\' width=\\'26\\' height=\\'26\\' fill=\\'none\\' stroke=\\'%23E2A3B7\\' stroke-width=\\'2.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M9 18V5l12-2v13\\'/><circle cx=\\'6\\' cy=\\'18\\' r=\\'3\\' fill=\\'%23FFB7CE\\'/><circle cx=\\'18\\' cy=\\'16\\' r=\\'3\\' fill=\\'%23FFB7CE\\'/></svg>';">
+                        ` : `
+                          <svg class="stamp-note-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#E2A3B7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 18V5l12-2v13" stroke="#71515B" stroke-width="2"/>
+                            <circle cx="6" cy="18" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
+                            <circle cx="18" cy="16" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
+                          </svg>
+                        `}
                       </div>
                     `;
                   } else {
                     return `
                       <div class="stamp-slot is-empty" title="ดวงที่ ${num}: ยังไม่ได้ปั๊ม">
+                        <div class="stamp-ink-ring"></div>
                         <span class="stamp-slot-num">${num}</span>
                       </div>
                     `;
@@ -3436,16 +3564,16 @@ window.Store = Store;
                 }).join('')}
               </div>
 
-              <!-- Card Bottom Rules with Cute Heart Icons -->
-              <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1.5px dashed #F8DBE7; font-size: 0.86rem; color: var(--text); line-height: 1.9;">
-                ${(stampCfg.rulesText || `ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊มหัวใจ 1 ดวงทันที
+              <!-- Card Bottom Rules with Cute Music Note Bullet -->
+              <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1.5px dashed #FFDFE9; font-size: 0.86rem; color: var(--text); line-height: 1.9;">
+                ${(stampCfg.rulesText || `ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊ม 1 ดวงทันที
 สะสมครบ 10 ดวง เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี
 ติดต่อแลกรางวัลได้ทาง LINE Official ของร้าน`)
                   .split('\n')
                   .filter(l => l.trim())
                   .map(line => `
                     <div style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="#FF5BA8" style="flex-shrink: 0; margin-top: 4px;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C68EA0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 4px;"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3" fill="#FFB7CE"/><circle cx="18" cy="16" r="3" fill="#FFB7CE"/></svg>
                       <span>${escapeHTML(line)}</span>
                     </div>
                   `).join('')}
@@ -6177,12 +6305,15 @@ window.Store = Store;
                 <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
               </div>
               <div style="font-weight: 700; font-size: 13.5px; color: var(--primary-deep);">คลิกเพื่ออัปโหลดสลิปโอนเงิน</div>
-              <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">รองรับรูปถ่าย JPG, PNG (สูงสุด 10MB)</div>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">รองรับรูปถ่าย JPG, PNG (หรือวางลิงก์ Google Drive ด้านล่าง)</div>
             </div>
             <div id="chkSlipPreviewWrap" style="display: none;">
               <img id="chkSlipPreviewImg" src="" style="max-height: 160px; max-width: 100%; border-radius: 10px; object-fit: contain; box-shadow: var(--shadow-sm); display: block; margin: 0 auto;">
               <div style="font-size: 12px; color: #166534; font-weight: 700; margin-top: 8px;">แนบสลิปเรียบร้อยแล้ว (คลิกเพื่อเปลี่ยนรูป)</div>
             </div>
+          </div>
+          <div style="margin-top: 6px;">
+            <input type="text" id="chkSlipUrlInput" class="form-input" placeholder="หรือวางลิงก์สลิปจาก Google Drive ตรงนี้" style="font-size: 12px; padding: 6px 12px;" oninput="handleSlipUrlInput(this.value)">
           </div>
         </div>
 
@@ -6261,6 +6392,35 @@ window.Store = Store;
     reader.readAsDataURL(file);
   };
 
+  window.handleSlipUrlInput = function (val) {
+    const formatted = formatDriveImageUrl(val.trim());
+    const wrap = $('chkSlipPreviewWrap');
+    const img = $('chkSlipPreviewImg');
+    const promptEl = $('slipPrompt');
+    const badge = $('slipStatusBadge');
+    const dropzone = $('slipUploadDropzone');
+    if (!formatted) {
+      if (wrap) wrap.style.display = 'none';
+      if (promptEl) promptEl.style.display = 'block';
+      if (badge) {
+        badge.textContent = 'ยังไม่ได้แนบสลิป';
+        badge.style.color = 'var(--text-muted)';
+      }
+      return;
+    }
+    if (img) img.src = formatted;
+    if (wrap) wrap.style.display = 'block';
+    if (promptEl) promptEl.style.display = 'none';
+    if (badge) {
+      badge.textContent = 'แนบลิงก์สลิปแล้ว';
+      badge.style.color = '#166534';
+    }
+    if (dropzone) {
+      dropzone.style.borderColor = '#86efac';
+      dropzone.style.background = '#f0fdf4';
+    }
+  };
+
   window.handleMultiCheckoutSubmit = function (e) {
     e.preventDefault();
     const s = Store.getSettings();
@@ -6274,7 +6434,13 @@ window.Store = Store;
     }
 
     try {
-      const slipImg = $('chkSlipPreviewImg') ? $('chkSlipPreviewImg').src : '';
+      const slipUrlInput = ($('chkSlipUrlInput')?.value || '').trim();
+      let slipImg = $('chkSlipPreviewImg') ? $('chkSlipPreviewImg').src : '';
+      if (slipUrlInput) {
+        slipImg = formatDriveImageUrl(slipUrlInput);
+      } else if (slipImg) {
+        slipImg = formatDriveImageUrl(slipImg);
+      }
       const custInfo = {
         customer_name: $('chkCustName').value.trim(),
         gmail: $('chkCustGmail').value.trim(),
