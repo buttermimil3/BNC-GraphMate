@@ -49,6 +49,24 @@ const Store = (function () {
  memberLabel: 'สมาชิก'
  },
  pointsBarIcon: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
+    mascotSettings: {
+      enabled: true,
+      mascot1: {
+        name: 'น้องกระต่ายพาสเทล',
+        png: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
+        quote: 'หวัดดีฮับ! ♡'
+      },
+      mascot2: {
+        name: 'น้องหมีสตูดิโอ',
+        png: 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
+        quote: 'แวะดูฟอนต์ได้น้า'
+      },
+      mascot3: {
+        name: 'น้องแมวโมจิ',
+        png: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
+        quote: 'เหมียววว~ จับได้ด้วย!'
+      }
+    },
      homeBanners: [
       { id: 'b1', title: 'ฟอนต์ลายมือน่ารัก 2026', image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=800&auto=format&fit=crop&q=80', link: '#fonts' },
       { id: 'b2', title: 'กลุ่ม VIP รวมไฟล์กราฟิก', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80', link: '#groups' },
@@ -639,6 +657,9 @@ const Store = (function () {
     }
     if (!merged.groups || merged.groups.length < 3) {
       merged.groups = defaultData.groups;
+    }
+    if (!merged.settings.mascotSettings) {
+      merged.settings.mascotSettings = defaultData.settings.mascotSettings;
     }
  if (merged.settings) {
  if (!merged.settings.profileImage || merged.settings.profileImage.includes('photo-1534528741775-53994a69daeb')) {
@@ -1697,21 +1718,42 @@ window.Store = Store;
 
   function setupFloatingMascot() {
     let container = document.getElementById('fallingMascotsContainer');
-    if (container) return; // already initialized
+    const settings = Store.getSettings ? Store.getSettings() : {};
+    const mascotCfg = settings.mascotSettings || {
+      enabled: true,
+      mascot1: { name: 'น้องกระต่ายพาสเทล', png: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg', quote: 'หวัดดีฮับ! ♡' },
+      mascot2: { name: 'น้องหมีสตูดิโอ', png: 'https://api.iconify.design/fluent-emoji-flat:bear.svg', quote: 'แวะดูฟอนต์ได้น้า' },
+      mascot3: { name: 'น้องแมวโมจิ', png: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg', quote: 'เหมียววว~ จับได้ด้วย!' }
+    };
 
-    container = document.createElement('div');
-    container.id = 'fallingMascotsContainer';
-    container.className = 'falling-mascot-container';
-    document.body.appendChild(container);
+    // If disabled by admin, remove container if present and return
+    if (mascotCfg.enabled === false) {
+      if (container) container.remove();
+      return;
+    }
 
-    // Cute pastel character PNG stickers (100% transparent PNG, no circle container)
+    // If container exists, clear it for fresh configuration
+    if (container) {
+      container.innerHTML = '';
+    } else {
+      container = document.createElement('div');
+      container.id = 'fallingMascotsContainer';
+      container.className = 'falling-mascot-container';
+      document.body.appendChild(container);
+    }
+
+    // Cute pastel character PNG stickers (100% transparent PNG, draggable & interactive)
+    const m1 = mascotCfg.mascot1 || {};
+    const m2 = mascotCfg.mascot2 || {};
+    const m3 = mascotCfg.mascot3 || {};
+
     const mascotConfigs = [
       {
         id: 'mascot-1',
-        name: 'น้องกระต่ายพาสเทล',
-        png: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
+        name: m1.name || 'น้องกระต่ายพาสเทล',
+        png: m1.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f430.png',
-        quotes: ['หวัดดีฮับ! ♡', 'ยินดีต้อนรับนะค้า', 'พาหนูบินหน่อย~', 'เย้! BNC น่ารักจัง'],
+        quotes: [m1.quote || 'หวัดดีฮับ! ♡', 'ยินดีต้อนรับนะค้า', 'พาหนูบินหน่อย~', 'เย้! BNC น่ารักจัง'],
         speed: 0.65,
         xPercent: 18,
         startY: -120,
@@ -1720,10 +1762,10 @@ window.Store = Store;
       },
       {
         id: 'mascot-2',
-        name: 'น้องหมีสตูดิโอ',
-        png: 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
+        name: m2.name || 'น้องหมีสตูดิโอ',
+        png: m2.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43b.png',
-        quotes: ['แวะดูฟอนต์ได้น้า', 'อย่าทิ้งเค้านะ!', 'ลอยละล่องงง~', 'ร้านน่ารักม้ากก'],
+        quotes: [m2.quote || 'แวะดูฟอนต์ได้น้า', 'อย่าทิ้งเค้านะ!', 'ลอยละล่องงง~', 'ร้านน่ารักม้ากก'],
         speed: 0.5,
         xPercent: 50,
         startY: -180,
@@ -1732,10 +1774,10 @@ window.Store = Store;
       },
       {
         id: 'mascot-3',
-        name: 'น้องแมวโมจิ',
-        png: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
+        name: m3.name || 'น้องแมวโมจิ',
+        png: m3.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f431.png',
-        quotes: ['เหมียววว~ จับได้ด้วย!', 'ป้ายสวยทุกชิ้นเลย', 'ดึงหนูเล่นได้น้า ♡', 'รัก BNC ที่สุด'],
+        quotes: [m3.quote || 'เหมียววว~ จับได้ด้วย!', 'ป้ายสวยทุกชิ้นเลย', 'ดึงหนูเล่นได้น้า ♡', 'รัก BNC ที่สุด'],
         speed: 0.58,
         xPercent: 82,
         startY: -100,
@@ -4823,14 +4865,96 @@ window.Store = Store;
           </div>
         </div>
 
-        <!-- 3.0.2 Floating Mascot GIF Sticker (Item 6) -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">มาสคอตดุ๊กดิ๊กบนหน้าจอ (Floating Mascot GIF)</h3>
-          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1rem;">ใส่ลิงก์รูป GIF หรือภาพน่ารักดุ๊กดิ๊กที่จะลอยอยู่มุมขวาล่างของหน้าจอ</p>
-          <div class="form-group">
-            <label class="form-label">ลิงก์ภาพ GIF มาสคอต</label>
-            <input type="text" id="cfg_mascotGifUrl" class="form-input" value="${escapeHTML(s.mascotGifUrl || 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdW93OWdtMWFwNWw1czZtMXk4NHV6MWt5OGI1eDhkOHU0bXlnNHI3MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUYT2TxD2/giphy.gif')}">
+        <!-- 3.0.2 แก๊งน้องมาสคอตลอยหน้าจอ (Falling & Draggable Mascots) -->
+        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="color: var(--primary-deep); margin-bottom: 0.25rem;">✨ แก๊งน้องมาสคอตลอยหน้าจอ (Falling & Draggable Mascots)</h3>
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0;">น้องๆ ลอยลงมาจากด้านบนจอช้าๆ ลูกค้าสามารถจับน้องลากเล่นไปมาและคลิกคุยได้</p>
+            </div>
+            <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: var(--surface-alt); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);">
+              <input type="checkbox" id="cfg_mascotEnabled" ${(s.mascotSettings?.enabled !== false) ? 'checked' : ''} style="accent-color: var(--primary-600);">
+              <span style="font-weight: 700; font-size: 0.88rem; color: var(--text);">เปิดใช้งานแก๊งมาสคอต</span>
+            </label>
           </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
+            <!-- Mascot 1 -->
+            <div style="background: #ffffff; border: 1.5px solid var(--border); border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
+                  <img id="cfg_mascot1_preview" src="${escapeHTML(s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
+                </div>
+                <div>
+                  <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary-deep); background: var(--primary-soft); padding: 2px 8px; border-radius: 999px;">ตัวที่ 1 (ซ้าย)</span>
+                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); margin-top: 2px;">น้องตัวที่ 1</div>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">ชื่อน้อง</label>
+                <input type="text" id="cfg_mascot1_name" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.name || 'น้องกระต่ายพาสเทล')}">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส</label>
+                <input type="text" id="cfg_mascot1_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" oninput="const p=$('cfg_mascot1_preview'); if(p) p.src=this.value;">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">คำพูดเวลากด</label>
+                <input type="text" id="cfg_mascot1_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote || 'หวัดดีฮับ! ♡')}">
+              </div>
+            </div>
+
+            <!-- Mascot 2 -->
+            <div style="background: #ffffff; border: 1.5px solid var(--border); border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
+                  <img id="cfg_mascot2_preview" src="${escapeHTML(s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
+                </div>
+                <div>
+                  <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary-deep); background: var(--primary-soft); padding: 2px 8px; border-radius: 999px;">ตัวที่ 2 (กลาง)</span>
+                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); margin-top: 2px;">น้องตัวที่ 2</div>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">ชื่อน้อง</label>
+                <input type="text" id="cfg_mascot2_name" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.name || 'น้องหมีสตูดิโอ')}">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส</label>
+                <input type="text" id="cfg_mascot2_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" oninput="const p=$('cfg_mascot2_preview'); if(p) p.src=this.value;">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">คำพูดเวลากด</label>
+                <input type="text" id="cfg_mascot2_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.quote || 'แวะดูฟอนต์ได้น้า')}">
+              </div>
+            </div>
+
+            <!-- Mascot 3 -->
+            <div style="background: #ffffff; border: 1.5px solid var(--border); border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
+                  <img id="cfg_mascot3_preview" src="${escapeHTML(s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
+                </div>
+                <div>
+                  <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary-deep); background: var(--primary-soft); padding: 2px 8px; border-radius: 999px;">ตัวที่ 3 (ขวา)</span>
+                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); margin-top: 2px;">น้องตัวที่ 3</div>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">ชื่อน้อง</label>
+                <input type="text" id="cfg_mascot3_name" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.name || 'น้องแมวโมจิ')}">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส</label>
+                <input type="text" id="cfg_mascot3_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" oninput="const p=$('cfg_mascot3_preview'); if(p) p.src=this.value;">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem;">คำพูดเวลากด</label>
+                <input type="text" id="cfg_mascot3_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.quote || 'เหมียววว~ จับได้ด้วย!')}">
+              </div>
+            </div>
+          </div>
+          <small style="display: block; margin-top: 0.85rem; color: var(--text-muted); font-size: 0.8rem;">💡 แนะนำใช้ภาพ PNG โปร่งใส (Transparent PNG) หรือ SVG เพื่อให้น้องลอยได้อย่างน่ารักและไม่มีกรอบขาวกวนใจค่ะ</small>
         </div>
 
         <!-- 3.1 Stamp Card Configuration -->
@@ -5189,11 +5313,30 @@ window.Store = Store;
           groups: getVal('cfg_catGroups', 'VIP ตลอดชีพ, รวมงานกราฟิก, การ์ตูน & คาแรกเตอร์, ป้ายร้าน & เมนู'),
           portfolio: getVal('cfg_catPortfolio', 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ'),
           portfolioStyles: getVal('cfg_catPortfolioStyles', 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต')
+        },
+        mascotSettings: {
+          enabled: getChecked('cfg_mascotEnabled', true),
+          mascot1: {
+            name: getVal('cfg_mascot1_name', 'น้องกระต่ายพาสเทล'),
+            png: getVal('cfg_mascot1_png', 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg'),
+            quote: getVal('cfg_mascot1_quote', 'หวัดดีฮับ! ♡')
+          },
+          mascot2: {
+            name: getVal('cfg_mascot2_name', 'น้องหมีสตูดิโอ'),
+            png: getVal('cfg_mascot2_png', 'https://api.iconify.design/fluent-emoji-flat:bear.svg'),
+            quote: getVal('cfg_mascot2_quote', 'แวะดูฟอนต์ได้น้า')
+          },
+          mascot3: {
+            name: getVal('cfg_mascot3_name', 'น้องแมวโมจิ'),
+            png: getVal('cfg_mascot3_png', 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg'),
+            quote: getVal('cfg_mascot3_quote', 'เหมียววว~ จับได้ด้วย!')
+          }
         }
       };
 
       Store.saveSettings(updated);
       alert('บันทึกการตั้งค่าทั้งหมดเรียบร้อยแล้วค่ะ!');
+      setupFloatingMascot();
       renderNavbar();
       renderCurrentView();
     } catch (err) {

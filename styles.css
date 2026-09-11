@@ -11,31 +11,31 @@
 }
 
 :root {
-  /* Sweet Soft Pastel Pink & Pure White Palette (Gentle, Cute, Non-Harsh) */
-  --primary:         #FBCFE8;   /* Very soft gentle baby pink */
-  --primary-hover:   #F9A8D4;   /* Soft pastel blush hover */
-  --primary-600:     #F472B6;   /* Pastel pink button */
-  --primary-700:     #EC4899;
-  --primary-soft:    #FDF2F8;   /* Ultra-light milky pink */
-  --primary-light:   #FFF5F8;   /* Light blush */
-  --primary-subtle:  #FFF9FB;
-  --primary-deep:    #9D174D;   /* Soft warm berry for readable text */
+  /* Authentic BNC HayMate Sweet Soft Pastel Pink Palette */
+  --primary:         #F8BFD4;   /* Soft sweet strawberry milk pink */
+  --primary-hover:   #F4A3C0;   /* Gentle pastel blush hover */
+  --primary-600:     #EFA6C1;   /* Soft warm pastel button (zero neon) */
+  --primary-700:     #DE85A7;   /* Muted pastel berry */
+  --primary-soft:    #FCE3EE;   /* Soft candy milk tint */
+  --primary-light:   #FDF1F6;   /* Light blush */
+  --primary-subtle:  #FFF8FB;   /* Warm soft pink blush */
+  --primary-deep:    #9D174D;   /* Gentle contrast text */
   --accent-text:     #9D174D;
 
-  /* Neutral Surfaces */
-  --bg:              #FFF9FB;   /* Soft milky baby-pink tinted white background */
+  /* Neutral Surfaces - Clean Warm White */
+  --bg:              #FFF8FB;   /* BNC HayMate signature soft blush white background */
   --card:            #FFFFFF;
   --surface:         #FFFFFF;
-  --surface-alt:     #FFF5F8;
-  --border:          #FCE7F3;   /* Very delicate pastel border */
-  --border-light:    #FDF2F8;
-  --border-dark:     #FBCFE8;
+  --surface-alt:     #FDF1F6;
+  --border:          #F3DCE6;   /* Subtle soft pastel border */
+  --border-light:    #FCE9F1;
+  --border-dark:     #E8BFD1;
 
-  /* Typography - Soft, warm, non-harsh */
-  --text:            #374151;   /* Warm soft graphite (not harsh black) */
-  --text-secondary:  #4B5563;   /* Soft medium gray */
-  --text-muted:      #6B7280;   /* Gentle neutral muted text */
-  --text-light:      #9CA3AF;
+  /* Typography - Soft Warm Charcoal (Zero harsh contrast) */
+  --text:            #2D3748;   /* Soft warm dark charcoal */
+  --text-secondary:  #4A5568;   /* Soft slate gray */
+  --text-muted:      #718096;   /* Gentle neutral muted text */
+  --text-light:      #A0AEC0;
   --text-white:      #FFFFFF;
 
   /* Status Chips (All in soft pastel tones) */
@@ -51,11 +51,11 @@
   --danger-text:     #9F1239;
   --danger-border:   #FECDD3;
 
-  --info-bg:         #FFF5F8;
+  --info-bg:         #FDF1F6;
   --info-text:       #9D174D;
-  --info-border:     #FCE7F3;
+  --info-border:     #F3DCE6;
 
-  /* Radii & Shadows - Flat & Subtle (No heavy neon glow) */
+  /* Radii & Shadows - Flat & Subtle (Zero neon glow) */
   --radius-sm:       10px;
   --radius-md:       16px;
   --radius-lg:       22px;
@@ -103,7 +103,7 @@ button, input, textarea, select {
 /* ── BABY PINK PASTEL CHECKBOX & RADIO ACROSS ALL BROWSERS ── */
 input[type="checkbox"],
 input[type="radio"] {
-  accent-color: #F472B6 !important;
+  accent-color: #EFA6C1 !important;
   cursor: pointer;
   width: 17px;
   height: 17px;
@@ -114,7 +114,7 @@ input[type="radio"] {
 
 input[type="checkbox"]:focus-visible,
 input[type="radio"]:focus-visible {
-  outline: 2px solid #F472B6;
+  outline: 2px solid #EFA6C1;
   outline-offset: 2px;
 }
 
@@ -292,13 +292,13 @@ input[type="radio"]:focus-visible {
   background-color: var(--primary-600);
   color: #ffffff;
   border-color: var(--primary-600);
-  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.25);
+  box-shadow: 0 2px 8px rgba(239, 166, 193, 0.25);
 }
 
 .btn-primary:hover {
   background-color: var(--primary-700);
   border-color: var(--primary-700);
-  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.35);
+  box-shadow: 0 4px 12px rgba(222, 133, 167, 0.35);
   color: #ffffff;
 }
 
@@ -2501,7 +2501,7 @@ select.form-input,
   -moz-appearance: none !important;
   appearance: none !important;
   background-color: #ffffff !important;
-  border: 1.5px solid #FBCFE8 !important;
+  border: 1.5px solid #F3DCE6 !important;
   border-radius: 16px !important;
   padding: 0.65rem 2.4rem 0.65rem 1.1rem !important;
   color: #2D3748 !important;
@@ -2514,15 +2514,15 @@ select.form-input,
   background-position: right 14px center !important;
   background-size: 14px !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.12) !important;
+  box-shadow: 0 1px 4px rgba(239, 166, 193, 0.1) !important;
   outline: none !important;
 }
 
 select:focus,
 select.form-input:focus,
 .form-select:focus {
-  border-color: #F472B6 !important;
-  box-shadow: 0 0 0 3.5px rgba(244, 114, 182, 0.2) !important;
+  border-color: #EFA6C1 !important;
+  box-shadow: 0 0 0 3px rgba(239, 166, 193, 0.2) !important;
   outline: none !important;
 }
 
@@ -2542,13 +2542,13 @@ select option {
   position: relative;
   background-color: #ffffff;
   background-image: 
-    linear-gradient(rgba(244, 114, 182, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(244, 114, 182, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(239, 166, 193, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(239, 166, 193, 0.08) 1px, transparent 1px);
   background-size: 20px 20px;
   border-radius: 24px;
-  border: 2px solid #FBCFE8;
+  border: 1.5px solid #F3DCE6;
   padding: 2.25rem 2rem 1.75rem;
-  box-shadow: 0 10px 28px rgba(251, 207, 232, 0.45);
+  box-shadow: 0 6px 20px rgba(239, 166, 193, 0.15);
   margin-bottom: 2rem;
   overflow: visible;
 }
@@ -2561,8 +2561,8 @@ select option {
   transform: translateX(-50%) rotate(-1deg);
   width: 140px;
   height: 28px;
-  background: rgba(254, 205, 225, 0.85);
-  border: 1px dashed #F472B6;
+  background: rgba(248, 191, 212, 0.7);
+  border: 1px dashed #EFA6C1;
   border-radius: 4px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   z-index: 10;
@@ -2576,11 +2576,11 @@ select option {
   right: 28px;
   width: 22px;
   height: 44px;
-  border: 3.5px solid #F472B6;
+  border: 3px solid #EFA6C1;
   border-radius: 12px 12px 0 0;
   border-bottom: none;
   z-index: 15;
-  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .paper-clip-decor::after {
@@ -2590,7 +2590,7 @@ select option {
   left: 2px;
   right: 2px;
   bottom: -6px;
-  border: 2.5px solid #F472B6;
+  border: 2px solid #EFA6C1;
   border-radius: 8px 8px 0 0;
   border-bottom: none;
 }
@@ -2638,7 +2638,7 @@ select option {
   font-family: var(--font-heading);
   font-size: 1.7rem;
   font-weight: 800;
-  color: #D9467A;
+  color: #9D174D;
   line-height: 1.2;
 }
 
@@ -2668,7 +2668,7 @@ select option {
   flex: 1;
   min-width: 240px;
   background: #FFFDFE;
-  border: 1.5px solid #FBCFE8;
+  border: 1.5px solid #F3DCE6;
   border-radius: 16px;
   padding: 0.75rem 1.25rem;
   font-size: 0.95rem;
@@ -2678,8 +2678,8 @@ select option {
 }
 
 .queue-search-input:focus {
-  border-color: #F472B6;
-  box-shadow: 0 0 0 3.5px rgba(244, 114, 182, 0.2);
+  border-color: #EFA6C1;
+  box-shadow: 0 0 0 3px rgba(239, 166, 193, 0.2);
 }
 
 /* Queue Cards Grid (Stationery Sticky Note Cards) */
@@ -2694,12 +2694,12 @@ select option {
   position: relative;
   background: #ffffff;
   background-image: 
-    radial-gradient(#FBCFE8 0.8px, transparent 0.8px);
+    radial-gradient(#F3DCE6 0.8px, transparent 0.8px);
   background-size: 16px 16px;
-  border: 1.5px solid #FBCFE8;
+  border: 1.5px solid #F3DCE6;
   border-radius: 22px;
   padding: 1.6rem 1.4rem 1.3rem;
-  box-shadow: 0 6px 18px rgba(244, 114, 182, 0.12);
+  box-shadow: 0 4px 14px rgba(239, 166, 193, 0.1);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   cursor: pointer;
   display: flex;
@@ -2708,8 +2708,8 @@ select option {
 
 .queue-note-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(244, 114, 182, 0.25);
-  border-color: #F472B6;
+  box-shadow: 0 8px 24px rgba(239, 166, 193, 0.2);
+  border-color: #EFA6C1;
 }
 
 /* Card Washi Tape Corner */
@@ -2719,8 +2719,8 @@ select option {
   right: 22px;
   width: 70px;
   height: 18px;
-  background: rgba(254, 215, 226, 0.9);
-  border: 1px dashed #F472B6;
+  background: rgba(248, 191, 212, 0.75);
+  border: 1px dashed #EFA6C1;
   border-radius: 2px;
   transform: rotate(2deg);
   pointer-events: none;
@@ -2830,8 +2830,8 @@ select option {
 .queue-progress-track {
   width: 100%;
   height: 10px;
-  background: #FFF0F5;
-  border: 1px solid #FBCFE8;
+  background: #FFF5F8;
+  border: 1px solid #F3DCE6;
   border-radius: 999px;
   overflow: hidden;
   margin: 0.5rem 0 0.85rem;
@@ -2840,7 +2840,7 @@ select option {
 
 .queue-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #F472B6, #EC4899);
+  background: linear-gradient(90deg, #F8BFD4, #EFA6C1);
   border-radius: 999px;
   transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -2902,22 +2902,22 @@ select option {
 }
 
 .queue-step-node.is-active .queue-step-circle {
-  background: #F472B6;
-  border-color: #F472B6;
+  background: #EFA6C1;
+  border-color: #EFA6C1;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.25);
+  box-shadow: 0 2px 8px rgba(239, 166, 193, 0.25);
 }
 
 .queue-step-node.is-passed .queue-step-circle {
-  background: #FCE7F3;
-  border-color: #FBCFE8;
+  background: #FDF1F6;
+  border-color: #F8BFD4;
   color: #9D174D;
 }
 
 .queue-step-title {
   font-size: 11.5px;
   font-weight: 600;
-  color: #6B7280;
+  color: #718096;
 }
 
 .queue-step-node.is-active .queue-step-title {
@@ -2936,7 +2936,7 @@ select option {
   padding: 4px 2px 14px;
   margin-bottom: 1.5rem;
   scrollbar-width: thin;
-  scrollbar-color: #FBCFE8 transparent;
+  scrollbar-color: #F8BFD4 transparent;
 }
 
 .portfolio-style-tabs::-webkit-scrollbar {
@@ -2944,7 +2944,7 @@ select option {
 }
 
 .portfolio-style-tabs::-webkit-scrollbar-thumb {
-  background: #FBCFE8;
+  background: #F8BFD4;
   border-radius: 999px;
 }
 
@@ -2957,29 +2957,29 @@ select option {
   border-radius: 999px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #4B5563;
+  color: #4A5568;
   background: #ffffff;
-  border: 1.5px solid #FCE7F3;
+  border: 1.5px solid #F3DCE6;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 4px rgba(244, 114, 182, 0.05);
+  box-shadow: 0 1px 4px rgba(239, 166, 193, 0.05);
 }
 
 .portfolio-style-pill:hover {
-  border-color: #FBCFE8;
+  border-color: #F8BFD4;
   color: #9D174D;
   background: #FFF5F8;
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(244, 114, 182, 0.12);
+  box-shadow: 0 3px 8px rgba(239, 166, 193, 0.12);
 }
 
 .portfolio-style-pill.is-active {
-  background: #F472B6;
+  background: #EFA6C1;
   color: #ffffff !important;
-  border-color: #F472B6 !important;
+  border-color: #EFA6C1 !important;
   font-weight: 700;
   transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(244, 114, 182, 0.2);
+  box-shadow: 0 3px 10px rgba(239, 166, 193, 0.2);
 }
 
 .portfolio-style-pill-badge {
@@ -3038,15 +3038,15 @@ select option {
 }
 
 .dashboard-time-btn.is-active {
-  background: #F472B6;
+  background: #EFA6C1;
   color: #ffffff;
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.25);
+  box-shadow: 0 2px 8px rgba(239, 166, 193, 0.25);
 }
 
 .dashboard-card-highlight {
   background: #FFFDFE;
-  border: 2px solid #FBCFE8 !important;
+  border: 2px solid #F3DCE6 !important;
   position: relative;
   overflow: hidden;
 }
@@ -3058,6 +3058,6 @@ select option {
   right: -20px;
   width: 70px;
   height: 70px;
-  background: rgba(244, 114, 182, 0.08);
+  background: rgba(239, 166, 193, 0.08);
   border-radius: 50%;
 }
