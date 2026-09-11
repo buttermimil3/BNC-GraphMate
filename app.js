@@ -644,47 +644,75 @@ const Store = (function () {
       }
     ]};
 
- // ดึงข้อมูลจาก Local Cache ทันที (เพื่อให้เว็บโหลดเร็ว 0.01 วินาที)
- function loadLocal() {
- try {
- const saved = localStorage.getItem(STORAGE_KEY);
- if (saved) {
- const parsed = JSON.parse(saved);
- const merged = Object.assign({}, defaultData, parsed);
- merged.settings = Object.assign({}, defaultData.settings, parsed.settings || {});
-    if (!merged.portfolio || merged.portfolio.length === 0) {
-      merged.portfolio = defaultData.portfolio;
+  // ฟังก์ชันแปลงลิงก์ Google Drive ทุกรูปแบบให้เป็น Direct Image URL ที่เบราว์เซอร์แสดงผลได้ 100%
+  function formatDriveImageUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    const trimmed = url.trim();
+    if (!trimmed.includes('drive.google.com') && !trimmed.includes('docs.google.com')) {
+      return trimmed;
     }
-    if (!merged.queue_items || merged.queue_items.length === 0) {
-      merged.queue_items = defaultData.queue_items;
+    // ดึง ID จาก /file/d/ID/ หรือ ?id=ID หรือ /d/ID
+    let fileId = '';
+    const match1 = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    const match2 = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    const match3 = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match1 && match1[1]) fileId = match1[1];
+    else if (match2 && match2[1]) fileId = match2[1];
+    else if (match3 && match3[1]) fileId = match3[1];
+
+    if (fileId) {
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
     }
-    if (!merged.settings.queuePage) {
-      merged.settings.queuePage = defaultData.settings.queuePage;
+    return trimmed;
+  }
+
+  // ดึงข้อมูลจาก Local Cache ทันที (เพื่อให้เว็บโหลดเร็ว 0.01 วินาที)
+  function loadLocal() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const merged = Object.assign({}, defaultData, parsed);
+        merged.settings = Object.assign({}, defaultData.settings, parsed.settings || {});
+        if (!merged.portfolio || merged.portfolio.length === 0) {
+          merged.portfolio = defaultData.portfolio;
+        }
+        if (!merged.queue_items || merged.queue_items.length === 0) {
+          merged.queue_items = defaultData.queue_items;
+        }
+        if (!merged.settings.queuePage) {
+          merged.settings.queuePage = defaultData.settings.queuePage;
+        }
+        if (!merged.groups || merged.groups.length < 3) {
+          merged.groups = defaultData.groups;
+        }
+        if (!merged.settings.mascotSettings) {
+          merged.settings.mascotSettings = defaultData.settings.mascotSettings;
+        }
+        if (!merged.settings.googleSheetWebAppUrl) {
+          merged.settings.googleSheetWebAppUrl = defaultData.settings.googleSheetWebAppUrl;
+        }
+        if (merged.settings) {
+          if (merged.settings.profileImage) {
+            merged.settings.profileImage = formatDriveImageUrl(merged.settings.profileImage);
+          }
+          if (merged.settings.coverImage) {
+            merged.settings.coverImage = formatDriveImageUrl(merged.settings.coverImage);
+          }
+          if (merged.settings.pointsBarIcon) {
+            merged.settings.pointsBarIcon = formatDriveImageUrl(merged.settings.pointsBarIcon);
+          }
+          if (!merged.settings.profileImage) {
+            merged.settings.profileImage = defaultData.settings.profileImage;
+          }
+        }
+        return merged;
+      }
+    } catch (e) {
+      console.warn('Load local cache failed', e);
     }
-    if (!merged.groups || merged.groups.length < 3) {
-      merged.groups = defaultData.groups;
-    }
-    if (!merged.settings.mascotSettings) {
-      merged.settings.mascotSettings = defaultData.settings.mascotSettings;
-    }
-    if (!merged.settings.googleSheetWebAppUrl) {
-      merged.settings.googleSheetWebAppUrl = defaultData.settings.googleSheetWebAppUrl;
-    }
- if (merged.settings) {
- if (!merged.settings.profileImage || merged.settings.profileImage.includes('photo-1534528741775-53994a69daeb')) {
- merged.settings.profileImage = defaultData.settings.profileImage;
- }
- if (!merged.settings.pointsBarIcon || merged.settings.pointsBarIcon.includes('photo-1534528741775-53994a69daeb')) {
- merged.settings.pointsBarIcon = defaultData.settings.pointsBarIcon;
- }
- }
- return merged;
- }
- } catch (e) {
- console.warn('Load local cache failed', e);
- }
- return JSON.parse(JSON.stringify(defaultData));
- }
+    return JSON.parse(JSON.stringify(defaultData));
+  }
 
  function saveLocal(data) {
  try {
@@ -738,6 +766,11 @@ const Store = (function () {
         // รักษาสิทธิ์และ URL ถาวรไว้
         merged.settings = merged.settings || {};
         merged.settings.googleSheetWebAppUrl = local.settings?.googleSheetWebAppUrl || defaultData.settings.googleSheetWebAppUrl;
+        
+        // Sanitize all Drive URLs upon incoming sync
+        if (merged.settings.coverImage) merged.settings.coverImage = formatDriveImageUrl(merged.settings.coverImage);
+        if (merged.settings.profileImage) merged.settings.profileImage = formatDriveImageUrl(merged.settings.profileImage);
+        if (merged.settings.pointsBarIcon) merged.settings.pointsBarIcon = formatDriveImageUrl(merged.settings.pointsBarIcon);
         
         saveLocal(merged);
         if (typeof onUpdatedCallback === 'function') {
@@ -1638,6 +1671,26 @@ window.Store = Store;
  .replace(/'/g, '&#039;');
  };
 
+  const formatDriveImageUrl = url => {
+    if (!url || typeof url !== 'string') return '';
+    const trimmed = url.trim();
+    if (!trimmed.includes('drive.google.com') && !trimmed.includes('docs.google.com')) {
+      return trimmed;
+    }
+    let fileId = '';
+    const match1 = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    const match2 = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    const match3 = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match1 && match1[1]) fileId = match1[1];
+    else if (match2 && match2[1]) fileId = match2[1];
+    else if (match3 && match3[1]) fileId = match3[1];
+
+    if (fileId) {
+      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
+    }
+    return trimmed;
+  };
+
  // ── Application Initialization ────────────────────────────────
  
   // ── Dynamic Font-Face Loader ──────────────────────────────────
@@ -1725,10 +1778,14 @@ window.Store = Store;
 
  // Initial background sync from Google Sheets if configured
  if (typeof Store !== 'undefined' && Store.syncFromCloud) {
- Store.syncFromCloud(() => {
- renderCurrentView();
- });
- }
+      Store.syncFromCloud((isOk) => {
+        if (isOk) {
+          renderNavbar();
+          setupFloatingMascot();
+          renderCurrentView();
+        }
+      });
+    }
  }
 
  // ── Router Setup (Hash Navigation) ───────────────────────────
@@ -2115,7 +2172,7 @@ window.Store = Store;
       <!-- Facebook Cover Banner (Contained, Not Edge-to-Edge) -->
       <div class="container" style="padding-top: 1.25rem;">
         <div class="fb-cover-banner" style="border-radius: 22px; max-height: 290px; overflow: hidden; box-shadow: var(--shadow-sm);">
-          <img src="${escapeHTML(s.coverImage || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600')}" class="fb-cover-img" alt="Cover Banner" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600';">
+          <img src="${escapeHTML(formatDriveImageUrl(s.coverImage) || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600')}" class="fb-cover-img" alt="Cover Banner" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600';">
         </div>
       </div>
 
@@ -2128,7 +2185,7 @@ window.Store = Store;
             <div class="ig-profile-header">
               
               <div class="ig-avatar-wrapper fb-overlap-avatar">
-                <img src="${escapeHTML(s.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="ig-avatar-img" alt="Studio Avatar" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
+                <img src="${escapeHTML(formatDriveImageUrl(s.profileImage) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="ig-avatar-img" alt="Studio Avatar" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
               </div>
 
               <!-- Shop Info -->
@@ -2205,7 +2262,7 @@ window.Store = Store;
                 ${banners.map((b, idx) => `
                   <div class="hero-carousel-slide ${idx === 0 ? 'active' : ''}" data-index="${idx}">
                     <a href="${escapeHTML(b.link || '#fonts')}">
-                      <img src="${escapeHTML(b.image)}" alt="${escapeHTML(b.title || '')}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1541643600914-78b084683601?w=600';">
+                      <img src="${escapeHTML(formatDriveImageUrl(b.image))}" alt="${escapeHTML(b.title || '')}" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1541643600914-78b084683601?w=600';">
                     </a>
                   </div>
                 `).join('')}
@@ -2237,10 +2294,12 @@ window.Store = Store;
           </div>
 
           <div class="compact-horizontal-slider" style="padding-top: 15px;">
-            ${featuredGroups.map(g => `
+            ${featuredGroups.map(g => {
+              const grpImg = formatDriveImageUrl(g.cover_image_url || g.cover_image || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600');
+              return `
               <div class="compact-card-item">
                 <div class="pop-out-badge">${escapeHTML(g.category || 'VIP')}</div>
-                <img src="${escapeHTML(g.cover_image_url || g.cover_image || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600')}" class="compact-card-thumb" alt="${escapeHTML(g.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600';">
+                <img src="${escapeHTML(grpImg)}" class="compact-card-thumb" alt="${escapeHTML(g.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600';">
                 <div class="compact-card-content">
                   <div class="compact-card-title">${escapeHTML(g.name)}</div>
                   <div class="compact-card-footer">
@@ -2251,7 +2310,7 @@ window.Store = Store;
                   </div>
                 </div>
               </div>
-            `).join('')}
+            `;}).join('')}
           </div>
         </div>
       </section>
@@ -2269,7 +2328,7 @@ window.Store = Store;
 
           <div class="compact-horizontal-slider" style="padding-top: 15px;">
             ${featuredFonts.map(f => {
-              const fontImg = f.preview_image || f.preview_image_url || f.image_url || 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';
+              const fontImg = formatDriveImageUrl(f.preview_image || f.preview_image_url || f.image_url || 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600');
               return `
                 <div class="compact-card-item">
                   <div class="pop-out-badge">${escapeHTML(f.category || 'ลายมือ')}</div>
@@ -2302,10 +2361,12 @@ window.Store = Store;
           </div>
 
           <div class="compact-horizontal-slider" style="padding-top: 15px;">
-            ${featuredProds.map(p => `
+            ${featuredProds.map(p => {
+              const prodImg = formatDriveImageUrl(p.image_url || p.image || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600');
+              return `
               <div class="compact-card-item">
                 <div class="pop-out-badge">${escapeHTML(p.category || 'กราฟิก')}</div>
-                <img src="${escapeHTML(p.image_url || p.image || 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600')}" class="compact-card-thumb" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1541643600914-78b084683601?w=600';">
+                <img src="${escapeHTML(prodImg)}" class="compact-card-thumb" alt="${escapeHTML(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1541643600914-78b084683601?w=600';">
                 <div class="compact-card-content">
                   <div class="compact-card-title">${escapeHTML(p.name)}</div>
                   <div class="compact-card-footer">
@@ -2316,7 +2377,7 @@ window.Store = Store;
                   </div>
                 </div>
               </div>
-            `).join('')}
+            `;}).join('')}
           </div>
         </div>
       </section>
@@ -3181,7 +3242,8 @@ window.Store = Store;
           <!-- Pure Square Image Gallery (1:1 Ratio, No Captions) -->
           <div class="square-gallery-grid">
             ${filtered.length > 0 ? filtered.map((item, idx) => {
-              const img = item.image_url || item.cover_image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
+              const rawImg = item.image_url || item.cover_image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
+              const img = formatDriveImageUrl(rawImg);
               return `
                 <div class="square-gallery-item" onclick="openLightbox(${idx})" title="คลิกเพื่อดูรูปขยาย">
                   <img src="${escapeHTML(img)}" alt="Portfolio Graphic" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
@@ -5110,12 +5172,28 @@ window.Store = Store;
           </div>
         </div>
 
-        <!-- 5. Profile & Bio Settings -->
+        <!-- 5. Profile, Cover & Bio Settings -->
         <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">รูปโปรไฟล์ร้าน และ Bio</h3>
-          <div class="form-group">
+          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ภาพปกร้าน, รูปโปรไฟล์ร้าน และ Bio</h3>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">ลิงก์ภาพปกร้าน Facebook Cover (ด้านบนสุดของหน้าแรก)</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="text" id="cfg_coverImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.coverImage || '')}" placeholder="วางลิงก์รูป หรือลิงก์ Google Drive ได้ทันที" oninput="const p=$('cfg_coverImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
+              <div style="width: 60px; height: 36px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                <img id="cfg_coverImage_preview" src="${escapeHTML(formatDriveImageUrl(s.coverImage) || '')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" onload="this.style.display='block';">
+              </div>
+            </div>
+            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป และลิงก์แชร์จาก Google Drive ระบบจะแปลงให้แสดงผลอัตโนมัติ</small>
+          </div>
+          <div class="form-group" style="margin-bottom: 1rem;">
             <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ขอบชมพูพาสเทล)</label>
-            <input type="text" id="cfg_profileImage" class="form-input" value="${escapeHTML(s.profileImage || '')}">
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="text" id="cfg_profileImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.profileImage || '')}" placeholder="วางลิงก์รูป หรือลิงก์ Google Drive ได้ทันที" oninput="const p=$('cfg_profileImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
+              <div style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--primary-600); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                <img id="cfg_profileImage_preview" src="${escapeHTML(formatDriveImageUrl(s.profileImage) || '')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" onload="this.style.display='block';">
+              </div>
+            </div>
+            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป และลิงก์แชร์จาก Google Drive ระบบจะแปลงให้แสดงผลอัตโนมัติ</small>
           </div>
           <div class="form-group">
             <label class="form-label">คำแนะนำร้านค้า (Bio)</label>
@@ -5326,6 +5404,7 @@ window.Store = Store;
         tagline: getVal('cfg_tagline', 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
         announcement: getVal('cfg_announcement', ''),
         announcementEnabled: getChecked('cfg_announcementEnabled', false),
+        coverImage: getVal('cfg_coverImage', ''),
         profileImage: getVal('cfg_profileImage', ''),
         shopBio: getVal('cfg_shopBio', ''),
         btnLineText: getVal('cfg_btnLineText', 'ทักแชท LINE ร้าน'),
@@ -5536,37 +5615,38 @@ window.Store = Store;
   };
   
   function renderProductCard(p, s) {
- return `
- <div class="product-card">
- <img src="${escapeHTML(p.image_url || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500')}" class="product-card__thumb" alt="${escapeHTML(p.name)}">
- <div class="product-card__body">
- <span class="badge badge--pink" style="margin-bottom: 0.35rem; align-self: flex-start;">${escapeHTML(p.category || 'กราฟิก')}</span>
- <h4 class="product-card__title">${escapeHTML(p.name)}</h4>
- <p class="product-card__desc">${escapeHTML(p.description || '')}</p>
- <div class="product-card__footer">
- <div class="product-price">฿${Number(p.price || 0).toLocaleString()}</div>
- <div style="display: flex; gap: 0.35rem;">
- <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${p.id}', 'PRODUCT')" title="เพิ่มลงตะกร้า">
- <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
- ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
- </button>
- <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${p.id}', 'PRODUCT')">
- ${escapeHTML(s.btnBuyText || 'ซื้อ')}
- </button>
- </div>
- </div>
- </div>
- </div>
- `;
- }
+    const pImg = formatDriveImageUrl(p.image_url || p.image || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500');
+    return `
+      <div class="product-card">
+        <img src="${escapeHTML(pImg)}" class="product-card__thumb" alt="${escapeHTML(p.name)}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500';">
+        <div class="product-card__body">
+          <span class="badge badge--pink" style="margin-bottom: 0.35rem; align-self: flex-start;">${escapeHTML(p.category || 'กราฟิก')}</span>
+          <h4 class="product-card__title">${escapeHTML(p.name)}</h4>
+          <p class="product-card__desc">${escapeHTML(p.description || '')}</p>
+          <div class="product-card__footer">
+            <div class="product-price">฿${Number(p.price || 0).toLocaleString()}</div>
+            <div style="display: flex; gap: 0.35rem;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${p.id}', 'PRODUCT')" title="เพิ่มลงตะกร้า">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${p.id}', 'PRODUCT')">
+                ${escapeHTML(s.btnBuyText || 'ซื้อ')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
 
- function renderFontCard(f, s) {
-    const fontImg = f.preview_image || f.preview_image_url || f.image_url || 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';
+  function renderFontCard(f, s) {
+    const fontImg = formatDriveImageUrl(f.preview_image || f.preview_image_url || f.image_url || 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600');
     return `
       <div class="product-card">
         <!-- Font Signboard / Poster Banner Preview (Requirement 3) -->
         <div class="product-card__image-wrapper" style="position: relative; height: 185px; overflow: hidden; border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); cursor: pointer; background: var(--surface-alt);" onclick="openLightbox('${escapeHTML(fontImg)}')" title="คลิกเพื่อดูรูปป้ายฟอนต์ขนาดใหญ่">
-          <img src="${escapeHTML(fontImg)}" alt="${escapeHTML(f.name)}" style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;" class="product-card__img" loading="lazy">
+          <img src="${escapeHTML(fontImg)}" alt="${escapeHTML(f.name)}" style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;" class="product-card__img" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';">
           <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 6px;">
             <span class="badge badge--pink">${escapeHTML(f.category || 'ลายมือ')}</span>
           </div>
@@ -5608,9 +5688,10 @@ window.Store = Store;
 
   function renderGroupCard(g, s) {
     const benefits = (g.benefits || '').split('\n').filter(Boolean);
+    const grpImg = formatDriveImageUrl(g.cover_image_url || g.cover_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600');
     return `
       <div class="card" style="display: flex; flex-direction: column; border-radius: var(--radius-lg);">
-        <img src="${escapeHTML(g.cover_image_url || g.cover_image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600')}" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 1rem;" alt="${escapeHTML(g.name)}">
+        <img src="${escapeHTML(grpImg)}" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 1rem;" alt="${escapeHTML(g.name)}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600';">
         ${g.is_pinned ? `<span class="badge badge--pink" style="margin-bottom: 0.5rem; align-self: flex-start;">กลุ่มแนะนำ</span>` : ''}
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
           <h3 style="font-size: 1.2rem; margin: 0; font-weight: 700;">${escapeHTML(g.name)}</h3>
@@ -5835,7 +5916,7 @@ window.Store = Store;
         <div class="receipt" id="receiptPrintArea">
           <div class="r-head">
             <div class="r-logo">
-              ${s.profileImage ? `<img src="${escapeHTML(s.profileImage)}" alt="Logo">` : 'BNC'}
+              ${s.profileImage ? `<img src="${escapeHTML(formatDriveImageUrl(s.profileImage))}" alt="Logo">` : 'BNC'}
             </div>
             <div class="r-store">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</div>
             <div class="r-sub">${escapeHTML(s.tagline || 'Graphic & Font Studio')}</div>
