@@ -815,10 +815,32 @@ const Store = (function () {
       const result = await res.json();
       if (result && result.status === 'success' && result.data) {
         const local = loadLocal();
-        const merged = Object.assign({}, local, result.data);
-        // รักษาสิทธิ์และ URL ถาวรไว้
-        merged.settings = merged.settings || {};
+        const incoming = result.data;
+        const merged = Object.assign({}, local);
+
+        // Safe merge settings
+        if (incoming.settings && typeof incoming.settings === 'object') {
+          merged.settings = Object.assign({}, local.settings || {}, incoming.settings);
+        } else {
+          merged.settings = merged.settings || {};
+        }
         merged.settings.googleSheetWebAppUrl = local.settings?.googleSheetWebAppUrl || defaultData.settings.googleSheetWebAppUrl;
+
+        // Guard array fields: If cloud returns data for a table, use it.
+        // If cloud table is empty [] but local cache has items, DO NOT overwrite with empty!
+        let hasEmptyCloudTables = false;
+        const arrayKeys = ['products', 'fonts', 'groups', 'portfolio', 'reviews', 'queue_items', 'orders', 'payments', 'customers', 'group_access', 'drive_access', 'point_transactions'];
+        arrayKeys.forEach(key => {
+          if (Array.isArray(incoming[key]) && incoming[key].length > 0) {
+            merged[key] = incoming[key];
+          } else {
+            // Keep local data if exists
+            merged[key] = (Array.isArray(local[key]) && local[key].length > 0) ? local[key] : (defaultData[key] || []);
+            if ((!Array.isArray(incoming[key]) || incoming[key].length === 0) && merged[key].length > 0) {
+              hasEmptyCloudTables = true;
+            }
+          }
+        });
         
         // Sanitize all Drive URLs upon incoming sync
         if (merged.settings) {
@@ -871,6 +893,14 @@ const Store = (function () {
         }
         
         saveLocal(merged);
+
+        // Auto seed Google Sheet in background if cloud has missing tables
+        if (hasEmptyCloudTables) {
+          setTimeout(() => {
+            callCloud('SYNC_ALL', { payload: merged });
+          }, 1000);
+        }
+
         if (typeof onUpdatedCallback === 'function') {
           onUpdatedCallback(true, merged);
         }
@@ -1670,7 +1700,7 @@ const Store = (function () {
       if (g) {
         g.is_pinned = !g.is_pinned;
         saveLocal(data);
-        callCloud('SAVE_GROUP', { group: g });
+        callCloud('SAVE_GROUP', { item: g, group: g });
       }
     },
     updatePaymentStatus: function (paymentId, status, reason) {
@@ -4824,8 +4854,14 @@ window.Store = Store;
           </div>
 
           <div class="form-group" style="margin-bottom: 0.85rem;">
-            <label class="form-label" style="font-weight: 700;">ลิงก์รูปภาพตัวอย่างงาน / บรีฟ (URL)</label>
-            <input type="text" id="adminQ_imageUrl" class="form-input" placeholder="https://..." value="${escapeHTML(item ? (item.image_url || '') : '')}">
+            <label class="form-label" style="font-weight: 700;">ลิงก์รูปภาพตัวอย่างงาน / บรีฟ (URL หรือเลือกรูปจากเครื่อง)</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="adminQ_imageUrl" class="form-input" placeholder="https://... หรือเลือกรูปจากเครื่อง" value="${escapeHTML(item ? (item.image_url || '') : '')}" style="flex: 1;">
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                เลือกรูป
+                <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'adminQ_imageUrl')">
+              </label>
+            </div>
           </div>
 
           <div class="form-group" style="margin-bottom: 1.25rem;">
@@ -7454,7 +7490,69 @@ window.Store = Store;
     reader.readAsDataURL(file);
   };
 
+  // ── Web Audio API cute music sound synthesis ────────────────
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) {
+      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtxClass) {
+        audioCtx = new AudioCtxClass();
+      }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  // Sweet chime/kalimba note rising along pentatonic scale
+  const cuteScaleFrequencies = [
+    523.25, // C5
+    587.33, // D5
+    659.25, // E5
+    783.99, // G5
+    880.00, // A5
+    1046.50, // C6
+    1174.66, // D6
+    1318.51, // E6
+    1567.98, // G6
+    1760.00  // A6
+  ];
+
+  window.playCuteStampPopSound = function (index = 0) {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      const freq = cuteScaleFrequencies[index % cuteScaleFrequencies.length] || 659.25;
+
+      // Primary gentle bell oscillator
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      // Soft pitch drop like water drop pop
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.96, now + 0.18);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.23);
+    } catch (e) {
+      // Audio autoplay policy fallback
+    }
+  };
+  window.playPopSound = window.playCuteStampPopSound;
+
   // ── Run upon DOM load ────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', initApp);
 
 })();
+
