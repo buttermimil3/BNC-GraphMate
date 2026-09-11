@@ -2169,9 +2169,9 @@ window.Store = Store;
     const featuredGroups = Store.getAllGroups();
 
     container.innerHTML = `
-      <!-- Facebook Cover Banner (Contained, Not Edge-to-Edge) -->
+      <!-- Facebook Cover Banner (Authentic Facebook Cover Dimensions) -->
       <div class="container" style="padding-top: 1.25rem;">
-        <div class="fb-cover-banner" style="border-radius: 22px; max-height: 290px; overflow: hidden; box-shadow: var(--shadow-sm);">
+        <div class="fb-cover-banner">
           <img src="${escapeHTML(formatDriveImageUrl(s.coverImage) || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600')}" class="fb-cover-img" alt="Cover Banner" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600';">
         </div>
       </div>
@@ -5645,7 +5645,7 @@ window.Store = Store;
     return `
       <div class="product-card">
         <!-- Font Signboard / Poster Banner Preview (Requirement 3) -->
-        <div class="product-card__image-wrapper" style="position: relative; height: 185px; overflow: hidden; border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); cursor: pointer; background: var(--surface-alt);" onclick="openLightbox('${escapeHTML(fontImg)}')" title="คลิกเพื่อดูรูปป้ายฟอนต์ขนาดใหญ่">
+        <div class="product-card__image-wrapper" style="position: relative; height: 240px; overflow: hidden; border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); cursor: pointer; background: var(--surface-alt);" onclick="openLightbox('${escapeHTML(fontImg)}')" title="คลิกเพื่อดูรูปป้ายฟอนต์ขนาดใหญ่">
           <img src="${escapeHTML(fontImg)}" alt="${escapeHTML(f.name)}" style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;" class="product-card__img" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';">
           <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 6px;">
             <span class="badge badge--pink">${escapeHTML(f.category || 'ลายมือ')}</span>
