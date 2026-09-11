@@ -2934,3 +2934,70 @@ select option {
   background: rgba(255, 255, 255, 0.28);
   color: #ffffff;
 }
+
+/* ============================================================
+   ADMIN DASHBOARD FINANCIAL STATS & TIMEFRAME FILTERS
+   ============================================================ */
+.dashboard-filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #ffffff;
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  padding: 12px 18px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(255, 107, 151, 0.06);
+}
+
+.dashboard-time-pills {
+  display: inline-flex;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.dashboard-time-btn {
+  background: transparent;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.dashboard-time-btn:hover {
+  color: var(--primary-deep);
+}
+
+.dashboard-time-btn.is-active {
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(255, 45, 138, 0.25);
+}
+
+.dashboard-card-highlight {
+  background: linear-gradient(135deg, #FFF0F7 0%, #FFFFFF 100%);
+  border: 2px solid #FF85C1 !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-card-highlight::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 70px;
+  height: 70px;
+  background: rgba(255, 45, 138, 0.08);
+  border-radius: 50%;
+}

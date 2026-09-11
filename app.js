@@ -914,6 +914,10 @@ const Store = (function () {
  const oId = uid('ord');
  const oNum = orderNum();
 
+ const costAmount = Number(orderInfo.cost_price || orderInfo.cost_amount || 0);
+ const totalAmount = Number(orderInfo.amount || 0);
+ const profitAmount = totalAmount - costAmount;
+
  const newOrder = {
  id: oId,
  order_number: oNum,
@@ -922,7 +926,10 @@ const Store = (function () {
  order_type: orderInfo.order_type,
  item_id: orderInfo.item_id,
  item_name: orderInfo.item_name,
- amount: Number(orderInfo.amount),
+ amount: totalAmount,
+ cost_amount: costAmount,
+ profit_amount: profitAmount,
+ is_agent: !!orderInfo.is_agent,
  status: 'VERIFYING',
  line_id: orderInfo.line_id || '',
  gmail: orderInfo.gmail || '',
@@ -1338,6 +1345,9 @@ const Store = (function () {
       const oId = uid('ord');
       const oNum = orderNum();
       const totalAmount = items.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+      const totalCost = items.reduce((sum, i) => sum + (Number(i.cost_price || 0)), 0);
+      const totalProfit = totalAmount - totalCost;
+      const hasAgentItem = items.some(i => i.is_agent || (Number(i.cost_price) > 0));
       const itemNames = items.map(i => i.name).join(', ');
       const allGroups = items.length > 0 && items.every(i => i.type === 'GROUP');
 
@@ -1350,6 +1360,9 @@ const Store = (function () {
         items: items,
         item_name: itemNames,
         amount: totalAmount,
+        cost_amount: totalCost,
+        profit_amount: totalProfit,
+        is_agent: hasAgentItem,
         status: 'VERIFYING',
         line_id: customerInfo.line_id || '',
         gmail: customerInfo.gmail || '',
@@ -1566,7 +1579,9 @@ window.Store = Store;
  activeStoryIndex: 0,
  lightboxImage: null,
  searchPointsQuery: '',
- queueSearchQuery: ''
+ queueSearchQuery: '',
+ dashboardTimeframe: 'month', // 'today' | 'month' | 'year' | 'all'
+ dashboardSource: 'all' // 'all' | 'orders' | 'queues'
  };
 
  // Helper DOM selectors
@@ -3403,37 +3418,196 @@ window.Store = Store;
     }
   }
 
- function renderAdminDashboardTab() {
- const orders = Store.getAllOrders();
- const payments = Store.getPayments();
- const totalRev = orders.filter(o => o.status === 'PAID' || o.status === 'COMPLETED').reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
- const pendingSlips = payments.filter(p => p.verification_status === 'VERIFYING').length;
+  function isDateInDashboardTimeframe(dateStr, timeframe) {
+    if (!dateStr || timeframe === 'all') return true;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return true;
+    const now = new Date();
+    if (timeframe === 'today') {
+      return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    } else if (timeframe === 'month') {
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    } else if (timeframe === 'year') {
+      return d.getFullYear() === now.getFullYear();
+    }
+    return true;
+  }
 
- return `
- <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5" style="margin-bottom: 2rem;">
- <div class="card">
- <span style="font-size: 0.85rem; color: var(--text-muted);">ยอดขายรวม</span>
- <h2 style="font-size: 1.8rem; color: var(--primary-deep); margin: 0.35rem 0;">฿${totalRev.toLocaleString()}</h2>
- <small style="color: #166534;">คำสั่งซื้อที่ชำระแล้ว</small>
- </div>
- <div class="card">
- <span style="font-size: 0.85rem; color: var(--text-muted);">คำสั่งซื้อทั้งหมด</span>
- <h2 style="font-size: 1.8rem; margin: 0.35rem 0;">${orders.length} ออเดอร์</h2>
- <small style="color: var(--text-muted);">ในระบบคลาวด์</small>
- </div>
- <div class="card">
- <span style="font-size: 0.85rem; color: var(--text-muted);">รอตรวจสลิป</span>
- <h2 style="font-size: 1.8rem; color: #d97706; margin: 0.35rem 0;">${pendingSlips} รายการ</h2>
- <small><a href="#admin/slips" style="color: var(--primary); text-decoration: underline;">ไปตรวจสลิป </a></small>
- </div>
- <div class="card">
- <span style="font-size: 0.85rem; color: var(--text-muted);">สินค้า & ฟอนต์</span>
- <h2 style="font-size: 1.8rem; margin: 0.35rem 0;">${Store.getAllProducts().length + Store.getAllFonts().length} รายการ</h2>
- <small style="color: var(--text-muted);">พร้อมจำหน่าย</small>
- </div>
- </div>
- `;
- }
+  function renderAdminDashboardTab() {
+    const tf = state.dashboardTimeframe || 'month';
+    const allOrders = Store.getAllOrders();
+    const allQueues = Store.getAllQueueItems();
+    const payments = Store.getPayments();
+
+    // 1. Filter Orders by Timeframe & Paid/Completed status
+    const paidOrders = allOrders.filter(o => {
+      const isPaid = (o.status === 'PAID' || o.status === 'COMPLETED');
+      return isPaid && isDateInDashboardTimeframe(o.created_at, tf);
+    });
+
+    // 2. Filter Queues with paid status by Timeframe
+    const paidQueues = allQueues.filter(q => {
+      const isPaid = q.payment_status === 'PAID' || (!q.payment_status && q.status === 'done');
+      const dateVal = q.created_at || q.queue_date;
+      return isPaid && isDateInDashboardTimeframe(dateVal, tf);
+    });
+
+    // 3. Compute Gross Revenue
+    const orderGross = paidOrders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    const queueGross = paidQueues.reduce((sum, q) => sum + (Number(q.price) || 0), 0);
+    const totalGross = orderGross + queueGross;
+
+    // 4. Compute Agent Remit Cost
+    const orderCost = paidOrders.reduce((sum, o) => sum + (Number(o.cost_amount) || Number(o.cost_price) || 0), 0);
+    const queueCost = paidQueues.reduce((sum, q) => sum + (Number(q.cost_price) || 0), 0);
+    const totalCost = orderCost + queueCost;
+
+    // 5. Net Profit
+    const totalProfit = totalGross - totalCost;
+
+    // Supplementary stats
+    const pendingSlips = payments.filter(p => p.verification_status === 'VERIFYING').length;
+    const totalProductsCount = Store.getAllProducts().length + Store.getAllFonts().length + Store.getAllGroups().length;
+    const activeQueuesCount = allQueues.filter(q => q.status === 'progress' || q.status === 'waiting' || q.status === 'review').length;
+
+    const tfLabels = {
+      today: 'วันนี้',
+      month: 'เดือนนี้',
+      year: 'ปีนี้',
+      all: 'ทั้งหมด'
+    };
+
+    return `
+      <!-- Timeframe Filter Navigation Bar -->
+      <div class="dashboard-filter-bar">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-weight: 700; font-size: 0.95rem; color: var(--text);">ช่วงเวลาคำนวณรายได้:</span>
+          <span class="badge badge--pink" style="font-size: 0.75rem;">${tfLabels[tf]}</span>
+        </div>
+        <div class="dashboard-time-pills">
+          <button type="button" class="dashboard-time-btn ${tf === 'today' ? 'is-active' : ''}" onclick="setDashboardTimeframe('today')">วันนี้</button>
+          <button type="button" class="dashboard-time-btn ${tf === 'month' ? 'is-active' : ''}" onclick="setDashboardTimeframe('month')">เดือนนี้</button>
+          <button type="button" class="dashboard-time-btn ${tf === 'year' ? 'is-active' : ''}" onclick="setDashboardTimeframe('year')">ปีนี้</button>
+          <button type="button" class="dashboard-time-btn ${tf === 'all' ? 'is-active' : ''}" onclick="setDashboardTimeframe('all')">ทั้งหมด</button>
+        </div>
+      </div>
+
+      <!-- Financial Overview Highlights (3 Main Metric Cards) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5" style="margin-bottom: 1.5rem;">
+        <!-- 1. Gross Revenue -->
+        <div class="card" style="border-left: 4px solid var(--primary); padding: 1.35rem 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span style="font-size: 0.88rem; font-weight: 600; color: var(--text-muted);">ยอดรับทั้งหมด (Gross Revenue)</span>
+            <span class="badge badge--pink" style="font-size: 0.7rem;">${tfLabels[tf]}</span>
+          </div>
+          <h2 style="font-size: 2rem; color: var(--text); margin: 0.4rem 0 0.2rem; font-family: var(--font-heading); font-weight: 800;">
+            ฿${totalGross.toLocaleString()}
+          </h2>
+          <small style="color: var(--text-muted); font-size: 0.82rem;">
+            ออเดอร์ ฿${orderGross.toLocaleString()} • คิวงาน ฿${queueGross.toLocaleString()}
+          </small>
+        </div>
+
+        <!-- 2. Agent Cost / Remit -->
+        <div class="card" style="border-left: 4px solid #F59E0B; padding: 1.35rem 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span style="font-size: 0.88rem; font-weight: 600; color: var(--text-muted);">ต้นทุนส่งเจ้าของ/ตัวแทน (Remit Cost)</span>
+            <span class="badge" style="font-size: 0.7rem; background: #FEF3C7; color: #92400E;">หักส่งต่อ</span>
+          </div>
+          <h2 style="font-size: 2rem; color: #D97706; margin: 0.4rem 0 0.2rem; font-family: var(--font-heading); font-weight: 800;">
+            ฿${totalCost.toLocaleString()}
+          </h2>
+          <small style="color: var(--text-muted); font-size: 0.82rem;">
+            ต้องโอนออกให้เจ้าของกลุ่ม/ฟอนต์
+          </small>
+        </div>
+
+        <!-- 3. Net Profit (Our actual earnings) -->
+        <div class="card dashboard-card-highlight" style="border-left: 4px solid #16A34A !important; padding: 1.35rem 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <span style="font-size: 0.88rem; font-weight: 700; color: #166534;">กำไรสุทธิที่เราได้รับจริง (Net Profit)</span>
+            <span class="badge badge--success" style="font-size: 0.7rem;">เข้ากระเป๋าเรา</span>
+          </div>
+          <h2 style="font-size: 2.2rem; color: #15803D; margin: 0.4rem 0 0.2rem; font-family: var(--font-heading); font-weight: 800;">
+            ฿${totalProfit.toLocaleString()}
+          </h2>
+          <small style="color: #166534; font-weight: 600; font-size: 0.82rem;">
+            (ยอดรับ ฿${totalGross.toLocaleString()} - ต้นทุน ฿${totalCost.toLocaleString()})
+          </small>
+        </div>
+      </div>
+
+      <!-- Secondary Metrics Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5" style="margin-bottom: 2rem;">
+        <div class="card" style="padding: 1rem 1.25rem;">
+          <span style="font-size: 0.82rem; color: var(--text-muted);">ออเดอร์ที่ชำระแล้ว (${tfLabels[tf]})</span>
+          <h3 style="font-size: 1.5rem; margin: 0.25rem 0 0; color: var(--primary-deep);">${paidOrders.length} ออเดอร์</h3>
+        </div>
+        <div class="card" style="padding: 1rem 1.25rem;">
+          <span style="font-size: 0.82rem; color: var(--text-muted);">คิวงานที่ชำระแล้ว (${tfLabels[tf]})</span>
+          <h3 style="font-size: 1.5rem; margin: 0.25rem 0 0; color: var(--primary-deep);">${paidQueues.length} คิว</h3>
+        </div>
+        <div class="card" style="padding: 1rem 1.25rem;">
+          <span style="font-size: 0.82rem; color: var(--text-muted);">รอตรวจสลิป</span>
+          <h3 style="font-size: 1.5rem; margin: 0.25rem 0 0; color: #D97706;">${pendingSlips} รายการ</h3>
+          <small><a href="#admin/slips" style="color: var(--primary); text-decoration: underline;">ไปตรวจสลิป</a></small>
+        </div>
+        <div class="card" style="padding: 1rem 1.25rem;">
+          <span style="font-size: 0.82rem; color: var(--text-muted);">คิวที่กำลังทำอยู่</span>
+          <h3 style="font-size: 1.5rem; margin: 0.25rem 0 0; color: #2563EB;">${activeQueuesCount} คิว</h3>
+          <small><a href="#admin/queues" style="color: var(--primary); text-decoration: underline;">จัดการคิว</a></small>
+        </div>
+      </div>
+
+      <!-- Revenue Breakdown Table by Source -->
+      <div class="card" style="padding: 1.25rem 1.5rem; margin-bottom: 2rem; border-radius: 18px;">
+        <h3 style="margin: 0 0 1rem; font-size: 1.1rem; color: var(--primary-deep);">
+          สรุปแจกแจงรายรับและกำไร (${tfLabels[tf]})
+        </h3>
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>ช่องทาง / แหล่งที่มา</th>
+                <th>จำนวนรายการ</th>
+                <th>ยอดรับรวม</th>
+                <th>ต้นทุนส่งต่อเจ้าของ</th>
+                <th>กำไรที่เราได้</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>คำสั่งซื้อสินค้า / ฟอนต์ / กลุ่ม VIP</strong></td>
+                <td>${paidOrders.length} รายการ</td>
+                <td>฿${orderGross.toLocaleString()}</td>
+                <td style="color: #D97706;">฿${orderCost.toLocaleString()}</td>
+                <td style="color: #166534; font-weight: 700;">฿${(orderGross - orderCost).toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td><strong>คิวงานป้ายและกราฟิกสั่งทำ</strong></td>
+                <td>${paidQueues.length} คิว</td>
+                <td>฿${queueGross.toLocaleString()}</td>
+                <td style="color: #D97706;">฿${queueCost.toLocaleString()}</td>
+                <td style="color: #166534; font-weight: 700;">฿${(queueGross - queueCost).toLocaleString()}</td>
+              </tr>
+              <tr style="background: #FFF5F8; font-weight: 800;">
+                <td><strong>รวมทั้งหมด (${tfLabels[tf]})</strong></td>
+                <td>${paidOrders.length + paidQueues.length} รายการ</td>
+                <td style="color: var(--primary-deep); font-size: 1.05rem;">฿${totalGross.toLocaleString()}</td>
+                <td style="color: #D97706; font-size: 1.05rem;">฿${totalCost.toLocaleString()}</td>
+                <td style="color: #166534; font-size: 1.15rem;">฿${totalProfit.toLocaleString()}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  window.setDashboardTimeframe = function (timeframe) {
+    state.dashboardTimeframe = timeframe;
+    renderCurrentView();
+  };
 
  function renderAdminOrdersTab() {
  const orders = Store.getAllOrders();
@@ -3685,6 +3859,9 @@ window.Store = Store;
 
     $('adminPortCategory').value = 'ป้ายเครดิต';
     $('adminPortPrice').value = '129';
+    if ($('adminPortIsAgent')) $('adminPortIsAgent').checked = false;
+    if ($('adminPortCostPrice')) $('adminPortCostPrice').value = '0';
+    if ($('adminPortCostWrap')) $('adminPortCostWrap').style.display = 'none';
     $('adminPortImage').value = 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
     modal.classList.add('is-active');
   };
@@ -3708,6 +3885,8 @@ window.Store = Store;
 
     const category = $('adminPortCategory').value;
     const price = Number($('adminPortPrice').value) || 0;
+    const cost_price = Number($('adminPortCostPrice')?.value) || 0;
+    const is_agent = $('adminPortIsAgent')?.checked || cost_price > 0;
     const image = ($('adminPortImage')?.value || '').trim();
     if (!image) return alert('กรุณากรอกลิงก์รูปภาพ 1:1');
 
@@ -3716,6 +3895,8 @@ window.Store = Store;
       style_category,
       category,
       price,
+      cost_price,
+      is_agent,
       image_url: image
     });
 
@@ -3885,6 +4066,7 @@ window.Store = Store;
                 <th>เลขคิว</th>
                 <th>ชื่องาน / ประเภท</th>
                 <th>ลูกค้า (LINE / เบอร์)</th>
+                <th style="text-align: center;">ยอดรับ / กำไร</th>
                 <th style="text-align: center;">สถานะ</th>
                 <th style="width: 120px; text-align: center;">ความคืบหน้า</th>
                 <th style="text-align: center;">แสดงผล</th>
@@ -3920,6 +4102,14 @@ window.Store = Store;
                         ${q.line_id ? `LINE: ${escapeHTML(q.line_id)}` : ''} 
                         ${q.phone ? `(${escapeHTML(q.phone)})` : ''}
                       </div>
+                    </td>
+                    <td style="text-align: center;">
+                      <div style="font-weight: 700; color: #2D3748;">฿${Number(q.price || 0).toLocaleString()}</div>
+                      ${Number(q.cost_price) > 0 ? `
+                        <div style="font-size: 11px; color: var(--text-muted);">ส่ง ฿${Number(q.cost_price).toLocaleString()} | <span style="color:#166534; font-weight:700;">ได้ ฿${Number((q.price || 0) - (q.cost_price || 0)).toLocaleString()}</span></div>
+                      ` : `
+                        <div style="font-size: 11px; color: #166534; font-weight:600;">กำไรเต็ม 100%</div>
+                      `}
                     </td>
                     <td style="text-align: center;">
                       <span class="queue-status-chip status-${statusKey}">
@@ -4107,6 +4297,40 @@ window.Store = Store;
             </div>
           </div>
 
+          <!-- Queue Financials & Agent Cost (สำหรับคำนวณรายได้ในแดชบอร์ด) -->
+          <div style="background: #FFF0F7; border: 1.5px dashed #FBCFE8; border-radius: 16px; padding: 1rem 1.1rem; margin-bottom: 0.85rem;">
+            <div style="font-weight: 700; color: var(--primary-deep); font-size: 0.92rem; margin-bottom: 0.65rem; display: flex; align-items: center; justify-content: space-between;">
+              <span>ข้อมูลการเงินคิวงาน (คำนวณแดชบอร์ดรายได้)</span>
+              <span class="badge badge--pink" style="font-size: 0.72rem;">ระบบรายได้ & ตัวแทน</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" style="margin-bottom: 0.65rem;">
+              <div class="form-group">
+                <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">ยอดเงินที่รับจากลูกค้า (บาท)</label>
+                <input type="number" id="adminQ_price" class="form-input" placeholder="เช่น 350" value="${item ? (item.price || 0) : 0}" oninput="calcQueueProfitPreview()">
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">ต้นทุนส่งต่อ/เรทตัวแทน (บาท)</label>
+                <input type="number" id="adminQ_costPrice" class="form-input" placeholder="ถ้าไม่มีให้ใส่ 0" value="${item ? (item.cost_price || 0) : 0}" oninput="calcQueueProfitPreview()">
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">สถานะการชำระเงิน</label>
+                <select id="adminQ_payStatus" class="form-input">
+                  <option value="PAID" ${item && item.payment_status === 'PAID' ? 'selected' : (!item ? 'selected' : '')}>ชำระแล้ว (ดึงเข้าแดชบอร์ด)</option>
+                  <option value="UNPAID" ${item && item.payment_status === 'UNPAID' ? 'selected' : ''}>รอชำระ / มัดจำ</option>
+                </select>
+              </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding-top: 4px; border-top: 1px dashed #FBCFE8;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #4A5568;">
+                <input type="checkbox" id="adminQ_isAgent" ${item && item.is_agent ? 'checked' : ''} onchange="toggleQueueAgentField(this.checked)">
+                <span>เป็นงานตัวแทน (มีต้นทุนต้องส่งต่อเจ้าของ)</span>
+              </label>
+              <div id="adminQ_profitPreview" style="font-weight: 700; color: #166534;">
+                กำไรสุทธิ: ฿${Math.max(0, (Number(item ? item.price : 0) - Number(item ? item.cost_price : 0))).toLocaleString()}
+              </div>
+            </div>
+          </div>
+
           <div class="form-group" style="margin-bottom: 0.85rem;">
             <label class="form-label" style="font-weight: 700;">รายละเอียดของงาน / บรีฟงาน</label>
             <textarea id="adminQ_desc" class="form-textarea" rows="2" placeholder="รายละเอียดของงานเพิ่มเติม">${escapeHTML(item ? (item.description || '') : '')}</textarea>
@@ -4140,6 +4364,24 @@ window.Store = Store;
     modal.classList.add('is-active');
   }
 
+  window.calcQueueProfitPreview = function () {
+    const price = Number($('adminQ_price')?.value || 0);
+    const cost = Number($('adminQ_costPrice')?.value || 0);
+    const profit = price - cost;
+    const prev = $('adminQ_profitPreview');
+    if (prev) {
+      prev.innerHTML = `กำไรสุทธิ: <span style="color: ${profit >= 0 ? '#166534' : '#DC2626'};">฿${profit.toLocaleString()}</span>`;
+    }
+  };
+
+  window.toggleQueueAgentField = function (checked) {
+    const costInp = $('adminQ_costPrice');
+    if (costInp && !checked && Number(costInp.value) === 0) {
+      // Keep as 0
+    }
+    calcQueueProfitPreview();
+  };
+
   window.closeQueueAdminModal = function () {
     const modal = $('adminQueueModal');
     if (modal) modal.classList.remove('is-active');
@@ -4155,6 +4397,12 @@ window.Store = Store;
       return alert('กรุณากรอกเลขคิว ชื่องาน และชื่อลูกค้าให้ครบถ้วนนะคะ');
     }
 
+    const price = Number($('adminQ_price')?.value || 0);
+    const costPrice = Number($('adminQ_costPrice')?.value || 0);
+    const profit = price - costPrice;
+    const isAgent = $('adminQ_isAgent')?.checked || costPrice > 0;
+    const payStatus = $('adminQ_payStatus')?.value || 'PAID';
+
     const payload = {
       queue_number: queueNumber,
       customer_name: custName,
@@ -4168,6 +4416,11 @@ window.Store = Store;
       current_queue: Number($('adminQ_currentQueue')?.value) || 1,
       total_queue: Number($('adminQ_totalQueue')?.value) || 1,
       updated_at: ($('adminQ_updatedAt')?.value || '').trim() || new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.',
+      price: price,
+      cost_price: costPrice,
+      profit: profit,
+      is_agent: isAgent,
+      payment_status: payStatus,
       description: ($('adminQ_desc')?.value || '').trim(),
       note: ($('adminQ_note')?.value || '').trim(),
       image_url: ($('adminQ_imageUrl')?.value || '').trim(),
@@ -5028,7 +5281,13 @@ window.Store = Store;
  } else if (type === 'GROUP') {
  item = Store.getAllGroups().find(g => g.id === id);
  if (item) item.type = 'GROUP';
- }
+ } else if (type === 'PORTFOLIO') {
+    item = Store.getPortfolio().find(p => p.id === id);
+    if (item) {
+      item.type = 'PORTFOLIO';
+      if (!item.name) item.name = item.title;
+    }
+  }
 
  if (!item) return;
  Store.addToCart(item);
@@ -5580,8 +5839,22 @@ window.Store = Store;
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">ราคา (บาท) <span style="color:var(--danger)">*</span></label>
+              <label class="form-label" style="font-weight: 700;">ราคาขายลูกค้า (บาท) <span style="color:var(--danger)">*</span></label>
               <input type="number" id="adminProdPrice" class="form-input" value="159" required>
+            </div>
+          </div>
+          <!-- Reseller / Agent Financials for Product -->
+          <div style="background: #FFF0F7; border: 1.5px dashed #FBCFE8; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
+                <input type="checkbox" id="adminProdIsAgent" onchange="document.getElementById('adminProdCostWrap').style.display = this.checked ? 'block' : 'none'">
+                <span>เป็นสินค้าตัวแทนจำหน่าย (มีต้นทุนส่งต่อเจ้าของ)</span>
+              </label>
+            </div>
+            <div id="adminProdCostWrap" style="display: none;">
+              <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ต้นทุนส่งเจ้าของ/เรทส่ง (บาท)</label>
+              <input type="number" id="adminProdCostPrice" class="form-input" placeholder="เช่น 120" value="0">
+              <small style="color: var(--text-muted); font-size: 0.78rem;">ระบบจะนำยอดขายหักลบต้นทุนนี้ไปคำนวณเป็นกำไรสุทธิในแดชบอร์ด</small>
             </div>
           </div>
           <div class="form-group" style="margin-bottom: 0.85rem;">
@@ -5646,8 +5919,22 @@ window.Store = Store;
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">ราคา (บาท) <span style="color:var(--danger)">*</span></label>
+              <label class="form-label" style="font-weight: 700;">ราคาขายลูกค้า (บาท) <span style="color:var(--danger)">*</span></label>
               <input type="number" id="adminFontPrice" class="form-input" value="190" required>
+            </div>
+          </div>
+          <!-- Reseller / Agent Financials for Font -->
+          <div style="background: #FFF0F7; border: 1.5px dashed #FBCFE8; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
+                <input type="checkbox" id="adminFontIsAgent" onchange="document.getElementById('adminFontCostWrap').style.display = this.checked ? 'block' : 'none'">
+                <span>เป็นฟอนต์ตัวแทนจำหน่าย (มีต้นทุนส่งต่อเจ้าของฟอนต์)</span>
+              </label>
+            </div>
+            <div id="adminFontCostWrap" style="display: none;">
+              <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ต้นทุนส่งเจ้าของฟอนต์/เรทส่ง (บาท)</label>
+              <input type="number" id="adminFontCostPrice" class="form-input" placeholder="เช่น 150" value="0">
+              <small style="color: var(--text-muted); font-size: 0.78rem;">ระบบจะนำยอดขายหักลบต้นทุนนี้ไปคำนวณเป็นกำไรสุทธิในแดชบอร์ด</small>
             </div>
           </div>
           <div class="form-group" style="margin-bottom: 0.85rem;">
@@ -5730,6 +6017,20 @@ window.Store = Store;
               <input type="number" id="adminGroupPrice" class="form-input" value="350" required>
             </div>
           </div>
+          <!-- Reseller / Agent Financials for Group -->
+          <div style="background: #FFF0F7; border: 1.5px dashed #FBCFE8; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
+                <input type="checkbox" id="adminGroupIsAgent" onchange="document.getElementById('adminGroupCostWrap').style.display = this.checked ? 'block' : 'none'">
+                <span>เป็นกลุ่มตัวแทน (เช่น ค่าเข้า 215 ต้องโอนให้เจ้าของกลุ่ม 185)</span>
+              </label>
+            </div>
+            <div id="adminGroupCostWrap" style="display: none;">
+              <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ต้นทุนโอนให้เจ้าของกลุ่ม (บาท)</label>
+              <input type="number" id="adminGroupCostPrice" class="form-input" placeholder="เช่น 185" value="0">
+              <small style="color: var(--text-muted); font-size: 0.78rem;">ส่วนต่างจะถูกคำนวณเป็นกำไรสุทธิที่เราได้รับจริง (Net Profit) ในแดชบอร์ด</small>
+            </div>
+          </div>
           <div class="form-group" style="margin-bottom: 0.85rem;">
             <label class="form-label" style="font-weight: 700;">ลิงก์ภาพหน้าปกกลุ่ม 1:1 จัตุรัส (URL) <span style="color:var(--danger)">*</span></label>
             <input type="text" id="adminGroupCover" class="form-input" placeholder="https://..." required>
@@ -5804,6 +6105,20 @@ window.Store = Store;
           <div class="form-group" style="margin-bottom: 0.85rem;">
             <label class="form-label" style="font-weight: 700;">ราคามาตรฐาน (บาท)</label>
             <input type="number" id="adminPortPrice" class="form-input" value="129">
+          </div>
+          <!-- Reseller / Agent Financials for Portfolio -->
+          <div style="background: #FFF0F7; border: 1.5px dashed #FBCFE8; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
+                <input type="checkbox" id="adminPortIsAgent" onchange="document.getElementById('adminPortCostWrap').style.display = this.checked ? 'block' : 'none'">
+                <span>เป็นงานตัวแทน (มีต้นทุนส่งต่อให้ผู้ผลิต/นักวาด)</span>
+              </label>
+            </div>
+            <div id="adminPortCostWrap" style="display: none;">
+              <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ต้นทุนส่งต่อ (บาท)</label>
+              <input type="number" id="adminPortCostPrice" class="form-input" placeholder="เช่น 90" value="0">
+              <small style="color: var(--text-muted); font-size: 0.78rem;">สำหรับคำนวณกำไรสุทธิเมื่อมีการสั่งทำงานสไตล์นี้</small>
+            </div>
           </div>
           <div class="form-group" style="margin-bottom: 1.25rem;">
             <label class="form-label" style="font-weight: 700;">ลิงก์ภาพผลงาน 1:1 จัตุรัส (URL) <span style="color:var(--danger)">*</span></label>
@@ -6094,6 +6409,9 @@ window.Store = Store;
     $('adminProdImage').value = 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600';
     $('adminProdCategory').value = 'Template';
     $('adminProdPrice').value = '159';
+    if ($('adminProdIsAgent')) $('adminProdIsAgent').checked = false;
+    if ($('adminProdCostPrice')) $('adminProdCostPrice').value = '0';
+    if ($('adminProdCostWrap')) $('adminProdCostWrap').style.display = 'none';
     $('adminProdDelivery').value = 'GOOGLE_DRIVE';
     $('adminProdDriveLink').value = '';
     $('adminProdDesc').value = '';
@@ -6113,6 +6431,8 @@ window.Store = Store;
     const image = $('adminProdImage').value.trim();
     const category = $('adminProdCategory').value.trim() || 'Template';
     const price = Number($('adminProdPrice').value) || 0;
+    const cost_price = Number($('adminProdCostPrice')?.value) || 0;
+    const is_agent = $('adminProdIsAgent')?.checked || cost_price > 0;
     const delivery = $('adminProdDelivery').value;
     const driveLink = $('adminProdDriveLink').value.trim();
     const desc = $('adminProdDesc').value.trim();
@@ -6124,6 +6444,8 @@ window.Store = Store;
       image_url: image,
       category,
       price,
+      cost_price,
+      is_agent,
       delivery_type: delivery,
       drive_folder_id: driveLink,
       description: desc,
@@ -6194,6 +6516,9 @@ window.Store = Store;
     $('adminFontPreviewText').value = 'ร้านป้ายบีเอ็นซี น่ารักสดใส 1234';
     $('adminFontCategory').value = 'ลายมือ';
     $('adminFontPrice').value = '190';
+    if ($('adminFontIsAgent')) $('adminFontIsAgent').checked = false;
+    if ($('adminFontCostPrice')) $('adminFontCostPrice').value = '0';
+    if ($('adminFontCostWrap')) $('adminFontCostWrap').style.display = 'none';
     $('adminFontDelivery').value = 'GOOGLE_DRIVE';
     $('adminFontDriveLink').value = '';
     $('adminFontWhatYouGet').value = 'ไฟล์ .OTF / .TTF ครบชุด\nสิทธิ์ใช้งานเชิงพาณิชย์';
@@ -6214,6 +6539,8 @@ window.Store = Store;
     const previewText = $('adminFontPreviewText').value.trim() || 'ร้านป้ายบีเอ็นซี';
     const category = $('adminFontCategory').value.trim() || 'ลายมือ';
     const price = Number($('adminFontPrice').value) || 0;
+    const cost_price = Number($('adminFontCostPrice')?.value) || 0;
+    const is_agent = $('adminFontIsAgent')?.checked || cost_price > 0;
     const delivery = $('adminFontDelivery').value;
     const driveLink = $('adminFontDriveLink').value.trim();
     const whatYouGet = $('adminFontWhatYouGet').value.trim();
@@ -6226,6 +6553,8 @@ window.Store = Store;
       preview_text: previewText,
       category,
       price,
+      cost_price,
+      is_agent,
       delivery_type: delivery,
       drive_folder_id: driveLink,
       what_you_get: whatYouGet,
@@ -6251,6 +6580,9 @@ window.Store = Store;
     $('adminGroupCategory').value = 'VIP ตลอดชีพ';
     $('adminGroupCover').value = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600';
     $('adminGroupPrice').value = '350';
+    if ($('adminGroupIsAgent')) $('adminGroupIsAgent').checked = false;
+    if ($('adminGroupCostPrice')) $('adminGroupCostPrice').value = '0';
+    if ($('adminGroupCostWrap')) $('adminGroupCostWrap').style.display = 'none';
     $('adminGroupDriveUrl').value = 'https://drive.google.com/';
     $('adminGroupBenefits').value = 'เข้า LINE Group อัปเดตไฟล์ตลอดชีพ\nไฟล์คมชัด 300 DPI พร้อมใช้งาน';
     $('adminGroupPinned').checked = false;
@@ -6269,6 +6601,8 @@ window.Store = Store;
     const category = $('adminGroupCategory').value.trim() || 'VIP ตลอดชีพ';
     const cover = $('adminGroupCover').value.trim();
     const price = Number($('adminGroupPrice').value) || 0;
+    const cost_price = Number($('adminGroupCostPrice')?.value) || 0;
+    const is_agent = $('adminGroupIsAgent')?.checked || cost_price > 0;
     const driveUrl = $('adminGroupDriveUrl').value.trim();
     const benefits = $('adminGroupBenefits').value.trim();
     const pinned = $('adminGroupPinned').checked;
@@ -6279,6 +6613,8 @@ window.Store = Store;
       cover_image: cover,
       cover_image_url: cover,
       price,
+      cost_price,
+      is_agent,
       preview_drive_url: driveUrl,
       benefits,
       is_pinned: pinned,
