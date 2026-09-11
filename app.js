@@ -23,7 +23,7 @@ const Store = (function () {
  bankAccount: '123-4-56789-0',
  bankAccountName: 'ร้าน บีเอ็นซี กราฟเมท',
  promptpayQrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678',
- googleSheetWebAppUrl: '',
+ googleSheetWebAppUrl: 'https://script.google.com/macros/s/AKfycbz7nnhdUkc31AHpSuK86ey4LSdyvr-WEmfhvMfGw-m8LClTvTo29nDvh5A8jo1Zb2K0/exec',
  pointsPerHundredBaht: 10,
  announcement: '',
  announcementEnabled: false,
@@ -54,17 +54,23 @@ const Store = (function () {
       mascot1: {
         name: 'น้องกระต่ายพาสเทล',
         png: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
-        quote: 'หวัดดีฮับ! ♡'
+        quote: 'หวัดดีฮับ! ♡',
+        quote2: 'ยินดีต้อนรับนะค้า',
+        quote3: 'เย้! BNC น่ารักจัง'
       },
       mascot2: {
         name: 'น้องหมีสตูดิโอ',
         png: 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
-        quote: 'แวะดูฟอนต์ได้น้า'
+        quote: 'แวะดูฟอนต์ได้น้า',
+        quote2: 'อย่าทิ้งเค้านะ!',
+        quote3: 'ร้านน่ารักม้ากก'
       },
       mascot3: {
         name: 'น้องแมวโมจิ',
         png: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
-        quote: 'เหมียววว~ จับได้ด้วย!'
+        quote: 'เหมียววว~ จับได้ด้วย!',
+        quote2: 'ป้ายสวยทุกชิ้นเลย',
+        quote3: 'รัก BNC ที่สุด'
       }
     },
      homeBanners: [
@@ -661,6 +667,9 @@ const Store = (function () {
     if (!merged.settings.mascotSettings) {
       merged.settings.mascotSettings = defaultData.settings.mascotSettings;
     }
+    if (!merged.settings.googleSheetWebAppUrl) {
+      merged.settings.googleSheetWebAppUrl = defaultData.settings.googleSheetWebAppUrl;
+    }
  if (merged.settings) {
  if (!merged.settings.profileImage || merged.settings.profileImage.includes('photo-1534528741775-53994a69daeb')) {
  merged.settings.profileImage = defaultData.settings.profileImage;
@@ -710,33 +719,45 @@ const Store = (function () {
  }
  }
 
- // ซิงก์ข้อมูลทั้งหมดจาก Google Sheet ลง Local Cache (ทำให้เห็นตรงกันทุกเครื่อง)
- async function syncFromCloud(onUpdatedCallback) {
- const url = getCloudUrl();
- if (!url || !url.startsWith('https://script.google.com')) return;
+  // ซิงก์ข้อมูลทั้งหมดจาก Google Sheet ลง Local Cache (ทำให้เห็นตรงกันทุกเครื่อง)
+  async function syncFromCloud(onUpdatedCallback) {
+    const url = getCloudUrl();
+    if (!url || !url.startsWith('https://script.google.com')) {
+      if (typeof onUpdatedCallback === 'function') onUpdatedCallback(false, 'ยังไม่ได้ระบุ Google Apps Script URL');
+      return false;
+    }
 
- try {
- const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=GET_ALL', {
- method: 'GET'
- });
- const result = await res.json();
- if (result && result.status === 'success' && result.data) {
- const local = loadLocal();
- const merged = Object.assign({}, local, result.data);
- // รักษาสิทธิ์และ URL ไว้
- if (local.settings && local.settings.googleSheetWebAppUrl) {
- merged.settings = merged.settings || {};
- merged.settings.googleSheetWebAppUrl = local.settings.googleSheetWebAppUrl;
- }
- saveLocal(merged);
- if (typeof onUpdatedCallback === 'function') {
- onUpdatedCallback(merged);
- }
- }
- } catch (err) {
- console.log('Cloud sync GET info:', err);
- }
- }
+    try {
+      const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=GET_ALL', {
+        method: 'GET'
+      });
+      const result = await res.json();
+      if (result && result.status === 'success' && result.data) {
+        const local = loadLocal();
+        const merged = Object.assign({}, local, result.data);
+        // รักษาสิทธิ์และ URL ถาวรไว้
+        merged.settings = merged.settings || {};
+        merged.settings.googleSheetWebAppUrl = local.settings?.googleSheetWebAppUrl || defaultData.settings.googleSheetWebAppUrl;
+        
+        saveLocal(merged);
+        if (typeof onUpdatedCallback === 'function') {
+          onUpdatedCallback(true, merged);
+        }
+        return true;
+      } else {
+        if (typeof onUpdatedCallback === 'function') {
+          onUpdatedCallback(false, result?.error || 'เซิร์ฟเวอร์ตอบกลับไม่สำเร็จ');
+        }
+        return false;
+      }
+    } catch (err) {
+      console.log('Cloud sync GET info:', err);
+      if (typeof onUpdatedCallback === 'function') {
+        onUpdatedCallback(false, err.message);
+      }
+      return false;
+    }
+  }
 
  // Helper ID
  function uid(prefix = 'id') {
@@ -1753,7 +1774,11 @@ window.Store = Store;
         name: m1.name || 'น้องกระต่ายพาสเทล',
         png: m1.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f430.png',
-        quotes: [m1.quote || 'หวัดดีฮับ! ♡', 'ยินดีต้อนรับนะค้า', 'พาหนูบินหน่อย~', 'เย้! BNC น่ารักจัง'],
+        quotes: [
+          m1.quote || 'หวัดดีฮับ! ♡',
+          m1.quote2 || 'ยินดีต้อนรับนะค้า',
+          m1.quote3 || 'เย้! BNC น่ารักจัง'
+        ].filter(Boolean),
         speed: 0.65,
         xPercent: 18,
         startY: -120,
@@ -1765,7 +1790,11 @@ window.Store = Store;
         name: m2.name || 'น้องหมีสตูดิโอ',
         png: m2.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43b.png',
-        quotes: [m2.quote || 'แวะดูฟอนต์ได้น้า', 'อย่าทิ้งเค้านะ!', 'ลอยละล่องงง~', 'ร้านน่ารักม้ากก'],
+        quotes: [
+          m2.quote || 'แวะดูฟอนต์ได้น้า',
+          m2.quote2 || 'อย่าทิ้งเค้านะ!',
+          m2.quote3 || 'ร้านน่ารักม้ากก'
+        ].filter(Boolean),
         speed: 0.5,
         xPercent: 50,
         startY: -180,
@@ -1777,7 +1806,11 @@ window.Store = Store;
         name: m3.name || 'น้องแมวโมจิ',
         png: m3.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f431.png',
-        quotes: [m3.quote || 'เหมียววว~ จับได้ด้วย!', 'ป้ายสวยทุกชิ้นเลย', 'ดึงหนูเล่นได้น้า ♡', 'รัก BNC ที่สุด'],
+        quotes: [
+          m3.quote || 'เหมียววว~ จับได้ด้วย!',
+          m3.quote2 || 'ป้ายสวยทุกชิ้นเลย',
+          m3.quote3 || 'รัก BNC ที่สุด'
+        ].filter(Boolean),
         speed: 0.58,
         xPercent: 82,
         startY: -100,
@@ -1810,24 +1843,28 @@ window.Store = Store;
       let origPosY = 0;
       let tick = Math.random() * 100;
       let bubbleTimeout = null;
+      let quoteIndex = 0;
 
       // Initial position
       el.style.left = `${posX}px`;
       el.style.top = `${posY}px`;
 
-      // Speech bubble popup on tap/click
-      const showSpeechBubble = (text) => {
+      // Speech bubble popup on tap/click (cycles sequentially through quotes)
+      const showSpeechBubble = () => {
         let bubble = el.querySelector('.mascot-bubble-talk');
         if (!bubble) {
           bubble = document.createElement('div');
           bubble.className = 'mascot-bubble-talk';
           el.appendChild(bubble);
         }
-        bubble.textContent = text || cfg.quotes[Math.floor(Math.random() * cfg.quotes.length)];
+        const availableQuotes = (cfg.quotes && cfg.quotes.length > 0) ? cfg.quotes : ['สวัสดีฮับ! ♡'];
+        const textToShow = availableQuotes[quoteIndex % availableQuotes.length];
+        quoteIndex++;
+        bubble.textContent = textToShow;
         clearTimeout(bubbleTimeout);
         bubbleTimeout = setTimeout(() => {
           if (bubble && bubble.parentNode) bubble.parentNode.removeChild(bubble);
-        }, 2200);
+        }, 2500);
       };
 
       // Drag event listeners (Mouse & Touch for mobile)
@@ -4899,8 +4936,16 @@ window.Store = Store;
                 <input type="text" id="cfg_mascot1_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" oninput="const p=$('cfg_mascot1_preview'); if(p) p.src=this.value;">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">คำพูดเวลากด</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 1</label>
                 <input type="text" id="cfg_mascot1_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote || 'หวัดดีฮับ! ♡')}">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 2</label>
+                <input type="text" id="cfg_mascot1_quote2" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote2 || 'ยินดีต้อนรับนะค้า')}">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 3</label>
+                <input type="text" id="cfg_mascot1_quote3" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote3 || 'เย้! BNC น่ารักจัง')}">
               </div>
             </div>
 
@@ -4924,8 +4969,16 @@ window.Store = Store;
                 <input type="text" id="cfg_mascot2_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" oninput="const p=$('cfg_mascot2_preview'); if(p) p.src=this.value;">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">คำพูดเวลากด</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 1</label>
                 <input type="text" id="cfg_mascot2_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.quote || 'แวะดูฟอนต์ได้น้า')}">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 2</label>
+                <input type="text" id="cfg_mascot2_quote2" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.quote2 || 'อย่าทิ้งเค้านะ!')}">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 3</label>
+                <input type="text" id="cfg_mascot2_quote3" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.quote3 || 'ร้านน่ารักม้ากก')}">
               </div>
             </div>
 
@@ -4949,8 +5002,16 @@ window.Store = Store;
                 <input type="text" id="cfg_mascot3_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" oninput="const p=$('cfg_mascot3_preview'); if(p) p.src=this.value;">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">คำพูดเวลากด</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 1</label>
                 <input type="text" id="cfg_mascot3_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.quote || 'เหมียววว~ จับได้ด้วย!')}">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 2</label>
+                <input type="text" id="cfg_mascot3_quote2" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.quote2 || 'ป้ายสวยทุกชิ้นเลย')}">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 3</label>
+                <input type="text" id="cfg_mascot3_quote3" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.quote3 || 'รัก BNC ที่สุด')}">
               </div>
             </div>
           </div>
@@ -5227,10 +5288,24 @@ window.Store = Store;
 
   window.syncSheetsManual = async function () {
     if (Store.syncFromCloud) {
-      await Store.syncFromCloud(() => {
-        alert('ซิงก์ข้อมูลจาก Google Sheets เรียบร้อยแล้วค่ะ');
-        renderCurrentView();
+      const btn = event?.target;
+      const originalText = btn ? btn.textContent : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ กำลังซิงก์...';
+      }
+      const success = await Store.syncFromCloud((isOk, detail) => {
+        if (isOk) {
+          alert('✅ ซิงก์ข้อมูลจาก Google Sheets เรียบร้อยแล้วค่ะ!');
+          renderCurrentView();
+        } else {
+          alert('⚠️ ไม่สามารถซิงก์ได้: ' + (typeof detail === 'string' ? detail : 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'));
+        }
       });
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     }
   };
 
@@ -5319,17 +5394,23 @@ window.Store = Store;
           mascot1: {
             name: getVal('cfg_mascot1_name', 'น้องกระต่ายพาสเทล'),
             png: getVal('cfg_mascot1_png', 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg'),
-            quote: getVal('cfg_mascot1_quote', 'หวัดดีฮับ! ♡')
+            quote: getVal('cfg_mascot1_quote', 'หวัดดีฮับ! ♡'),
+            quote2: getVal('cfg_mascot1_quote2', 'ยินดีต้อนรับนะค้า'),
+            quote3: getVal('cfg_mascot1_quote3', 'เย้! BNC น่ารักจัง')
           },
           mascot2: {
             name: getVal('cfg_mascot2_name', 'น้องหมีสตูดิโอ'),
             png: getVal('cfg_mascot2_png', 'https://api.iconify.design/fluent-emoji-flat:bear.svg'),
-            quote: getVal('cfg_mascot2_quote', 'แวะดูฟอนต์ได้น้า')
+            quote: getVal('cfg_mascot2_quote', 'แวะดูฟอนต์ได้น้า'),
+            quote2: getVal('cfg_mascot2_quote2', 'อย่าทิ้งเค้านะ!'),
+            quote3: getVal('cfg_mascot2_quote3', 'ร้านน่ารักม้ากก')
           },
           mascot3: {
             name: getVal('cfg_mascot3_name', 'น้องแมวโมจิ'),
             png: getVal('cfg_mascot3_png', 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg'),
-            quote: getVal('cfg_mascot3_quote', 'เหมียววว~ จับได้ด้วย!')
+            quote: getVal('cfg_mascot3_quote', 'เหมียววว~ จับได้ด้วย!'),
+            quote2: getVal('cfg_mascot3_quote2', 'ป้ายสวยทุกชิ้นเลย'),
+            quote3: getVal('cfg_mascot3_quote3', 'รัก BNC ที่สุด')
           }
         }
       };
