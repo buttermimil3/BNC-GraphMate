@@ -100,6 +100,24 @@ button, input, textarea, select {
   font-size: inherit;
 }
 
+/* ── BABY PINK PASTEL CHECKBOX & RADIO ACROSS ALL BROWSERS ── */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #F472B6 !important;
+  cursor: pointer;
+  width: 17px;
+  height: 17px;
+  border-radius: 6px;
+  vertical-align: middle;
+  transition: all 0.15s ease;
+}
+
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: 2px solid #F472B6;
+  outline-offset: 2px;
+}
+
 /* ── App Layout ─────────────────────────────────────────────── */
 .app-layout {
   display: flex;
@@ -2206,29 +2224,29 @@ input[type="range"] {
 /* ── WHITE STAMP BADGE 0/10 ── */
 .stamp-badge-white {
   background: #ffffff !important;
-  border: 1.5px solid #FF85C1 !important;
-  color: #FF2D8A !important;
+  border: 1.5px solid #FBCFE8 !important;
+  color: #BE185D !important;
   font-weight: 800 !important;
   padding: 4px 14px !important;
   border-radius: 999px !important;
-  box-shadow: 0 2px 6px rgba(255, 133, 193, 0.12) !important;
+  box-shadow: 0 2px 6px rgba(244, 114, 182, 0.12) !important;
 }
 
 /* ── INTERACTIVE PRICE MENU ACTIVE STATE (Sweet Pink Boutique) ── */
 .price-menu-item.is-active {
   background: #FFF0F7 !important;
-  border-color: #FF2D8A !important;
+  border-color: #F472B6 !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 4px 14px rgba(255, 45, 138, 0.18) !important;
+  box-shadow: 0 4px 14px rgba(244, 114, 182, 0.18) !important;
 }
 
 .price-menu-item.is-active .price-menu-name {
-  color: #FF2D8A !important;
+  color: #BE185D !important;
   font-weight: 700 !important;
 }
 
 .price-menu-item.is-active .price-menu-price {
-  color: #FF2D8A !important;
+  color: #BE185D !important;
   font-weight: 800 !important;
 }
 
@@ -2238,7 +2256,7 @@ select, .form-select {
   -moz-appearance: none !important;
   appearance: none !important;
   background-color: #ffffff !important;
-  border: 1.5px solid #FF85C1 !important;
+  border: 1.5px solid #FBCFE8 !important;
   border-radius: 14px !important;
   padding: 0.65rem 2.2rem 0.65rem 1rem !important;
   color: var(--text) !important;
@@ -2246,17 +2264,17 @@ select, .form-select {
   font-size: 0.92rem !important;
   font-weight: 500 !important;
   cursor: pointer !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23FF2D8A' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23DE85A7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 14px center !important;
   background-size: 14px !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 2px 6px rgba(255, 133, 193, 0.08) !important;
+  box-shadow: 0 2px 6px rgba(244, 114, 182, 0.08) !important;
 }
 
 select:focus, .form-select:focus {
-  border-color: #FF2D8A !important;
-  box-shadow: 0 0 0 3px rgba(255, 45, 138, 0.18) !important;
+  border-color: #F472B6 !important;
+  box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.2) !important;
   outline: none !important;
 }
 
@@ -2336,33 +2354,66 @@ select option {
   margin: 0 auto;
 }
 
-/* ── FLOATING BOUNCING MASCOT GIF WIDGET ── */
-.floating-mascot-sticker {
+/* ── FLOATING FALLING & DRAGGABLE MASCOT PNG SQUAD ── */
+.falling-mascot-container {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 9999;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 99999;
+  overflow: hidden;
+}
+
+.falling-mascot-item {
+  position: fixed;
   pointer-events: auto;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-drag: none;
+  touch-action: none;
+  filter: drop-shadow(0 6px 14px rgba(244, 114, 182, 0.28));
+  transition: filter 0.2s ease, transform 0.15s ease;
+  z-index: 100000;
 }
 
-.floating-mascot-sticker:hover {
-  transform: scale(1.15);
+.falling-mascot-item:active {
+  cursor: grabbing !important;
+  filter: drop-shadow(0 12px 24px rgba(244, 114, 182, 0.45));
+  transform: scale(1.18);
 }
 
-.floating-mascot-img {
-  width: 66px;
-  height: 66px;
+.falling-mascot-img {
+  width: 72px;
+  height: 72px;
   object-fit: contain;
-  filter: drop-shadow(0 4px 8px rgba(255, 133, 193, 0.35));
-  animation: mascotBounce 2.5s ease-in-out infinite alternate;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
 }
 
-@keyframes mascotBounce {
-  0% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-12px) rotate(4deg); }
-  100% { transform: translateY(0) rotate(-4deg); }
+.mascot-bubble-talk {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1.5px solid #FBCFE8;
+  color: #BE185D;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.25);
+  pointer-events: none;
+  animation: popInBubble 0.2s ease-out;
+}
+
+@keyframes popInBubble {
+  0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
 }
 
 /* ── ORDER STEP PROGRESS TIMELINE (BNC HayMate Style) ── */
@@ -2413,10 +2464,10 @@ select option {
 }
 
 .step-item.is-done .step-dot {
-  background: #FF2D8A;
-  border-color: #FF2D8A;
+  background: #F472B6;
+  border-color: #F472B6;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(255, 45, 138, 0.3);
+  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.3);
 }
 
 .step-label {
@@ -2441,7 +2492,7 @@ select.form-input,
   -moz-appearance: none !important;
   appearance: none !important;
   background-color: #ffffff !important;
-  border: 1.5px solid #FF85C1 !important;
+  border: 1.5px solid #FBCFE8 !important;
   border-radius: 16px !important;
   padding: 0.65rem 2.4rem 0.65rem 1.1rem !important;
   color: #2D3748 !important;
@@ -2449,20 +2500,20 @@ select.form-input,
   font-size: 0.92rem !important;
   font-weight: 500 !important;
   cursor: pointer !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23FF2D8A' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23DE85A7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-position: right 14px center !important;
   background-size: 14px !important;
   transition: all 0.2s ease !important;
-  box-shadow: 0 2px 8px rgba(255, 133, 193, 0.12) !important;
+  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.12) !important;
   outline: none !important;
 }
 
 select:focus,
 select.form-input:focus,
 .form-select:focus {
-  border-color: #FF2D8A !important;
-  box-shadow: 0 0 0 3.5px rgba(255, 45, 138, 0.2) !important;
+  border-color: #F472B6 !important;
+  box-shadow: 0 0 0 3.5px rgba(244, 114, 182, 0.2) !important;
   outline: none !important;
 }
 
@@ -2608,7 +2659,7 @@ select option {
   flex: 1;
   min-width: 240px;
   background: #FFFDFE;
-  border: 1.5px solid #FF85C1;
+  border: 1.5px solid #FBCFE8;
   border-radius: 16px;
   padding: 0.75rem 1.25rem;
   font-size: 0.95rem;
@@ -2618,8 +2669,8 @@ select option {
 }
 
 .queue-search-input:focus {
-  border-color: #FF2D8A;
-  box-shadow: 0 0 0 3.5px rgba(255, 45, 138, 0.15);
+  border-color: #F472B6;
+  box-shadow: 0 0 0 3.5px rgba(244, 114, 182, 0.2);
 }
 
 /* Queue Cards Grid (Stationery Sticky Note Cards) */
@@ -2649,7 +2700,7 @@ select option {
 .queue-note-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 28px rgba(244, 114, 182, 0.25);
-  border-color: #FF85C1;
+  border-color: #F472B6;
 }
 
 /* Card Washi Tape Corner */
@@ -2842,10 +2893,10 @@ select option {
 }
 
 .queue-step-node.is-active .queue-step-circle {
-  background: #FF2D8A;
-  border-color: #FF2D8A;
+  background: #F472B6;
+  border-color: #F472B6;
   color: #ffffff;
-  box-shadow: 0 3px 10px rgba(255, 45, 138, 0.35);
+  box-shadow: 0 3px 10px rgba(244, 114, 182, 0.35);
 }
 
 .queue-step-node.is-passed .queue-step-circle {
@@ -2906,20 +2957,20 @@ select option {
 }
 
 .portfolio-style-pill:hover {
-  border-color: #FF2D8A;
-  color: #FF2D8A;
+  border-color: #F472B6;
+  color: #BE185D;
   background: #FFF0F7;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 45, 138, 0.15);
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.18);
 }
 
 .portfolio-style-pill.is-active {
-  background: linear-gradient(135deg, #FF69B4, #FF2D8A);
+  background: #F472B6;
   color: #ffffff !important;
-  border-color: #FF2D8A !important;
+  border-color: #F472B6 !important;
   font-weight: 700;
   transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(255, 45, 138, 0.28);
+  box-shadow: 0 4px 14px rgba(244, 114, 182, 0.28);
 }
 
 .portfolio-style-pill-badge {
@@ -2978,15 +3029,15 @@ select option {
 }
 
 .dashboard-time-btn.is-active {
-  background: var(--primary);
+  background: #F472B6;
   color: #ffffff;
   font-weight: 700;
-  box-shadow: 0 2px 8px rgba(255, 45, 138, 0.25);
+  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.25);
 }
 
 .dashboard-card-highlight {
-  background: linear-gradient(135deg, #FFF0F7 0%, #FFFFFF 100%);
-  border: 2px solid #FF85C1 !important;
+  background: #FFFDFE;
+  border: 2px solid #FBCFE8 !important;
   position: relative;
   overflow: hidden;
 }
@@ -2998,6 +3049,6 @@ select option {
   right: -20px;
   width: 70px;
   height: 70px;
-  background: rgba(255, 45, 138, 0.08);
+  background: rgba(244, 114, 182, 0.08);
   border-radius: 50%;
 }

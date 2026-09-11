@@ -1696,16 +1696,170 @@ window.Store = Store;
   };
 
   function setupFloatingMascot() {
-    let w = document.getElementById('floatingMascotWidget');
-    if (!w) {
-      w = document.createElement('div');
-      w.id = 'floatingMascotWidget';
-      w.className = 'floating-mascot-sticker';
-      document.body.appendChild(w);
-    }
-    const s = Store.getSettings();
-    const gifUrl = s.mascotGifUrl || 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdW93OWdtMWFwNWw1czZtMXk4NHV6MWt5OGI1eDhkOHU0bXlnNHI3MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUYT2TxD2/giphy.gif';
-    w.innerHTML = `<img src="${escapeHTML(gifUrl)}" class="floating-mascot-img" alt="Mascot" onclick="playMascotPop()">`;
+    let container = document.getElementById('fallingMascotsContainer');
+    if (container) return; // already initialized
+
+    container = document.createElement('div');
+    container.id = 'fallingMascotsContainer';
+    container.className = 'falling-mascot-container';
+    document.body.appendChild(container);
+
+    // Cute pastel character avatars / stickers (PNG with transparent backgrounds)
+    const mascotConfigs = [
+      {
+        id: 'mascot-1',
+        name: 'น้องกระต่ายพาสเทล',
+        png: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=200&auto=format&fit=crop&q=80',
+        quotes: ['หวัดดีฮับ! ♡', 'ยินดีต้อนรับนะค้า', 'พาหนูบินหน่อย~', 'เย้! BNC น่ารักจัง'],
+        speed: 0.75,
+        xPercent: 18,
+        startY: -120,
+        swaySpeed: 0.02,
+        swayAmp: 25
+      },
+      {
+        id: 'mascot-2',
+        name: 'น้องหมีสตูดิโอ',
+        png: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80',
+        quotes: ['แวะดูฟอนต์ได้น้า', 'อย่าทิ้งเค้านะ!', 'ลอยละล่องงง~', 'ร้านน่ารักม้ากก'],
+        speed: 0.55,
+        xPercent: 52,
+        startY: -180,
+        swaySpeed: 0.015,
+        swayAmp: 30
+      },
+      {
+        id: 'mascot-3',
+        name: 'น้องแมวโมจิ',
+        png: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=200&auto=format&fit=crop&q=80',
+        quotes: ['เหมียววว~ จับได้ด้วย!', 'ป้ายสวยทุกชิ้นเลย', 'ดึงหนูเล่นได้น้า ♡', 'รัก BNC ที่สุด'],
+        speed: 0.65,
+        xPercent: 82,
+        startY: -100,
+        swaySpeed: 0.018,
+        swayAmp: 20
+      }
+    ];
+
+    mascotConfigs.forEach((cfg, idx) => {
+      const el = document.createElement('div');
+      el.id = cfg.id;
+      el.className = 'falling-mascot-item';
+      
+      const img = document.createElement('img');
+      img.src = cfg.png;
+      img.className = 'falling-mascot-img';
+      img.alt = cfg.name;
+      img.style.borderRadius = '50%';
+      img.style.border = '2.5px solid #FBCFE8';
+      img.style.background = '#FFFDFE';
+      img.style.padding = '3px';
+
+      el.appendChild(img);
+      container.appendChild(el);
+
+      // State for falling physics & dragging
+      let posX = (window.innerWidth * (cfg.xPercent / 100)) - 36;
+      let posY = cfg.startY - (idx * 90);
+      let isDragging = false;
+      let startMouseX = 0;
+      let startMouseY = 0;
+      let origPosX = 0;
+      let origPosY = 0;
+      let tick = Math.random() * 100;
+      let bubbleTimeout = null;
+
+      // Initial position
+      el.style.left = `${posX}px`;
+      el.style.top = `${posY}px`;
+
+      // Speech bubble popup on tap/click
+      const showSpeechBubble = (text) => {
+        let bubble = el.querySelector('.mascot-bubble-talk');
+        if (!bubble) {
+          bubble = document.createElement('div');
+          bubble.className = 'mascot-bubble-talk';
+          el.appendChild(bubble);
+        }
+        bubble.textContent = text || cfg.quotes[Math.floor(Math.random() * cfg.quotes.length)];
+        clearTimeout(bubbleTimeout);
+        bubbleTimeout = setTimeout(() => {
+          if (bubble && bubble.parentNode) bubble.parentNode.removeChild(bubble);
+        }, 2200);
+      };
+
+      // Drag event listeners (Mouse & Touch for mobile)
+      const onPointerDown = (e) => {
+        isDragging = true;
+        el.style.transition = 'none';
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        startMouseX = clientX;
+        startMouseY = clientY;
+        origPosX = posX;
+        origPosY = posY;
+        showSpeechBubble();
+        if (typeof playCuteClickSound === 'function') playCuteClickSound();
+        e.stopPropagation();
+      };
+
+      const onPointerMove = (e) => {
+        if (!isDragging) return;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const deltaX = clientX - startMouseX;
+        const deltaY = clientY - startMouseY;
+        posX = origPosX + deltaX;
+        posY = origPosY + deltaY;
+
+        // Keep inside bounds
+        const maxW = window.innerWidth - 80;
+        const maxH = window.innerHeight - 80;
+        if (posX < 10) posX = 10;
+        if (posX > maxW) posX = maxW;
+        if (posY < 10) posY = 10;
+        if (posY > maxH) posY = maxH;
+
+        el.style.left = `${posX}px`;
+        el.style.top = `${posY}px`;
+      };
+
+      const onPointerUp = () => {
+        if (isDragging) {
+          isDragging = false;
+          el.style.transition = 'filter 0.2s ease, transform 0.15s ease';
+        }
+      };
+
+      el.addEventListener('mousedown', onPointerDown);
+      window.addEventListener('mousemove', onPointerMove);
+      window.addEventListener('mouseup', onPointerUp);
+
+      el.addEventListener('touchstart', onPointerDown, { passive: false });
+      window.addEventListener('touchmove', onPointerMove, { passive: false });
+      window.addEventListener('touchend', onPointerUp);
+
+      // Gentle continuous falling animation loop with gentle sway
+      function animLoop() {
+        if (!isDragging) {
+          tick += cfg.swaySpeed;
+          posY += cfg.speed;
+          const sway = Math.sin(tick) * (cfg.swayAmp * 0.08);
+          posX += sway;
+
+          // If fallen below viewport, reset back smoothly to top
+          if (posY > window.innerHeight + 60) {
+            posY = -90;
+            posX = Math.random() * (window.innerWidth - 100) + 20;
+          }
+
+          el.style.left = `${posX}px`;
+          el.style.top = `${posY}px`;
+        }
+        requestAnimationFrame(animLoop);
+      }
+      requestAnimationFrame(animLoop);
+    });
   }
   
   function setupRouting() {
@@ -2641,7 +2795,7 @@ window.Store = Store;
           ` : ''}
 
           ${item.note ? `
-            <div style="margin-top: 0.75rem; background: #FFF5F8; border-left: 3px solid #FF2D8A; padding: 6px 12px; border-radius: 6px; font-size: 0.86rem; color: #9D174D;">
+            <div style="margin-top: 0.75rem; background: #FFF5F8; border-left: 3px solid #F472B6; padding: 6px 12px; border-radius: 6px; font-size: 0.86rem; color: #9D174D;">
               <strong>หมายเหตุจากแอดมิน:</strong> ${escapeHTML(item.note)}
             </div>
           ` : ''}
