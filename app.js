@@ -2496,7 +2496,7 @@ window.Store = Store;
 
             <div style="text-align: center; max-width: 680px; margin: 0 auto;">
               <span class="badge badge--pink" style="margin-bottom: 0.6rem; font-size: 0.8rem; letter-spacing: 0.5px;">LIVE QUEUE STATUS</span>
-              <h1 style="font-family: var(--font-heading); color: #BE185D; font-size: 2.1rem; margin-bottom: 0.5rem; font-weight: 800;">
+              <h1 style="font-family: var(--font-heading); color: #9D174D; font-size: 2.1rem; margin-bottom: 0.5rem; font-weight: 700;">
                 ${escapeHTML(qSettings.heroTitle || 'เช็กคิวงาน ♡')}
               </h1>
               <p style="color: var(--text-muted); font-size: 0.98rem; margin-bottom: 0.85rem;">
@@ -2536,7 +2536,7 @@ window.Store = Store;
           ${qSettings.showSearch ? `
             <div class="queue-search-card">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
-                <h3 style="margin: 0; font-size: 1.15rem; color: #BE185D; font-weight: 700;">
+                <h3 style="margin: 0; font-size: 1.15rem; color: #9D174D; font-weight: 700;">
                   ${escapeHTML(qSettings.searchTitle || 'ค้นหาคิวของคุณ')}
                 </h3>
                 ${state.queueSearchQuery ? `
@@ -2613,7 +2613,7 @@ window.Store = Store;
                       <div style="margin: 0.4rem 0;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #718096; margin-bottom: 2px;">
                           <span>ความคืบหน้า</span>
-                          <span style="font-weight: 700; color: #BE185D;">${progressPct}%</span>
+                          <span style="font-weight: 700; color: #9D174D;">${progressPct}%</span>
                         </div>
                         <div class="queue-progress-track">
                           <div class="queue-progress-fill" style="width: ${progressPct}%;"></div>
@@ -2638,7 +2638,7 @@ window.Store = Store;
             </div>
           ` : `
             <div style="background: #FFFDFE; border: 1.5px dashed #FBCFE8; border-radius: 24px; padding: 4rem 1.5rem; text-align: center; color: var(--text-muted); margin-top: 1rem;">
-              <div style="width: 56px; height: 56px; border-radius: 50%; background: #FFF0F5; border: 1.5px solid #FBCFE8; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #BE185D;">
+              <div style="width: 56px; height: 56px; border-radius: 50%; background: #FFF5F8; border: 1.5px solid #FBCFE8; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #9D174D;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               </div>
               <h3 style="color: #9D174D; margin-bottom: 0.35rem; font-size: 1.2rem;">${escapeHTML(qSettings.emptyStateText || 'วันนี้ยังไม่มีคิวงานนะคะ ♡')}</h3>
@@ -2739,7 +2739,7 @@ window.Store = Store;
         <!-- 5-Step Timeline Graphic -->
         ${qSettings.showTimeline !== false ? `
           <div style="background: #FFFDFE; border: 1px dashed #FBCFE8; border-radius: 18px; padding: 1.25rem 1rem 0.75rem; margin-bottom: 1.5rem;">
-            <div style="font-size: 0.85rem; font-weight: 700; color: #BE185D; margin-bottom: 0.5rem; text-align: center;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #9D174D; margin-bottom: 0.5rem; text-align: center;">
               สถานะขั้นตอนการทำงาน
             </div>
             <div class="queue-timeline-stepper">
@@ -2782,7 +2782,7 @@ window.Store = Store;
             ${item.current_queue && item.total_queue ? `
               <div style="grid-column: 1 / -1;">
                 <span style="color: #718096; display: block; font-size: 0.8rem;">ลำดับคิวในระบบ:</span>
-                <strong style="color: #BE185D;">คิวที่ ${item.current_queue} จากทั้งหมด ${item.total_queue} คิว</strong>
+                <strong style="color: #9D174D;">คิวที่ ${item.current_queue} จากทั้งหมด ${item.total_queue} คิว</strong>
               </div>
             ` : ''}
           </div>
@@ -3965,7 +3965,7 @@ window.Store = Store;
                     <img src="${escapeHTML(item.image_url)}" style="width: 50px; height: 50px; border-radius: 10px; object-fit: cover;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
                   </td>
                   <td><strong>${escapeHTML(item.title || 'ผลงานการออกแบบ')}</strong></td>
-                  <td><span class="badge" style="background:#FFF0F7; color:#BE185D; border:1px solid #FBCFE8; font-weight:700;">${escapeHTML(item.style_category || 'ทั่วไป')}</span></td>
+                  <td><span class="badge" style="background:#FFF0F7; color:#9D174D; border:1px solid #FBCFE8; font-weight:700;">${escapeHTML(item.style_category || 'ทั่วไป')}</span></td>
                   <td><span class="badge badge--pink">${escapeHTML(item.category || 'ป้าย')}</span></td>
                   <td>฿${Number(item.price || 0).toLocaleString()}</td>
                   <td>
@@ -4236,7 +4236,7 @@ window.Store = Store;
 
                 return `
                   <tr>
-                    <td style="text-align: center; font-weight: 700; color: #BE185D;">
+                    <td style="text-align: center; font-weight: 700; color: #9D174D;">
                       ${idx + 1}
                     </td>
                     <td>
@@ -4271,7 +4271,7 @@ window.Store = Store;
                       </span>
                     </td>
                     <td style="text-align: center;">
-                      <div style="font-size: 12px; font-weight: 700; color: #BE185D; margin-bottom: 2px;">${progressPct}%</div>
+                      <div style="font-size: 12px; font-weight: 700; color: #9D174D; margin-bottom: 2px;">${progressPct}%</div>
                       <div class="queue-progress-track" style="margin: 0; height: 6px;">
                         <div class="queue-progress-fill" style="width: ${progressPct}%;"></div>
                       </div>
@@ -4760,7 +4760,7 @@ window.Store = Store;
 
           <!-- Component Toggles -->
           <div style="background: #FFF9FA; border-radius: 14px; padding: 1rem; border: 1px dashed #FBCFE8; margin-top: 1rem;">
-            <div style="font-weight: 700; color: #BE185D; margin-bottom: 0.5rem; font-size: 0.9rem;">
+            <div style="font-weight: 700; color: #9D174D; margin-bottom: 0.5rem; font-size: 0.9rem;">
               ตัวเลือกการแสดงผลบนหน้าเช็กคิว:
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" style="font-size: 0.88rem;">
@@ -6509,7 +6509,7 @@ window.Store = Store;
           <div style="font-size: 0.9rem; line-height: 1.8;">
             <div><strong>ชื่อผู้สั่งซื้อ:</strong> ${escapeHTML(order.customer_name || 'ลูกค้าทั่วไป')}</div>
             <div><strong>LINE ID:</strong> ${escapeHTML(order.line_id || '-')}</div>
-            ${order.gmail ? `<div><strong>Gmail ดึงสิทธิ์:</strong> <span style="font-family: monospace; color: #BE185D;">${escapeHTML(order.gmail)}</span></div>` : ''}
+            ${order.gmail ? `<div><strong>Gmail ดึงสิทธิ์:</strong> <span style="font-family: monospace; color: #9D174D;">${escapeHTML(order.gmail)}</span></div>` : ''}
           </div>
           ${order.status === 'COMPLETED' ? `
             <div style="margin-top: 0.75rem; padding: 10px; background: #ECFDF5; border-radius: 10px; border: 1px solid #A7F3D0; font-size: 0.88rem; color: #065F46;">

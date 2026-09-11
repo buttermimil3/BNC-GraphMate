@@ -11,31 +11,31 @@
 }
 
 :root {
-  /* Sweet Soft Pastel Pink Palette (Inspired by BNC HayMate) */
-  --primary:         #F8BFD4;   /* Soft sweet strawberry milk pink */
-  --primary-hover:   #EFA6C1;
-  --primary-600:     #EFA6C1;
-  --primary-700:     #DE85A7;
-  --primary-soft:    #FCE3EE;   /* Soft candy tint */
-  --primary-light:   #FDF1F6;   /* Light blush */
-  --primary-subtle:  #FFF8FB;
-  --primary-deep:    #B24C74;   /* Contrast dark berry text */
-  --accent-text:     #B24C74;
+  /* Sweet Soft Pastel Pink & Pure White Palette (Gentle, Cute, Non-Harsh) */
+  --primary:         #FBCFE8;   /* Very soft gentle baby pink */
+  --primary-hover:   #F9A8D4;   /* Soft pastel blush hover */
+  --primary-600:     #F472B6;   /* Pastel pink button */
+  --primary-700:     #EC4899;
+  --primary-soft:    #FDF2F8;   /* Ultra-light milky pink */
+  --primary-light:   #FFF5F8;   /* Light blush */
+  --primary-subtle:  #FFF9FB;
+  --primary-deep:    #9D174D;   /* Soft warm berry for readable text */
+  --accent-text:     #9D174D;
 
   /* Neutral Surfaces */
-  --bg:              #FFF8FB;   /* Warm soft pink blush page background */
+  --bg:              #FFF9FB;   /* Soft milky baby-pink tinted white background */
   --card:            #FFFFFF;
   --surface:         #FFFFFF;
-  --surface-alt:     #FDF1F6;
-  --border:          #F3DCE6;
-  --border-light:    #FCE9F1;
-  --border-dark:     #E8BFD1;
+  --surface-alt:     #FFF5F8;
+  --border:          #FCE7F3;   /* Very delicate pastel border */
+  --border-light:    #FDF2F8;
+  --border-dark:     #FBCFE8;
 
-  /* Typography */
-  --text:            #2D3748;   /* Soft dark charcoal */
-  --text-secondary:  #4A5568;
-  --text-muted:      #718096;
-  --text-light:      #A0AEC0;
+  /* Typography - Soft, warm, non-harsh */
+  --text:            #374151;   /* Warm soft graphite (not harsh black) */
+  --text-secondary:  #4B5563;   /* Soft medium gray */
+  --text-muted:      #6B7280;   /* Gentle neutral muted text */
+  --text-light:      #9CA3AF;
   --text-white:      #FFFFFF;
 
   /* Status Chips (All in soft pastel tones) */
@@ -51,21 +51,21 @@
   --danger-text:     #9F1239;
   --danger-border:   #FECDD3;
 
-  --info-bg:         #FDF1F6;
-  --info-text:       #B24C74;
-  --info-border:     #F3DCE6;
+  --info-bg:         #FFF5F8;
+  --info-text:       #9D174D;
+  --info-border:     #FCE7F3;
 
-  /* Radii & Shadows */
+  /* Radii & Shadows - Flat & Subtle (No heavy neon glow) */
   --radius-sm:       10px;
   --radius-md:       16px;
   --radius-lg:       22px;
   --radius-xl:       28px;
   --radius-full:     9999px;
 
-  --shadow-sm:       0 2px 8px rgba(255, 117, 151, 0.08);
-  --shadow-md:       0 6px 20px rgba(255, 117, 151, 0.12);
-  --shadow-lg:       0 12px 36px rgba(255, 117, 151, 0.16);
-  --shadow-card:     0 4px 16px rgba(45, 36, 39, 0.05);
+  --shadow-sm:       0 1px 4px rgba(244, 114, 182, 0.05);
+  --shadow-md:       0 4px 12px rgba(244, 114, 182, 0.08);
+  --shadow-lg:       0 8px 24px rgba(244, 114, 182, 0.1);
+  --shadow-card:     0 2px 10px rgba(0, 0, 0, 0.03);
 
   --font-base:       'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-heading:    'Prompt', sans-serif;
@@ -292,13 +292,13 @@ input[type="radio"]:focus-visible {
   background-color: var(--primary-600);
   color: #ffffff;
   border-color: var(--primary-600);
-  box-shadow: 0 4px 14px rgba(239, 166, 193, 0.35);
+  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.25);
 }
 
 .btn-primary:hover {
   background-color: var(--primary-700);
   border-color: var(--primary-700);
-  box-shadow: 0 6px 18px rgba(222, 133, 167, 0.4);
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.35);
   color: #ffffff;
 }
 
@@ -2225,28 +2225,28 @@ input[type="range"] {
 .stamp-badge-white {
   background: #ffffff !important;
   border: 1.5px solid #FBCFE8 !important;
-  color: #BE185D !important;
-  font-weight: 800 !important;
+  color: #9D174D !important;
+  font-weight: 700 !important;
   padding: 4px 14px !important;
   border-radius: 999px !important;
-  box-shadow: 0 2px 6px rgba(244, 114, 182, 0.12) !important;
+  box-shadow: 0 1px 4px rgba(244, 114, 182, 0.08) !important;
 }
 
 /* ── INTERACTIVE PRICE MENU ACTIVE STATE (Sweet Pink Boutique) ── */
 .price-menu-item.is-active {
-  background: #FFF0F7 !important;
-  border-color: #F472B6 !important;
+  background: #FFF5F8 !important;
+  border-color: #FBCFE8 !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 4px 14px rgba(244, 114, 182, 0.18) !important;
+  box-shadow: 0 3px 10px rgba(244, 114, 182, 0.12) !important;
 }
 
 .price-menu-item.is-active .price-menu-name {
-  color: #BE185D !important;
+  color: #9D174D !important;
   font-weight: 700 !important;
 }
 
 .price-menu-item.is-active .price-menu-price {
-  color: #BE185D !important;
+  color: #9D174D !important;
   font-weight: 800 !important;
 }
 
@@ -2373,8 +2373,8 @@ select option {
   user-select: none;
   -webkit-user-drag: none;
   touch-action: none;
-  filter: drop-shadow(0 8px 16px rgba(244, 114, 182, 0.35));
-  transition: filter 0.2s ease, transform 0.15s ease;
+  filter: none !important;
+  transition: transform 0.15s ease;
   z-index: 100000;
   background: transparent !important;
   border: none !important;
@@ -2384,8 +2384,8 @@ select option {
 
 .falling-mascot-item:active {
   cursor: grabbing !important;
-  filter: drop-shadow(0 14px 26px rgba(244, 114, 182, 0.55));
-  transform: scale(1.15);
+  filter: none !important;
+  transform: scale(1.1);
 }
 
 .falling-mascot-img {
@@ -2399,6 +2399,7 @@ select option {
   border: none !important;
   border-radius: 0 !important;
   padding: 0 !important;
+  filter: none !important;
 }
 
 .mascot-bubble-talk {
@@ -2407,14 +2408,14 @@ select option {
   left: 50%;
   transform: translateX(-50%);
   background: #ffffff;
-  border: 1.5px solid #FBCFE8;
-  color: #BE185D;
+  border: 1px solid #FBCFE8;
+  color: #B24C74;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 2px 8px;
   border-radius: 999px;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.25);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
   pointer-events: none;
   animation: popInBubble 0.2s ease-out;
 }
@@ -2475,7 +2476,7 @@ select option {
   background: #F472B6;
   border-color: #F472B6;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.3);
+  box-shadow: 0 2px 6px rgba(244, 114, 182, 0.2);
 }
 
 .step-label {
@@ -2485,7 +2486,7 @@ select option {
 }
 
 .step-item.is-done .step-label {
-  color: #BE185D;
+  color: #9D174D;
   font-weight: 700;
 }
 
@@ -2736,8 +2737,8 @@ select option {
 .queue-pill-num {
   font-family: var(--font-heading);
   font-size: 1.35rem;
-  font-weight: 800;
-  color: #BE185D;
+  font-weight: 700;
+  color: #9D174D;
   background: #FFF5F8;
   border: 1px solid #FBCFE8;
   padding: 3px 14px;
@@ -2810,7 +2811,7 @@ select option {
 
 .queue-card-type-tag {
   font-size: 0.8rem;
-  color: #BE185D;
+  color: #9D174D;
   background: #FFF1F5;
   display: inline-block;
   padding: 2px 8px;
@@ -2904,23 +2905,23 @@ select option {
   background: #F472B6;
   border-color: #F472B6;
   color: #ffffff;
-  box-shadow: 0 3px 10px rgba(244, 114, 182, 0.35);
+  box-shadow: 0 2px 8px rgba(244, 114, 182, 0.25);
 }
 
 .queue-step-node.is-passed .queue-step-circle {
-  background: #FBCFE8;
-  border-color: #F472B6;
-  color: #BE185D;
+  background: #FCE7F3;
+  border-color: #FBCFE8;
+  color: #9D174D;
 }
 
 .queue-step-title {
   font-size: 11.5px;
   font-weight: 600;
-  color: #718096;
+  color: #6B7280;
 }
 
 .queue-step-node.is-active .queue-step-title {
-  color: #BE185D;
+  color: #9D174D;
   font-weight: 700;
 }
 
@@ -2956,20 +2957,20 @@ select option {
   border-radius: 999px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #4A5568;
+  color: #4B5563;
   background: #ffffff;
-  border: 1.5px solid #FBCFE8;
+  border: 1.5px solid #FCE7F3;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 2px 6px rgba(244, 114, 182, 0.08);
+  box-shadow: 0 1px 4px rgba(244, 114, 182, 0.05);
 }
 
 .portfolio-style-pill:hover {
-  border-color: #F472B6;
-  color: #BE185D;
-  background: #FFF0F7;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.18);
+  border-color: #FBCFE8;
+  color: #9D174D;
+  background: #FFF5F8;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(244, 114, 182, 0.12);
 }
 
 .portfolio-style-pill.is-active {
@@ -2977,8 +2978,8 @@ select option {
   color: #ffffff !important;
   border-color: #F472B6 !important;
   font-weight: 700;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(244, 114, 182, 0.28);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(244, 114, 182, 0.2);
 }
 
 .portfolio-style-pill-badge {
