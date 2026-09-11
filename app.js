@@ -61,6 +61,41 @@ const Store = (function () {
       chatHours: '09:00 - 23:00 น. (ตอบไว)',
       deliveryInfo: 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'
     },
+    queuePage: {
+      enabled: true,
+      heroTitle: 'เช็กคิวงาน ♡',
+      heroSubtitle: 'ดูสถานะคิวงานของร้านแบบเรียลไทม์',
+      noticeText: 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ',
+      searchTitle: 'ค้นหาคิวของคุณ',
+      searchPlaceholder: 'กรอกชื่อ, LINE ID, เบอร์โทรศัพท์ หรือเลขคิว...',
+      searchButtonText: 'ดูคิวของฉัน',
+      searchDescription: '*กรอกข้อมูลที่ใช้กับทางร้านเพื่อค้นหาคิวของคุณ',
+      todayLabel: 'คิววันนี้',
+      waitingLabel: 'รอคิว',
+      workingLabel: 'กำลังทำ',
+      completedLabel: 'เสร็จแล้ว',
+      sectionTitle: 'คิวงานของร้าน ♡',
+      emptyStateText: 'วันนี้ยังไม่มีคิวงานนะคะ ♡',
+      loadingText: 'กำลังโหลดคิว…',
+      errorText: 'ไม่สามารถโหลดข้อมูลคิวได้',
+      showSearch: true,
+      showSummary: true,
+      showProgress: true,
+      showTimeline: true,
+      showCustomerName: true,
+      showQueueNumber: true,
+      showNote: true,
+      showImage: true,
+      statusNames: {
+        waiting: 'รอคิว',
+        progress: 'กำลังดำเนินการ',
+        review: 'รอตรวจ',
+        edit: 'รอแก้ไข',
+        done: 'เสร็จแล้ว',
+        pause: 'พักคิว',
+        cancel: 'ยกเลิก'
+      }
+    },
     stampSettings: {
       cardTitle: 'บัตรสะสมแต้ม BNC GraphMate',
       cardSubtitle: 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที',
@@ -496,6 +531,92 @@ const Store = (function () {
         description: 'ไฟล์กราฟิกสำเร็จรูปสำหรับวางบนรูปสินค้า ทำป้ายลดราคา และป้ายสินค้าขายดี',
         image_url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=700&auto=format&fit=crop&q=80'
       }
+    ],
+    queue_items: [
+      {
+        id: 'q-demo-1',
+        queue_number: 'Q28',
+        customer_name: 'คุณพิมลภัส (น้องพิม)',
+        line_id: 'pim_cafe99',
+        phone: '089-111-2233',
+        job_type: 'งานป้าย',
+        job_name: 'ป้ายร้านกาแฟ & เมนูตั้งโต๊ะสไตล์เกาหลี',
+        description: 'ออกแบบป้ายไวนิลขนาด 2x1 เมตร และป้ายอะคริลิกตั้งโต๊ะ โทนชมพูครีม',
+        status: 'กำลังดำเนินการ',
+        progress: 40,
+        current_queue: 3,
+        total_queue: 8,
+        queue_date: '11/09/2026',
+        updated_at: '11:42 น.',
+        note: 'กำลังดราฟต์แบบรอบแรก จะส่งให้ตรวจเวลาประมาณ 16:00 น. นะคะ ♡',
+        image_url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700',
+        is_visible: true,
+        sort_order: 0,
+        created_at: new Date().toISOString()
+      },
+      {
+        id: 'q-demo-2',
+        queue_number: 'Q29',
+        customer_name: 'คุณอารียา (ร้านเบเกอรี่)',
+        line_id: 'sweet_bakery',
+        phone: '081-222-3344',
+        job_type: 'การ์ตูนมาสคอต',
+        job_name: 'วาดการ์ตูนมาสคอตน้องหมีเชฟขนมปัง',
+        description: 'วาดมาสคอตประจำร้าน 3 ท่าทาง สำหรับสกรีนแก้วและพิมพ์สติกเกอร์',
+        status: 'รอคิว',
+        progress: 10,
+        current_queue: 4,
+        total_queue: 8,
+        queue_date: '11/09/2026',
+        updated_at: '09:30 น.',
+        note: 'รับข้อมูลและบรีฟเรียบร้อย เข้าคิวลำดับถัดไปค่ะ',
+        image_url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=700',
+        is_visible: true,
+        sort_order: 1,
+        created_at: new Date().toISOString()
+      },
+      {
+        id: 'q-demo-3',
+        queue_number: 'Q25',
+        customer_name: 'คุณณภัทร',
+        line_id: 'napat_design',
+        phone: '086-777-8899',
+        job_type: 'ฟอนต์สั่งทำ',
+        job_name: 'ปรับแต่งฟอนต์ลายมือชื่อร้านเฉพาะ',
+        description: 'ฟอนต์ภาษาไทยและอังกฤษสำหรับงานแบรนด์ดิ้ง',
+        status: 'รอตรวจ',
+        progress: 80,
+        current_queue: 1,
+        total_queue: 8,
+        queue_date: '10/09/2026',
+        updated_at: '14:15 น.',
+        note: 'ส่งแบบดราฟต์ให้ลูกค้าตรวจทาง LINE แล้ว รอคอนเฟิร์มค่ะ',
+        image_url: 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=700',
+        is_visible: true,
+        sort_order: 2,
+        created_at: new Date().toISOString()
+      },
+      {
+        id: 'q-demo-4',
+        queue_number: 'Q24',
+        customer_name: 'คุณกิตติศักดิ์',
+        line_id: 'kit_shop',
+        phone: '085-444-5566',
+        job_type: 'งานป้าย',
+        job_name: 'ป้ายธงญี่ปุ่นและสติกเกอร์ติดกระจก',
+        description: 'ไฟล์พร้อมพิมพ์ส่งโรงพิมพ์ 300 DPI คมชัดสูง',
+        status: 'เสร็จแล้ว',
+        progress: 100,
+        current_queue: 0,
+        total_queue: 8,
+        queue_date: '09/09/2026',
+        updated_at: '18:00 น.',
+        note: 'ส่งมอบไฟล์งานผ่าน Google Drive เรียบร้อยแล้ว ขอบคุณมากนะคะ ♡',
+        image_url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=700',
+        is_visible: true,
+        sort_order: 3,
+        created_at: new Date().toISOString()
+      }
     ]};
 
  // ดึงข้อมูลจาก Local Cache ทันที (เพื่อให้เว็บโหลดเร็ว 0.01 วินาที)
@@ -506,12 +627,18 @@ const Store = (function () {
  const parsed = JSON.parse(saved);
  const merged = Object.assign({}, defaultData, parsed);
  merged.settings = Object.assign({}, defaultData.settings, parsed.settings || {});
- if (!merged.portfolio || merged.portfolio.length === 0) {
- merged.portfolio = defaultData.portfolio;
- }
- if (!merged.groups || merged.groups.length < 3) {
- merged.groups = defaultData.groups;
- }
+    if (!merged.portfolio || merged.portfolio.length === 0) {
+      merged.portfolio = defaultData.portfolio;
+    }
+    if (!merged.queue_items || merged.queue_items.length === 0) {
+      merged.queue_items = defaultData.queue_items;
+    }
+    if (!merged.settings.queuePage) {
+      merged.settings.queuePage = defaultData.settings.queuePage;
+    }
+    if (!merged.groups || merged.groups.length < 3) {
+      merged.groups = defaultData.groups;
+    }
  if (merged.settings) {
  if (!merged.settings.profileImage || merged.settings.profileImage.includes('photo-1534528741775-53994a69daeb')) {
  merged.settings.profileImage = defaultData.settings.profileImage;
@@ -1056,30 +1183,114 @@ const Store = (function () {
  const p = loadLocal().portfolio;
  return (p && p.length > 0) ? p : defaultData.portfolio;
  },
- savePortfolioItem: function (item) {
- const data = loadLocal();
- data.portfolio = data.portfolio || [];
- if (!item.id) {
- item.id = uid('port');
- item.created_at = new Date().toISOString();
- data.portfolio.unshift(item);
- } else {
- const idx = data.portfolio.findIndex(p => p.id === item.id);
- if (idx !== -1) data.portfolio[idx] = Object.assign({}, data.portfolio[idx], item);
- else data.portfolio.unshift(item);
- }
- saveLocal(data);
- callCloud('SAVE_PORTFOLIO', { item: item });
- return item;
- },
- deletePortfolioItem: function (id) {
- const data = loadLocal();
- data.portfolio = (data.portfolio || []).filter(p => p.id !== id);
- saveLocal(data);
- callCloud('DELETE_PORTFOLIO', { id: id });
- },
+    savePortfolioItem: function (item) {
+      const data = loadLocal();
+      data.portfolio = data.portfolio || [];
+      if (!item.id) {
+        item.id = uid('port');
+        item.created_at = new Date().toISOString();
+        data.portfolio.unshift(item);
+      } else {
+        const idx = data.portfolio.findIndex(p => p.id === item.id);
+        if (idx !== -1) data.portfolio[idx] = Object.assign({}, data.portfolio[idx], item);
+        else data.portfolio.unshift(item);
+      }
+      saveLocal(data);
+      callCloud('SAVE_PORTFOLIO', { item: item });
+      return item;
+    },
+    deletePortfolioItem: function (id) {
+      const data = loadLocal();
+      data.portfolio = (data.portfolio || []).filter(p => p.id !== id);
+      saveLocal(data);
+      callCloud('DELETE_PORTFOLIO', { id: id });
+    },
 
- // Cart System (Multi-item order for Fonts & Products)
+    // ── Queue Management System (Queue != Order) ──
+    getQueueItems: function (includeHidden = false) {
+      const q = loadLocal().queue_items || defaultData.queue_items;
+      let list = Array.isArray(q) ? [...q] : [];
+      list.sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0));
+      if (!includeHidden) {
+        list = list.filter(item => item.is_visible !== false);
+      }
+      return list;
+    },
+    getAllQueueItems: function () {
+      return this.getQueueItems(true);
+    },
+    getQueueItemById: function (id) {
+      return (loadLocal().queue_items || defaultData.queue_items).find(q => q.id === id) || null;
+    },
+    saveQueueItem: function (item) {
+      const data = loadLocal();
+      data.queue_items = data.queue_items || [];
+      if (!item.id) {
+        item.id = uid('q');
+        item.created_at = new Date().toISOString();
+        item.updated_at = item.updated_at || new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
+        if (item.sort_order === undefined) {
+          item.sort_order = data.queue_items.length;
+        }
+        data.queue_items.push(item);
+      } else {
+        const idx = data.queue_items.findIndex(q => q.id === item.id);
+        item.updated_at = item.updated_at || new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
+        if (idx !== -1) {
+          data.queue_items[idx] = Object.assign({}, data.queue_items[idx], item);
+        } else {
+          data.queue_items.push(item);
+        }
+      }
+      saveLocal(data);
+      callCloud('SAVE_QUEUE_ITEM', { item: item });
+      return item;
+    },
+    deleteQueueItem: function (id) {
+      const data = loadLocal();
+      data.queue_items = (data.queue_items || []).filter(q => q.id !== id);
+      saveLocal(data);
+      callCloud('DELETE_QUEUE_ITEM', { id: id });
+    },
+    reorderQueueItems: function (items) {
+      const data = loadLocal();
+      data.queue_items = items.map((item, idx) => {
+        item.sort_order = idx;
+        return item;
+      });
+      saveLocal(data);
+      callCloud('REORDER_QUEUES', { items: data.queue_items });
+    },
+    moveQueueItem: function (id, direction) {
+      const items = this.getAllQueueItems();
+      const idx = items.findIndex(q => q.id === id);
+      if (idx === -1) return;
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= items.length) return;
+      
+      const temp = items[idx];
+      items[idx] = items[targetIdx];
+      items[targetIdx] = temp;
+      this.reorderQueueItems(items);
+    },
+    toggleQueueVisibility: function (id) {
+      const item = this.getQueueItemById(id);
+      if (item) {
+        item.is_visible = !item.is_visible;
+        this.saveQueueItem(item);
+      }
+    },
+    getQueuePageSettings: function () {
+      const s = this.getSettings();
+      return Object.assign({}, defaultData.settings.queuePage, s.queuePage || {});
+    },
+    saveQueuePageSettings: function (qSettings) {
+      const s = this.getSettings();
+      const merged = Object.assign({}, s.queuePage || defaultData.settings.queuePage, qSettings);
+      return this.saveSettings({ queuePage: merged });
+    },
+
+    // Cart System (Multi-item order for Fonts & Products)
  getCart: function () {
  try {
  const c = localStorage.getItem('BNC_CART_V1');
@@ -1344,7 +1555,8 @@ window.Store = Store;
  portfolioFilter: 'ALL',
  activeStoryIndex: 0,
  lightboxImage: null,
- searchPointsQuery: ''
+ searchPointsQuery: '',
+ queueSearchQuery: ''
  };
 
  // Helper DOM selectors
@@ -1514,27 +1726,28 @@ window.Store = Store;
  <span>${escapeHTML(s.shopName || 'BNC GraphMate')}</span>
  </a>
 
- <nav class="navbar__nav" id="navbarMenu">
- <a href="#home" class="nav-link ${state.view === 'home' ? 'active' : ''}">หน้าแรก</a>
- <a href="#fonts" class="nav-link ${state.view === 'fonts' ? 'active' : ''}">ฟอนต์</a>
- <a href="#products" class="nav-link ${state.view === 'products' ? 'active' : ''}">สินค้าสำเร็จ</a>
- <a href="#groups" class="nav-link ${state.view === 'groups' ? 'active' : ''}">เข้ากลุ่ม VIP</a>
- <a href="#portfolio" class="nav-link ${state.view === 'portfolio' ? 'active' : ''}">ผลงาน</a>
- <a href="#points" class="nav-link ${state.view === 'points' ? 'active' : ''}">สะสมแต้ม</a>
- <a href="#reviews" class="nav-link ${state.view === 'reviews' ? 'active' : ''}">รีวิว</a>
- <a href="#orders" class="nav-link ${state.view === 'orders' ? 'active' : ''}">สถานะออเดอร์</a>
- 
- <a href="#admin" class="nav-admin-badge">
- <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
- ${state.isAdmin ? 'แอดมิน (ออนไลน์)' : 'หลังบ้าน'}
- </a>
- </nav>
+        <nav class="navbar__nav" id="navbarMenu">
+          <a href="#home" class="nav-link ${state.view === 'home' ? 'active' : ''}">หน้าแรก</a>
+          <a href="#queue" class="nav-link ${state.view === 'queue' ? 'active' : ''}">เช็กคิว</a>
+          <a href="#fonts" class="nav-link ${state.view === 'fonts' ? 'active' : ''}">ฟอนต์</a>
+          <a href="#products" class="nav-link ${state.view === 'products' ? 'active' : ''}">สินค้าสำเร็จ</a>
+          <a href="#groups" class="nav-link ${state.view === 'groups' ? 'active' : ''}">เข้ากลุ่ม VIP</a>
+          <a href="#portfolio" class="nav-link ${state.view === 'portfolio' ? 'active' : ''}">ผลงาน</a>
+          <a href="#points" class="nav-link ${state.view === 'points' ? 'active' : ''}">สะสมแต้ม</a>
+          <a href="#reviews" class="nav-link ${state.view === 'reviews' ? 'active' : ''}">รีวิว</a>
+          <a href="#orders" class="nav-link ${state.view === 'orders' ? 'active' : ''}">สถานะออเดอร์</a>
+          
+          <a href="#admin" class="nav-admin-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            ${state.isAdmin ? 'แอดมิน (ออนไลน์)' : 'หลังบ้าน'}
+          </a>
+        </nav>
 
- <button class="hamburger-btn" onclick="toggleMobileNav()" aria-label="เปิดเมนู">
- <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
- </button>
- </div>
- `;
+        <button class="hamburger-btn" onclick="toggleMobileNav()" aria-label="เปิดเมนู">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    `;
  }
 
  window.toggleMobileNav = function () {
@@ -1551,6 +1764,9 @@ window.Store = Store;
  case 'home':
  renderHomeView(pageEl);
  break;
+      case 'queue':
+        renderQueueView(pageEl);
+        break;
  case 'fonts':
  renderFontsView(pageEl);
  break;
@@ -2036,6 +2252,404 @@ window.Store = Store;
   window.handleFontSearch = function (q) {
     state.fontTester.search = q;
     renderCurrentView();
+  };
+
+  // ============================================================
+  // VIEW: QUEUE CHECKING (Stationery / Cute Kawaii Note Paper)
+  // Queue != Order, Strict Zero-Emoji, Privacy Censoring
+  // ============================================================
+  function renderQueueView(container) {
+    const qSettings = Store.getQueuePageSettings();
+    const allQueues = Store.getQueueItems(false); // Only visible items for public
+    const statusNames = qSettings.statusNames || {
+      waiting: 'รอคิว',
+      progress: 'กำลังดำเนินการ',
+      review: 'รอตรวจ',
+      edit: 'รอแก้ไข',
+      done: 'เสร็จแล้ว',
+      pause: 'พักคิว',
+      cancel: 'ยกเลิก'
+    };
+
+    // Calculate Summary Counts
+    const totalToday = allQueues.length;
+    const countWaiting = allQueues.filter(q => q.status === 'waiting').length;
+    const countProgress = allQueues.filter(q => q.status === 'progress' || q.status === 'review' || q.status === 'edit').length;
+    const countDone = allQueues.filter(q => q.status === 'done').length;
+
+    // Filter by search query (Queue number, client name, line_id, or phone)
+    const query = (state.queueSearchQuery || '').trim().toLowerCase();
+    const filteredQueues = allQueues.filter(q => {
+      if (!query) return true;
+      const matchNum = (q.queue_number || '').toLowerCase().includes(query);
+      const matchName = (q.customer_name || '').toLowerCase().includes(query);
+      const matchLine = (q.line_id || '').toLowerCase().includes(query);
+      const matchPhone = (q.phone || '').replace(/[^0-9]/g, '').includes(query.replace(/[^0-9]/g, ''));
+      return matchNum || matchName || matchLine || matchPhone;
+    });
+
+    // Helper: Censor customer contact info for privacy
+    const maskText = (text, keepStart = 2, keepEnd = 2) => {
+      if (!text) return '-';
+      const str = String(text).trim();
+      if (str.length <= 4) return str.slice(0, 1) + '***';
+      return str.slice(0, keepStart) + '***' + str.slice(-keepEnd);
+    };
+
+    container.innerHTML = `
+      <section style="padding: 2.5rem 0 4.5rem; min-height: 80vh;">
+        <div class="container" style="max-width: 1060px;">
+
+          <!-- Kawaii Stationery Hero Note Card -->
+          <div class="queue-page-hero-card" style="position: relative; background: #FFFDFE; border: 1.5px solid #FBCFE8; border-radius: 28px; padding: 2.2rem 2rem 1.8rem; box-shadow: 0 10px 30px rgba(244, 114, 182, 0.12); margin-bottom: 2.2rem;">
+            <!-- Washi Tape Strips -->
+            <div class="washi-tape-strip"></div>
+            <!-- Paper Clip Decor -->
+            <div class="paper-clip-decor"></div>
+            <!-- Notebook Ring Binder Holes -->
+            <div class="notebook-rings-bar">
+              <span class="notebook-ring-hole"></span>
+              <span class="notebook-ring-hole"></span>
+              <span class="notebook-ring-hole"></span>
+              <span class="notebook-ring-hole"></span>
+              <span class="notebook-ring-hole"></span>
+            </div>
+
+            <div style="text-align: center; max-width: 680px; margin: 0 auto;">
+              <span class="badge badge--pink" style="margin-bottom: 0.6rem; font-size: 0.8rem; letter-spacing: 0.5px;">LIVE QUEUE STATUS</span>
+              <h1 style="font-family: var(--font-heading); color: #BE185D; font-size: 2.1rem; margin-bottom: 0.5rem; font-weight: 800;">
+                ${escapeHTML(qSettings.heroTitle || 'เช็กคิวงาน ♡')}
+              </h1>
+              <p style="color: var(--text-muted); font-size: 0.98rem; margin-bottom: 0.85rem;">
+                ${escapeHTML(qSettings.heroSubtitle || 'ดูสถานะคิวงานของร้านแบบเรียลไทม์')}
+              </p>
+              ${qSettings.noticeText ? `
+                <div style="background: #FFF5F8; border: 1px dashed #F472B6; border-radius: 14px; padding: 0.75rem 1.25rem; font-size: 0.88rem; color: #9D174D; display: inline-block;">
+                  ${escapeHTML(qSettings.noticeText)}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Summary Badges / Counter Cards -->
+            ${qSettings.showSummary ? `
+              <div class="queue-summary-grid">
+                <div class="queue-summary-pill">
+                  <div class="queue-summary-num">${totalToday}</div>
+                  <div class="queue-summary-label">${escapeHTML(qSettings.todayLabel || 'คิววันนี้')}</div>
+                </div>
+                <div class="queue-summary-pill" style="border-color: #FDE68A; background: #FFFDF5;">
+                  <div class="queue-summary-num" style="color: #D97706;">${countWaiting}</div>
+                  <div class="queue-summary-label">${escapeHTML(qSettings.waitingLabel || 'รอคิว')}</div>
+                </div>
+                <div class="queue-summary-pill" style="border-color: #BFDBFE; background: #F8FAFF;">
+                  <div class="queue-summary-num" style="color: #2563EB;">${countProgress}</div>
+                  <div class="queue-summary-label">${escapeHTML(qSettings.workingLabel || 'กำลังทำ')}</div>
+                </div>
+                <div class="queue-summary-pill" style="border-color: #BBF7D0; background: #F6FEF8;">
+                  <div class="queue-summary-num" style="color: #16A34A;">${countDone}</div>
+                  <div class="queue-summary-label">${escapeHTML(qSettings.completedLabel || 'เสร็จแล้ว')}</div>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Customer Privacy Search Card -->
+          ${qSettings.showSearch ? `
+            <div class="queue-search-card">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
+                <h3 style="margin: 0; font-size: 1.15rem; color: #BE185D; font-weight: 700;">
+                  ${escapeHTML(qSettings.searchTitle || 'ค้นหาคิวของคุณ')}
+                </h3>
+                ${state.queueSearchQuery ? `
+                  <button type="button" class="btn btn-outline btn-sm" onclick="handleClearQueueSearch()" style="font-size: 12px; padding: 4px 10px;">
+                    ล้างการค้นหา
+                  </button>
+                ` : ''}
+              </div>
+              <div class="queue-search-input-wrap">
+                <input 
+                  type="text" 
+                  id="queueSearchInput" 
+                  class="queue-search-input" 
+                  placeholder="${escapeHTML(qSettings.searchPlaceholder || 'กรอกชื่อ, LINE ID, เบอร์โทรศัพท์ หรือเลขคิว...')}"
+                  value="${escapeHTML(state.queueSearchQuery || '')}"
+                  oninput="handleQueueSearchInput(this.value)"
+                >
+                <button type="button" class="btn btn-primary" onclick="triggerQueueSearchSubmit()" style="border-radius: 16px; padding: 0 1.5rem; font-weight: 700;">
+                  ${escapeHTML(qSettings.searchButtonText || 'ดูคิวของฉัน')}
+                </button>
+              </div>
+              <small style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.82rem;">
+                ${escapeHTML(qSettings.searchDescription || '*กรอกข้อมูลที่ใช้กับทางร้านเพื่อค้นหาคิวของคุณ (เพื่อความเป็นส่วนตัว เบอร์โทรและไลน์จะถูกซ่อนบางส่วน)')}
+              </small>
+            </div>
+          ` : ''}
+
+          <!-- Queue Section Title Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h2 style="font-size: 1.35rem; color: #831843; font-family: var(--font-heading); font-weight: 800; margin: 0;">
+              ${escapeHTML(qSettings.sectionTitle || 'คิวงานของร้าน ♡')}
+            </h2>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">
+              แสดง ${filteredQueues.length} จากทั้งหมด ${allQueues.length} รายการ
+            </span>
+          </div>
+
+          <!-- Queue Cards Grid (Stationery Sticky Note Cards) -->
+          ${filteredQueues.length > 0 ? `
+            <div class="queue-cards-grid">
+              ${filteredQueues.map(item => {
+                const statusKey = (item.status || 'waiting').toLowerCase();
+                const statusLabel = statusNames[statusKey] || statusKey;
+                const progressPct = Math.min(100, Math.max(0, Number(item.progress) || 0));
+                
+                return `
+                  <div class="queue-note-card" onclick="openQueueDetailModal('${item.id}')">
+                    <!-- Washi Tape Corner -->
+                    <div class="queue-card-tape"></div>
+
+                    <div class="queue-card-header">
+                      ${qSettings.showQueueNumber !== false ? `
+                        <div class="queue-pill-num">${escapeHTML(item.queue_number || 'Q-')}</div>
+                      ` : '<div></div>'}
+                      <span class="queue-status-chip status-${statusKey}">
+                        ${escapeHTML(statusLabel)}
+                      </span>
+                    </div>
+
+                    <!-- Job Information -->
+                    <div class="queue-card-job">${escapeHTML(item.job_name || 'งานออกแบบ')}</div>
+                    <div>
+                      <span class="queue-card-type-tag">${escapeHTML(item.job_type || 'งานออกแบบ')}</span>
+                    </div>
+
+                    ${qSettings.showCustomerName !== false ? `
+                      <div class="queue-card-client">
+                        ลูกค้า: <strong>${escapeHTML(maskText(item.customer_name, 2, 2))}</strong>
+                      </div>
+                    ` : ''}
+
+                    <!-- Progress Bar -->
+                    ${qSettings.showProgress !== false ? `
+                      <div style="margin: 0.4rem 0;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #718096; margin-bottom: 2px;">
+                          <span>ความคืบหน้า</span>
+                          <span style="font-weight: 700; color: #BE185D;">${progressPct}%</span>
+                        </div>
+                        <div class="queue-progress-track">
+                          <div class="queue-progress-fill" style="width: ${progressPct}%;"></div>
+                        </div>
+                      </div>
+                    ` : ''}
+
+                    ${qSettings.showNote !== false && item.note ? `
+                      <div style="font-size: 0.82rem; color: #4A5568; background: #FFF9FA; border-left: 3px solid #F472B6; padding: 4px 8px; border-radius: 4px; margin-top: 0.5rem;">
+                        ${escapeHTML(item.note)}
+                      </div>
+                    ` : ''}
+
+                    <!-- Card Footer with Update Timestamp -->
+                    <div class="queue-card-footer">
+                      <span>${escapeHTML(item.queue_date || 'วันนี้')}</span>
+                      <span>อัปเดต: ${escapeHTML(item.updated_at || 'เมื่อสักครู่')}</span>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : `
+            <div style="background: #FFFDFE; border: 1.5px dashed #FBCFE8; border-radius: 24px; padding: 4rem 1.5rem; text-align: center; color: var(--text-muted); margin-top: 1rem;">
+              <div style="width: 56px; height: 56px; border-radius: 50%; background: #FFF0F5; border: 1.5px solid #FBCFE8; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #BE185D;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </div>
+              <h3 style="color: #9D174D; margin-bottom: 0.35rem; font-size: 1.2rem;">${escapeHTML(qSettings.emptyStateText || 'วันนี้ยังไม่มีคิวงานนะคะ ♡')}</h3>
+              <p style="font-size: 0.9rem; margin: 0;">หากสั่งทำป้ายหรือสอบถามคิวงาน ทักแชทสอบถามแอดมินทาง LINE ได้เลยนะคะ</p>
+              ${state.queueSearchQuery ? `
+                <button type="button" class="btn btn-outline btn-sm" onclick="handleClearQueueSearch()" style="margin-top: 1rem;">
+                  ล้างคำค้นหาและแสดงทั้งหมด
+                </button>
+              ` : ''}
+            </div>
+          `}
+
+        </div>
+      </section>
+    `;
+  }
+
+  // Queue View Action Handlers
+  window.handleQueueSearchInput = function (val) {
+    state.queueSearchQuery = val;
+    // Debounced or live re-render for responsive note search
+    clearTimeout(window._qSearchTimer);
+    window._qSearchTimer = setTimeout(() => {
+      renderCurrentView();
+    }, 280);
+  };
+
+  window.handleClearQueueSearch = function () {
+    state.queueSearchQuery = '';
+    renderCurrentView();
+  };
+
+  window.triggerQueueSearchSubmit = function () {
+    const input = $('queueSearchInput');
+    if (input) state.queueSearchQuery = input.value;
+    renderCurrentView();
+  };
+
+  // 5-Step Modal Timeline for Queue Detail
+  window.openQueueDetailModal = function (queueId) {
+    const item = Store.getQueueItemById(queueId);
+    if (!item) return;
+
+    let modal = $('queueDetailModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'queueDetailModal';
+      modal.className = 'modal-overlay';
+      modal.onclick = (e) => { if (e.target === modal) closeQueueDetailModal(); };
+      document.body.appendChild(modal);
+    }
+
+    const qSettings = Store.getQueuePageSettings();
+    const statusNames = qSettings.statusNames || {};
+    const statusKey = (item.status || 'waiting').toLowerCase();
+    const statusLabel = statusNames[statusKey] || statusKey;
+    const progressPct = Math.min(100, Math.max(0, Number(item.progress) || 0));
+
+    // Determine Timeline Step (1: รับงาน, 2: เข้าคิว, 3: กำลังดำเนินการ, 4: รอตรวจ, 5: เสร็จแล้ว)
+    let activeStepIndex = 1;
+    if (statusKey === 'waiting') activeStepIndex = 2;
+    else if (statusKey === 'progress' || statusKey === 'edit') activeStepIndex = 3;
+    else if (statusKey === 'review') activeStepIndex = 4;
+    else if (statusKey === 'done') activeStepIndex = 5;
+
+    const timelineSteps = [
+      { step: 1, label: 'รับงานแล้ว' },
+      { step: 2, label: 'เข้าคิวงาน' },
+      { step: 3, label: 'กำลังออกแบบ' },
+      { step: 4, label: 'ส่งตรวจแบบ' },
+      { step: 5, label: 'เสร็จสมบูรณ์' }
+    ];
+
+    const maskText = (text, keepStart = 2, keepEnd = 2) => {
+      if (!text) return '-';
+      const str = String(text).trim();
+      if (str.length <= 4) return str.slice(0, 1) + '***';
+      return str.slice(0, keepStart) + '***' + str.slice(-keepEnd);
+    };
+
+    modal.innerHTML = `
+      <div class="modal-card" style="max-width: 580px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 2rem 1.8rem; border-radius: 26px; border: 1.5px solid #FBCFE8; box-shadow: 0 16px 36px rgba(244, 114, 182, 0.2);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="queue-pill-num">${escapeHTML(item.queue_number || 'Q-')}</span>
+              <span class="queue-status-chip status-${statusKey}">${escapeHTML(statusLabel)}</span>
+            </div>
+            <h2 style="font-size: 1.45rem; color: #2D3748; margin: 0.65rem 0 0.2rem; font-weight: 800;">
+              ${escapeHTML(item.job_name || 'งานออกแบบ')}
+            </h2>
+            <span class="queue-card-type-tag">${escapeHTML(item.job_type || 'งานออกแบบ')}</span>
+          </div>
+          <button type="button" onclick="closeQueueDetailModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #A0AEC0;">✕</button>
+        </div>
+
+        <!-- 5-Step Timeline Graphic -->
+        ${qSettings.showTimeline !== false ? `
+          <div style="background: #FFFDFE; border: 1px dashed #FBCFE8; border-radius: 18px; padding: 1.25rem 1rem 0.75rem; margin-bottom: 1.5rem;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #BE185D; margin-bottom: 0.5rem; text-align: center;">
+              สถานะขั้นตอนการทำงาน
+            </div>
+            <div class="queue-timeline-stepper">
+              ${timelineSteps.map(s => {
+                const isPassed = s.step < activeStepIndex;
+                const isActive = s.step === activeStepIndex;
+                const stateClass = isActive ? 'is-active' : (isPassed ? 'is-passed' : '');
+                return `
+                  <div class="queue-step-node ${stateClass}">
+                    <div class="queue-step-circle">
+                      ${isPassed ? '✓' : s.step}
+                    </div>
+                    <div class="queue-step-title">${s.label}</div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Details Grid -->
+        <div style="background: #FFF9FA; border-radius: 18px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid #FFE4E6;">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="font-size: 0.9rem;">
+            <div>
+              <span style="color: #718096; display: block; font-size: 0.8rem;">ชื่อลูกค้า:</span>
+              <strong style="color: #2D3748;">${escapeHTML(maskText(item.customer_name, 2, 2))}</strong>
+            </div>
+            <div>
+              <span style="color: #718096; display: block; font-size: 0.8rem;">LINE ID / เบอร์:</span>
+              <strong style="color: #2D3748;">${escapeHTML(maskText(item.line_id || item.phone, 2, 2))}</strong>
+            </div>
+            <div>
+              <span style="color: #718096; display: block; font-size: 0.8rem;">วันที่รับคิว:</span>
+              <span style="color: #2D3748;">${escapeHTML(item.queue_date || 'วันนี้')}</span>
+            </div>
+            <div>
+              <span style="color: #718096; display: block; font-size: 0.8rem;">อัปเดตล่าสุด:</span>
+              <span style="color: #2D3748;">${escapeHTML(item.updated_at || 'เมื่อสักครู่')}</span>
+            </div>
+            ${item.current_queue && item.total_queue ? `
+              <div style="grid-column: 1 / -1;">
+                <span style="color: #718096; display: block; font-size: 0.8rem;">ลำดับคิวในระบบ:</span>
+                <strong style="color: #BE185D;">คิวที่ ${item.current_queue} จากทั้งหมด ${item.total_queue} คิว</strong>
+              </div>
+            ` : ''}
+          </div>
+
+          ${item.description ? `
+            <div style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed #FBCFE8;">
+              <span style="color: #718096; display: block; font-size: 0.8rem; margin-bottom: 2px;">รายละเอียดงาน:</span>
+              <div style="color: #4A5568; line-height: 1.5; white-space: pre-line;">${escapeHTML(item.description)}</div>
+            </div>
+          ` : ''}
+
+          ${item.note ? `
+            <div style="margin-top: 0.75rem; background: #FFF5F8; border-left: 3px solid #FF2D8A; padding: 6px 12px; border-radius: 6px; font-size: 0.86rem; color: #9D174D;">
+              <strong>หมายเหตุจากแอดมิน:</strong> ${escapeHTML(item.note)}
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Attached Image / Preview if any -->
+        ${qSettings.showImage !== false && item.image_url ? `
+          <div style="margin-bottom: 1.5rem; text-align: center;">
+            <span style="color: #718096; display: block; font-size: 0.8rem; margin-bottom: 6px;">ภาพประกอบ / ตัวอย่างงาน:</span>
+            <img 
+              src="${escapeHTML(item.image_url)}" 
+              alt="Queue Preview" 
+              style="max-width: 100%; max-height: 260px; object-fit: cover; border-radius: 14px; border: 1.5px solid #FBCFE8; cursor: pointer;"
+              onclick="openLightbox('${escapeHTML(item.image_url)}')"
+            >
+          </div>
+        ` : ''}
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="closeQueueDetailModal()" style="border-radius: 14px; padding: 0.65rem 1.75rem; font-weight: 700;">
+            ปิดหน้าต่าง
+          </button>
+        </div>
+
+      </div>
+    `;
+
+    modal.classList.add('is-active');
+  };
+
+  window.closeQueueDetailModal = function () {
+    const modal = $('queueDetailModal');
+    if (modal) modal.classList.remove('is-active');
   };
 
   // VIEW: PRODUCTS (Digital Assets Catalog + Add to Cart)
@@ -2658,44 +3272,46 @@ window.Store = Store;
  <button type="button" class="admin-tab-btn ${state.adminTab === 'groups' ? 'active' : ''}" onclick="switchAdminTab('groups')">จัดการกลุ่ม VIP</button>
           <button type="button" class="admin-tab-btn ${state.adminTab === 'portfolio' ? 'active' : ''}" onclick="switchAdminTab('portfolio')">จัดการผลงาน</button>
           <button type="button" class="admin-tab-btn ${state.adminTab === 'stamps' ? 'active' : ''}" onclick="switchAdminTab('stamps')">บัตรสะสมแต้ม</button>
-          
- <button type="button" class="admin-tab-btn ${state.adminTab === 'settings' ? 'active' : ''}" onclick="switchAdminTab('settings')">ตั้งค่าร้าน (ทุกจุด)</button>
- </div>
+          <button type="button" class="admin-tab-btn ${state.adminTab === 'queues' ? 'active' : ''}" onclick="switchAdminTab('queues')">จัดการคิวงาน</button>
+          <button type="button" class="admin-tab-btn ${state.adminTab === 'settings' ? 'active' : ''}" onclick="switchAdminTab('settings')">ตั้งค่าร้าน (ทุกจุด)</button>
+        </div>
 
- <!-- Tab Content Container -->
- <div id="adminTabContent">
- ${renderAdminTabContent(state.adminTab, s)}
- </div>
+        <!-- Tab Content Container -->
+        <div id="adminTabContent">
+          ${renderAdminTabContent(state.adminTab, s)}
+        </div>
 
- </div>
- </section>
- `;
- }
+      </div>
+    </section>
+    `;
+  }
 
- function renderAdminTabContent(tab, s) {
- switch (tab) {
- case 'dashboard':
- return renderAdminDashboardTab();
- case 'orders':
- return renderAdminOrdersTab();
- case 'slips':
- return renderAdminSlipsTab();
- case 'products':
- return renderAdminProductsTab();
- case 'fonts':
- return renderAdminFontsTab();
- case 'groups':
- return renderAdminGroupsTab();
- case 'portfolio':
- return renderAdminPortfolioTab();
- case 'stamps':
- return renderAdminStampsTab();
- case 'settings':
- return renderAdminSettingsTab(s);
- default:
- return renderAdminDashboardTab();
- }
- }
+  function renderAdminTabContent(tab, s) {
+    switch (tab) {
+      case 'dashboard':
+        return renderAdminDashboardTab();
+      case 'orders':
+        return renderAdminOrdersTab();
+      case 'slips':
+        return renderAdminSlipsTab();
+      case 'products':
+        return renderAdminProductsTab();
+      case 'fonts':
+        return renderAdminFontsTab();
+      case 'groups':
+        return renderAdminGroupsTab();
+      case 'portfolio':
+        return renderAdminPortfolioTab();
+      case 'stamps':
+        return renderAdminStampsTab();
+      case 'queues':
+        return renderAdminQueuesTab();
+      case 'settings':
+        return renderAdminSettingsTab(s);
+      default:
+        return renderAdminDashboardTab();
+    }
+  }
 
  function renderAdminDashboardTab() {
  const orders = Store.getAllOrders();
@@ -3082,10 +3698,351 @@ window.Store = Store;
     renderCurrentView();
   };
 
+  // ============================================================
+  // ADMIN TAB: QUEUE MANAGEMENT (จัดการคิวงาน)
+  // Complete CRUD, Manual Drag/Order, Visibility Toggle, 7 Statuses
+  // ============================================================
+  function renderAdminQueuesTab() {
+    const queues = Store.getAllQueueItems(); // Get all including hidden
+    const qSettings = Store.getQueuePageSettings();
+    const statusNames = qSettings.statusNames || {
+      waiting: 'รอคิว',
+      progress: 'กำลังดำเนินการ',
+      review: 'รอตรวจ',
+      edit: 'รอแก้ไข',
+      done: 'เสร็จแล้ว',
+      pause: 'พักคิว',
+      cancel: 'ยกเลิก'
+    };
+
+    return `
+      <div class="card" style="border-radius: 20px; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.3rem;">จัดการคิวงาน (Queue Management)</h3>
+            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">
+              เพิ่ม/แก้ไข/เรียงลำดับคิวงานของร้าน (ระบบคิวแยกจากออเดอร์ แอดมินเป็นผู้ควบคุม 100%)
+            </p>
+          </div>
+          <div>
+            <button type="button" class="btn btn-primary" onclick="openAddQueueModal()" style="font-weight: 700; border-radius: 14px; padding: 0.65rem 1.4rem;">
+              + เพิ่มคิวงานใหม่
+            </button>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th style="width: 60px; text-align: center;">ลำดับ</th>
+                <th>เลขคิว</th>
+                <th>ชื่องาน / ประเภท</th>
+                <th>ลูกค้า (LINE / เบอร์)</th>
+                <th style="text-align: center;">สถานะ</th>
+                <th style="width: 120px; text-align: center;">ความคืบหน้า</th>
+                <th style="text-align: center;">แสดงผล</th>
+                <th style="text-align: center; width: 100px;">จัดเรียง</th>
+                <th style="text-align: center; width: 140px;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${queues.length > 0 ? queues.map((q, idx) => {
+                const statusKey = (q.status || 'waiting').toLowerCase();
+                const statusLabel = statusNames[statusKey] || statusKey;
+                const progressPct = Math.min(100, Math.max(0, Number(q.progress) || 0));
+
+                return `
+                  <tr>
+                    <td style="text-align: center; font-weight: 700; color: #BE185D;">
+                      ${idx + 1}
+                    </td>
+                    <td>
+                      <span class="queue-pill-num" style="font-size: 1.05rem; padding: 2px 10px;">
+                        ${escapeHTML(q.queue_number || 'Q-')}
+                      </span>
+                    </td>
+                    <td>
+                      <strong>${escapeHTML(q.job_name || 'งานออกแบบ')}</strong>
+                      <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                        ${escapeHTML(q.job_type || 'ออกแบบป้าย')} | ${escapeHTML(q.queue_date || 'วันนี้')}
+                      </div>
+                    </td>
+                    <td>
+                      <div style="font-weight: 600;">${escapeHTML(q.customer_name || '-')}</div>
+                      <div style="font-size: 11px; color: #718096;">
+                        ${q.line_id ? `LINE: ${escapeHTML(q.line_id)}` : ''} 
+                        ${q.phone ? `(${escapeHTML(q.phone)})` : ''}
+                      </div>
+                    </td>
+                    <td style="text-align: center;">
+                      <span class="queue-status-chip status-${statusKey}">
+                        ${escapeHTML(statusLabel)}
+                      </span>
+                    </td>
+                    <td style="text-align: center;">
+                      <div style="font-size: 12px; font-weight: 700; color: #BE185D; margin-bottom: 2px;">${progressPct}%</div>
+                      <div class="queue-progress-track" style="margin: 0; height: 6px;">
+                        <div class="queue-progress-fill" style="width: ${progressPct}%;"></div>
+                      </div>
+                    </td>
+                    <td style="text-align: center;">
+                      <button 
+                        type="button" 
+                        class="btn btn-sm ${q.is_visible !== false ? 'btn-success' : 'btn-outline'}" 
+                        onclick="toggleQueueVisibilityAdminAction('${q.id}')"
+                        style="padding: 3px 8px; font-size: 11px; border-radius: 8px;"
+                      >
+                        ${q.is_visible !== false ? 'เปิดแสดง' : 'ซ่อนอยู่'}
+                      </button>
+                    </td>
+                    <td style="text-align: center;">
+                      <div style="display: inline-flex; gap: 4px;">
+                        <button 
+                          type="button" 
+                          class="btn btn-outline btn-sm" 
+                          onclick="moveQueueAdminAction('${q.id}', 'up')" 
+                          ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''}
+                          style="padding: 2px 7px; font-size: 12px;"
+                          title="เลื่อนขึ้น"
+                        >↑</button>
+                        <button 
+                          type="button" 
+                          class="btn btn-outline btn-sm" 
+                          onclick="moveQueueAdminAction('${q.id}', 'down')" 
+                          ${idx === queues.length - 1 ? 'disabled style="opacity:0.3;"' : ''}
+                          style="padding: 2px 7px; font-size: 12px;"
+                          title="เลื่อนลง"
+                        >↓</button>
+                      </div>
+                    </td>
+                    <td style="text-align: center;">
+                      <div style="display: inline-flex; gap: 4px;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="openEditQueueModal('${q.id}')" style="padding: 3px 8px; font-size: 11px;">แก้ไข</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteQueueAdminAction('${q.id}')" style="padding: 3px 8px; font-size: 11px;">ลบ</button>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('') : `
+                <tr>
+                  <td colspan="9" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    ยังไม่มีคิวงานในระบบ กดปุ่ม "+ เพิ่มคิวงานใหม่" เพื่อเริ่มต้นได้เลยค่ะ
+                  </td>
+                </tr>
+              `}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // Admin Queue Action Handlers
+  window.moveQueueAdminAction = function (id, direction) {
+    Store.moveQueueItem(id, direction);
+    renderCurrentView();
+  };
+
+  window.toggleQueueVisibilityAdminAction = function (id) {
+    Store.toggleQueueVisibility(id);
+    renderCurrentView();
+  };
+
+  window.deleteQueueAdminAction = function (id) {
+    if (!confirm('ยืนยันการลบคิวงานนี้ใช่หรือไม่?')) return;
+    Store.deleteQueueItem(id);
+    renderCurrentView();
+  };
+
+  // Add / Edit Modal for Admin Queues
+  window.openAddQueueModal = function () {
+    openQueueEditModalInternal(null);
+  };
+
+  window.openEditQueueModal = function (id) {
+    const item = Store.getQueueItemById(id);
+    if (!item) return;
+    openQueueEditModalInternal(item);
+  };
+
+  function openQueueEditModalInternal(item) {
+    let modal = $('adminQueueModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'adminQueueModal';
+      modal.className = 'modal-overlay';
+      modal.onclick = (e) => { if (e.target === modal) closeQueueAdminModal(); };
+      document.body.appendChild(modal);
+    }
+
+    const isEdit = !!item;
+    const allQueues = Store.getAllQueueItems();
+    const nextNum = 'Q' + (allQueues.length + 1);
+
+    modal.innerHTML = `
+      <div class="modal-card" style="max-width: 620px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 2rem; border-radius: 24px; border: 1.5px solid #FBCFE8;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.85rem;">
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.25rem;">
+            ${isEdit ? 'แก้ไขข้อมูลคิวงาน' : 'เพิ่มคิวงานใหม่'}
+          </h3>
+          <button type="button" onclick="closeQueueAdminModal()" style="background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #A0AEC0;">✕</button>
+        </div>
+
+        <form onsubmit="handleSaveQueueAdminSubmit(event, '${isEdit ? item.id : ''}')">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">เลขคิว (เช่น Q28, Q29) <span style="color:var(--danger)">*</span></label>
+              <input type="text" id="adminQ_number" class="form-input" value="${escapeHTML(item ? item.queue_number : nextNum)}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">วันที่คิวงาน</label>
+              <input type="text" id="adminQ_date" class="form-input" value="${escapeHTML(item ? item.queue_date : new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }))}">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ประเภทงาน</label>
+              <input type="text" id="adminQ_jobType" class="form-input" placeholder="เช่น ออกแบบป้าย, หัวป้าย, การ์ตูน" value="${escapeHTML(item ? item.job_type : 'ออกแบบป้าย')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ชื่องาน / รายละเอียดสั้น <span style="color:var(--danger)">*</span></label>
+              <input type="text" id="adminQ_jobName" class="form-input" placeholder="เช่น ป้ายร้านเบเกอรี่คุณหวาน" value="${escapeHTML(item ? item.job_name : '')}" required>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ชื่อลูกค้า <span style="color:var(--danger)">*</span></label>
+              <input type="text" id="adminQ_custName" class="form-input" placeholder="ชื่อที่ลูกค้าแจ้ง" value="${escapeHTML(item ? item.customer_name : '')}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">LINE ID</label>
+              <input type="text" id="adminQ_lineId" class="form-input" placeholder="@lineid" value="${escapeHTML(item ? (item.line_id || '') : '')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">เบอร์โทรศัพท์</label>
+              <input type="text" id="adminQ_phone" class="form-input" placeholder="08x-xxx-xxxx" value="${escapeHTML(item ? (item.phone || '') : '')}">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">สถานะคิวงาน</label>
+              <select id="adminQ_status" class="form-input">
+                <option value="waiting" ${item && item.status === 'waiting' ? 'selected' : ''}>รอคิว (waiting)</option>
+                <option value="progress" ${item && item.status === 'progress' ? 'selected' : ''}>กำลังดำเนินการ (progress)</option>
+                <option value="review" ${item && item.status === 'review' ? 'selected' : ''}>รอตรวจ (review)</option>
+                <option value="edit" ${item && item.status === 'edit' ? 'selected' : ''}>รอแก้ไข (edit)</option>
+                <option value="done" ${item && item.status === 'done' ? 'selected' : ''}>เสร็จแล้ว (done)</option>
+                <option value="pause" ${item && item.status === 'pause' ? 'selected' : ''}>พักคิว (pause)</option>
+                <option value="cancel" ${item && item.status === 'cancel' ? 'selected' : ''}>ยกเลิก (cancel)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ความคืบหน้า (%)</label>
+              <input type="number" id="adminQ_progress" class="form-input" min="0" max="100" value="${item ? item.progress : 0}">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ลำดับคิว / จำนวนทั้งหมด (เช่น 1 / 10)</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="number" id="adminQ_currentQueue" class="form-input" placeholder="คิวที่" value="${item ? (item.current_queue || 1) : 1}">
+                <span>/</span>
+                <input type="number" id="adminQ_totalQueue" class="form-input" placeholder="ทั้งหมด" value="${item ? (item.total_queue || 1) : 1}">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">เวลาอัปเดตล่าสุด</label>
+              <input type="text" id="adminQ_updatedAt" class="form-input" placeholder="เช่น 14:30 น." value="${escapeHTML(item ? item.updated_at : new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.')}">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">รายละเอียดของงาน / บรีฟงาน</label>
+            <textarea id="adminQ_desc" class="form-textarea" rows="2" placeholder="รายละเอียดของงานเพิ่มเติม">${escapeHTML(item ? (item.description || '') : '')}</textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">หมายเหตุสำหรับลูกค้า (แสดงบนการ์ด)</label>
+            <input type="text" id="adminQ_note" class="form-input" placeholder="เช่น ส่งแบบร่างรอบแรกตอน 16:00 น." value="${escapeHTML(item ? (item.note || '') : '')}">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ลิงก์รูปภาพตัวอย่างงาน / บรีฟ (URL)</label>
+            <input type="text" id="adminQ_imageUrl" class="form-input" placeholder="https://..." value="${escapeHTML(item ? (item.image_url || '') : '')}">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="adminQ_isVisible" ${!item || item.is_visible !== false ? 'checked' : ''}>
+              <span style="font-weight: 700; color: var(--primary-deep);">เปิดแสดงคิวนี้บนหน้าเช็กคิวสาธารณะ</span>
+            </label>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="btn btn-outline" onclick="closeQueueAdminModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700;">บันทึกคิวงาน</button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    modal.classList.add('is-active');
+  }
+
+  window.closeQueueAdminModal = function () {
+    const modal = $('adminQueueModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
+  window.handleSaveQueueAdminSubmit = function (e, id) {
+    e.preventDefault();
+    const queueNumber = ($('adminQ_number')?.value || '').trim();
+    const jobName = ($('adminQ_jobName')?.value || '').trim();
+    const custName = ($('adminQ_custName')?.value || '').trim();
+
+    if (!queueNumber || !jobName || !custName) {
+      return alert('กรุณากรอกเลขคิว ชื่องาน และชื่อลูกค้าให้ครบถ้วนนะคะ');
+    }
+
+    const payload = {
+      queue_number: queueNumber,
+      customer_name: custName,
+      line_id: ($('adminQ_lineId')?.value || '').trim(),
+      phone: ($('adminQ_phone')?.value || '').trim(),
+      job_type: ($('adminQ_jobType')?.value || '').trim() || 'ออกแบบป้าย',
+      job_name: jobName,
+      queue_date: ($('adminQ_date')?.value || '').trim(),
+      status: $('adminQ_status')?.value || 'waiting',
+      progress: Number($('adminQ_progress')?.value) || 0,
+      current_queue: Number($('adminQ_currentQueue')?.value) || 1,
+      total_queue: Number($('adminQ_totalQueue')?.value) || 1,
+      updated_at: ($('adminQ_updatedAt')?.value || '').trim() || new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.',
+      description: ($('adminQ_desc')?.value || '').trim(),
+      note: ($('adminQ_note')?.value || '').trim(),
+      image_url: ($('adminQ_imageUrl')?.value || '').trim(),
+      is_visible: $('adminQ_isVisible')?.checked !== false
+    };
+
+    if (id) {
+      payload.id = id;
+    }
+
+    Store.saveQueueItem(payload);
+    closeQueueAdminModal();
+    alert('บันทึกข้อมูลคิวงานเรียบร้อยแล้วค่ะ!');
+    renderCurrentView();
+  };
+
   function renderAdminSettingsTab(s) {
     const stats = s.stats || {};
     const banners = Store.getHomeBanners();
     const queueStatus = Store.getQueueStatus();
+    const queuePage = Store.getQueuePageSettings();
     const headings = Store.getHeadings();
 
     return `
@@ -3180,68 +4137,109 @@ window.Store = Store;
           </div>
         </div>
 
-        
-        <!-- 3.0 Queue Notebook Notice (Single Centered Note) -->
+        <!-- 3.0 Queue Page Settings (หน้าเช็กคิวงาน ปรับแต่งข้อความทุกจุด) -->
         <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ข้อความบนกระดาษโน้ตคิวงานหน้าแรก</h3>
-          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1rem;">พิมพ์ข้อความประกาศหรือแจ้งเตือนคิวงานได้อิสระ จัดวางกึ่งกลางกระดาษอัตโนมัติ</p>
+          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ตั้งค่าหน้าเช็กคิวงาน (Queue Page Settings)</h3>
+          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+            ปรับแต่งข้อความ ป้ายกำกับ คำค้นหา และการเปิด/ปิดองค์ประกอบต่างๆ บนหน้าเช็กคิวสาธารณะได้ 100% โดยไม่ต้องแก้โค้ด
+          </p>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" style="margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">หัวข้อหลักบนกระดาษโน้ต (Hero Title)</label>
+              <input type="text" id="cfg_qp_heroTitle" class="form-input" value="${escapeHTML(queuePage.heroTitle || 'เช็กคิวงาน ♡')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">คำบรรยายหัวเว็บ (Hero Subtitle)</label>
+              <input type="text" id="cfg_qp_heroSubtitle" class="form-input" value="${escapeHTML(queuePage.heroSubtitle || 'ดูสถานะคิวงานของร้านแบบเรียลไทม์')}">
+            </div>
+          </div>
+
           <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">ป้ายสถานะหัวกระดาษ (เช่น ว่างพร้อมรับ 3 คิว)</label>
-            <input type="text" id="cfg_queueBadgeText" class="form-input" value="${escapeHTML(s.queueBadgeText || s.queueStatus?.queueText || 'ว่างพร้อมรับ 3 คิว')}">
+            <label class="form-label">ข้อความแถบแจ้งเตือนคิวงาน (Notice Banner Text)</label>
+            <input type="text" id="cfg_qp_noticeText" class="form-input" value="${escapeHTML(queuePage.noticeText || 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ')}">
           </div>
-          <div class="form-group">
-            <label class="form-label">ข้อความในสมุดโน้ต (พิมพ์หลายบรรทัดได้)</label>
-            <textarea id="cfg_notebookNotice" class="form-textarea" rows="4">${escapeHTML(s.notebookNotice || 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}</textarea>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" style="margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">หัวข้อการ์ดค้นหา</label>
+              <input type="text" id="cfg_qp_searchTitle" class="form-input" value="${escapeHTML(queuePage.searchTitle || 'ค้นหาคิวของคุณ')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ข้อความช่องพิมพ์ค้นหา</label>
+              <input type="text" id="cfg_qp_searchPlaceholder" class="form-input" value="${escapeHTML(queuePage.searchPlaceholder || 'กรอกชื่อ, LINE ID, เบอร์โทรศัพท์ หรือเลขคิว...')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ข้อความบนปุ่มค้นหา</label>
+              <input type="text" id="cfg_qp_searchButtonText" class="form-input" value="${escapeHTML(queuePage.searchButtonText || 'ดูคิวของฉัน')}">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" style="margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">ป้าย: คิววันนี้</label>
+              <input type="text" id="cfg_qp_todayLabel" class="form-input" value="${escapeHTML(queuePage.todayLabel || 'คิววันนี้')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ป้าย: รอคิว</label>
+              <input type="text" id="cfg_qp_waitingLabel" class="form-input" value="${escapeHTML(queuePage.waitingLabel || 'รอคิว')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ป้าย: กำลังทำ</label>
+              <input type="text" id="cfg_qp_workingLabel" class="form-input" value="${escapeHTML(queuePage.workingLabel || 'กำลังทำ')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ป้าย: เสร็จแล้ว</label>
+              <input type="text" id="cfg_qp_completedLabel" class="form-input" value="${escapeHTML(queuePage.completedLabel || 'เสร็จแล้ว')}">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" style="margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label">หัวข้อรายการคิว (Section Title)</label>
+              <input type="text" id="cfg_qp_sectionTitle" class="form-input" value="${escapeHTML(queuePage.sectionTitle || 'คิวงานของร้าน ♡')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">ข้อความเมื่อไม่มีคิว (Empty State)</label>
+              <input type="text" id="cfg_qp_emptyStateText" class="form-input" value="${escapeHTML(queuePage.emptyStateText || 'วันนี้ยังไม่มีคิวงานนะคะ ♡')}">
+            </div>
+          </div>
+
+          <!-- Component Toggles -->
+          <div style="background: #FFF9FA; border-radius: 14px; padding: 1rem; border: 1px dashed #FBCFE8; margin-top: 1rem;">
+            <div style="font-weight: 700; color: #BE185D; margin-bottom: 0.5rem; font-size: 0.9rem;">
+              ตัวเลือกการแสดงผลบนหน้าเช็กคิว:
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" style="font-size: 0.88rem;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="cfg_qp_showSearch" ${queuePage.showSearch !== false ? 'checked' : ''}>
+                <span>แสดงกล่องค้นหาคิว</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="cfg_qp_showSummary" ${queuePage.showSummary !== false ? 'checked' : ''}>
+                <span>แสดงป้ายนับสรุปคิว</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="cfg_qp_showProgress" ${queuePage.showProgress !== false ? 'checked' : ''}>
+                <span>แสดงหลอดความคืบหน้า</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="cfg_qp_showTimeline" ${queuePage.showTimeline !== false ? 'checked' : ''}>
+                <span>แสดงไทม์ไลน์ 5 ขั้นตอน</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="cfg_qp_showCustomerName" ${queuePage.showCustomerName !== false ? 'checked' : ''}>
+                <span>แสดงชื่อลูกค้า (เซนเซอร์)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="cfg_qp_showNote" ${queuePage.showNote !== false ? 'checked' : ''}>
+                <span>แสดงหมายเหตุจากแอดมิน</span>
+              </label>
+            </div>
           </div>
         </div>
 
-        <!-- 3.0.1 Custom Categories Configuration (Item 13B) -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ตั้งค่าหมวดหมู่สินค้า & ผลงาน (Categories)</h3>
-          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">พิมพ์หมวดหมู่ที่ต้องการแยกด้วยเครื่องหมายจุลภาค (,) ระบบจะอัปเดตแท็บตัวกรองและเมนูเลือกหมวดหมู่อัตโนมัติ</p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="form-group">
-              <label class="form-label">หมวดหมู่ฟอนต์</label>
-              <input type="text" id="cfg_catFonts" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.fonts) ? s.categories.fonts.join(', ') : (s.categories?.fonts || 'ลายมือ, หัวป้าย, ตัวพิมพ์, น่ารัก'))}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">หมวดหมู่สินค้าสำเร็จ/อื่นๆ</label>
-              <input type="text" id="cfg_catProducts" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.products) ? s.categories.products.join(', ') : (s.categories?.products || 'ป้ายสำเร็จ, ไฟล์ตกแต่ง, การ์ตูน, องค์ประกอบ, เทมเพลต'))}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">หมวดหมู่รวมกลุ่ม VIP</label>
-              <input type="text" id="cfg_catGroups" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.groups) ? s.categories.groups.join(', ') : (s.categories?.groups || 'VIP ตลอดชีพ, รวมงานกราฟิก, การ์ตูน & คาแรกเตอร์, ป้ายร้าน & เมนู'))}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">หมวดหมู่ผลงาน (Portfolio)</label>
-              <input type="text" id="cfg_catPortfolio" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolio) ? s.categories.portfolio.join(', ') : (s.categories?.portfolio || 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ'))}">
-            </div>
-          </div>
-        </div>
 
-        <!-- 3.0.2 Floating Mascot GIF Sticker (Item 6) -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">มาสคอตดุ๊กดิ๊กบนหน้าจอ (Floating Mascot GIF)</h3>
-          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1rem;">ใส่ลิงก์รูป GIF หรือภาพน่ารักดุ๊กดิ๊กที่จะลอยอยู่มุมขวาล่างของหน้าจอ</p>
-          <div class="form-group">
-            <label class="form-label">ลิงก์ภาพ GIF มาสคอต</label>
-            <input type="text" id="cfg_mascotGifUrl" class="form-input" value="${escapeHTML(s.mascotGifUrl || 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdW93OWdtMWFwNWw1czZtMXk4NHV6MWt5OGI1eDhkOHU0bXlnNHI3MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUYT2TxD2/giphy.gif')}">
-          </div>
-        </div>
-
-        <!-- 3.0 Queue Notebook Notice (Single Centered Note) -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ข้อความบนกระดาษโน้ตคิวงานหน้าแรก</h3>
-          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1rem;">พิมพ์ข้อความประกาศหรือแจ้งเตือนคิวงานได้อิสระ จัดวางกึ่งกลางกระดาษอัตโนมัติ</p>
-          <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">ป้ายสถานะหัวกระดาษ (เช่น ว่างพร้อมรับ 3 คิว)</label>
-            <input type="text" id="cfg_queueBadgeText" class="form-input" value="${escapeHTML(s.queueBadgeText || s.queueStatus?.queueText || 'ว่างพร้อมรับ 3 คิว')}">
-          </div>
-          <div class="form-group">
-            <label class="form-label">ข้อความในสมุดโน้ต (พิมพ์หลายบรรทัดได้)</label>
-            <textarea id="cfg_notebookNotice" class="form-textarea" rows="4">${escapeHTML(s.notebookNotice || 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}</textarea>
-          </div>
-        </div>
 
         <!-- 3.0.1 Custom Categories Configuration (Item 13B) -->
         <div class="card" style="margin-bottom: 1.5rem;">
@@ -3349,6 +4347,22 @@ window.Store = Store;
             <div class="form-group">
               <label class="form-label">หน้าผลงาน: คำบรรยาย</label>
               <input type="text" id="cfg_portDesc" class="form-input" value="${escapeHTML(headings.portDesc || 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้ารีวิว: หัวเรื่อง</label>
+              <input type="text" id="cfg_reviewsTitle" class="form-input" value="${escapeHTML(headings.reviewsTitle || 'รีวิวจากลูกค้า')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้ารีวิว: คำบรรยาย</label>
+              <input type="text" id="cfg_reviewsDesc" class="form-input" value="${escapeHTML(headings.reviewsDesc || 'ความประทับใจจริงจากลูกค้าที่ใช้บริการ BNC GraphMate')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้าสถานะออเดอร์: หัวเรื่อง</label>
+              <input type="text" id="cfg_ordersTitle" class="form-input" value="${escapeHTML(headings.ordersTitle || 'ประวัติคำสั่งซื้อ')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">หน้าสถานะออเดอร์: คำบรรยาย</label>
+              <input type="text" id="cfg_ordersDesc" class="form-input" value="${escapeHTML(headings.ordersDesc || 'ติดตามสถานะคำสั่งซื้อ ตรวจสอบสลิป และรับไฟล์งาน')}">
             </div>
           </div>
         </div>
@@ -3577,6 +4591,26 @@ window.Store = Store;
           chatHours: getVal('cfg_chatHours', '09:00 - 23:00 น. (ตอบไว)'),
           deliveryInfo: getVal('cfg_deliveryInfo', 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')
         },
+        queuePage: {
+          heroTitle: getVal('cfg_qp_heroTitle', 'เช็กคิวงาน ♡'),
+          heroSubtitle: getVal('cfg_qp_heroSubtitle', 'ดูสถานะคิวงานของร้านแบบเรียลไทม์'),
+          noticeText: getVal('cfg_qp_noticeText', 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ'),
+          searchTitle: getVal('cfg_qp_searchTitle', 'ค้นหาคิวของคุณ'),
+          searchPlaceholder: getVal('cfg_qp_searchPlaceholder', 'กรอกชื่อ, LINE ID, เบอร์โทรศัพท์ หรือเลขคิว...'),
+          searchButtonText: getVal('cfg_qp_searchButtonText', 'ดูคิวของฉัน'),
+          todayLabel: getVal('cfg_qp_todayLabel', 'คิววันนี้'),
+          waitingLabel: getVal('cfg_qp_waitingLabel', 'รอคิว'),
+          workingLabel: getVal('cfg_qp_workingLabel', 'กำลังทำ'),
+          completedLabel: getVal('cfg_qp_completedLabel', 'เสร็จแล้ว'),
+          sectionTitle: getVal('cfg_qp_sectionTitle', 'คิวงานของร้าน ♡'),
+          emptyStateText: getVal('cfg_qp_emptyStateText', 'วันนี้ยังไม่มีคิวงานนะคะ ♡'),
+          showSearch: getChecked('cfg_qp_showSearch', true),
+          showSummary: getChecked('cfg_qp_showSummary', true),
+          showProgress: getChecked('cfg_qp_showProgress', true),
+          showTimeline: getChecked('cfg_qp_showTimeline', true),
+          showCustomerName: getChecked('cfg_qp_showCustomerName', true),
+          showNote: getChecked('cfg_qp_showNote', true)
+        },
         headings: {
           fontsTitle: getVal('cfg_fontsTitle', 'ฟอนต์ทั้งหมด'),
           fontsDesc: getVal('cfg_fontsDesc', 'ฟอนต์ลิขสิทธิ์แท้ ใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์'),
@@ -3586,10 +4620,10 @@ window.Store = Store;
           groupsDesc: getVal('cfg_groupsDesc', 'รวมกลุ่ม VIP อัปเดตงานต่อเนื่อง โหลดได้ไม่อั้นตลอดชีพ'),
           portTitle: getVal('cfg_portTitle', 'ผลงานการออกแบบ'),
           portDesc: getVal('cfg_portDesc', 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน'),
-          reviewsTitle: Store.getHeadings().reviewsTitle || 'รีวิวจากลูกค้า',
-          reviewsDesc: Store.getHeadings().reviewsDesc || 'ความประทับใจจริงจากลูกค้าที่ใช้บริการ BNC GraphMate',
-          ordersTitle: Store.getHeadings().ordersTitle || 'ประวัติคำสั่งซื้อ',
-          ordersDesc: Store.getHeadings().ordersDesc || 'ติดตามสถานะคำสั่งซื้อ ตรวจสอบสลิป และรับไฟล์งาน'
+          reviewsTitle: getVal('cfg_reviewsTitle', 'รีวิวจากลูกค้า'),
+          reviewsDesc: getVal('cfg_reviewsDesc', 'ความประทับใจจริงจากลูกค้าที่ใช้บริการ BNC GraphMate'),
+          ordersTitle: getVal('cfg_ordersTitle', 'ประวัติคำสั่งซื้อ'),
+          ordersDesc: getVal('cfg_ordersDesc', 'ติดตามสถานะคำสั่งซื้อ ตรวจสอบสลิป และรับไฟล์งาน')
         }
       };
 
