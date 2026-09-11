@@ -3682,11 +3682,27 @@ window.Store = Store;
   };
 
   window.openAddNewCustomerModal = function () {
-    const name = prompt('กรอกชื่อลูกค้า:');
-    if (!name) return;
-    const lineId = prompt('กรอก LINE ID (ถ้ามี):', '') || '';
-    const phone = prompt('กรอกเบอร์โทรศัพท์ (ถ้ามี):', '') || '';
-    const stamps = Number(prompt('จำนวนดวงเริ่มต้น (0-10):', '1')) || 0;
+    const modal = $('adminCustomerModal');
+    if (!modal) return;
+    $('adminCust_name').value = '';
+    $('adminCust_lineId').value = '';
+    $('adminCust_phone').value = '';
+    $('adminCust_stamps').value = '1';
+    modal.classList.add('is-active');
+  };
+
+  window.closeAddCustomerModal = function () {
+    const modal = $('adminCustomerModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
+  window.handleSaveCustomerSubmit = function (e) {
+    e.preventDefault();
+    const name = ($('adminCust_name')?.value || '').trim();
+    if (!name) return alert('กรุณากรอกชื่อลูกค้า');
+    const lineId = ($('adminCust_lineId')?.value || '').trim();
+    const phone = ($('adminCust_phone')?.value || '').trim();
+    const stamps = Math.min(10, Math.max(0, Number($('adminCust_stamps')?.value) || 0));
 
     Store.saveCustomer({
       name,
@@ -3694,6 +3710,8 @@ window.Store = Store;
       phone,
       heart_stamps: stamps
     });
+
+    closeAddCustomerModal();
     alert('เพิ่มลูกค้าและเปิดบัตรสะสมแต้มเรียบร้อยแล้วค่ะ!');
     renderCurrentView();
   };
@@ -5599,6 +5617,103 @@ window.Store = Store;
     `;
     document.body.appendChild(adminGroupModal);
 
+    // 5. Admin Add Portfolio Modal
+    const adminPortfolioModal = document.createElement('div');
+    adminPortfolioModal.id = 'adminPortfolioModal';
+    adminPortfolioModal.className = 'modal-overlay';
+    adminPortfolioModal.onclick = (e) => { if (e.target === adminPortfolioModal) closeAddPortfolioModal(); };
+    adminPortfolioModal.innerHTML = `
+      <div class="modal-card" style="max-width: 560px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">เพิ่มรูปผลงานใหม่</h3>
+          <button type="button" onclick="closeAddPortfolioModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer;">✕</button>
+        </div>
+        <form onsubmit="handleSavePortfolioSubmit(event)">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ชื่อผลงาน / ชื่องานออกแบบ <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="adminPortTitle" class="form-input" placeholder="เช่น ป้ายร้านอาหารคุณหมู" required>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">หมวดหมู่บริการ</label>
+              <select id="adminPortCategory" class="form-input">
+                <option value="ป้ายเครดิต">ป้ายเครดิต</option>
+                <option value="ป้ายแอพพรี">ป้ายแอพพรี</option>
+                <option value="ป้ายเติมเกม">ป้ายเติมเกม</option>
+                <option value="ป้ายเปิดร้าน">ป้ายเปิดร้าน</option>
+                <option value="ป้ายโปรโมชั่น">ป้ายโปรโมชั่น</option>
+                <option value="งานป้ายสั่งทำพิเศษ">งานป้ายสั่งทำพิเศษ</option>
+                <option value="ป้ายร้าน">ป้ายร้าน</option>
+                <option value="ฟอนต์">ฟอนต์</option>
+                <option value="กราฟิก">กราฟิก</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ราคามาตรฐาน (บาท)</label>
+              <input type="number" id="adminPortPrice" class="form-input" value="129">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-weight: 700;">ลิงก์ภาพผลงาน 1:1 จัตุรัส (URL) <span style="color:var(--danger)">*</span></label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="adminPortImage" class="form-input" placeholder="https://... หรือเลือกรูปจากเครื่อง" required style="flex: 1;">
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                เลือกรูป
+                <input type="file" accept="image/*" style="display: none;" onchange="handlePortfolioImageUpload(event)">
+              </label>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="btn btn-outline" onclick="closeAddPortfolioModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700;">บันทึกผลงาน</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(adminPortfolioModal);
+
+    // 6. Admin Add/Edit Customer & Stamp Modal (Kawaii Card Sheet Modal)
+    const adminCustomerModal = document.createElement('div');
+    adminCustomerModal.id = 'adminCustomerModal';
+    adminCustomerModal.className = 'modal-overlay';
+    adminCustomerModal.onclick = (e) => { if (e.target === adminCustomerModal) closeAddCustomerModal(); };
+    adminCustomerModal.innerHTML = `
+      <div class="modal-card" style="max-width: 540px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 2rem 1.8rem; border-radius: 24px; border: 1.5px solid #FBCFE8;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.25rem;">เพิ่มลูกค้า & เปิดบัตรสะสมแต้ม</h3>
+          <button type="button" onclick="closeAddCustomerModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color: #A0AEC0;">✕</button>
+        </div>
+        <form onsubmit="handleSaveCustomerSubmit(event)">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ชื่อลูกค้า / ชื่อเฟซบุ๊ก / ชื่อไลน์ <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="adminCust_name" class="form-input" placeholder="เช่น ลูกค้ามินนี่ หรือ คุณหวาน" required>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">LINE ID</label>
+              <input type="text" id="adminCust_lineId" class="form-input" placeholder="@lineid">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">เบอร์โทรศัพท์</label>
+              <input type="text" id="adminCust_phone" class="form-input" placeholder="08x-xxx-xxxx">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-weight: 700;">จำนวนดวงหัวใจเริ่มต้น (0-10 ดวง)</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <input type="number" id="adminCust_stamps" class="form-input" min="0" max="10" value="1" style="width: 100px;">
+              <small style="color: var(--text-muted);">*สะสมครบ 10 ดวง รับสิทธิ์ของขวัญฟรี</small>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+            <button type="button" class="btn btn-outline" onclick="closeAddCustomerModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700;">บันทึกลูกค้า</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(adminCustomerModal);
+
     // Lightbox Modal
     const lightboxModal = document.createElement('div');
     lightboxModal.id = 'lightboxModal';
@@ -6027,6 +6142,17 @@ window.Store = Store;
     if (!confirm('ยืนยันการลบกลุ่มนี้ใช่หรือไม่?')) return;
     Store.deleteGroup(id);
     renderCurrentView();
+  };
+
+  window.handlePortfolioImageUpload = function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const input = document.getElementById('adminPortImage');
+      if (input) input.value = evt.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   // ── Run upon DOM load ────────────────────────────────────────
