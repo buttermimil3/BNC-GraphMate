@@ -3565,33 +3565,42 @@ window.Store = Store;
                 </div>
               </div>
 
-              <!-- 10-Stamp Grid (2 Rows x 5 Columns, Cute Musical Note / Custom Stamp Icon) -->
+              <!-- 10-Stamp Grid (2 Rows x 5 Columns, Classic Postage Stamp with Perforated Scalloped Teeth) -->
               <div class="stamp-grid-10">
                 ${Array.from({ length: 10 }).map((_, idx) => {
                   const num = idx + 1;
                   const isStamped = num <= currentStamps;
                   const customStampImg = stampCfg.stampIconUrl || stampCfg.mascotIcon;
+                  const stampSvgFrame = `
+                    <svg class="postage-stamp-svg-border" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <path d="M 0 0 L 2.94 0 A 4.2 4.2 0 0 0 11.34 0 L 14.29 0 L 17.23 0 A 4.2 4.2 0 0 0 25.63 0 L 28.57 0 L 31.51 0 A 4.2 4.2 0 0 0 39.91 0 L 42.86 0 L 45.80 0 A 4.2 4.2 0 0 0 54.20 0 L 57.14 0 L 60.09 0 A 4.2 4.2 0 0 0 68.49 0 L 71.43 0 L 74.37 0 A 4.2 4.2 0 0 0 82.77 0 L 85.71 0 L 88.66 0 A 4.2 4.2 0 0 0 97.06 0 L 100.00 0 L 100 2.94 A 4.2 4.2 0 0 0 100 11.34 L 100 14.29 L 100 17.23 A 4.2 4.2 0 0 0 100 25.63 L 100 28.57 L 100 31.51 A 4.2 4.2 0 0 0 100 39.91 L 100 42.86 L 100 45.80 A 4.2 4.2 0 0 0 100 54.20 L 100 57.14 L 100 60.09 A 4.2 4.2 0 0 0 100 68.49 L 100 71.43 L 100 74.37 A 4.2 4.2 0 0 0 100 82.77 L 100 85.71 L 100 88.66 A 4.2 4.2 0 0 0 100 97.06 L 100 100.00 L 97.06 100 A 4.2 4.2 0 0 0 88.66 100 L 85.71 100 L 82.77 100 A 4.2 4.2 0 0 0 74.37 100 L 71.43 100 L 68.49 100 A 4.2 4.2 0 0 0 60.09 100 L 57.14 100 L 54.20 100 A 4.2 4.2 0 0 0 45.80 100 L 42.86 100 L 39.91 100 A 4.2 4.2 0 0 0 31.51 100 L 28.57 100 L 25.63 100 A 4.2 4.2 0 0 0 17.23 100 L 14.29 100 L 11.34 100 A 4.2 4.2 0 0 0 2.94 100 L 0.00 100 L 0 97.06 A 4.2 4.2 0 0 0 0 88.66 L 0 85.71 L 0 82.77 A 4.2 4.2 0 0 0 0 74.37 L 0 71.43 L 0 68.49 A 4.2 4.2 0 0 0 0 60.09 L 0 57.14 L 0 54.20 A 4.2 4.2 0 0 0 0 45.80 L 0 42.86 L 0 39.91 A 4.2 4.2 0 0 0 0 31.51 L 0 28.57 L 0 25.63 A 4.2 4.2 0 0 0 0 17.23 L 0 14.29 L 0 11.34 A 4.2 4.2 0 0 0 0 2.94 L 0 0.00 Z" fill="#FFFFFF" />
+                    </svg>
+                  `;
 
                   if (isStamped) {
                     return `
-                      <div class="stamp-slot is-stamped" style="animation: stampBouncePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: ${idx * 160}ms;" title="ดวงที่ ${num}: ปั๊มแล้ว">
-                        <div class="stamp-ink-ring"></div>
-                        ${customStampImg ? `
-                          <img src="${escapeHTML(formatDriveImageUrl(customStampImg))}" alt="Stamp" style="width: 32px; height: 32px; object-fit: contain;" onerror="this.outerHTML='<svg class=\\'stamp-note-icon\\' viewBox=\\'0 0 24 24\\' width=\\'26\\' height=\\'26\\' fill=\\'none\\' stroke=\\'%23E2A3B7\\' stroke-width=\\'2.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M9 18V5l12-2v13\\'/><circle cx=\\'6\\' cy=\\'18\\' r=\\'3\\' fill=\\'%23FFB7CE\\'/><circle cx=\\'18\\' cy=\\'16\\' r=\\'3\\' fill=\\'%23FFB7CE\\'/></svg>';">
-                        ` : `
-                          <svg class="stamp-note-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#E2A3B7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 18V5l12-2v13" stroke="#71515B" stroke-width="2"/>
-                            <circle cx="6" cy="18" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
-                            <circle cx="18" cy="16" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
-                          </svg>
-                        `}
+                      <div class="stamp-slot is-stamped" style="animation: stampBouncePop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: ${idx * 160}ms;" title="ดวงที่ ${num}: ปั๊มแล้ว">
+                        ${stampSvgFrame}
+                        <div class="stamp-slot-inner">
+                          ${customStampImg ? `
+                            <img src="${escapeHTML(formatDriveImageUrl(customStampImg))}" alt="Stamp" class="stamp-slot-art-img" onerror="this.outerHTML='<svg class=\\'stamp-note-icon\\' viewBox=\\'0 0 24 24\\' width=\\'30\\' height=\\'30\\' fill=\\'none\\' stroke=\\'%23FF6B97\\' stroke-width=\\'2.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M9 18V5l12-2v13\\'/><circle cx=\\'6\\' cy=\\'18\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/><circle cx=\\'18\\' cy=\\'16\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/></svg>';">
+                          ` : `
+                            <svg class="stamp-note-icon" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#FF6B97" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M9 18V5l12-2v13" stroke="#71515B" stroke-width="2"/>
+                              <circle cx="6" cy="18" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
+                              <circle cx="18" cy="16" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
+                            </svg>
+                          `}
+                        </div>
                       </div>
                     `;
                   } else {
                     return `
                       <div class="stamp-slot is-empty" title="ดวงที่ ${num}: ยังไม่ได้ปั๊ม">
-                        <div class="stamp-ink-ring"></div>
-                        <span class="stamp-slot-num">${num}</span>
+                        ${stampSvgFrame}
+                        <div class="stamp-slot-inner">
+                          <span class="stamp-slot-num">${num}</span>
+                        </div>
                       </div>
                     `;
                   }
