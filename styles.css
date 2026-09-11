@@ -2864,3 +2864,73 @@ select option {
   color: #BE185D;
   font-weight: 700;
 }
+
+/* ============================================================
+   PORTFOLIO STYLE CATEGORY PILLS (Tier 1: Style Before Sign)
+   ============================================================ */
+.portfolio-style-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  margin-bottom: 1.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: #FBCFE8 transparent;
+}
+
+.portfolio-style-tabs::-webkit-scrollbar {
+  height: 5px;
+}
+
+.portfolio-style-tabs::-webkit-scrollbar-thumb {
+  background: #FBCFE8;
+  border-radius: 999px;
+}
+
+.portfolio-style-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4A5568;
+  background: #ffffff;
+  border: 1.5px solid #FBCFE8;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(244, 114, 182, 0.08);
+}
+
+.portfolio-style-pill:hover {
+  border-color: #FF2D8A;
+  color: #FF2D8A;
+  background: #FFF0F7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 45, 138, 0.15);
+}
+
+.portfolio-style-pill.is-active {
+  background: linear-gradient(135deg, #FF69B4, #FF2D8A);
+  color: #ffffff !important;
+  border-color: #FF2D8A !important;
+  font-weight: 700;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(255, 45, 138, 0.28);
+}
+
+.portfolio-style-pill-badge {
+  font-size: 0.75rem;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  font-weight: 700;
+}
+
+.portfolio-style-pill.is-active .portfolio-style-pill-badge {
+  background: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}

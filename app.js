@@ -107,7 +107,8 @@ const Store = (function () {
       fonts: 'ลายมือ, หัวป้าย, ตัวพิมพ์, น่ารัก',
       products: 'ป้ายสำเร็จ, ไฟล์ตกแต่ง, การ์ตูน, องค์ประกอบ, เทมเพลต',
       groups: 'VIP ตลอดชีพ, รวมงานกราฟิก, การ์ตูน & คาแรกเตอร์, ป้ายร้าน & เมนู',
-      portfolio: 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ'
+      portfolio: 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ',
+      portfolioStyles: 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต'
     },
     headings: {
       fontsTitle: 'ฟอนต์ทั้งหมด',
@@ -866,6 +867,13 @@ const Store = (function () {
     if (typeof cats === 'string') return cats.split(',').map(s => s.trim()).filter(Boolean);
     return ['ป้ายเครดิต', 'ป้ายแอพพรี', 'ป้ายเติมเกม', 'ป้ายเปิดร้าน', 'ป้ายโปรโมชั่น', 'งานป้ายสั่งทำพิเศษ'];
   },
+  getPortfolioStyles: function () {
+    const s = this.getSettings();
+    const styles = s.categories && s.categories.portfolioStyles;
+    if (Array.isArray(styles)) return styles;
+    if (typeof styles === 'string') return styles.split(',').map(s => s.trim()).filter(Boolean);
+    return ['สไตล์มินิมอล & คาเฟ่', 'สไตล์การ์ตูน & คาวาอี้', 'สไตล์ลายมือ & ฟอนต์', 'สไตล์ร้านค้า & โมเดิร์น', 'ไฟล์ตกแต่ง & เทมเพลต'];
+  },
 
  // Fonts
  getFonts: function (category) {
@@ -1553,6 +1561,8 @@ window.Store = Store;
  search: ''
  },
  portfolioFilter: 'ALL',
+ portfolioStyleFilter: 'ALL',
+ portfolioPriceFilter: 'ALL',
  activeStoryIndex: 0,
  lightboxImage: null,
  searchPointsQuery: '',
@@ -2778,19 +2788,44 @@ window.Store = Store;
     const s = Store.getSettings();
     const headings = Store.getHeadings();
     const portfolio = Store.getPortfolio();
-    const categories = ['ALL', 'ป้ายเครดิต', 'ป้ายแอพพรี', 'ป้ายเติมเกม', 'ป้ายเปิดร้าน', 'ป้ายโปรโมชั่น', 'งานป้ายสั่งทำพิเศษ', 'ป้ายร้าน', 'ฟอนต์', 'กราฟิก'];
+    const styleCategories = ['ALL', ...(Store.getPortfolioStyles ? Store.getPortfolioStyles() : ['สไตล์มินิมอล & คาเฟ่', 'สไตล์การ์ตูน & คาวาอี้', 'สไตล์ลายมือ & ฟอนต์', 'สไตล์ร้านค้า & โมเดิร์น', 'ไฟล์ตกแต่ง & เทมเพลต'])];
+    const signCategories = Store.getPortfolioCategories ? Store.getPortfolioCategories() : ['ป้ายเครดิต', 'ป้ายแอพพรี', 'ป้ายเติมเกม', 'ป้ายเปิดร้าน', 'ป้ายโปรโมชั่น', 'งานป้ายสั่งทำพิเศษ'];
 
+    state.portfolioStyleFilter = state.portfolioStyleFilter || 'ALL';
     state.portfolioPriceFilter = state.portfolioPriceFilter || 'ALL';
 
+    // Tier 1: Filter by Style Category first
+    // Tier 2: Filter by Sign / Price Category
     const filtered = portfolio.filter(item => {
+      // Style match
+      let styleMatch = true;
+      if (state.portfolioStyleFilter !== 'ALL') {
+        const itemStyle = (item.style_category || '').toLowerCase();
+        const filterStyle = state.portfolioStyleFilter.toLowerCase();
+        const itemTitle = (item.title || '').toLowerCase();
+        const itemDesc = (item.description || '').toLowerCase();
+        const itemCat = (item.category || '').toLowerCase();
+
+        // Exact match or keyword match in style/title/desc
+        if (itemStyle && itemStyle.includes(filterStyle)) {
+          styleMatch = true;
+        } else {
+          // Extract keywords (e.g. "มินิมอล", "คาเฟ่", "การ์ตูน", "คาวาอี้", "ลายมือ", "ฟอนต์", "โมเดิร์น", "ร้านอาหาร", "ตกแต่ง")
+          const keywords = filterStyle.split(/[&,/ ]+/).map(k => k.trim()).filter(k => k.length > 1 && k !== 'สไตล์');
+          styleMatch = keywords.some(kw => itemStyle.includes(kw) || itemTitle.includes(kw) || itemDesc.includes(kw) || itemCat.includes(kw));
+        }
+      }
+
+      // Sign / Price category match
+      let priceMatch = true;
       if (state.portfolioPriceFilter !== 'ALL') {
-        const pMatch = item.category === state.portfolioPriceFilter || (item.title && item.title.includes(state.portfolioPriceFilter));
-        return pMatch;
+        const pFilter = state.portfolioPriceFilter;
+        priceMatch = item.category === pFilter ||
+          (item.title && item.title.includes(pFilter)) ||
+          (item.style_category && item.style_category.includes(pFilter));
       }
-      if (state.portfolioFilter && state.portfolioFilter !== 'ALL') {
-        return item.category === state.portfolioFilter || (item.category && item.category.includes(state.portfolioFilter));
-      }
-      return true;
+
+      return styleMatch && priceMatch;
     });
 
     state.lightboxList = filtered;
@@ -2801,15 +2836,52 @@ window.Store = Store;
           <div class="section-header">
             <span class="section-tag">Our Works & Gallery</span>
             <h2 class="section-title">${escapeHTML(headings.portTitle || 'แกลเลอรีผลงาน & อัตราค่าบริการ')}</h2>
-            <p class="section-desc">${escapeHTML(headings.portDesc || 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน คลิกเลือกรายการราคาเพื่อกรองดูผลงานได้ทันที')}</p>
+            <p class="section-desc">${escapeHTML(headings.portDesc || 'เลือกดูตามสไตล์งานที่คุณชื่นชอบ และเลือกหมวดหมู่ป้ายเพื่อดูราคาและตัวอย่างงานได้ทันที')}</p>
           </div>
 
-          <!-- Standard Price Menu Card Before Gallery (Click to filter works) -->
+          <!-- Tier 1: Primary Filter by Work Style (สไตล์งานออกแบบ) -->
+          <div style="margin-bottom: 1.75rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
+              <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary-deep);">
+                เลือกสไตล์งานที่ต้องการ (Style Categories)
+              </span>
+              ${state.portfolioStyleFilter !== 'ALL' ? `
+                <button type="button" class="btn btn-outline btn-sm" onclick="filterPortfolioByStyle('ALL')" style="font-size: 0.8rem; padding: 3px 10px;">
+                  รีเซ็ตสไตล์งาน (ดูทั้งหมด)
+                </button>
+              ` : ''}
+            </div>
+
+            <div class="portfolio-style-tabs">
+              ${styleCategories.map(st => {
+                const isActive = state.portfolioStyleFilter === st;
+                const count = st === 'ALL' ? portfolio.length : portfolio.filter(p => {
+                  const pStyle = (p.style_category || '').toLowerCase();
+                  const target = st.toLowerCase();
+                  if (pStyle && pStyle.includes(target)) return true;
+                  const kws = target.split(/[&,/ ]+/).map(k => k.trim()).filter(k => k.length > 1 && k !== 'สไตล์');
+                  return kws.some(kw => pStyle.includes(kw) || (p.title || '').toLowerCase().includes(kw));
+                }).length;
+
+                return `
+                  <button type="button" 
+                    class="portfolio-style-pill ${isActive ? 'is-active' : ''}" 
+                    onclick="filterPortfolioByStyle('${escapeHTML(st)}')"
+                    title="เลือกสไตล์ ${escapeHTML(st)}">
+                    <span>${st === 'ALL' ? 'ทุกสไตล์งาน' : escapeHTML(st)}</span>
+                    <span class="portfolio-style-pill-badge">${count}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Tier 2: Standard Price Menu Card (Click to filter by Sign Category) -->
           <div class="price-menu-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1.5px dashed var(--border); padding-bottom: 0.75rem;">
               <div>
                 <h3 style="font-size: 1.15rem; margin: 0; color: var(--primary-deep);">ตารางอัตราค่าบริการ & รายการราคาป้ายยอดนิยม</h3>
-                <small style="color: var(--text-muted); font-size: 0.82rem;">คลิกที่รายการราคาด้านล่าง เพื่อดูตัวอย่างผลงานของงานประเภทนั้นๆ ได้ทันทีค่ะ</small>
+                <small style="color: var(--text-muted); font-size: 0.82rem;">คลิกเลือกประเภทป้ายด้านล่าง เพื่อกรองดูตัวอย่างงานป้ายนั้นๆ ร่วมกับสไตล์ที่เลือกไว้ได้ทันที</small>
               </div>
               <span class="badge badge--pink">อัปเดต 2026</span>
             </div>
@@ -2843,11 +2915,18 @@ window.Store = Store;
 
             <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
               <small style="color: var(--text-muted); font-size: 0.85rem;">
-                ${state.portfolioPriceFilter !== 'ALL' ? `กำลังแสดงผลงานหมวด: <strong>${escapeHTML(state.portfolioPriceFilter)}</strong> (${filtered.length} รายการ)` : 'แสดงผลงานทั้งหมด'}
+                กำลังแสดง: <strong>${state.portfolioStyleFilter !== 'ALL' ? escapeHTML(state.portfolioStyleFilter) : 'ทุกสไตล์'}</strong>
+                ${state.portfolioPriceFilter !== 'ALL' ? ` | หมวดป้าย: <strong>${escapeHTML(state.portfolioPriceFilter)}</strong>` : ''}
+                (${filtered.length} รายการ)
               </small>
-              ${state.portfolioPriceFilter !== 'ALL' ? `
-                <button type="button" class="btn btn-outline btn-sm" onclick="filterPortfolioByPrice('ALL')">ดูผลงานทั้งหมด</button>
-              ` : ''}
+              <div style="display: flex; gap: 8px;">
+                ${state.portfolioPriceFilter !== 'ALL' ? `
+                  <button type="button" class="btn btn-outline btn-sm" onclick="filterPortfolioByPrice('ALL')">ดูทุกหมวดป้าย</button>
+                ` : ''}
+                ${state.portfolioStyleFilter !== 'ALL' || state.portfolioPriceFilter !== 'ALL' ? `
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="resetAllPortfolioFilters()">ล้างตัวกรองทั้งหมด</button>
+                ` : ''}
+              </div>
             </div>
           </div>
 
@@ -2867,8 +2946,8 @@ window.Store = Store;
               `;
             }).join('') : `
               <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
-                <p>ยังไม่มีรูปผลงานในหมวดหมู่นี้ค่ะ แอดมินสามารถเพิ่มรูปได้ในเมนูหลังบ้าน (จัดการผลงาน)</p>
-                <button type="button" class="btn btn-outline btn-sm" onclick="filterPortfolioByPrice('ALL')">ดูผลงานทั้งหมด</button>
+                <p>ยังไม่มีรูปผลงานในหมวดหรือสไตล์นี้ค่ะ แอดมินสามารถเพิ่มรูปได้ในเมนูหลังบ้าน (จัดการผลงาน)</p>
+                <button type="button" class="btn btn-outline btn-sm" onclick="resetAllPortfolioFilters()">ดูผลงานทั้งหมด</button>
               </div>
             `}
           </div>
@@ -2878,8 +2957,19 @@ window.Store = Store;
     `;
   }
 
+  window.filterPortfolioByStyle = function (styleName) {
+    state.portfolioStyleFilter = styleName;
+    renderCurrentView();
+  };
+
   window.filterPortfolioByPrice = function (serviceName) {
     state.portfolioPriceFilter = serviceName;
+    renderCurrentView();
+  };
+
+  window.resetAllPortfolioFilters = function () {
+    state.portfolioStyleFilter = 'ALL';
+    state.portfolioPriceFilter = 'ALL';
     renderCurrentView();
   };
 
@@ -3534,7 +3624,8 @@ window.Store = Store;
               <tr>
                 <th>รูป 1:1</th>
                 <th>ชื่อผลงาน / บริการ</th>
-                <th>หมวดหมู่ (ราคา)</th>
+                <th>สไตล์งานออกแบบ</th>
+                <th>หมวดหมู่ป้าย (ราคา)</th>
                 <th>ราคามาตรฐาน</th>
                 <th>จัดการ</th>
               </tr>
@@ -3546,6 +3637,7 @@ window.Store = Store;
                     <img src="${escapeHTML(item.image_url)}" style="width: 50px; height: 50px; border-radius: 10px; object-fit: cover;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
                   </td>
                   <td><strong>${escapeHTML(item.title || 'ผลงานการออกแบบ')}</strong></td>
+                  <td><span class="badge" style="background:#FFF0F7; color:#BE185D; border:1px solid #FBCFE8; font-weight:700;">${escapeHTML(item.style_category || 'ทั่วไป')}</span></td>
                   <td><span class="badge badge--pink">${escapeHTML(item.category || 'ป้าย')}</span></td>
                   <td>฿${Number(item.price || 0).toLocaleString()}</td>
                   <td>
@@ -3560,10 +3652,37 @@ window.Store = Store;
     `;
   }
 
+  window.handleAdminPortStyleChange = function (val) {
+    const customInp = $('adminPortCustomStyle');
+    if (!customInp) return;
+    if (val === '__custom__') {
+      customInp.style.display = 'block';
+      customInp.focus();
+    } else {
+      customInp.style.display = 'none';
+      customInp.value = '';
+    }
+  };
+
   window.openAddPortfolioModal = function () {
     const modal = $('adminPortfolioModal');
     if (!modal) return;
     $('adminPortTitle').value = '';
+
+    // Populate styles dynamically
+    const styleSelect = $('adminPortStyle');
+    if (styleSelect) {
+      const styles = Store.getPortfolioStyles ? Store.getPortfolioStyles() : ['สไตล์มินิมอล & คาเฟ่', 'สไตล์การ์ตูน & คาวาอี้', 'สไตล์ลายมือ & ฟอนต์', 'สไตล์ร้านค้า & โมเดิร์น', 'ไฟล์ตกแต่ง & เทมเพลต'];
+      styleSelect.innerHTML = styles.map(st => `<option value="${escapeHTML(st)}">${escapeHTML(st)}</option>`).join('') +
+        `<option value="__custom__">+ กำหนดสไตล์งานเอง...</option>`;
+      styleSelect.value = styles[0] || 'สไตล์มินิมอล & คาเฟ่';
+    }
+    const customStyleInp = $('adminPortCustomStyle');
+    if (customStyleInp) {
+      customStyleInp.style.display = 'none';
+      customStyleInp.value = '';
+    }
+
     $('adminPortCategory').value = 'ป้ายเครดิต';
     $('adminPortPrice').value = '129';
     $('adminPortImage').value = 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
@@ -3579,6 +3698,14 @@ window.Store = Store;
     e.preventDefault();
     const title = ($('adminPortTitle')?.value || '').trim();
     if (!title) return alert('กรุณากรอกชื่อผลงาน');
+    
+    // Style category
+    let style_category = $('adminPortStyle')?.value || 'สไตล์มินิมอล & คาเฟ่';
+    if (style_category === '__custom__') {
+      style_category = ($('adminPortCustomStyle')?.value || '').trim();
+      if (!style_category) return alert('กรุณากรอกชื่อสไตล์งานออกแบบ');
+    }
+
     const category = $('adminPortCategory').value;
     const price = Number($('adminPortPrice').value) || 0;
     const image = ($('adminPortImage')?.value || '').trim();
@@ -3586,6 +3713,7 @@ window.Store = Store;
 
     Store.savePortfolioItem({
       title,
+      style_category,
       category,
       price,
       image_url: image
@@ -4277,8 +4405,13 @@ window.Store = Store;
               <input type="text" id="cfg_catGroups" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.groups) ? s.categories.groups.join(', ') : (s.categories?.groups || 'VIP ตลอดชีพ, รวมงานกราฟิก, การ์ตูน & คาแรกเตอร์, ป้ายร้าน & เมนู'))}">
             </div>
             <div class="form-group">
-              <label class="form-label">หมวดหมู่ผลงาน (Portfolio)</label>
+              <label class="form-label">หมวดหมู่ผลงาน / ราคาป้าย (Portfolio Signs)</label>
               <input type="text" id="cfg_catPortfolio" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolio) ? s.categories.portfolio.join(', ') : (s.categories?.portfolio || 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ'))}">
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label">หมวดหมู่สไตล์งานออกแบบ (Portfolio Styles)</label>
+              <input type="text" id="cfg_catPortfolioStyles" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolioStyles) ? s.categories.portfolioStyles.join(', ') : (s.categories?.portfolioStyles || 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต'))}">
+              <small style="color: var(--text-muted); font-size: 0.8rem;">แยกด้วยเครื่องหมายจุลภาค (,) หมวดหมู่นี้จะขึ้นเป็นปุ่มแท็บสไตล์งานให้ลูกค้าเลือกดูก่อนเป็นอันดับแรก</small>
             </div>
           </div>
         </div>
@@ -4642,6 +4775,13 @@ window.Store = Store;
           reviewsDesc: getVal('cfg_reviewsDesc', 'ความประทับใจจริงจากลูกค้าที่ใช้บริการ BNC GraphMate'),
           ordersTitle: getVal('cfg_ordersTitle', 'ประวัติคำสั่งซื้อ'),
           ordersDesc: getVal('cfg_ordersDesc', 'ติดตามสถานะคำสั่งซื้อ ตรวจสอบสลิป และรับไฟล์งาน')
+        },
+        categories: {
+          fonts: getVal('cfg_catFonts', 'ลายมือ, หัวป้าย, ตัวพิมพ์, น่ารัก'),
+          products: getVal('cfg_catProducts', 'ป้ายสำเร็จ, ไฟล์ตกแต่ง, การ์ตูน, องค์ประกอบ, เทมเพลต'),
+          groups: getVal('cfg_catGroups', 'VIP ตลอดชีพ, รวมงานกราฟิก, การ์ตูน & คาแรกเตอร์, ป้ายร้าน & เมนู'),
+          portfolio: getVal('cfg_catPortfolio', 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ'),
+          portfolioStyles: getVal('cfg_catPortfolioStyles', 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต')
         }
       };
 
@@ -5635,7 +5775,19 @@ window.Store = Store;
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
             <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">หมวดหมู่บริการ</label>
+              <label class="form-label" style="font-weight: 700;">สไตล์งานออกแบบ <span style="color:var(--danger)">*</span></label>
+              <select id="adminPortStyle" class="form-input" onchange="handleAdminPortStyleChange(this.value)">
+                <option value="สไตล์มินิมอล & คาเฟ่">สไตล์มินิมอล & คาเฟ่</option>
+                <option value="สไตล์การ์ตูน & คาวาอี้">สไตล์การ์ตูน & คาวาอี้</option>
+                <option value="สไตล์ลายมือ & ฟอนต์">สไตล์ลายมือ & ฟอนต์</option>
+                <option value="สไตล์ร้านค้า & โมเดิร์น">สไตล์ร้านค้า & โมเดิร์น</option>
+                <option value="ไฟล์ตกแต่ง & เทมเพลต">ไฟล์ตกแต่ง & เทมเพลต</option>
+                <option value="__custom__">+ กำหนดสไตล์งานเอง...</option>
+              </select>
+              <input type="text" id="adminPortCustomStyle" class="form-input" placeholder="พิมพ์สไตล์งาน เช่น สไตล์วินเทจ..." style="display: none; margin-top: 6px;">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">หมวดหมู่ป้าย / บริการ <span style="color:var(--danger)">*</span></label>
               <select id="adminPortCategory" class="form-input">
                 <option value="ป้ายเครดิต">ป้ายเครดิต</option>
                 <option value="ป้ายแอพพรี">ป้ายแอพพรี</option>
@@ -5648,10 +5800,10 @@ window.Store = Store;
                 <option value="กราฟิก">กราฟิก</option>
               </select>
             </div>
-            <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">ราคามาตรฐาน (บาท)</label>
-              <input type="number" id="adminPortPrice" class="form-input" value="129">
-            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ราคามาตรฐาน (บาท)</label>
+            <input type="number" id="adminPortPrice" class="form-input" value="129">
           </div>
           <div class="form-group" style="margin-bottom: 1.25rem;">
             <label class="form-label" style="font-weight: 700;">ลิงก์ภาพผลงาน 1:1 จัตุรัส (URL) <span style="color:var(--danger)">*</span></label>
