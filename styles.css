@@ -2731,15 +2731,15 @@ select option {
 /* Pushpin Pin at top of Post-it / Daily Note */
 .queue-postit-pin {
   position: absolute;
-  top: -18px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #FFA8C5 0%, #FF6584 55%, #C22752 100%);
-  border: 2.5px solid #FFFFFF;
-  box-shadow: 0 4px 10px rgba(113, 81, 91, 0.35), 0 2px 4px rgba(0, 0, 0, 0.15);
+  background: radial-gradient(circle at 35% 35%, #FFB7CE, #DE85A7);
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(113, 81, 91, 0.25);
   z-index: 50;
   display: grid;
   place-items: center;
@@ -2747,11 +2747,10 @@ select option {
 
 .queue-postit-pin::after {
   content: '';
-  width: 8px;
-  height: 8px;
-  background: radial-gradient(circle at 40% 40%, #FFFFFF, #FFDFE9);
+  width: 6px;
+  height: 6px;
+  background: rgba(113, 81, 91, 0.25);
   border-radius: 50%;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .queue-postit-active-badge {
@@ -3383,15 +3382,25 @@ select option {
   align-items: center;
   justify-content: center;
   height: 19px;
-  border-radius: 9px;
-  background: #FFF0F5;
-  border: 1px solid #FFDFE9;
-  color: #E05A88;
+  border-radius: 10px;
+  background: #FF85A1;
+  border: 1px solid #FF6584;
+  color: #FFFFFF;
   font-size: 10.5px;
-  font-weight: 700;
-  padding: 0 5px;
-  gap: 2px;
+  font-weight: 800;
+  padding: 0 6px;
+  gap: 3px;
   line-height: 1;
+  box-shadow: 0 1px 3px rgba(224, 90, 136, 0.2);
+}
+
+.queue-cal-badge-heart svg {
+  width: 11px;
+  height: 11px;
+  fill: #FFFFFF;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
 }
 
 .queue-calendar-badge-circle {
