@@ -1726,6 +1726,46 @@ const Store = (function () {
         callCloud('SAVE_CALENDAR_TASK', { task: t });
       }
     },
+    getFontCategories: function () {
+      const cats = this.getSettings().categories?.fonts;
+      if (Array.isArray(cats)) return cats;
+      if (typeof cats === 'string') return cats.split(',').map(s => s.trim()).filter(Boolean);
+      return ['ลายมือ', 'หัวป้าย', 'ตัวพิมพ์', 'น่ารัก'];
+    },
+    getProductCategories: function () {
+      const cats = this.getSettings().categories?.products;
+      if (Array.isArray(cats)) return cats;
+      if (typeof cats === 'string') return cats.split(',').map(s => s.trim()).filter(Boolean);
+      return ['ป้ายสำเร็จ', 'ไฟล์ตกแต่ง', 'การ์ตูน', 'องค์ประกอบ', 'เทมเพลต'];
+    },
+    getGroupCategories: function () {
+      const cats = this.getSettings().categories?.groups;
+      if (Array.isArray(cats)) return cats;
+      if (typeof cats === 'string') return cats.split(',').map(s => s.trim()).filter(Boolean);
+      return ['VIP ตลอดชีพ', 'รวมงานกราฟิก', 'การ์ตูน & คาแรกเตอร์', 'ป้ายร้าน & เมนู'];
+    },
+    setCustomerStamps: function (customerId, stamps) {
+      const data = loadLocal();
+      const cust = (data.customers || []).find(c => c.id === customerId);
+      if (cust) {
+        cust.heart_stamps = Math.max(0, Number(stamps) || 0);
+        saveLocal(data);
+        callCloud('UPDATE_CUSTOMER_STAMPS', { customerId, stamps: cust.heart_stamps });
+        return cust.heart_stamps;
+      }
+      return 0;
+    },
+    addCustomerStamp: function (customerId, delta = 1) {
+      const data = loadLocal();
+      const cust = (data.customers || []).find(c => c.id === customerId);
+      if (cust) {
+        cust.heart_stamps = Math.max(0, (cust.heart_stamps || 0) + delta);
+        saveLocal(data);
+        callCloud('UPDATE_CUSTOMER_STAMPS', { customerId, stamps: cust.heart_stamps });
+        return cust.heart_stamps;
+      }
+      return 0;
+    },
     syncAllToCloud: async function () {
       const data = loadLocal();
       return await callCloud('SYNC_ALL', { payload: data });
@@ -8057,8 +8097,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   // ── Run upon DOM load ────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', initApp);
 
-})();
-
 
 
   // ── Admin Edit Functions for Products, Fonts, Groups, Portfolio ──
@@ -8189,14 +8227,24 @@ window.changeAdminCalendarMonth = function (offset) {
     state.calendarMonth = 11;
     state.calendarYear -= 1;
   }
-  renderCurrentView();
+  const tabEl = document.getElementById('adminTabContent');
+  if (tabEl && state.adminTab === 'queues') {
+    tabEl.innerHTML = renderAdminQueuesTab();
+  } else {
+    renderCurrentView();
+  }
 };
 
 window.resetAdminCalendarToday = function () {
   const now = new Date();
   state.calendarMonth = now.getMonth();
   state.calendarYear = now.getFullYear();
-  renderCurrentView();
+  const tabEl = document.getElementById('adminTabContent');
+  if (tabEl && state.adminTab === 'queues') {
+    tabEl.innerHTML = renderAdminQueuesTab();
+  } else {
+    renderCurrentView();
+  }
 };
 
 function renderAdminQueueCalendarView(allQueues) {
@@ -8497,3 +8545,4 @@ window.handleDeletePersonalTask = function (id, dateIso, day, month, year) {
   openCalendarDateModal(dateIso, day, month, year);
 };
 
+})();
