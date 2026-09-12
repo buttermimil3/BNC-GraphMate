@@ -897,10 +897,21 @@ const Store = (function () {
         merged.settings.googleSheetWebAppUrl = local.settings?.googleSheetWebAppUrl || defaultData.settings.googleSheetWebAppUrl;
 
         let hasEmptyCloudTables = false;
-        const arrayKeys = ['products', 'fonts', 'groups', 'portfolio', 'reviews', 'queue_items', 'orders', 'payments', 'customers', 'group_access', 'drive_access', 'point_transactions', 'calendar_tasks'];
+        const mergeKeys = ['orders', 'payments'];
+        const arrayKeys = ['products', 'fonts', 'groups', 'portfolio', 'reviews', 'queue_items', 'customers', 'group_access', 'drive_access', 'point_transactions', 'calendar_tasks'];
         arrayKeys.forEach(key => {
           if (Array.isArray(incoming[key]) && incoming[key].length > 0) {
             merged[key] = incoming[key];
+          }
+        });
+        // Merge orders/payments: keep local records that cloud doesn't have yet
+        mergeKeys.forEach(key => {
+          const incomingArr = incoming[key];
+          const localArr = local[key];
+          if (Array.isArray(incomingArr) && incomingArr.length > 0) {
+            const incomingIds = new Set(incomingArr.map(x => x && x.id).filter(Boolean));
+            const localOnly = Array.isArray(localArr) ? localArr.filter(x => x && x.id && !incomingIds.has(x.id)) : [];
+            merged[key] = [...localOnly, ...incomingArr];
           }
         });
 
@@ -1529,11 +1540,20 @@ const Store = (function () {
       saveLocal(data);
       this.clearCart();
 
-      // Background Google Sheet Sync
+      // Cloud Google Sheet Sync (ensure slip string is within bounds)
+      const cloudPayment = Object.assign({}, newPayment);
+      if (cloudPayment.slip_image_url && cloudPayment.slip_image_url.length > 45000) {
+        cloudPayment.slip_image_url = cloudPayment.slip_image_url.slice(0, 45000);
+      }
+
       callCloud('MULTI_CHECKOUT', {
         order: newOrder,
-        payment: newPayment,
+        payment: cloudPayment,
         items: items
+      }).then(res => {
+        console.log('Google Sheets MULTI_CHECKOUT response:', res);
+      }).catch(err => {
+        console.warn('Google Sheets MULTI_CHECKOUT sync error:', err);
       });
 
       return { order: newOrder, payment: newPayment };
@@ -6821,7 +6841,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (!order) return;
     const s = Store.getSettings();
     const modal = $('receiptModal');
-    const content = $('receiptModalContent');
+    const content = $('receiptModalBody');
     if (!modal || !content) return;
 
     const paymentAccounts = Store.getPaymentAccounts();
@@ -6918,9 +6938,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <button type="button" class="btn btn-primary btn-full" onclick="closeReceiptModal(); openReviewModal('${order.id}', '${escapeHTML(items[0]?.name || 'สินค้า BNC')}');" style="margin-top: 4px;">
             เขียนรีวิวความประทับใจ
           </button>
-          <button type="button" class="btn btn-primary btn-full" onclick="closeReceiptModal(); openReviewModal('${order.id}', '${escapeHTML(items[0]?.name || 'สินค้า BNC')}');" style="margin-top: 4px;">
-            เขียนรีวิวความประทับใจ
-          </button>
+
           <button type="button" class="btn btn-outline btn-sm" onclick="closeReceiptModal()" style="border: none; color: var(--text-muted);">
             ปิดหน้าต่าง
           </button>
@@ -7120,14 +7138,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   window.previewSlipImage = function (e) {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function (evt) {
+
+    // Helper to update slip UI preview
+    const updatePreview = (dataUrl) => {
       const wrap = $('chkSlipPreviewWrap');
       const img = $('chkSlipPreviewImg');
       const promptEl = $('slipPrompt');
       const badge = $('slipStatusBadge');
       const dropzone = $('slipUploadDropzone');
-      if (img) img.src = evt.target.result;
+      if (img) img.src = dataUrl;
       if (wrap) wrap.style.display = 'block';
       if (promptEl) promptEl.style.display = 'none';
       if (badge) {
@@ -7138,6 +7157,42 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         dropzone.style.borderColor = '#86efac';
         dropzone.style.background = '#f0fdf4';
       }
+    };
+
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const rawDataUrl = evt.target.result;
+      // Compress slip via Canvas to ensure base64 < 45KB (under Google Sheet 50k cell limit and Apps Script POST limit)
+      const img = new Image();
+      img.onload = function () {
+        try {
+          const maxDim = 800;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          updatePreview(compressedDataUrl);
+        } catch (canvasErr) {
+          updatePreview(rawDataUrl);
+        }
+      };
+      img.onerror = function () {
+        updatePreview(rawDataUrl);
+      };
+      img.src = rawDataUrl;
     };
     reader.readAsDataURL(file);
   };
