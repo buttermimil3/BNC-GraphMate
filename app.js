@@ -830,7 +830,10 @@ const Store = (function () {
 
     try {
       payload.action = action;
-      const res = await fetch(url, {
+      // Send action in URL query param too — GAS 302 redirect drops POST body
+      // but e.parameter.action (from query string) survives the redirect
+      const urlWithAction = url + (url.includes('?') ? '&' : '?') + 'action=' + encodeURIComponent(action);
+      const res = await fetch(urlWithAction, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
@@ -1480,7 +1483,7 @@ const Store = (function () {
         customer_id: customerInfo.customer_id || 'guest',
         customer_name: customerInfo.customer_name || 'ลูกค้าทั่วไป',
         order_type: allGroups ? 'GROUP' : 'MULTI',
-        items: items,
+        items_json: items,
         item_name: itemNames,
         amount: totalAmount,
         status: 'VERIFYING',
@@ -6855,8 +6858,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const dateStr = order.created_at ? new Date(order.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleDateString('th-TH');
 
     let items = [];
-    if (Array.isArray(order.items) && order.items.length > 0) {
-      items = order.items;
+    const rawItems = Array.isArray(order.items_json) ? order.items_json
+                   : (typeof order.items_json === 'string' ? JSON.parse(order.items_json || '[]') : null)
+                   || order.items || [];
+    if (Array.isArray(rawItems) && rawItems.length > 0) {
+      items = rawItems;
     } else {
       items = [{ name: order.item_name || 'รายการคำสั่งซื้อ', qty: 1, price: order.amount || 0 }];
     }
