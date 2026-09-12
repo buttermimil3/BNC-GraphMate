@@ -23,7 +23,7 @@ const Store = (function () {
  bankAccount: '123-4-56789-0',
  bankAccountName: 'ร้าน บีเอ็นซี กราฟเมท',
  promptpayQrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678',
- googleSheetWebAppUrl: 'https://script.google.com/macros/s/AKfycbxyIs8F9uzV6siNgYSDuF0NdBiIbXAtWoRUHo5ci72XHnEogrtIeHIBrJTl070DdOi5/exec',
+ googleSheetWebAppUrl: 'https://script.google.com/macros/s/AKfycbynC_xFFqdiUmB1VD3GHbMdPvOlggTOSsKJ-JtqC1GI7pWmUXjtboSv8Asp8B0iLId9/exec',
  pointsPerHundredBaht: 10,
  announcement: '',
  announcementEnabled: false,
@@ -749,7 +749,9 @@ const Store = (function () {
         if (!merged.settings.queuePage) merged.settings.queuePage = defaultData.settings.queuePage;
         if (!merged.groups) merged.groups = defaultData.groups;
         if (!merged.settings.mascotSettings) merged.settings.mascotSettings = defaultData.settings.mascotSettings;
-        if (!merged.settings.googleSheetWebAppUrl) merged.settings.googleSheetWebAppUrl = defaultData.settings.googleSheetWebAppUrl;
+        if (!merged.settings.googleSheetWebAppUrl || merged.settings.googleSheetWebAppUrl.includes('AKfycbxyIs8F9uzV6siNgYSDuF0NdBiIbXAtWoRUHo5ci72XHnEogrtIeHIBrJTl070DdOi5')) {
+          merged.settings.googleSheetWebAppUrl = defaultData.settings.googleSheetWebAppUrl;
+        }
         
         if (merged.settings) {
           if (merged.settings.profileImage) merged.settings.profileImage = formatDriveImageUrl(merged.settings.profileImage);
@@ -858,12 +860,27 @@ const Store = (function () {
           'Accept': 'application/json'
         }
       });
+      if (!res.ok) {
+        if (res.status === 404) {
+          if (typeof onUpdatedCallback === 'function') {
+            onUpdatedCallback(false, 'Google Apps Script URL ส่งกลับ Error 404 Not Found (URL เดิมถูกลบหรือยังไม่ได้ Deploy เป็น Web App: กรุณากด Deploy > New Deployment ใน Google Sheet เลือก Anyone แล้วนำ URL ใหม่มาใส่ค่ะ)');
+          }
+          return false;
+        }
+        if (res.status === 401 || res.status === 403) {
+          if (typeof onUpdatedCallback === 'function') {
+            onUpdatedCallback(false, 'ไม่มีสิทธิ์เข้าถึง Google Apps Script (กรุณาตั้งค่า "Who has access" เป็น "Anyone" ในหน้า Deploy Web App ค่ะ)');
+          }
+          return false;
+        }
+      }
+
       let result;
       try {
         const text = await res.text();
         result = JSON.parse(text);
       } catch (parseErr) {
-        if (typeof onUpdatedCallback === 'function') onUpdatedCallback(false, 'เซิร์ฟเวอร์ส่งข้อความที่ไม่ใช่ JSON (กรุณาตรวจสิทธิ์ Google Script)');
+        if (typeof onUpdatedCallback === 'function') onUpdatedCallback(false, 'เซิร์ฟเวอร์ส่งกลับหน้า HTML แทนที่จะเป็น JSON (สาเหตุ: Google Script URL ไม่ถูกต้อง หรือยังไม่ได้ตั้งค่าสิทธิ์ Anyone)');
         return false;
       }
       if (result && result.status === 'success' && result.data) {
@@ -2845,97 +2862,110 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   // ============================================================
   
   
-  // ── Date Matching Helpers for Queue & Calendar ──
-  function isQueueDateToday(dateStr) {
-    if (!dateStr) return false;
+  // ── High-Precision Date Matching for Queue & Calendar ──
+  const thaiMonthsList = [
+    { names: ['ก.ย.', 'ก.ย', 'กันยายน', 'กย'], m: 9 },
+    { names: ['ม.ค.', 'ม.ค', 'มกราคม', 'มค'], m: 1 },
+    { names: ['ก.พ.', 'ก.พ', 'กุมภาพันธ์', 'กพ'], m: 2 },
+    { names: ['มี.ค.', 'มี.ค', 'มีนาคม', 'มีค'], m: 3 },
+    { names: ['เม.ย.', 'เม.ย', 'เมษายน', 'เมย'], m: 4 },
+    { names: ['พ.ค.', 'พ.ค', 'พฤษภาคม', 'พค'], m: 5 },
+    { names: ['มิ.ย.', 'มิ.ย', 'มิถุนายน', 'มิย'], m: 6 },
+    { names: ['ก.ค.', 'ก.ค', 'กรกฎาคม', 'กค'], m: 7 },
+    { names: ['ส.ค.', 'ส.ค', 'สิงหาคม', 'สค'], m: 8 },
+    { names: ['ต.ค.', 'ต.ค', 'ตุลาคม', 'ตค'], m: 10 },
+    { names: ['พ.ย.', 'พ.ย', 'พฤศจิกายน', 'พย'], m: 11 },
+    { names: ['ธ.ค.', 'ธ.ค', 'ธันวาคม', 'ธค'], m: 12 }
+  ];
+
+  function normalizeYear(y) {
+    if (y === null || y === undefined || y === '') return null;
+    y = parseInt(y, 10);
+    if (isNaN(y)) return null;
+    if (y > 2400) return y - 543; // Full BE year e.g. 2569 -> 2026
+    if (y > 1900 && y < 2200) return y; // Full CE year e.g. 2026
+    if (y >= 50 && y <= 99) return 1957 + y; // 2-digit BE year e.g. 69 -> 2026
+    if (y < 50) return 2000 + y; // 2-digit CE year e.g. 26 -> 2026
+    return y;
+  }
+
+  function findThaiMonth(str) {
+    const s = str.toLowerCase().replace(/\s+/g, '');
+    for (const item of thaiMonthsList) {
+      for (const name of item.names) {
+        if (s.includes(name)) return { month: item.m, matchedName: name };
+      }
+    }
+    return null;
+  }
+
+  function parseQueueDate(dateStr) {
+    if (!dateStr) return null;
     const s = String(dateStr).trim().toLowerCase();
-    if (s === 'วันนี้' || s === 'today') return true;
 
-    const now = new Date();
-    const curDay = now.getDate();
-    const curMonth = now.getMonth() + 1;
-    const curYearCE = now.getFullYear();
-    const curYearBE = curYearCE + 543;
-
-    // Day only: "12" or "วันที่ 12"
-    const dayOnlyMatch = s.match(/^(?:วันที่\s*)?(\d{1,2})(?:st|nd|rd|th)?$/);
-    if (dayOnlyMatch) {
-      if (parseInt(dayOnlyMatch[1], 10) === curDay) return true;
+    // 1. วันนี้ / today
+    if (s === 'วันนี้' || s === 'today') {
+      const now = new Date();
+      return { day: now.getDate(), month: now.getMonth() + 1, year: now.getFullYear() };
     }
 
-    // d/m/y or d-m-y
-    const dmyMatch = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
-    if (dmyMatch) {
-      const d = parseInt(dmyMatch[1], 10);
-      const m = parseInt(dmyMatch[2], 10);
-      const y = parseInt(dmyMatch[3], 10);
-      const yearMatch = (y === curYearCE || y === curYearBE || (y === curYearCE % 100));
-      if (d === curDay && m === curMonth && yearMatch) return true;
+    // 2. พรุ่งนี้ / tomorrow
+    if (s === 'พรุ่งนี้' || s === 'tomorrow') {
+      const d = new Date(Date.now() + 86400000);
+      return { day: d.getDate(), month: d.getMonth() + 1, year: d.getFullYear() };
     }
 
-    // y-m-d
-    const ymdMatch = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-    if (ymdMatch) {
-      const y = parseInt(ymdMatch[1], 10);
-      const m = parseInt(ymdMatch[2], 10);
-      const d = parseInt(ymdMatch[3], 10);
-      if (d === curDay && m === curMonth && (y === curYearCE || y === curYearBE)) return true;
+    // 3. ISO/YMD: 2026-09-12 or 2026/09/12
+    const ymd = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (ymd) {
+      return { year: normalizeYear(ymd[1]), month: parseInt(ymd[2], 10), day: parseInt(ymd[3], 10) };
     }
 
-    // Thai short month check
-    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-    const curThaiMonthShort = thaiMonths[curMonth - 1];
-    if (s.includes(curThaiMonthShort) && s.includes(String(curDay))) {
-      return true;
+    // 4. DMY digits: 12/09/2026, 12/9/2569, 12-9-69
+    const dmy = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?$/);
+    if (dmy) {
+      return { day: parseInt(dmy[1], 10), month: parseInt(dmy[2], 10), year: normalizeYear(dmy[3]) };
     }
 
-    const startsWithDay = s.match(new RegExp('^' + curDay + '(?:\\s|\\/|\\-|$)'));
-    if (startsWithDay && !s.includes('/')) return true;
+    // 5. Thai Month Name in string: e.g. '12 ก.ย. 69', '12 ก.ย. 2569', 'วันที่ 12 ก.ย.', '12 กันยายน'
+    const thaiInfo = findThaiMonth(s);
+    if (thaiInfo) {
+      const dayMatch = s.match(/(?:วันที่\s*)?(\d{1,2})\s*(?:st|nd|rd|th)?/);
+      if (dayMatch) {
+        const d = parseInt(dayMatch[1], 10);
+        let y = null;
+        const yearMatch = s.match(/(?:(?:ม\.?ค|ก\.?พ|มี\.?ค|เม\.?ย|พ\.?ค|มิ\.?ย|ก\.?ค|ส\.?ค|ก\.?ย|ต\.?ค|พ\.?ย|ธ\.?ค|มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม)\.?(?:\s+|\/|\-|\.))(\d{2,4})/);
+        if (yearMatch) {
+          y = normalizeYear(yearMatch[1]);
+        }
+        return { day: d, month: thaiInfo.month, year: y };
+      }
+    }
 
-    return false;
+    // 6. Day only: '12', 'วันที่ 12'
+    const dayOnly = s.match(/^(?:วันที่\s*)?(\d{1,2})(?:st|nd|rd|th)?$/);
+    if (dayOnly) {
+      return { day: parseInt(dayOnly[1], 10), month: null, year: null };
+    }
+
+    return null;
   }
 
   function isQueueDateMatching(dateStr, targetYear, targetMonth, targetDay) {
+    const parsed = parseQueueDate(dateStr);
+    if (!parsed) return false;
+
+    if (parsed.day !== targetDay) return false;
+    if (parsed.month !== null && parsed.month !== targetMonth) return false;
+    if (parsed.year !== null && parsed.year !== targetYear) return false;
+
+    return true;
+  }
+
+  function isQueueDateToday(dateStr) {
     if (!dateStr) return false;
-    const s = String(dateStr).trim().toLowerCase();
-
-    if (s === 'วันนี้' || s === 'today') {
-      const now = new Date();
-      return targetYear === now.getFullYear() && targetMonth === (now.getMonth() + 1) && targetDay === now.getDate();
-    }
-
-    const dayOnlyMatch = s.match(/^(?:วันที่\s*)?(\d{1,2})(?:st|nd|rd|th)?$/);
-    if (dayOnlyMatch) {
-      return parseInt(dayOnlyMatch[1], 10) === targetDay;
-    }
-
-    const dmyMatch = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
-    if (dmyMatch) {
-      const d = parseInt(dmyMatch[1], 10);
-      const m = parseInt(dmyMatch[2], 10);
-      const y = parseInt(dmyMatch[3], 10);
-      const yearMatch = (y === targetYear || y === (targetYear + 543) || (y === targetYear % 100));
-      return d === targetDay && m === targetMonth && yearMatch;
-    }
-
-    const ymdMatch = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-    if (ymdMatch) {
-      const y = parseInt(ymdMatch[1], 10);
-      const m = parseInt(ymdMatch[2], 10);
-      const d = parseInt(ymdMatch[3], 10);
-      return d === targetDay && m === targetMonth && (y === targetYear || y === (targetYear + 543));
-    }
-
-    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-    const curThaiMonthShort = thaiMonths[targetMonth - 1];
-    if (s.includes(curThaiMonthShort) && s.includes(String(targetDay))) {
-      return true;
-    }
-
-    const startsWithDay = s.match(new RegExp('^' + targetDay + '(?:\\s|\\/|\\-|$)'));
-    if (startsWithDay && !s.includes('/')) return true;
-
-    return false;
+    const now = new Date();
+    return isQueueDateMatching(dateStr, now.getFullYear(), now.getMonth() + 1, now.getDate());
   }
 
   function getStageLabelByProgress(pct) {
@@ -6021,6 +6051,18 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <small style="color: var(--text-muted);">*รหัสมาตรฐาน: 123456</small>
             </div>
           </div>
+
+          <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border);">
+            <h4 style="color: var(--primary); font-size: 0.95rem; margin-bottom: 0.35rem;">⚡ โอนย้ายข้อมูลข้ามเครื่องด่วน (Phone &lt;-&gt; iPad &lt;-&gt; คอมพิวเตอร์)</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+              ในกรณีที่ยังไม่ได้ติดตั้ง Google Apps Script หรือต้องการให้ข้อมูลในมือถือและ iPad ตรงกันทันที คุณสามารถกดคัดลอกข้อมูลจากเครื่องหลัก แล้วนำไปวางในอีกเครื่องได้ทันทีค่ะ
+            </p>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="exportDataJsonPrompt()">📋 คัดลอกข้อมูลร้านทั้งหมด (ส่งไปอีกเครื่อง)</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="importDataJsonPrompt()">📥 นำเข้าข้อมูล (จากเครื่องอื่น)</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="downloadBackupJson()">💾 ดาวน์โหลดไฟล์สำรอง (.json)</button>
+            </div>
+          </div>
         </div>
 
         <!-- Save Master Settings Bar -->
@@ -6139,6 +6181,56 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         btn.disabled = false;
         btn.textContent = originalText;
       }
+    }
+  };
+
+  window.exportDataJsonPrompt = function () {
+    try {
+      const data = Store.loadLocal();
+      const jsonStr = JSON.stringify(data);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(jsonStr).then(() => {
+          alert('คัดลอกข้อมูลร้านเรียบร้อยแล้วค่ะ!\nคุณสามารถเปิดระบบในอีกเครื่องหนึ่ง (เช่น iPad หรือ มือถือ) แล้วกด "นำเข้าข้อมูล" เพื่อวางได้ทันทีค่ะ');
+        }).catch(() => {
+          prompt('กรุณาคัดลอกโค้ดข้อมูลด้านล่างนี้ไปวางในอีกเครื่องนะคะ:', jsonStr);
+        });
+      } else {
+        prompt('กรุณาคัดลอกโค้ดข้อมูลด้านล่างนี้ไปวางในอีกเครื่องนะคะ:', jsonStr);
+      }
+    } catch (err) {
+      alert('เกิดข้อผิดพลาดในการคัดลอกข้อมูล: ' + err.message);
+    }
+  };
+
+  window.importDataJsonPrompt = function () {
+    const raw = prompt('กรุณาวางโค้ดข้อมูลร้านที่คัดลอกมาจากอีกเครื่องหนึ่งที่นี่ค่ะ:');
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw.trim());
+      if (typeof parsed !== 'object' || parsed === null) {
+        throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
+      }
+      Store.saveLocal(parsed);
+      alert('นำเข้าข้อมูลสำเร็จ 100%! ระบบกำลังโหลดหน้าใหม่เพื่อให้ข้อมูลอัปเดตค่ะ');
+      location.reload();
+    } catch (err) {
+      alert('ไม่สามารถนำเข้าข้อมูลได้: รูปแบบข้อมูลไม่ถูกต้อง (' + err.message + ')');
+    }
+  };
+
+  window.downloadBackupJson = function () {
+    try {
+      const data = Store.loadLocal();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'BNC_GraphMate_Backup_' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      alert('ไม่สามารถดาวน์โหลดไฟล์ได้: ' + err.message);
     }
   };
 
