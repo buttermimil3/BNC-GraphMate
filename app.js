@@ -738,6 +738,11 @@ const Store = (function () {
     return getFallbackFont(font);
   }
 
+  // Export to window so main application IIFE has full access
+  window.formatDriveFontUrl = formatDriveFontUrl;
+  window.getFallbackFont = getFallbackFont;
+  window.getFontFamily = getFontFamily;
+
   // ดึงข้อมูลจาก Local Cache ทันที (เพื่อให้เว็บโหลดเร็ว 0.01 วินาที)
   function loadLocal() {
     try {
@@ -1863,10 +1868,14 @@ window.Store = Store;
  */
 
 (function () {
- 'use strict';
+  'use strict';
 
- // Application State
- const state = {
+  const formatDriveFontUrl = window.formatDriveFontUrl || function(u) { return u; };
+  const getFallbackFont = window.getFallbackFont || function() { return "'Prompt', sans-serif"; };
+  const getFontFamily = window.getFontFamily || function() { return "'Prompt', sans-serif"; };
+
+  // Application State
+  const state = {
  view: 'home', // 'home' | 'fonts' | 'products' | 'groups' | 'portfolio' | 'points' | 'reviews' | 'orders' | 'admin'
  adminTab: 'dashboard', // 'dashboard' | 'orders' | 'slips' | 'products' | 'fonts' | 'groups' | 'settings'
  isAdmin: (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('bnc_admin_auth') === 'true'),
@@ -2041,12 +2050,6 @@ window.Store = Store;
             font-display: swap;
           }
         `;
-        if (window.FontFace && document.fonts) {
-          try {
-            const ff = new FontFace(`Font-${f.id}`, `url("${fontUrl}")`);
-            ff.load().then(loaded => document.fonts.add(loaded)).catch(() => {});
-          } catch (e) {}
-        }
       }
     });
     let styleEl = document.getElementById('dynamic-font-faces');
@@ -2107,8 +2110,9 @@ window.Store = Store;
       return;
     }
 
-    // If container exists, clear it for fresh configuration
+    // If container exists and already has mascots, do not re-run loops
     if (container) {
+      if (container.children.length > 0) return;
       container.innerHTML = '';
     } else {
       container = document.createElement('div');
