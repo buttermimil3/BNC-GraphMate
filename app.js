@@ -8325,31 +8325,20 @@ function renderAdminQueueCalendarView(allQueues) {
     const isToday = (d === now.getDate() && curMonth === now.getMonth() && curYear === now.getFullYear());
     const dayQueues = allQueues.filter(q => isQueueDateMatching(q.queue_date, curYear, curMonth + 1, d));
     const dayTasks = personalTasks.filter(t => isQueueDateMatching(t.date, curYear, curMonth + 1, d));
-    const totalCount = dayQueues.length + dayTasks.length;
 
     const dateIso = curYear + '-' + String(curMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-
-    let pillsHtml = '';
-    dayQueues.slice(0, 2).forEach(q => {
-      const isDone = (normalizeQueueStatus(q.status) === 'done' || Number(q.progress) >= 100);
-      pillsHtml += `<div class="queue-calendar-task-pill ${isDone ? 'is-done' : ''}">${escapeHTML(q.queue_number || 'Q')} ${escapeHTML(q.job_name || 'งานออกแบบ')}</div>`;
-    });
-    dayTasks.slice(0, 1).forEach(t => {
-      pillsHtml += `<div class="queue-calendar-task-pill is-personal ${t.completed ? 'is-done' : ''}">${escapeHTML(t.title)}</div>`;
-    });
-    if (totalCount > 3) {
-      pillsHtml += `<span style="font-size: 10px; color: #71515B; font-weight: 700; margin-top: 1px;">+${totalCount - 3} งาน...</span>`;
-    }
 
     cellsHtml += `
       <div class="queue-calendar-cell ${isToday ? 'is-today' : ''}" onclick="openCalendarDateModal('${dateIso}', ${d}, ${curMonth + 1}, ${curYear})">
         <div class="queue-calendar-date-num">
           <span>${d}</span>
-          ${totalCount > 0 ? `<span class="queue-calendar-badge-circle">${totalCount}</span>` : ''}
+          ${dayQueues.length > 0 ? `<span class="queue-cal-badge-q" title="คิวงาน ${dayQueues.length} งาน">${dayQueues.length}</span>` : ''}
         </div>
-        <div style="display: flex; flex-direction: column; gap: 2px; overflow: hidden;">
-          ${pillsHtml}
-        </div>
+        ${dayTasks.length > 0 ? `
+          <div class="queue-cal-badges">
+            <span class="queue-cal-badge-heart" title="To-Do List ${dayTasks.length} รายการ">❤️ ${dayTasks.length}</span>
+          </div>
+        ` : ''}
       </div>
     `;
   }
@@ -8376,13 +8365,13 @@ function renderAdminQueueCalendarView(allQueues) {
       </div>
 
       <div class="queue-calendar-grid">
-        <div class="queue-calendar-day-header" style="color: #E11D48;">อา (Sun)</div>
+        <div class="queue-calendar-day-header">อา (Sun)</div>
         <div class="queue-calendar-day-header">จ (Mon)</div>
         <div class="queue-calendar-day-header">อ (Tue)</div>
         <div class="queue-calendar-day-header">พ (Wed)</div>
         <div class="queue-calendar-day-header">พฤ (Thu)</div>
         <div class="queue-calendar-day-header">ศ (Fri)</div>
-        <div class="queue-calendar-day-header" style="color: #E05A88;">ส (Sat)</div>
+        <div class="queue-calendar-day-header">ส (Sat)</div>
         ${cellsHtml}
       </div>
     </div>
@@ -8411,130 +8400,131 @@ function openCalendarDateModal(dateIso, day, month, year) {
   const personalTasks = Store.getCalendarTasks().filter(t => isQueueDateMatching(t.date, year, month, day));
 
   modal.innerHTML = `
-    <div class="modal-card" style="max-width: 580px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 2.2rem 1.8rem 1.8rem; border-radius: 26px; border: 2px solid #FFD1DF; background: #FFFFFF; position: relative; box-shadow: 0 16px 36px rgba(224, 90, 136, 0.16);">
-      <!-- Pushpin Top Decor -->
-      <div class="queue-postit-pin" style="top: -12px;"></div>
+    <div class="modal-card" style="max-width: 580px; width: 92%; border-radius: 26px; border: 2px solid #FFD1DF; background: #FFFFFF; position: relative; box-shadow: 0 16px 36px rgba(224, 90, 136, 0.16); overflow: visible; margin: 2rem auto;">
+      <!-- Pushpin Top Decor: Pop out prominently above the paper note -->
+      <div class="queue-postit-pin" style="top: -18px;"></div>
 
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
-        <div>
-          <span class="badge badge--pink" style="margin-bottom: 0.35rem; font-size: 11px;">DAILY PLANNER & LIFE</span>
-          <h2 style="font-size: 1.4rem; color: #71515B; font-weight: 800; margin: 0; font-family: var(--font-heading);">
-            แผนงานวันที่ ${thaiDateText}
-          </h2>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.2rem 0 0;">
-            มีคิวงานของร้าน ${dayQueues.length} งาน | บันทึกส่วนตัว ${personalTasks.length} งาน
-          </p>
+      <div style="max-height: calc(88vh - 40px); overflow-y: auto; padding: 2.2rem 1.8rem 1.8rem; border-radius: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+          <div>
+            <span class="badge badge--pink" style="margin-bottom: 0.35rem; font-size: 11px;">DAILY PLANNER & LIFE</span>
+            <h2 style="font-size: 1.4rem; color: #71515B; font-weight: 800; margin: 0; font-family: var(--font-heading);">
+              แผนงานวันที่ ${thaiDateText}
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.2rem 0 0;">
+              Today's Q: ${dayQueues.length} งาน | To-Do List: ${personalTasks.length} รายการ
+            </p>
+          </div>
+          <button type="button" onclick="closeCalendarDateModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #71515B; padding: 4px 8px;">✕</button>
         </div>
-        <button type="button" onclick="closeCalendarDateModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #71515B; padding: 4px 8px;">✕</button>
-      </div>
 
-      <!-- Section 1: Shop Queues for this date with Done Checkbox -->
-      <div style="background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.25rem; margin-bottom: 1.25rem;">
-        <h4 style="font-size: 0.95rem; font-weight: 800; color: #71515B; margin: 0 0 0.85rem; display: flex; align-items: center; justify-content: space-between;">
-          <span>คิวงานของร้านในวันนี้ (${dayQueues.length})</span>
-          <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">ติ๊กถูกเพื่องานเสร็จ 100%</span>
-        </h4>
+        <!-- Section 1: Shop Queues for this date with Done Checkbox -->
+        <div style="background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.25rem; margin-bottom: 1.25rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: #71515B; margin: 0 0 0.85rem;">
+            Today's Q (${dayQueues.length})
+          </h4>
 
-        ${dayQueues.length > 0 ? `
-          <div style="display: flex; flex-direction: column; gap: 8px;">
-            ${dayQueues.map(q => {
-              const isDone = (normalizeQueueStatus(q.status) === 'done' || Number(q.progress) >= 100);
-              return `
-                <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1.5px solid ${isDone ? '#E2E8F0' : '#FFD6E5'}; border-radius: 12px; padding: 10px 14px; gap: 10px;">
-                  <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; min-width: 0;">
+          ${dayQueues.length > 0 ? `
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${dayQueues.map(q => {
+                const isDone = (normalizeQueueStatus(q.status) === 'done' || Number(q.progress) >= 100);
+                return `
+                  <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1.5px solid ${isDone ? '#E2E8F0' : '#FFD6E5'}; border-radius: 12px; padding: 10px 14px; gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; min-width: 0;">
+                      <input 
+                        type="checkbox" 
+                        ${isDone ? 'checked' : ''} 
+                        onchange="handleToggleQueueDoneFromCalendar('${q.id}', this.checked, '${dateIso}', ${day}, ${month}, ${year})"
+                        style="width: 18px; height: 18px; cursor: pointer; accent-color: #E05A88;"
+                      >
+                      <span style="font-weight: 800; color: #E05A88; font-size: 0.92rem;">
+                        ${escapeHTML(q.queue_number || 'Q')}
+                      </span>
+                      <span style="font-size: 0.9rem; color: #71515B; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; ${isDone ? 'text-decoration: line-through; opacity: 0.55;' : ''}">
+                        ${escapeHTML(q.job_name || 'งานออกแบบ')} (${escapeHTML(q.customer_name || 'ลูกค้า')})
+                      </span>
+                    </label>
+                    <button 
+                      type="button" 
+                      class="btn btn-outline btn-sm" 
+                      onclick="closeCalendarDateModal(); openEditQueueModal('${q.id}')"
+                      style="font-size: 0.75rem; padding: 2px 8px; border-radius: 8px; border-color: #FFDFE9; color: #71515B;"
+                    >
+                      ดูคิว
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : `
+            <div style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.88rem;">
+              ไม่มีคิวงานของร้านในวันนี้
+            </div>
+          `}
+        </div>
+
+        <!-- Section 2: Personal Tasks / Life Todo Checklist -->
+        <div style="background: #FFFFFF; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.25rem; margin-bottom: 1.25rem;">
+          <h4 style="font-size: 0.95rem; font-weight: 800; color: #71515B; margin: 0 0 0.85rem;">
+            To-Do List (${personalTasks.length})
+          </h4>
+
+          <!-- Add Task Input -->
+          <div style="display: flex; gap: 8px; margin-bottom: 1rem;">
+            <input 
+              type="text" 
+              id="newCalendarTaskTitle" 
+              placeholder="พิมพ์สิ่งที่ต้องทำ เช่น ส่งพัสดุ, จ่ายค่าไฟ, ซื้อของ..." 
+              style="flex: 1; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 8px 12px; font-size: 0.9rem; outline: none; background: #FFF9FC;"
+              onkeydown="if (event.key === 'Enter') handleAddPersonalTaskSubmit('${dateIso}', ${day}, ${month}, ${year})"
+            >
+            <button 
+              type="button" 
+              class="btn btn-primary btn-sm" 
+              onclick="handleAddPersonalTaskSubmit('${dateIso}', ${day}, ${month}, ${year})"
+              style="border-radius: 12px; padding: 0 16px; font-weight: 700;"
+            >
+              + เพิ่ม
+            </button>
+          </div>
+
+          <!-- Task List -->
+          ${personalTasks.length > 0 ? `
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              ${personalTasks.map(t => `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #FFF9FC; border: 1px solid #FFDFE9; border-radius: 10px; padding: 8px 12px;">
+                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; min-width: 0;">
                     <input 
                       type="checkbox" 
-                      ${isDone ? 'checked' : ''} 
-                      onchange="handleToggleQueueDoneFromCalendar('${q.id}', this.checked, '${dateIso}', ${day}, ${month}, ${year})"
-                      style="width: 18px; height: 18px; cursor: pointer; accent-color: #E05A88;"
+                      ${t.completed ? 'checked' : ''} 
+                      onchange="handleTogglePersonalTask('${t.id}', '${dateIso}', ${day}, ${month}, ${year})"
+                      style="width: 17px; height: 17px; cursor: pointer; accent-color: #E05A88;"
                     >
-                    <span style="font-weight: 800; color: #E05A88; font-size: 0.92rem;">
-                      ${escapeHTML(q.queue_number || 'Q')}
-                    </span>
-                    <span style="font-size: 0.9rem; color: #71515B; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; ${isDone ? 'text-decoration: line-through; opacity: 0.55;' : ''}">
-                      ${escapeHTML(q.job_name || 'งานออกแบบ')} (${escapeHTML(q.customer_name || 'ลูกค้า')})
+                    <span style="font-size: 0.9rem; color: #71515B; font-weight: 600; ${t.completed ? 'text-decoration: line-through; opacity: 0.5;' : ''}">
+                      ${escapeHTML(t.title)}
                     </span>
                   </label>
                   <button 
                     type="button" 
-                    class="btn btn-outline btn-sm" 
-                    onclick="closeCalendarDateModal(); openEditQueueModal('${q.id}')"
-                    style="font-size: 0.75rem; padding: 2px 8px; border-radius: 8px; border-color: #FFDFE9; color: #71515B;"
-                  >
-                    ดูคิว
-                  </button>
+                    onclick="handleDeletePersonalTask('${t.id}', '${dateIso}', ${day}, ${month}, ${year})"
+                    style="background: none; border: none; color: #A0AEC0; cursor: pointer; font-size: 1rem; padding: 2px 6px;"
+                    title="ลบงานนี้"
+                  >✕</button>
                 </div>
-              `;
-            }).join('')}
-          </div>
-        ` : `
-          <div style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.88rem;">
-            ไม่มีคิวงานของร้านในวันนี้
-          </div>
-        `}
-      </div>
-
-      <!-- Section 2: Personal Tasks / Life Todo Checklist -->
-      <div style="background: #FFFFFF; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.25rem; margin-bottom: 1.25rem;">
-        <h4 style="font-size: 0.95rem; font-weight: 800; color: #71515B; margin: 0 0 0.85rem;">
-          วางแผนชีวิต & สิ่งที่ต้องทำส่วนตัว (To-Do List)
-        </h4>
-
-        <!-- Add Task Input -->
-        <div style="display: flex; gap: 8px; margin-bottom: 1rem;">
-          <input 
-            type="text" 
-            id="newCalendarTaskTitle" 
-            placeholder="พิมพ์สิ่งที่ต้องทำ เช่น ส่งพัสดุ, จ่ายค่าไฟ, ซื้อของ..." 
-            style="flex: 1; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 8px 12px; font-size: 0.9rem; outline: none; background: #FFF9FC;"
-            onkeydown="if (event.key === 'Enter') handleAddPersonalTaskSubmit('${dateIso}', ${day}, ${month}, ${year})"
-          >
-          <button 
-            type="button" 
-            class="btn btn-primary btn-sm" 
-            onclick="handleAddPersonalTaskSubmit('${dateIso}', ${day}, ${month}, ${year})"
-            style="border-radius: 12px; padding: 0 16px; font-weight: 700;"
-          >
-            + เพิ่ม
-          </button>
+              `).join('')}
+            </div>
+          ` : `
+            <div style="text-align: center; padding: 0.75rem; color: var(--text-muted); font-size: 0.85rem;">
+              ยังไม่มีบันทึกส่วนตัวในวันนี้ สามารถพิมพ์เพิ่มด้านบนได้เลยนะคะ
+            </div>
+          `}
         </div>
 
-        <!-- Task List -->
-        ${personalTasks.length > 0 ? `
-          <div style="display: flex; flex-direction: column; gap: 6px;">
-            ${personalTasks.map(t => `
-              <div style="display: flex; align-items: center; justify-content: space-between; background: #FFF9FC; border: 1px solid #FFDFE9; border-radius: 10px; padding: 8px 12px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; min-width: 0;">
-                  <input 
-                    type="checkbox" 
-                    ${t.completed ? 'checked' : ''} 
-                    onchange="handleTogglePersonalTask('${t.id}', '${dateIso}', ${day}, ${month}, ${year})"
-                    style="width: 17px; height: 17px; cursor: pointer; accent-color: #E05A88;"
-                  >
-                  <span style="font-size: 0.9rem; color: #71515B; font-weight: 600; ${t.completed ? 'text-decoration: line-through; opacity: 0.5;' : ''}">
-                    ${escapeHTML(t.title)}
-                  </span>
-                </label>
-                <button 
-                  type="button" 
-                  onclick="handleDeletePersonalTask('${t.id}', '${dateIso}', ${day}, ${month}, ${year})"
-                  style="background: none; border: none; color: #A0AEC0; cursor: pointer; font-size: 1rem; padding: 2px 6px;"
-                  title="ลบงานนี้"
-                >✕</button>
-              </div>
-            `).join('')}
-          </div>
-        ` : `
-          <div style="text-align: center; padding: 0.75rem; color: var(--text-muted); font-size: 0.85rem;">
-            ยังไม่มีบันทึกส่วนตัวในวันนี้ สามารถพิมพ์เพิ่มด้านบนได้เลยนะคะ
-          </div>
-        `}
-      </div>
-
-      <div style="display: flex; justify-content: flex-end;">
-        <button type="button" class="btn btn-secondary" onclick="closeCalendarDateModal()" style="border-radius: 12px; padding: 0.6rem 1.6rem; font-weight: 700; background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B;">
-          ปิดหน้าต่าง
-        </button>
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="closeCalendarDateModal()" style="border-radius: 12px; padding: 0.6rem 1.6rem; font-weight: 700; background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B;">
+            ปิดหน้าต่าง
+          </button>
+        </div>
       </div>
     </div>
   `;
