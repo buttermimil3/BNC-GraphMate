@@ -54,7 +54,7 @@ const Store = (function () {
       mascot1: {
         name: 'น้องกระต่ายพาสเทล',
         png: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
-        quote: 'หวัดดีฮับ! ♡',
+        quote: 'หวัดดีฮับ!',
         quote2: 'ยินดีต้อนรับนะค้า',
         quote3: 'เย้! BNC น่ารักจัง'
       },
@@ -87,19 +87,19 @@ const Store = (function () {
     },
     queuePage: {
       enabled: true,
-      heroTitle: 'เช็กคิวงาน ♡',
+      heroTitle: 'เช็กคิวงาน',
       heroSubtitle: 'ดูสถานะคิวงานของร้านแบบเรียลไทม์',
       noticeText: 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ',
       searchTitle: 'ค้นหาคิวของคุณ',
       searchPlaceholder: 'กรอกชื่อ, LINE ID, เบอร์โทรศัพท์ หรือเลขคิว...',
       searchButtonText: 'ดูคิวของฉัน',
       searchDescription: '*กรอกข้อมูลที่ใช้กับทางร้านเพื่อค้นหาคิวของคุณ',
-      todayLabel: 'คิววันนี้',
+      monthLabel: 'คิวเดือนนี้',
       waitingLabel: 'รอคิว',
       workingLabel: 'กำลังทำ',
-      completedLabel: 'เสร็จแล้ว',
-      sectionTitle: 'คิวงานของร้าน ♡',
-      emptyStateText: 'วันนี้ยังไม่มีคิวงานนะคะ ♡',
+      completionLabel: 'ความสำเร็จในเดือนนี้',
+      sectionTitle: 'คิวงานของร้าน',
+      emptyStateText: 'ยังไม่มีคิวงานนะคะ',
       loadingText: 'กำลังโหลดคิว…',
       errorText: 'ไม่สามารถโหลดข้อมูลคิวได้',
       showSearch: true,
@@ -580,7 +580,7 @@ const Store = (function () {
         total_queue: 8,
         queue_date: '11/09/2026',
         updated_at: '11:42 น.',
-        note: 'กำลังดราฟต์แบบรอบแรก จะส่งให้ตรวจเวลาประมาณ 16:00 น. นะคะ ♡',
+        note: 'กำลังดราฟต์แบบรอบแรก จะส่งให้ตรวจเวลาประมาณ 16:00 น. นะคะ',
         image_url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700',
         is_visible: true,
         sort_order: 0,
@@ -643,7 +643,7 @@ const Store = (function () {
         total_queue: 8,
         queue_date: '09/09/2026',
         updated_at: '18:00 น.',
-        note: 'ส่งมอบไฟล์งานผ่าน Google Drive เรียบร้อยแล้ว ขอบคุณมากนะคะ ♡',
+        note: 'ส่งมอบไฟล์งานผ่าน Google Drive เรียบร้อยแล้ว ขอบคุณมากนะคะ',
         image_url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=700',
         is_visible: true,
         sort_order: 3,
@@ -2132,7 +2132,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const settings = Store.getSettings ? Store.getSettings() : {};
     const mascotCfg = settings.mascotSettings || {
       enabled: true,
-      mascot1: { name: 'น้องกระต่ายพาสเทล', png: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg', quote: 'หวัดดีฮับ! ♡' },
+      mascot1: { name: 'น้องกระต่ายพาสเทล', png: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg', quote: 'หวัดดีฮับ!' },
       mascot2: { name: 'น้องหมีสตูดิโอ', png: 'https://api.iconify.design/fluent-emoji-flat:bear.svg', quote: 'แวะดูฟอนต์ได้น้า' },
       mascot3: { name: 'น้องแมวโมจิ', png: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg', quote: 'เหมียววว~ จับได้ด้วย!' }
     };
@@ -2166,7 +2166,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         png: m1.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f430.png',
         quotes: [
-          m1.quote || 'หวัดดีฮับ! ♡',
+          m1.quote || 'หวัดดีฮับ!',
           m1.quote2 || 'ยินดีต้อนรับนะค้า',
           m1.quote3 || 'เย้! BNC น่ารักจัง'
         ].filter(Boolean),
@@ -2248,7 +2248,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           bubble.className = 'mascot-bubble-talk';
           el.appendChild(bubble);
         }
-        const availableQuotes = (cfg.quotes && cfg.quotes.length > 0) ? cfg.quotes : ['สวัสดีฮับ! ♡'];
+        const availableQuotes = (cfg.quotes && cfg.quotes.length > 0) ? cfg.quotes : ['สวัสดีฮับ!'];
         const textToShow = availableQuotes[quoteIndex % availableQuotes.length];
         quoteIndex++;
         bubble.textContent = textToShow;
@@ -2753,7 +2753,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <span class="notebook-hole"></span>
               </div>
               <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 6px;">
-                <span>📝 ทดสอบ & เปรียบเทียบฟอนต์ลายมือสด</span>
+                <span>ทดสอบและเปรียบเทียบฟอนต์ลายมือสด</span>
               </div>
               <div style="font-size: 12px; color: var(--text-muted);">
                 พิมพ์ข้อความเทียบฟอนต์สดบนสมุดโน้ต
@@ -2985,39 +2985,51 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <div style="text-align: center; max-width: 680px; margin: 0 auto;">
               <span class="badge badge--pink" style="margin-bottom: 0.6rem; font-size: 0.8rem; letter-spacing: 0.5px;">LIVE QUEUE STATUS</span>
               <h1 style="font-family: var(--font-heading); color: #9D174D; font-size: 2.1rem; margin-bottom: 0.5rem; font-weight: 700;">
-                ${escapeHTML(qSettings.heroTitle || 'เช็กคิวงาน ♡')}
+                ${escapeHTML(qSettings.heroTitle || 'เช็กคิวงาน')}
               </h1>
               <p style="color: var(--text-muted); font-size: 0.98rem; margin-bottom: 0.85rem;">
                 ${escapeHTML(qSettings.heroSubtitle || 'ดูสถานะคิวงานของร้านแบบเรียลไทม์')}
               </p>
               ${qSettings.noticeText ? `
-                <div style="background: #FFF5F8; border: 1px dashed #F472B6; border-radius: 14px; padding: 0.75rem 1.25rem; font-size: 0.88rem; color: #9D174D; display: inline-block;">
+                <div style="background: #FFF5F8; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 0.75rem 1.25rem; font-size: 0.88rem; color: #9D174D; display: inline-block;">
                   ${escapeHTML(qSettings.noticeText)}
                 </div>
               ` : ''}
             </div>
 
-            <!-- Summary Badges / Counter Cards -->
-            ${qSettings.showSummary ? `
-              <div class="queue-summary-grid">
-                <div class="queue-summary-pill">
-                  <div class="queue-summary-num">${totalToday}</div>
-                  <div class="queue-summary-label">${escapeHTML(qSettings.todayLabel || 'คิววันนี้')}</div>
+            <!-- 3-Stat Summary + Candy Striped Month Progress Bar -->
+            ${qSettings.showSummary ? (() => {
+              const monthPct = totalToday > 0 ? Math.round((countDone / totalToday) * 100) : 0;
+              const monthMascot = getQueueMascotForProgress(monthPct, qSettings);
+              return `
+                <div class="queue-month-candy-card">
+                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 0.85rem;">
+                    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                      <div>
+                        <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block;">${escapeHTML(qSettings.monthLabel || qSettings.todayLabel || 'คิวเดือนนี้')}</span>
+                        <strong style="font-size: 1.45rem; color: #71515B; font-family: var(--font-heading); font-weight: 800;">${totalToday} <span style="font-size: 0.88rem; font-weight: 600;">คิว</span></strong>
+                      </div>
+                      <div style="width: 1px; height: 32px; background: #FFDFE9;"></div>
+                      <div>
+                        <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block;">${escapeHTML(qSettings.waitingLabel || 'รอคิว')}</span>
+                        <strong style="font-size: 1.45rem; color: #D97706; font-family: var(--font-heading); font-weight: 800;">${countWaiting} <span style="font-size: 0.88rem; font-weight: 600;">คิว</span></strong>
+                      </div>
+                    </div>
+                    <div style="text-align: right;">
+                      <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block;">${escapeHTML(qSettings.completionLabel || 'ความสำเร็จในเดือนนี้')}</span>
+                      <strong style="font-size: 1.5rem; color: #9D174D; font-family: var(--font-heading); font-weight: 800;">${monthPct}%</strong>
+                    </div>
+                  </div>
+                  <div class="queue-month-candy-track">
+                    <div class="queue-month-candy-fill" style="width: ${monthPct}%;">
+                      <div class="queue-month-candy-mascot" title="${monthPct}%">
+                        <img src="${escapeHTML(monthMascot)}" alt="Mascot">
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="queue-summary-pill" style="border-color: #FDE68A; background: #FFFDF5;">
-                  <div class="queue-summary-num" style="color: #D97706;">${countWaiting}</div>
-                  <div class="queue-summary-label">${escapeHTML(qSettings.waitingLabel || 'รอคิว')}</div>
-                </div>
-                <div class="queue-summary-pill" style="border-color: #BFDBFE; background: #F8FAFF;">
-                  <div class="queue-summary-num" style="color: #2563EB;">${countProgress}</div>
-                  <div class="queue-summary-label">${escapeHTML(qSettings.workingLabel || 'กำลังทำ')}</div>
-                </div>
-                <div class="queue-summary-pill" style="border-color: #BBF7D0; background: #F6FEF8;">
-                  <div class="queue-summary-num" style="color: #16A34A;">${countDone}</div>
-                  <div class="queue-summary-label">${escapeHTML(qSettings.completedLabel || 'เสร็จแล้ว')}</div>
-                </div>
-              </div>
-            ` : ''}
+              `;
+            })() : ''}
           </div>
 
           <!-- Customer Privacy Search Card -->
@@ -3055,7 +3067,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <!-- Queue Section Title Bar -->
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
             <h2 style="font-size: 1.35rem; color: #831843; font-family: var(--font-heading); font-weight: 800; margin: 0;">
-              ${escapeHTML(qSettings.sectionTitle || 'คิวงานของร้าน ♡')}
+              ${escapeHTML(qSettings.sectionTitle || 'คิวงานของร้าน')}
             </h2>
             <span style="font-size: 0.85rem; color: var(--text-muted);">
               แสดง ${filteredQueues.length} จากทั้งหมด ${allQueues.length} รายการ
@@ -3078,7 +3090,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <div style="margin-bottom: 2.2rem;">
                   <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;">
                     <span style="font-size: 1.15rem; font-weight: 800; color: #854D0E; font-family: var(--font-heading);">
-                      📌 ถึงคิววันนั้นๆ / กำลังออกแบบ (${activeQueues.length})
+                      ถึงคิววันนั้นๆ / กำลังออกแบบ (${activeQueues.length})
                     </span>
                     <span style="font-size: 0.8rem; background: #FEF08A; color: #854D0E; padding: 2px 8px; border-radius: 999px; font-weight: 700; border: 1px solid #FDE047;">
                       Active Today
@@ -3094,7 +3106,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                       return `
                         <div class="queue-postit-card" onclick="openQueueDetailModal('${item.id}')">
                           <!-- Sticky Note Top Tape -->
-                          <div class="queue-postit-tape"></div>
+                          <div class="queue-postit-pin"></div>
 
                           <div class="queue-card-header">
                             ${qSettings.showQueueNumber !== false ? `
@@ -3140,7 +3152,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                           ` : ''}
 
                           ${qSettings.showNote !== false && item.note ? `
-                            <div style="font-size: 0.82rem; color: #4A5568; background: #FFF9FA; border-left: 3px solid #F472B6; padding: 4px 8px; border-radius: 4px; margin-top: 0.5rem;">
+                            <div style="font-size: 0.82rem; color: #4A5568; background: #ffffff; border: 1.5px solid #FFDFE9; padding: 6px 10px; border-radius: 8px; margin-top: 0.5rem; color: #71515B;">
                               ${escapeHTML(item.note)}
                             </div>
                           ` : ''}
@@ -3161,7 +3173,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <div>
                   <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem;">
                     <span style="font-size: 1.15rem; font-weight: 800; color: #9D174D; font-family: var(--font-heading);">
-                      📋 คิวงานรอคิว & คิวอื่นๆ (${otherQueues.length})
+                      คิวงานรอคิวและคิวอื่นๆ (${otherQueues.length})
                     </span>
                     <span style="font-size: 0.8rem; background: #FFF1F5; color: #9D174D; padding: 2px 8px; border-radius: 999px; font-weight: 700; border: 1px solid #FBCFE8;">
                       Queue List
@@ -3231,11 +3243,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               ` : ''}
             `;
           })() : `
-            <div style="background: #FFFDFE; border: 1.5px dashed #FBCFE8; border-radius: 24px; padding: 4rem 1.5rem; text-align: center; color: var(--text-muted); margin-top: 1rem;">
+            <div style="background: #FFFDFE; border: 1.5px solid #FFDFE9; border-radius: 24px; padding: 4rem 1.5rem; text-align: center; color: var(--text-muted); margin-top: 1rem;">
               <div style="width: 56px; height: 56px; border-radius: 50%; background: #FFF5F8; border: 1.5px solid #FBCFE8; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #9D174D;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               </div>
-              <h3 style="color: #9D174D; margin-bottom: 0.35rem; font-size: 1.2rem;">${escapeHTML(qSettings.emptyStateText || 'วันนี้ยังไม่มีคิวงานนะคะ ♡')}</h3>
+              <h3 style="color: #9D174D; margin-bottom: 0.35rem; font-size: 1.2rem;">${escapeHTML(qSettings.emptyStateText || 'วันนี้ยังไม่มีคิวงานนะคะ')}</h3>
               <p style="font-size: 0.9rem; margin: 0;">หากสั่งทำป้ายหรือสอบถามคิวงาน ทักแชทสอบถามแอดมินทาง LINE ได้เลยนะคะ</p>
               ${state.queueSearchQuery ? `
                 <button type="button" class="btn btn-outline btn-sm" onclick="handleClearQueueSearch()" style="margin-top: 1rem;">
@@ -3332,7 +3344,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
         <!-- 5-Step Timeline Graphic -->
         ${qSettings.showTimeline !== false ? `
-          <div style="background: #FFFDFE; border: 1px dashed #FBCFE8; border-radius: 18px; padding: 1.25rem 1rem 0.75rem; margin-bottom: 1.5rem;">
+          <div style="background: #FFFDFE; border: 1px solid #FFDFE9; border-radius: 18px; padding: 1.25rem 1rem 0.75rem; margin-bottom: 1.5rem;">
             <div style="font-size: 0.85rem; font-weight: 700; color: #9D174D; margin-bottom: 0.5rem; text-align: center;">
               สถานะขั้นตอนการทำงาน
             </div>
@@ -4731,7 +4743,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                       </div>
                     </td>
                     <td>
-                      <button type="button" class="btn btn-outline btn-sm" onclick="resetCustomerStampCard('${c.id}')" title="รีเซ็ตเริ่มใบใหม่">🔄 ใบใหม่</button>
+                      <button type="button" class="btn btn-outline btn-sm" onclick="resetCustomerStampCard('${c.id}')" title="รีเซ็ตเริ่มใบใหม่">ใบใหม่</button>
                     </td>
                   </tr>
                 `;
@@ -5067,7 +5079,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
 
           <!-- Queue Financials & Agent Cost (สำหรับคำนวณรายได้ในแดชบอร์ด) -->
-          <div style="background: #FFF0F7; border: 1.5px dashed #FBCFE8; border-radius: 16px; padding: 1rem 1.1rem; margin-bottom: 0.85rem;">
+          <div style="background: #FFF0F7; border: 1.5px solid #FFDFE9; border-radius: 16px; padding: 1rem 1.1rem; margin-bottom: 0.85rem;">
             <div style="font-weight: 700; color: var(--primary-deep); font-size: 0.92rem; margin-bottom: 0.65rem; display: flex; align-items: center; justify-content: space-between;">
               <span>ข้อมูลการเงินคิวงาน (คำนวณแดชบอร์ดรายได้)</span>
               <span class="badge badge--pink" style="font-size: 0.72rem;">ระบบรายได้ & ตัวแทน</span>
@@ -5327,7 +5339,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" style="margin-bottom: 1rem;">
             <div class="form-group">
               <label class="form-label">หัวข้อหลักบนกระดาษโน้ต (Hero Title)</label>
-              <input type="text" id="cfg_qp_heroTitle" class="form-input" value="${escapeHTML(queuePage.heroTitle || 'เช็กคิวงาน ♡')}">
+              <input type="text" id="cfg_qp_heroTitle" class="form-input" value="${escapeHTML(queuePage.heroTitle || 'เช็กคิวงาน')}">
             </div>
             <div class="form-group">
               <label class="form-label">คำบรรยายหัวเว็บ (Hero Subtitle)</label>
@@ -5357,8 +5369,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" style="margin-bottom: 1rem;">
             <div class="form-group">
-              <label class="form-label">ป้าย: คิววันนี้</label>
-              <input type="text" id="cfg_qp_todayLabel" class="form-input" value="${escapeHTML(queuePage.todayLabel || 'คิววันนี้')}">
+              <label class="form-label">ป้าย: คิวเดือนนี้</label>
+              <input type="text" id="cfg_qp_monthLabel" class="form-input" value="${escapeHTML(queuePage.monthLabel || queuePage.todayLabel || 'คิวเดือนนี้')}">
             </div>
             <div class="form-group">
               <label class="form-label">ป้าย: รอคิว</label>
@@ -5369,24 +5381,24 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <input type="text" id="cfg_qp_workingLabel" class="form-input" value="${escapeHTML(queuePage.workingLabel || 'กำลังทำ')}">
             </div>
             <div class="form-group">
-              <label class="form-label">ป้าย: เสร็จแล้ว</label>
-              <input type="text" id="cfg_qp_completedLabel" class="form-input" value="${escapeHTML(queuePage.completedLabel || 'เสร็จแล้ว')}">
+              <label class="form-label">ป้าย: ความสำเร็จในเดือนนี้</label>
+              <input type="text" id="cfg_qp_completionLabel" class="form-input" value="${escapeHTML(queuePage.completionLabel || queuePage.completedLabel || 'ความสำเร็จในเดือนนี้')}">
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" style="margin-bottom: 1rem;">
             <div class="form-group">
               <label class="form-label">หัวข้อรายการคิว (Section Title)</label>
-              <input type="text" id="cfg_qp_sectionTitle" class="form-input" value="${escapeHTML(queuePage.sectionTitle || 'คิวงานของร้าน ♡')}">
+              <input type="text" id="cfg_qp_sectionTitle" class="form-input" value="${escapeHTML(queuePage.sectionTitle || 'คิวงานของร้าน')}">
             </div>
             <div class="form-group">
               <label class="form-label">ข้อความเมื่อไม่มีคิว (Empty State)</label>
-              <input type="text" id="cfg_qp_emptyStateText" class="form-input" value="${escapeHTML(queuePage.emptyStateText || 'วันนี้ยังไม่มีคิวงานนะคะ ♡')}">
+              <input type="text" id="cfg_qp_emptyStateText" class="form-input" value="${escapeHTML(queuePage.emptyStateText || 'วันนี้ยังไม่มีคิวงานนะคะ')}">
             </div>
           </div>
 
           <!-- Component Toggles -->
-          <div style="background: #FFF9FA; border-radius: 14px; padding: 1rem; border: 1px dashed #FBCFE8; margin-top: 1rem;">
+          <div style="background: #FFF9FA; border-radius: 14px; padding: 1rem; border: 1px solid #FFDFE9; margin-top: 1rem;">
             <div style="font-weight: 700; color: #9D174D; margin-bottom: 0.5rem; font-size: 0.9rem;">
               ตัวเลือกการแสดงผลบนหน้าเช็กคิว:
             </div>
@@ -5422,7 +5434,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <div style="background: #FFFFFF; border-radius: 16px; padding: 1.25rem; border: 1.5px solid var(--border); margin-top: 1.25rem;">
             <div style="margin-bottom: 1rem;">
               <h4 style="margin: 0 0 4px; font-size: 1rem; color: #9D174D; font-weight: 800;">
-                🐾 มาสคอตปลายหลอดคิวงานตามเปอร์เซ็นต์ (Mascot Stages at Tip)
+                มาสคอตปลายหลอดคิวงานตามเปอร์เซ็นต์ (Mascot Stages at Tip)
               </h4>
               <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
                 ตั้งค่ารูปภาพมาสคอตที่ปลายหลอดความคืบหน้า ทั้งบนโพสอิทและแถบยาวมน โดยเปลี่ยนรูปตามเปอร์เซ็นต์ (0%, 25%, 50%, 75%, 100%)
@@ -5491,7 +5503,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 8px;">
             <div>
-              <h3 style="color: var(--primary-deep); margin-bottom: 0.25rem;">✨ แก๊งน้องมาสคอตลอยหน้าจอ (Falling & Draggable Mascots)</h3>
+              <h3 style="color: var(--primary-deep); margin-bottom: 0.25rem;">แก๊งน้องมาสคอตลอยหน้าจอ (Falling & Draggable Mascots)</h3>
               <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0;">น้องๆ ลอยลงมาจากด้านบนจอช้าๆ ลูกค้าสามารถจับน้องลากเล่นไปมาและคลิกคุยได้</p>
             </div>
             <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: var(--surface-alt); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);">
@@ -5527,15 +5539,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 1</label>
-                <input type="text" id="cfg_mascot1_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote || 'หวัดดีฮับ! ♡')}">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 1</label>
+                <input type="text" id="cfg_mascot1_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote || 'หวัดดีฮับ!')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 2</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 2</label>
                 <input type="text" id="cfg_mascot1_quote2" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote2 || 'ยินดีต้อนรับนะค้า')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 3</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 3</label>
                 <input type="text" id="cfg_mascot1_quote3" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote3 || 'เย้! BNC น่ารักจัง')}">
               </div>
             </div>
@@ -5566,15 +5578,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 1</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 1</label>
                 <input type="text" id="cfg_mascot2_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.quote || 'แวะดูฟอนต์ได้น้า')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 2</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 2</label>
                 <input type="text" id="cfg_mascot2_quote2" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.quote2 || 'อย่าทิ้งเค้านะ!')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 3</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 3</label>
                 <input type="text" id="cfg_mascot2_quote3" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.quote3 || 'ร้านน่ารักม้ากก')}">
               </div>
             </div>
@@ -5605,20 +5617,20 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 1</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 1</label>
                 <input type="text" id="cfg_mascot3_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.quote || 'เหมียววว~ จับได้ด้วย!')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 2</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 2</label>
                 <input type="text" id="cfg_mascot3_quote2" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.quote2 || 'ป้ายสวยทุกชิ้นเลย')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">💬 คำพูดจิ้มรอบที่ 3</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 3</label>
                 <input type="text" id="cfg_mascot3_quote3" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.quote3 || 'รัก BNC ที่สุด')}">
               </div>
             </div>
           </div>
-          <small style="display: block; margin-top: 0.85rem; color: var(--text-muted); font-size: 0.8rem;">💡 แนะนำใช้ภาพ PNG โปร่งใส (Transparent PNG) หรือ SVG เพื่อให้น้องลอยได้อย่างน่ารักและไม่มีกรอบขาวกวนใจค่ะ</small>
+          <small style="display: block; margin-top: 0.85rem; color: var(--text-muted); font-size: 0.8rem;">แนะนำใช้ภาพ PNG โปร่งใส (Transparent PNG) หรือ SVG เพื่อให้น้องลอยได้อย่างน่ารักและไม่มีกรอบขาวกวนใจค่ะ</small>
         </div>
 
         <!-- 3.1 Stamp Card Configuration -->
@@ -5804,7 +5816,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 </div>
                 <div style="display: flex; align-items: flex-end; padding-top: 18px;">
                   <button type="button" class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5; padding: 6px 10px;" onclick="removeContactChannelRow(this)" title="ลบช่องทางนี้">
-                    🗑️
+                    ลบ
                   </button>
                 </div>
               </div>
@@ -5969,10 +5981,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       }
       const success = await Store.syncFromCloud((isOk, detail) => {
         if (isOk) {
-          alert('✅ ซิงก์ข้อมูลจาก Google Sheets เรียบร้อยแล้วค่ะ!');
+          alert('ซิงก์ข้อมูลจาก Google Sheets เรียบร้อยแล้วค่ะ!');
           renderCurrentView();
         } else {
-          alert('⚠️ ไม่สามารถซิงก์ได้: ' + (typeof detail === 'string' ? detail : 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'));
+          alert('ไม่สามารถซิงก์ได้: ' + (typeof detail === 'string' ? detail : 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'));
         }
       });
       if (btn) {
@@ -5992,12 +6004,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     try {
       const res = await Store.syncAllToCloud();
       if (res && (res.status === 'success' || res.message)) {
-        alert('✅ ส่งข้อมูลทั้งหมด (สินค้า, ฟอนต์, กลุ่ม, แต้ม, การตั้งค่า) ขึ้น Google Sheet เรียบร้อยแล้วค่ะ!');
+        alert('ส่งข้อมูลทั้งหมด (สินค้า, ฟอนต์, กลุ่ม, แต้ม, การตั้งค่า) ขึ้น Google Sheet เรียบร้อยแล้วค่ะ!');
       } else {
-        alert('⚠️ ระบบบันทึกลงชีตเรียบร้อยแล้วค่ะ');
+        alert('ระบบบันทึกลงชีตเรียบร้อยแล้วค่ะ');
       }
     } catch (e) {
-      alert('⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ Google Apps Script: ' + e.message);
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ Google Apps Script: ' + e.message);
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -6047,18 +6059,18 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           deliveryInfo: getVal('cfg_deliveryInfo', 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')
         },
         queuePage: {
-          heroTitle: getVal('cfg_qp_heroTitle', 'เช็กคิวงาน ♡'),
+          heroTitle: getVal('cfg_qp_heroTitle', 'เช็กคิวงาน'),
           heroSubtitle: getVal('cfg_qp_heroSubtitle', 'ดูสถานะคิวงานของร้านแบบเรียลไทม์'),
           noticeText: getVal('cfg_qp_noticeText', 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ'),
           searchTitle: getVal('cfg_qp_searchTitle', 'ค้นหาคิวของคุณ'),
           searchPlaceholder: getVal('cfg_qp_searchPlaceholder', 'กรอกชื่อ, LINE ID, เบอร์โทรศัพท์ หรือเลขคิว...'),
           searchButtonText: getVal('cfg_qp_searchButtonText', 'ดูคิวของฉัน'),
-          todayLabel: getVal('cfg_qp_todayLabel', 'คิววันนี้'),
+          monthLabel: getVal('cfg_qp_monthLabel', 'คิวเดือนนี้'),
           waitingLabel: getVal('cfg_qp_waitingLabel', 'รอคิว'),
           workingLabel: getVal('cfg_qp_workingLabel', 'กำลังทำ'),
-          completedLabel: getVal('cfg_qp_completedLabel', 'เสร็จแล้ว'),
-          sectionTitle: getVal('cfg_qp_sectionTitle', 'คิวงานของร้าน ♡'),
-          emptyStateText: getVal('cfg_qp_emptyStateText', 'วันนี้ยังไม่มีคิวงานนะคะ ♡'),
+          completionLabel: getVal('cfg_qp_completionLabel', 'ความสำเร็จในเดือนนี้'),
+          sectionTitle: getVal('cfg_qp_sectionTitle', 'คิวงานของร้าน'),
+          emptyStateText: getVal('cfg_qp_emptyStateText', 'วันนี้ยังไม่มีคิวงานนะคะ'),
           showSearch: getChecked('cfg_qp_showSearch', true),
           showSummary: getChecked('cfg_qp_showSummary', true),
           showProgress: getChecked('cfg_qp_showProgress', true),
@@ -6099,7 +6111,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           mascot1: {
             name: getVal('cfg_mascot1_name', 'น้องกระต่ายพาสเทล'),
             png: getVal('cfg_mascot1_png', 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg'),
-            quote: getVal('cfg_mascot1_quote', 'หวัดดีฮับ! ♡'),
+            quote: getVal('cfg_mascot1_quote', 'หวัดดีฮับ!'),
             quote2: getVal('cfg_mascot1_quote2', 'ยินดีต้อนรับนะค้า'),
             quote3: getVal('cfg_mascot1_quote3', 'เย้! BNC น่ารักจัง')
           },
@@ -6176,7 +6188,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       </div>
       <div style="display: flex; align-items: flex-end; padding-top: 18px;">
         <button type="button" class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5; padding: 6px 10px;" onclick="removeContactChannelRow(this)" title="ลบช่องทางนี้">
-          🗑️
+          ลบ
         </button>
       </div>
     `;
@@ -7028,7 +7040,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
           </div>
           <!-- Reseller / Agent Financials for Product -->
-          <div style="background: #FFF0F7; border: 1.5px dashed #FBCFE8; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
+          <div style="background: #FFF0F7; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
                 <input type="checkbox" id="adminProdIsAgent" onchange="document.getElementById('adminProdCostWrap').style.display = this.checked ? 'block' : 'none'">
@@ -7114,7 +7126,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
           </div>
           <!-- Reseller / Agent Financials for Font -->
-          <div style="background: #FFF0F7; border: 1.5px dashed #FBCFE8; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
+          <div style="background: #FFF0F7; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
                 <input type="checkbox" id="adminFontIsAgent" onchange="document.getElementById('adminFontCostWrap').style.display = this.checked ? 'block' : 'none'">
@@ -7208,7 +7220,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
           </div>
           <!-- Reseller / Agent Financials for Group -->
-          <div style="background: #FFF0F7; border: 1.5px dashed #FBCFE8; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
+          <div style="background: #FFF0F7; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
                 <input type="checkbox" id="adminGroupIsAgent" onchange="document.getElementById('adminGroupCostWrap').style.display = this.checked ? 'block' : 'none'">
@@ -7303,7 +7315,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <input type="number" id="adminPortPrice" class="form-input" value="129">
           </div>
           <!-- Reseller / Agent Financials for Portfolio -->
-          <div style="background: #FFF0F7; border: 1.5px dashed #FBCFE8; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
+          <div style="background: #FFF0F7; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
                 <input type="checkbox" id="adminPortIsAgent" onchange="document.getElementById('adminPortCostWrap').style.display = this.checked ? 'block' : 'none'">

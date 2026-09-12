@@ -2016,7 +2016,6 @@ input[type="range"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 2px 8px rgba(244, 114, 182, 0.22));
   transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   user-select: none;
   background: transparent;
@@ -2082,7 +2081,6 @@ input[type="range"] {
 
 .stamp-slot:hover {
   transform: scale(1.05) rotate(0deg);
-  filter: drop-shadow(0 6px 14px rgba(244, 114, 182, 0.35));
 }
 
 .stamp-slot-art-img {
@@ -2581,7 +2579,7 @@ select option {
   width: 140px;
   height: 28px;
   background: rgba(255, 183, 206, 0.7);
-  border: 1px dashed #E2A3B7;
+  border: 1px solid #E2A3B7;
   border-radius: 4px;
   box-shadow: 0 1px 3px rgba(113, 81, 91, 0.06);
   z-index: 10;
@@ -2641,7 +2639,7 @@ select option {
 
 .queue-summary-pill {
   background: #FFF5F8;
-  border: 1.5px dashed #FBCFE8;
+  border: 1.5px solid #FBCFE8;
   border-radius: 18px;
   padding: 12px 14px;
   text-align: center;
@@ -2709,17 +2707,15 @@ select option {
   margin-top: 1.5rem;
 }
 
-/* 1. Post-it Sticky Note Card for Active Day Queue (ถึงคิววันนั้นๆ) */
+/* 1. Post-it Sticky Note Card for Active Day Queue (ถึงคิววันนั้นๆ - ขาวชมพูพาสเทล พร้อมหมุดพิน) */
 .queue-postit-card {
   position: relative;
-  background: #FFFDF8; /* Soft warm post-it cream/yellow */
-  background-image: radial-gradient(#F9E4B7 0.8px, transparent 0.8px);
-  background-size: 16px 16px;
-  border: 1.5px solid #F6D798;
+  background: #FFF9FC; /* Soft clean white-pink */
+  border: 1.5px solid #FFDFE9;
   border-radius: 18px;
   padding: 1.6rem 1.4rem 1.3rem;
-  box-shadow: 0 8px 24px rgba(234, 179, 8, 0.12), 0 2px 6px rgba(0,0,0,0.04);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 4px 12px rgba(113, 81, 91, 0.05);
+  transition: transform 0.25s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -2727,34 +2723,44 @@ select option {
 
 .queue-postit-card:hover {
   transform: translateY(-4px) rotate(-0.5deg);
-  box-shadow: 0 12px 28px rgba(234, 179, 8, 0.22);
+  border-color: #E2A3B7;
 }
 
-.queue-postit-tape {
+/* Pushpin Pin at top of Post-it */
+.queue-postit-pin {
   position: absolute;
-  top: -10px;
+  top: -12px;
   left: 50%;
-  transform: translateX(-50%) rotate(-1.5deg);
-  width: 80px;
-  height: 20px;
-  background: rgba(254, 240, 138, 0.85);
-  border: 1px dashed #EAB308;
-  border-radius: 2px;
-  pointer-events: none;
-  z-index: 3;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #FFB7CE, #DE85A7);
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(113, 81, 91, 0.2);
+  z-index: 5;
+  display: grid;
+  place-items: center;
+}
+
+.queue-postit-pin::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: rgba(113, 81, 91, 0.25);
+  border-radius: 50%;
 }
 
 .queue-postit-active-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
   font-size: 11px;
-  font-weight: 800;
-  background: #FEF08A;
-  color: #854D0E;
+  font-weight: 700;
+  background: #FFF0F5;
+  color: #71515B;
   padding: 2px 8px;
   border-radius: 6px;
-  border: 1px solid #FACC15;
+  border: 1px solid #FFDFE9;
   margin-left: 6px;
 }
 
@@ -2771,7 +2777,7 @@ select option {
   border: 1.5px solid #FFDFE9;
   border-radius: 999px;
   padding: 12px 22px;
-  box-shadow: 0 2px 10px rgba(244, 114, 182, 0.08);
+  box-shadow: 0 2px 6px rgba(113, 81, 91, 0.04);
   transition: all 0.22s ease;
   cursor: pointer;
   display: flex;
@@ -2781,8 +2787,7 @@ select option {
 
 .queue-long-bar:hover {
   transform: translateX(4px);
-  border-color: #F472B6;
-  box-shadow: 0 4px 16px rgba(244, 114, 182, 0.18);
+  border-color: #E2A3B7;
   background: #FFF9FC;
 }
 
@@ -2826,11 +2831,11 @@ select option {
 
 .queue-pill-num {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #9D174D;
+  color: #71515B;
   background: #FFF5F8;
-  border: 1px solid #FBCFE8;
+  border: 1px solid #FFDFE9;
   padding: 3px 12px;
   border-radius: 12px;
   letter-spacing: 0.5px;
@@ -2842,9 +2847,8 @@ select option {
 .queue-status-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 4px 12px;
   border-radius: 999px;
   white-space: nowrap;
@@ -2896,15 +2900,15 @@ select option {
 .queue-card-job {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #2D3748;
+  color: var(--text);
   margin-bottom: 2px;
   line-height: 1.3;
 }
 
 .queue-card-type-tag {
   font-size: 0.78rem;
-  color: #9D174D;
-  background: #FFF1F5;
+  color: var(--text-secondary);
+  background: #FFF0F5;
   display: inline-block;
   padding: 2px 8px;
   border-radius: 6px;
@@ -2914,74 +2918,152 @@ select option {
 
 .queue-card-client {
   font-size: 0.88rem;
-  color: #718096;
+  color: var(--text-muted);
   margin-bottom: 0.5rem;
 }
 
-/* 3. Progress Bar with Moving Mascot Tip at End of Bar */
+/* 3. Candy Stripe Shimmer Progress Bar with Pure PNG Mascot Tip */
 .queue-mascot-progress-wrap {
   position: relative;
-  padding-right: 18px; /* Room for mascot head */
+  padding-right: 22px; /* Room for mascot */
   margin: 0.4rem 0;
 }
 
 .queue-mascot-progress-track {
   width: 100%;
-  height: 12px;
+  height: 13px;
   background: #FFF5F8;
-  border: 1.5px solid #F3DCE6;
+  border: 1.5px solid #FFDFE9;
   border-radius: 999px;
   position: relative;
-  overflow: visible; /* Critical: allow mascot head to pop out at the tip */
+  overflow: visible; /* Mascot pops out cleanly */
 }
 
+/* Pastel Pink Candy Striped Pattern */
 .queue-mascot-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #F9A8D4, #F472B6);
+  background-color: #FFB7CE;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #FFB7CE,
+    #FFB7CE 8px,
+    #FFE4EE 8px,
+    #FFE4EE 16px
+  );
+  background-size: 200% 100%;
   border-radius: 999px;
   transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
+  animation: candyStripeMove 8s linear infinite;
 }
 
+@keyframes candyStripeMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 50px 0; }
+}
+
+/* Pure PNG Mascot Tip (No circle background, no aura border) */
 .queue-mascot-progress-tip {
   position: absolute;
-  right: -14px;
+  right: -16px;
   top: 50%;
   transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  border: 1.5px solid #F472B6;
-  box-shadow: 0 2px 6px rgba(244, 114, 182, 0.35);
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 4;
   animation: mascotTipBounce 1.8s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .queue-mascot-progress-tip img {
-  width: 20px;
-  height: 20px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   display: block;
 }
 
 @keyframes mascotTipBounce {
   0%, 100% { transform: translateY(-50%) scale(1); }
-  50% { transform: translateY(-58%) scale(1.1); }
+  50% { transform: translateY(-58%) scale(1.08); }
 }
 
 .queue-card-footer {
   margin-top: auto;
   padding-top: 0.75rem;
-  border-top: 1px dashed #FBCFE8;
+  border-top: 1px solid var(--border-light);
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.8rem;
-  color: #A0AEC0;
+  color: var(--text-light);
+}
+
+/* Month Progress Candy Striped Bar in Hero */
+.queue-month-candy-card {
+  background: #FFFFFF;
+  border: 1.5px solid #FFDFE9;
+  border-radius: 20px;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.25rem;
+}
+
+.queue-month-candy-track {
+  width: 100%;
+  height: 20px;
+  background: #FFF5F8;
+  border: 1.5px solid #FFDFE9;
+  border-radius: 999px;
+  position: relative;
+  overflow: visible;
+  margin-top: 0.65rem;
+}
+
+.queue-month-candy-fill {
+  height: 100%;
+  background-color: #FFB7CE;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #FFB7CE,
+    #FFB7CE 12px,
+    #FFE4EE 12px,
+    #FFE4EE 24px
+  );
+  background-size: 200% 100%;
+  border-radius: 999px;
+  transition: width 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  animation: candyStripeMove 8s linear infinite;
+}
+
+.queue-month-candy-mascot {
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  animation: mascotTipBounce 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.queue-month-candy-mascot img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  display: block;
 }
 
 /* 5-Step Timeline in Modal */
