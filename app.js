@@ -855,24 +855,23 @@ const Store = (function () {
     }
 
     try {
+      // Use POST (same as callCloud) — GAS GET redirects cause 404 in some browsers
       const fetchUrl = url + (url.includes('?') ? '&' : '?') + 'action=GET_ALL&_t=' + Date.now();
       const res = await fetch(fetchUrl, {
-        method: 'GET',
-        cache: 'no-store',
-        headers: {
-          'Accept': 'application/json'
-        }
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'GET_ALL' })
       });
       if (!res.ok) {
         if (res.status === 404) {
           if (typeof onUpdatedCallback === 'function') {
-            onUpdatedCallback(false, 'Google Apps Script URL ส่งกลับ Error 404 Not Found (URL เดิมถูกลบหรือยังไม่ได้ Deploy เป็น Web App: กรุณากด Deploy > New Deployment ใน Google Sheet เลือก Anyone แล้วนำ URL ใหม่มาใส่ค่ะ)');
+            onUpdatedCallback(false, 'Google Apps Script URL ส่งกลับ Error 404 (กรุณาตรวจสอบว่า Deploy เป็น Web App และเลือก Anyone ค่ะ)');
           }
           return false;
         }
         if (res.status === 401 || res.status === 403) {
           if (typeof onUpdatedCallback === 'function') {
-            onUpdatedCallback(false, 'ไม่มีสิทธิ์เข้าถึง Google Apps Script (กรุณาตั้งค่า "Who has access" เป็น "Anyone" ในหน้า Deploy Web App ค่ะ)');
+            onUpdatedCallback(false, 'ไม่มีสิทธิ์เข้าถึง Google Apps Script (กรุณาตั้งค่า "Who has access" เป็น "Anyone" ค่ะ)');
           }
           return false;
         }
@@ -883,7 +882,7 @@ const Store = (function () {
         const text = await res.text();
         result = JSON.parse(text);
       } catch (parseErr) {
-        if (typeof onUpdatedCallback === 'function') onUpdatedCallback(false, 'เซิร์ฟเวอร์ส่งกลับหน้า HTML แทนที่จะเป็น JSON (สาเหตุ: Google Script URL ไม่ถูกต้อง หรือยังไม่ได้ตั้งค่าสิทธิ์ Anyone)');
+        if (typeof onUpdatedCallback === 'function') onUpdatedCallback(false, 'เซิร์ฟเวอร์ส่งกลับหน้า HTML แทน JSON (ตรวจสอบ URL และสิทธิ์ Anyone)');
         return false;
       }
       if (result && result.status === 'success' && result.data) {
