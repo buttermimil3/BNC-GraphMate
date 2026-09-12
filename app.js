@@ -1523,6 +1523,44 @@ const Store = (function () {
       callCloud('DELETE_PORTFOLIO', { id: id });
     },
 
+    
+    // ── Calendar Personal Tasks ──
+    getCalendarTasks: function () {
+      return loadLocal().calendar_tasks || [];
+    },
+    saveCalendarTask: function (task) {
+      const data = loadLocal();
+      data.calendar_tasks = data.calendar_tasks || [];
+      if (!task.id) {
+        task.id = uid('ct');
+        task.created_at = new Date().toISOString();
+        data.calendar_tasks.push(task);
+      } else {
+        const idx = data.calendar_tasks.findIndex(t => t.id === task.id);
+        if (idx !== -1) data.calendar_tasks[idx] = Object.assign({}, data.calendar_tasks[idx], task);
+        else data.calendar_tasks.push(task);
+      }
+      saveLocal(data);
+      callCloud('SAVE_CALENDAR_TASK', { task: task });
+      return task;
+    },
+    deleteCalendarTask: function (id) {
+      const data = loadLocal();
+      data.calendar_tasks = (data.calendar_tasks || []).filter(t => t.id !== id);
+      saveLocal(data);
+      callCloud('DELETE_CALENDAR_TASK', { id: id });
+    },
+    toggleCalendarTask: function (id) {
+      const data = loadLocal();
+      data.calendar_tasks = data.calendar_tasks || [];
+      const t = data.calendar_tasks.find(x => x.id === id);
+      if (t) {
+        t.completed = !t.completed;
+        saveLocal(data);
+        callCloud('SAVE_CALENDAR_TASK', { task: t });
+      }
+    },
+
     // ── Queue Management System (Queue != Order) ──
     getQueueItems: function (includeHidden = false) {
       const q = loadLocal().queue_items || defaultData.queue_items;
@@ -2914,6 +2952,100 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   // Queue != Order, Strict Zero-Emoji, Privacy Censoring
   // ============================================================
   
+  
+  // ── Date Matching Helpers for Queue & Calendar ──
+  function isQueueDateToday(dateStr) {
+    if (!dateStr) return false;
+    const s = String(dateStr).trim().toLowerCase();
+    if (s === 'วันนี้' || s === 'today') return true;
+
+    const now = new Date();
+    const curDay = now.getDate();
+    const curMonth = now.getMonth() + 1;
+    const curYearCE = now.getFullYear();
+    const curYearBE = curYearCE + 543;
+
+    // Day only: "12" or "วันที่ 12"
+    const dayOnlyMatch = s.match(/^(?:วันที่\s*)?(\d{1,2})(?:st|nd|rd|th)?$/);
+    if (dayOnlyMatch) {
+      if (parseInt(dayOnlyMatch[1], 10) === curDay) return true;
+    }
+
+    // d/m/y or d-m-y
+    const dmyMatch = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+    if (dmyMatch) {
+      const d = parseInt(dmyMatch[1], 10);
+      const m = parseInt(dmyMatch[2], 10);
+      const y = parseInt(dmyMatch[3], 10);
+      const yearMatch = (y === curYearCE || y === curYearBE || (y === curYearCE % 100));
+      if (d === curDay && m === curMonth && yearMatch) return true;
+    }
+
+    // y-m-d
+    const ymdMatch = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (ymdMatch) {
+      const y = parseInt(ymdMatch[1], 10);
+      const m = parseInt(ymdMatch[2], 10);
+      const d = parseInt(ymdMatch[3], 10);
+      if (d === curDay && m === curMonth && (y === curYearCE || y === curYearBE)) return true;
+    }
+
+    // Thai short month check
+    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    const curThaiMonthShort = thaiMonths[curMonth - 1];
+    if (s.includes(curThaiMonthShort) && s.includes(String(curDay))) {
+      return true;
+    }
+
+    const startsWithDay = s.match(new RegExp('^' + curDay + '(?:\\s|\\/|\\-|$)'));
+    if (startsWithDay && !s.includes('/')) return true;
+
+    return false;
+  }
+
+  function isQueueDateMatching(dateStr, targetYear, targetMonth, targetDay) {
+    if (!dateStr) return false;
+    const s = String(dateStr).trim().toLowerCase();
+
+    if (s === 'วันนี้' || s === 'today') {
+      const now = new Date();
+      return targetYear === now.getFullYear() && targetMonth === (now.getMonth() + 1) && targetDay === now.getDate();
+    }
+
+    const dayOnlyMatch = s.match(/^(?:วันที่\s*)?(\d{1,2})(?:st|nd|rd|th)?$/);
+    if (dayOnlyMatch) {
+      return parseInt(dayOnlyMatch[1], 10) === targetDay;
+    }
+
+    const dmyMatch = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+    if (dmyMatch) {
+      const d = parseInt(dmyMatch[1], 10);
+      const m = parseInt(dmyMatch[2], 10);
+      const y = parseInt(dmyMatch[3], 10);
+      const yearMatch = (y === targetYear || y === (targetYear + 543) || (y === targetYear % 100));
+      return d === targetDay && m === targetMonth && yearMatch;
+    }
+
+    const ymdMatch = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+    if (ymdMatch) {
+      const y = parseInt(ymdMatch[1], 10);
+      const m = parseInt(ymdMatch[2], 10);
+      const d = parseInt(ymdMatch[3], 10);
+      return d === targetDay && m === targetMonth && (y === targetYear || y === (targetYear + 543));
+    }
+
+    const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+    const curThaiMonthShort = thaiMonths[targetMonth - 1];
+    if (s.includes(curThaiMonthShort) && s.includes(String(targetDay))) {
+      return true;
+    }
+
+    const startsWithDay = s.match(new RegExp('^' + targetDay + '(?:\\s|\\/|\\-|$)'));
+    if (startsWithDay && !s.includes('/')) return true;
+
+    return false;
+  }
+
   function getStageLabelByProgress(pct) {
     const p = Math.min(100, Math.max(0, Number(pct) || 0));
     if (p >= 100) return 'ส่งงานเรียบร้อย';
@@ -2998,14 +3130,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
             <div style="text-align: center; max-width: 680px; margin: 0 auto;">
               <span class="badge badge--pink" style="margin-bottom: 0.6rem; font-size: 0.8rem; letter-spacing: 0.5px;">LIVE QUEUE STATUS</span>
-              <h1 style="font-family: var(--font-heading); color: #9D174D; font-size: 2.1rem; margin-bottom: 0.5rem; font-weight: 700;">
+              <h1 style="font-family: var(--font-heading); color: #71515B; font-size: 2.1rem; margin-bottom: 0.5rem; font-weight: 700;">
                 ${escapeHTML(qSettings.heroTitle || 'เช็กคิวงาน')}
               </h1>
               <p style="color: var(--text-muted); font-size: 0.98rem; margin-bottom: 0.85rem;">
                 ${escapeHTML(qSettings.heroSubtitle || 'ดูสถานะคิวงานของร้านแบบเรียลไทม์')}
               </p>
               ${qSettings.noticeText ? `
-                <div style="background: #FFF5F8; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 0.75rem 1.25rem; font-size: 0.88rem; color: #9D174D; display: inline-block;">
+                <div style="background: #FFF5F8; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 0.75rem 1.25rem; font-size: 0.88rem; color: #71515B; display: inline-block;">
                   ${escapeHTML(qSettings.noticeText)}
                 </div>
               ` : ''}
@@ -3016,7 +3148,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               const monthPct = totalToday > 0 ? Math.round((countDone / totalToday) * 100) : 0;
               const todayQueuesList = allQueues.filter(item => {
                 const sk = normalizeQueueStatus(item.status);
-                return sk === 'progress' || sk === 'review' || sk === 'edit' || item.is_today === true;
+                const isToday = isQueueDateToday(item.queue_date);
+                return item.is_pinned === true || isToday || sk === 'progress' || sk === 'review' || sk === 'edit';
               });
               const todayCount = todayQueuesList.length;
               const todayAllDone = todayCount > 0 && todayQueuesList.every(item => {
@@ -3070,7 +3203,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           ${qSettings.showSearch ? `
             <div class="queue-search-card">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
-                <h3 style="margin: 0; font-size: 1.15rem; color: #9D174D; font-weight: 700;">
+                <h3 style="margin: 0; font-size: 1.15rem; color: #71515B; font-weight: 700;">
                   ${escapeHTML(qSettings.searchTitle || 'ค้นหาคิวของคุณ')}
                 </h3>
                 ${state.queueSearchQuery ? `
@@ -3107,10 +3240,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
           <!-- Queue List: Active Day Queue (Post-it) & Waiting Queues (Rounded Long Bar) -->
           ${filteredQueues.length > 0 ? (() => {
-            // Includes pinned queues or active stages
+            // Includes pinned queues, matching today's date, or active stages
             const activeQueues = filteredQueues.filter(item => {
               const sk = normalizeQueueStatus(item.status);
-              return item.is_pinned === true || sk === 'progress' || sk === 'review' || sk === 'edit';
+              const isToday = isQueueDateToday(item.queue_date);
+              return item.is_pinned === true || isToday || sk === 'progress' || sk === 'review' || sk === 'edit';
             });
             const otherQueues = filteredQueues.filter(item => !activeQueues.includes(item));
 
@@ -3173,7 +3307,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                             <div style="margin: 0.6rem 0 0.4rem;">
                               <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #718096; margin-bottom: 4px;">
                                 <span>ความคืบหน้า</span>
-                                <span style="font-weight: 700; color: #9D174D;">${progressPct}%</span>
+                                <span style="font-weight: 700; color: #71515B;">${progressPct}%</span>
                               </div>
                               <div class="queue-mascot-progress-wrap">
                                 <div class="queue-mascot-progress-track">
@@ -3207,7 +3341,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               ${otherQueues.length > 0 ? `
                 <div>
                   <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem;">
-                    <span style="font-size: 1.15rem; font-weight: 800; color: #9D174D; font-family: var(--font-heading);">
+                    <span style="font-size: 1.15rem; font-weight: 800; color: #71515B; font-family: var(--font-heading);">
                       คิวงานรอคิวและคิวอื่นๆ (${otherQueues.length})
                     </span>
                     <span style="font-size: 0.8rem; background: #FFF1F5; color: #9D174D; padding: 2px 8px; border-radius: 999px; font-weight: 700; border: 1px solid #FBCFE8;">
@@ -3247,7 +3381,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                             ${qSettings.showProgress !== false ? `
                               <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #718096; margin-bottom: 2px;">
                                 <span>ความคืบหน้า</span>
-                                <span style="font-weight: 700; color: #9D174D;">${progressPct}%</span>
+                                <span style="font-weight: 700; color: #71515B;">${progressPct}%</span>
                               </div>
                               <div class="queue-mascot-progress-wrap">
                                 <div class="queue-mascot-progress-track">
@@ -4363,6 +4497,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         <h3 style="margin: 0 0 1rem; font-size: 1.1rem; color: var(--primary-deep);">
           สรุปแจกแจงรายรับและกำไร (${tfLabels[tf]})
         </h3>
+        ${state.adminQueueView === 'calendar' ? renderAdminQueueCalendarView(queues) : `
         <div style="overflow-x: auto;">
           <table class="admin-table">
             <thead>
@@ -4399,6 +4534,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </tbody>
           </table>
         </div>
+        `}
       </div>
     `;
   }
@@ -4854,12 +4990,30 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       <div class="card" style="border-radius: 20px; margin-bottom: 2rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.3rem;">จัดการคิวงาน (Queue Management)</h3>
+            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.3rem;">จัดการคิวงาน & ตารางชีวิต (Queue & Calendar)</h3>
             <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">
-              เพิ่ม/แก้ไข/เรียงลำดับคิวงานของร้าน (ระบบคิวแยกจากออเดอร์ แอดมินเป็นผู้ควบคุม 100%)
+              ดูภาพรวมคิวงาน วางแผนงานประจำวัน และบันทึกตารางชีวิตส่วนตัวได้ในที่เดียว
             </p>
           </div>
-          <div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div style="display: inline-flex; background: #FFF0F5; padding: 3px; border-radius: 12px; border: 1.5px solid #FFDFE9;">
+              <button 
+                type="button" 
+                class="btn btn-sm" 
+                onclick="switchAdminQueueView('table')"
+                style="padding: 5px 14px; font-size: 12px; border-radius: 9px; font-weight: 700; ${state.adminQueueView !== 'calendar' ? 'background: #FFFFFF; color: #71515B; box-shadow: 0 2px 6px rgba(113,81,91,0.08);' : 'background: transparent; color: #A0AEC0; border: none;'}"
+              >
+                ตารางรายการ
+              </button>
+              <button 
+                type="button" 
+                class="btn btn-sm" 
+                onclick="switchAdminQueueView('calendar')"
+                style="padding: 5px 14px; font-size: 12px; border-radius: 9px; font-weight: 700; ${state.adminQueueView === 'calendar' ? 'background: #FFFFFF; color: #71515B; box-shadow: 0 2px 6px rgba(113,81,91,0.08);' : 'background: transparent; color: #A0AEC0; border: none;'}"
+              >
+                ปฏิทินตารางงาน
+              </button>
+            </div>
             <button type="button" class="btn btn-primary" onclick="openAddQueueModal()" style="font-weight: 700; border-radius: 14px; padding: 0.65rem 1.4rem;">
               + เพิ่มคิวงานใหม่
             </button>
@@ -8176,4 +8330,330 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     $('adminPortImage').value = item.image_url || '';
     modal.classList.add('is-active');
   };
+
+// ── Pink Pastel Calendar View & Date Note Modal ──
+window.switchAdminQueueView = function (v) {
+  state.adminQueueView = v;
+  renderCurrentView();
+};
+
+window.changeAdminCalendarMonth = function (offset) {
+  if (state.calendarMonth === undefined) state.calendarMonth = new Date().getMonth();
+  if (state.calendarYear === undefined) state.calendarYear = new Date().getFullYear();
+
+  state.calendarMonth += offset;
+  if (state.calendarMonth > 11) {
+    state.calendarMonth = 0;
+    state.calendarYear += 1;
+  } else if (state.calendarMonth < 0) {
+    state.calendarMonth = 11;
+    state.calendarYear -= 1;
+  }
+  renderCurrentView();
+};
+
+window.resetAdminCalendarToday = function () {
+  const now = new Date();
+  state.calendarMonth = now.getMonth();
+  state.calendarYear = now.getFullYear();
+  renderCurrentView();
+};
+
+function renderAdminQueueCalendarView(allQueues) {
+  const now = new Date();
+  const curMonth = state.calendarMonth !== undefined ? state.calendarMonth : now.getMonth();
+  const curYear = state.calendarYear !== undefined ? state.calendarYear : now.getFullYear();
+
+  const thaiMonths = [
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+  ];
+  const monthName = thaiMonths[curMonth] + ' ' + (curYear + 543);
+
+  const firstDayIndex = new Date(curYear, curMonth, 1).getDay(); // 0: Sun
+  const totalDaysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+  const totalDaysPrevMonth = new Date(curYear, curMonth, 0).getDate();
+
+  const personalTasks = Store.getCalendarTasks();
+
+  // Calculate total jobs this month
+  let monthTotalJobs = 0;
+  for (let d = 1; d <= totalDaysInMonth; d++) {
+    const qCount = allQueues.filter(q => isQueueDateMatching(q.queue_date, curYear, curMonth + 1, d)).length;
+    const tCount = personalTasks.filter(t => isQueueDateMatching(t.date, curYear, curMonth + 1, d)).length;
+    monthTotalJobs += (qCount + tCount);
+  }
+
+  let cellsHtml = '';
+
+  // Previous month filler cells
+  for (let i = firstDayIndex - 1; i >= 0; i--) {
+    const prevDate = totalDaysPrevMonth - i;
+    cellsHtml += `<div class="queue-calendar-cell is-outside"><div class="queue-calendar-date-num">${prevDate}</div></div>`;
+  }
+
+  // Current month cells
+  for (let d = 1; d <= totalDaysInMonth; d++) {
+    const isToday = (d === now.getDate() && curMonth === now.getMonth() && curYear === now.getFullYear());
+    const dayQueues = allQueues.filter(q => isQueueDateMatching(q.queue_date, curYear, curMonth + 1, d));
+    const dayTasks = personalTasks.filter(t => isQueueDateMatching(t.date, curYear, curMonth + 1, d));
+    const totalCount = dayQueues.length + dayTasks.length;
+
+    const dateIso = curYear + '-' + String(curMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+
+    let pillsHtml = '';
+    dayQueues.slice(0, 2).forEach(q => {
+      const isDone = (normalizeQueueStatus(q.status) === 'done' || Number(q.progress) >= 100);
+      pillsHtml += `<div class="queue-calendar-task-pill ${isDone ? 'is-done' : ''}">${escapeHTML(q.queue_number || 'Q')} ${escapeHTML(q.job_name || 'งานออกแบบ')}</div>`;
+    });
+    dayTasks.slice(0, 1).forEach(t => {
+      pillsHtml += `<div class="queue-calendar-task-pill is-personal ${t.completed ? 'is-done' : ''}">${escapeHTML(t.title)}</div>`;
+    });
+    if (totalCount > 3) {
+      pillsHtml += `<span style="font-size: 10px; color: #71515B; font-weight: 700; margin-top: 1px;">+${totalCount - 3} งาน...</span>`;
+    }
+
+    cellsHtml += `
+      <div class="queue-calendar-cell ${isToday ? 'is-today' : ''}" onclick="openCalendarDateModal('${dateIso}', ${d}, ${curMonth + 1}, ${curYear})">
+        <div class="queue-calendar-date-num">
+          <span>${d}</span>
+          ${totalCount > 0 ? `<span class="queue-calendar-badge-circle">${totalCount}</span>` : ''}
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 2px; overflow: hidden;">
+          ${pillsHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  // Next month filler cells
+  const totalRendered = firstDayIndex + totalDaysInMonth;
+  const nextFillCount = (7 - (totalRendered % 7)) % 7;
+  for (let n = 1; n <= nextFillCount; n++) {
+    cellsHtml += `<div class="queue-calendar-cell is-outside"><div class="queue-calendar-date-num">${n}</div></div>`;
+  }
+
+  return `
+    <div class="queue-calendar-card">
+      <div class="queue-calendar-header">
+        <div class="queue-calendar-month-title">
+          <button type="button" class="btn btn-outline btn-sm" onclick="changeAdminCalendarMonth(-1)" style="padding: 4px 10px; border-radius: 10px; font-weight: 800;">‹</button>
+          <span>${monthName}</span>
+          <button type="button" class="btn btn-outline btn-sm" onclick="changeAdminCalendarMonth(1)" style="padding: 4px 10px; border-radius: 10px; font-weight: 800;">›</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="resetAdminCalendarToday()" style="padding: 4px 12px; font-size: 12px; border-radius: 10px; margin-left: 6px;">วันนี้</button>
+        </div>
+        <div style="font-size: 0.9rem; color: #71515B; font-weight: 600;">
+          เดือนนี้มีทั้งหมด: <strong style="color: #E05A88; font-size: 1.1rem;">${monthTotalJobs}</strong> งาน
+        </div>
+      </div>
+
+      <div class="queue-calendar-grid">
+        <div class="queue-calendar-day-header" style="color: #E11D48;">อา (Sun)</div>
+        <div class="queue-calendar-day-header">จ (Mon)</div>
+        <div class="queue-calendar-day-header">อ (Tue)</div>
+        <div class="queue-calendar-day-header">พ (Wed)</div>
+        <div class="queue-calendar-day-header">พฤ (Thu)</div>
+        <div class="queue-calendar-day-header">ศ (Fri)</div>
+        <div class="queue-calendar-day-header" style="color: #E05A88;">ส (Sat)</div>
+        ${cellsHtml}
+      </div>
+    </div>
+  `;
+}
+
+// ── Pushpin Note Modal for Daily Schedule & Personal Life Tasks ──
+window.openCalendarDateModal = function (dateIso, day, month, year) {
+  let modal = $('calendarDateModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'calendarDateModal';
+    modal.className = 'modal-overlay';
+    modal.onclick = (e) => { if (e.target === modal) closeCalendarDateModal(); };
+    document.body.appendChild(modal);
+  }
+
+  const thaiMonths = [
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+  ];
+  const thaiDateText = day + ' ' + thaiMonths[month - 1] + ' ' + (year + 543);
+
+  const allQueues = Store.getAllQueueItems();
+  const dayQueues = allQueues.filter(q => isQueueDateMatching(q.queue_date, year, month, day));
+  const personalTasks = Store.getCalendarTasks().filter(t => isQueueDateMatching(t.date, year, month, day));
+
+  modal.innerHTML = `
+    <div class="modal-card" style="max-width: 580px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 2.2rem 1.8rem 1.8rem; border-radius: 26px; border: 2px solid #FFD1DF; background: #FFFFFF; position: relative; box-shadow: 0 16px 36px rgba(224, 90, 136, 0.16);">
+      <!-- Pushpin Top Decor -->
+      <div class="queue-postit-pin" style="top: -12px;"></div>
+
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+        <div>
+          <span class="badge badge--pink" style="margin-bottom: 0.35rem; font-size: 11px;">DAILY PLANNER & LIFE</span>
+          <h2 style="font-size: 1.4rem; color: #71515B; font-weight: 800; margin: 0; font-family: var(--font-heading);">
+            แผนงานวันที่ ${thaiDateText}
+          </h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.2rem 0 0;">
+            มีคิวงานของร้าน ${dayQueues.length} งาน | บันทึกส่วนตัว ${personalTasks.length} งาน
+          </p>
+        </div>
+        <button type="button" onclick="closeCalendarDateModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #71515B; padding: 4px 8px;">✕</button>
+      </div>
+
+      <!-- Section 1: Shop Queues for this date with Done Checkbox -->
+      <div style="background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.25rem; margin-bottom: 1.25rem;">
+        <h4 style="font-size: 0.95rem; font-weight: 800; color: #71515B; margin: 0 0 0.85rem; display: flex; align-items: center; justify-content: space-between;">
+          <span>คิวงานของร้านในวันนี้ (${dayQueues.length})</span>
+          <span style="font-size: 0.78rem; font-weight: 600; color: var(--text-muted);">ติ๊กถูกเพื่องานเสร็จ 100%</span>
+        </h4>
+
+        ${dayQueues.length > 0 ? `
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${dayQueues.map(q => {
+              const isDone = (normalizeQueueStatus(q.status) === 'done' || Number(q.progress) >= 100);
+              return `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1.5px solid ${isDone ? '#E2E8F0' : '#FFD6E5'}; border-radius: 12px; padding: 10px 14px; gap: 10px;">
+                  <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; min-width: 0;">
+                    <input 
+                      type="checkbox" 
+                      ${isDone ? 'checked' : ''} 
+                      onchange="handleToggleQueueDoneFromCalendar('${q.id}', this.checked, '${dateIso}', ${day}, ${month}, ${year})"
+                      style="width: 18px; height: 18px; cursor: pointer; accent-color: #E05A88;"
+                    >
+                    <span style="font-weight: 800; color: #E05A88; font-size: 0.92rem;">
+                      ${escapeHTML(q.queue_number || 'Q')}
+                    </span>
+                    <span style="font-size: 0.9rem; color: #71515B; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; ${isDone ? 'text-decoration: line-through; opacity: 0.55;' : ''}">
+                      ${escapeHTML(q.job_name || 'งานออกแบบ')} (${escapeHTML(q.customer_name || 'ลูกค้า')})
+                    </span>
+                  </label>
+                  <button 
+                    type="button" 
+                    class="btn btn-outline btn-sm" 
+                    onclick="closeCalendarDateModal(); openEditQueueModal('${q.id}')"
+                    style="font-size: 0.75rem; padding: 2px 8px; border-radius: 8px; border-color: #FFDFE9; color: #71515B;"
+                  >
+                    ดูคิว
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : `
+          <div style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.88rem;">
+            ไม่มีคิวงานของร้านในวันนี้
+          </div>
+        `}
+      </div>
+
+      <!-- Section 2: Personal Tasks / Life Todo Checklist -->
+      <div style="background: #FFFFFF; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.25rem; margin-bottom: 1.25rem;">
+        <h4 style="font-size: 0.95rem; font-weight: 800; color: #71515B; margin: 0 0 0.85rem;">
+          วางแผนชีวิต & สิ่งที่ต้องทำส่วนตัว (To-Do List)
+        </h4>
+
+        <!-- Add Task Input -->
+        <div style="display: flex; gap: 8px; margin-bottom: 1rem;">
+          <input 
+            type="text" 
+            id="newCalendarTaskTitle" 
+            placeholder="พิมพ์สิ่งที่ต้องทำ เช่น ส่งพัสดุ, จ่ายค่าไฟ, ซื้อของ..." 
+            style="flex: 1; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 8px 12px; font-size: 0.9rem; outline: none; background: #FFF9FC;"
+            onkeydown="if (event.key === 'Enter') handleAddPersonalTaskSubmit('${dateIso}', ${day}, ${month}, ${year})"
+          >
+          <button 
+            type="button" 
+            class="btn btn-primary btn-sm" 
+            onclick="handleAddPersonalTaskSubmit('${dateIso}', ${day}, ${month}, ${year})"
+            style="border-radius: 12px; padding: 0 16px; font-weight: 700;"
+          >
+            + เพิ่ม
+          </button>
+        </div>
+
+        <!-- Task List -->
+        ${personalTasks.length > 0 ? `
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            ${personalTasks.map(t => `
+              <div style="display: flex; align-items: center; justify-content: space-between; background: #FFF9FC; border: 1px solid #FFDFE9; border-radius: 10px; padding: 8px 12px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; min-width: 0;">
+                  <input 
+                    type="checkbox" 
+                    ${t.completed ? 'checked' : ''} 
+                    onchange="handleTogglePersonalTask('${t.id}', '${dateIso}', ${day}, ${month}, ${year})"
+                    style="width: 17px; height: 17px; cursor: pointer; accent-color: #E05A88;"
+                  >
+                  <span style="font-size: 0.9rem; color: #71515B; font-weight: 600; ${t.completed ? 'text-decoration: line-through; opacity: 0.5;' : ''}">
+                    ${escapeHTML(t.title)}
+                  </span>
+                </label>
+                <button 
+                  type="button" 
+                  onclick="handleDeletePersonalTask('${t.id}', '${dateIso}', ${day}, ${month}, ${year})"
+                  style="background: none; border: none; color: #A0AEC0; cursor: pointer; font-size: 1rem; padding: 2px 6px;"
+                  title="ลบงานนี้"
+                >✕</button>
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div style="text-align: center; padding: 0.75rem; color: var(--text-muted); font-size: 0.85rem;">
+            ยังไม่มีบันทึกส่วนตัวในวันนี้ สามารถพิมพ์เพิ่มด้านบนได้เลยนะคะ
+          </div>
+        `}
+      </div>
+
+      <div style="display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeCalendarDateModal()" style="border-radius: 12px; padding: 0.6rem 1.6rem; font-weight: 700; background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B;">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  `;
+
+  modal.classList.add('is-active');
+};
+
+window.closeCalendarDateModal = function () {
+  const modal = $('calendarDateModal');
+  if (modal) modal.classList.remove('is-active');
+};
+
+window.handleToggleQueueDoneFromCalendar = function (queueId, isChecked, dateIso, day, month, year) {
+  const item = Store.getQueueItemById(queueId);
+  if (!item) return;
+  item.status = isChecked ? 'done' : 'progress';
+  item.progress = isChecked ? 100 : 50;
+  item.updated_at = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
+  Store.saveQueueItem(item);
+  renderCurrentView();
+  openCalendarDateModal(dateIso, day, month, year);
+};
+
+window.handleAddPersonalTaskSubmit = function (dateIso, day, month, year) {
+  const input = $('newCalendarTaskTitle');
+  if (!input) return;
+  const title = input.value.trim();
+  if (!title) return;
+  Store.saveCalendarTask({
+    date: dateIso,
+    title: title,
+    completed: false
+  });
+  input.value = '';
+  renderCurrentView();
+  openCalendarDateModal(dateIso, day, month, year);
+};
+
+window.handleTogglePersonalTask = function (id, dateIso, day, month, year) {
+  Store.toggleCalendarTask(id);
+  renderCurrentView();
+  openCalendarDateModal(dateIso, day, month, year);
+};
+
+window.handleDeletePersonalTask = function (id, dateIso, day, month, year) {
+  Store.deleteCalendarTask(id);
+  renderCurrentView();
+  openCalendarDateModal(dateIso, day, month, year);
+};
 

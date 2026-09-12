@@ -2921,8 +2921,6 @@ select option {
 .queue-mascot-progress-fill {
   height: 100%;
   background-color: #FF9EBB;
-  background-image: radial-gradient(#FFFFFF 26%, transparent 28%);
-  background-size: 8px 8px;
   border: 1.5px solid #FFFFFF;
   box-sizing: border-box;
   border-radius: 999px;
@@ -3265,3 +3263,135 @@ select option {
   background: rgba(239, 166, 193, 0.08);
   border-radius: 50%;
 }
+
+
+/* ── Kawaii Pastel Pink Queue & Life Calendar ─────────────────────── */
+.queue-calendar-card {
+  background: #FFFFFF;
+  border: 1.5px solid #FFDFE9;
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(113, 81, 91, 0.05);
+  margin-bottom: 1.5rem;
+}
+
+.queue-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.queue-calendar-month-title {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #71515B;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.queue-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.queue-calendar-day-header {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #71515B;
+  padding: 8px 4px;
+  background: #FFF5F8;
+  border-radius: 10px;
+  border: 1px solid #FFDFE9;
+}
+
+.queue-calendar-cell {
+  background: #FFFFFF;
+  border: 1.5px solid #FFDFE9;
+  border-radius: 16px;
+  min-height: 96px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.queue-calendar-cell:hover {
+  transform: translateY(-2px);
+  border-color: #FF85A1;
+  box-shadow: 0 4px 12px rgba(224, 90, 136, 0.12);
+  background: #FFF9FC;
+}
+
+.queue-calendar-cell.is-today {
+  border: 2px solid #FF85A1;
+  background: #FFFDFE;
+  box-shadow: 0 2px 8px rgba(224, 90, 136, 0.10);
+}
+
+.queue-calendar-cell.is-outside {
+  opacity: 0.35;
+  background: #FAFAFA;
+}
+
+.queue-calendar-date-num {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #71515B;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.queue-calendar-badge-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFF0F5;
+  border: 1.5px solid #FFDFE9;
+  color: #E05A88;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 0 4px;
+}
+
+.queue-calendar-task-pill {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  background: #FFF0F5;
+  color: #71515B;
+  border: 1px solid #FFDFE9;
+}
+
+.queue-calendar-task-pill.is-done {
+  opacity: 0.6;
+  text-decoration: line-through;
+  background: #F4F4F5;
+  border-color: #E4E4E7;
+  color: #71717A;
+}
+
+.queue-calendar-task-pill.is-personal {
+  background: #F0FDF4;
+  border-color: #BBF7D0;
+  color: #166534;
+}
+
