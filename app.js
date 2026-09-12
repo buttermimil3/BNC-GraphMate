@@ -4158,10 +4158,31 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               </div>
             `}
           </div>
+
+          <div style="text-align: center; margin-top: 1.5rem;">
+            <button type="button" id="btnRefreshOrders" class="btn btn-outline btn-sm" onclick="refreshOrdersView(this)" style="gap: 6px;">
+              🔄 รีเฟรชออเดอร์
+            </button>
+          </div>
         </div>
       </section>
     `;
+
+    // Auto-sync from cloud every time orders page is opened
+    Store.syncFromCloud((isOk) => {
+      if (isOk && state.view === 'orders') {
+        renderCurrentView();
+      }
+    });
   }
+
+  window.refreshOrdersView = function(btn) {
+    if (btn) { btn.textContent = '⏳ กำลังโหลด...'; btn.disabled = true; }
+    Store.syncFromCloud((isOk) => {
+      if (state.view === 'orders') renderCurrentView();
+      if (btn) { btn.textContent = '🔄 รีเฟรชออเดอร์'; btn.disabled = false; }
+    });
+  };
 
   window.copyEmailToClipboard = function (email, btn) {
     if (!email) return;
