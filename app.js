@@ -652,26 +652,23 @@ const Store = (function () {
       }
     ]};
 
-  // ฟังก์ชันแปลงลิงก์ Google Drive ทุกรูปแบบให้เป็น Direct Image URL ที่เบราว์เซอร์แสดงผลได้ 100% (รวม Safari/iPad)
+  // ฟังก์ชันแปลงลิงก์ Google Drive ทุกรูปแบบให้เป็น Direct Image URL ที่เบราว์เซอร์แสดงผลได้ 100%
   function formatDriveImageUrl(url) {
-    if (!url || typeof url !== 'string') return '';
-    const trimmed = url.trim();
-    if (!trimmed.includes('drive.google.com') && !trimmed.includes('docs.google.com') && !trimmed.includes('googleusercontent.com')) {
-      return trimmed;
+    if (!url) return '';
+    url = String(url).trim();
+    if (url.startsWith('data:')) return url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) return url;
+    try {
+      const match1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (match1 && match1[1]) return 'https://drive.google.com/thumbnail?id=' + match1[1] + '&sz=w1000';
+      const match2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (match2 && match2[1]) return 'https://drive.google.com/thumbnail?id=' + match2[1] + '&sz=w1000';
+      const match3 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match3 && match3[1]) return 'https://drive.google.com/thumbnail?id=' + match3[1] + '&sz=w1000';
+    } catch (e) {
+      console.warn('formatDriveImageUrl error:', e);
     }
-    // ดึง ID จาก /file/d/ID/ หรือ ?id=ID หรือ /d/ID
-    let fileId = '';
-    const match1 = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-    const match2 = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    const match3 = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match1 && match1[1]) fileId = match1[1];
-    else if (match2 && match2[1]) fileId = match2[1];
-    else if (match3 && match3[1]) fileId = match3[1];
-
-    if (fileId) {
-      return `https://lh3.googleusercontent.com/d/${fileId}`;
-    }
-    return trimmed;
+    return url;
   }
 
   // แปลงลิงก์ Google Drive สำหรับไฟล์ฟอนต์ให้ดาวน์โหลดแบบ Direct Stream สำหรับ @font-face
@@ -682,28 +679,29 @@ const Store = (function () {
     if (!trimmed.includes('drive.google.com') && !trimmed.includes('docs.google.com') && !trimmed.includes('googleusercontent.com')) {
       return trimmed;
     }
-    let fileId = '';
-    const match1 = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-    const match2 = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    const match3 = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match1 && match1[1]) fileId = match1[1];
-    else if (match2 && match2[1]) fileId = match2[1];
-    else if (match3 && match3[1]) fileId = match3[1];
+    try {
+      let fileId = '';
+      const match1 = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      const match2 = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      const match3 = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match1 && match1[1]) fileId = match1[1];
+      else if (match2 && match2[1]) fileId = match2[1];
+      else if (match3 && match3[1]) fileId = match3[1];
 
-    if (fileId) {
-      return `https://drive.google.com/uc?export=download&id=${fileId}`;
-    }
+      if (fileId) {
+        return 'https://drive.google.com/uc?export=download&id=' + fileId;
+      }
+    } catch (e) {}
     return trimmed;
   }
 
-  // ค้นหาฟอนต์ลายมือภาษาไทยที่ตรงกับหมวดหมู่หรือชื่อฟอนต์ (Mali, Itim, Sriracha, Mitr)
+  // ค้นหาฟอนต์ลายมือภาษาไทยที่ตรงกับหมวดหมู่หรือชื่อฟอนต์
   function getFallbackFont(font) {
     if (!font) return "'Mali', cursive, sans-serif";
     const id = String(font.id || '');
     const name = String(font.name || '').toLowerCase();
     const cat = String(font.category || '');
 
-    // เจาะจงตาม ID และชื่อฟอนต์มาตรฐาน
     if (id === 'font-1' || name.includes('เนย') || name.includes('butter')) {
       return "'Mali', cursive, sans-serif";
     }
@@ -714,18 +712,10 @@ const Store = (function () {
       return "'Sriracha', cursive, sans-serif";
     }
 
-    // เจาะจงตามหมวดหมู่
-    if (cat === 'ตัวพิมพ์' || cat === 'หัวป้าย') {
-      return "'Mitr', sans-serif";
-    }
-    if (cat === 'Display') {
-      return "'Mitr', 'Prompt', sans-serif";
-    }
-    if (cat === 'ลายมือ') {
-      return "'Mali', cursive, sans-serif";
-    }
+    if (cat === 'ตัวพิมพ์' || cat === 'หัวป้าย') return "'Mitr', sans-serif";
+    if (cat === 'Display') return "'Mitr', 'Prompt', sans-serif";
+    if (cat === 'ลายมือ') return "'Mali', cursive, sans-serif";
 
-    // กระจายฟอนต์ลายมือที่แตกต่างกันตาม hash ของ ID เพื่อให้ทุกฟอนต์มีสไตล์เฉพาะตัว
     const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const fallbacks = [
       "'Mali', cursive, sans-serif",
@@ -736,20 +726,14 @@ const Store = (function () {
     return fallbacks[hash % fallbacks.length];
   }
 
-  // ฟังก์ชันหา Font-Family สำหรับแสดงผลทั้งในโหมดพรีวิวการ์ดและตารางเทียบ A / B
   function getFontFamily(font) {
     if (!font) return "'Prompt', sans-serif";
     const customUrl = font.font_file_url || font.file_url;
     if (customUrl && String(customUrl).trim()) {
-      return `'Font-${font.id}', ${getFallbackFont(font)}`;
+      return "'Font-" + font.id + "', " + getFallbackFont(font);
     }
     return getFallbackFont(font);
   }
-
-  // Export to window so main application IIFE has full access
-  window.formatDriveFontUrl = formatDriveFontUrl;
-  window.getFallbackFont = getFallbackFont;
-  window.getFontFamily = getFontFamily;
 
   // ดึงข้อมูลจาก Local Cache ทันที (เพื่อให้เว็บโหลดเร็ว 0.01 วินาที)
   function loadLocal() {
@@ -757,47 +741,24 @@ const Store = (function () {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        // Shallow merge fallback keys
         const merged = Object.assign({}, defaultData, parsed);
         merged.settings = Object.assign({}, defaultData.settings, parsed.settings || {});
-        // Fallback for sub-settings
-        if (!merged.settings.stampSettings) {
-          merged.settings.stampSettings = defaultData.settings.stampSettings;
-        }
-        if (!merged.settings.homeBanners || merged.settings.homeBanners.length === 0) {
-          merged.settings.homeBanners = defaultData.settings.homeBanners;
-        }
-        if (!merged.queue_items || merged.queue_items.length === 0) {
-          merged.queue_items = defaultData.queue_items;
-        }
-        if (!merged.settings.queuePage) {
-          merged.settings.queuePage = defaultData.settings.queuePage;
-        }
-        if (!merged.groups) {
-          merged.groups = defaultData.groups;
-        }
-        if (!merged.settings.mascotSettings) {
-          merged.settings.mascotSettings = defaultData.settings.mascotSettings;
-        }
-        if (!merged.settings.googleSheetWebAppUrl) {
-          merged.settings.googleSheetWebAppUrl = defaultData.settings.googleSheetWebAppUrl;
-        }
+        if (!merged.settings.stampSettings) merged.settings.stampSettings = defaultData.settings.stampSettings;
+        if (!merged.settings.homeBanners || merged.settings.homeBanners.length === 0) merged.settings.homeBanners = defaultData.settings.homeBanners;
+        if (!merged.queue_items || merged.queue_items.length === 0) merged.queue_items = defaultData.queue_items;
+        if (!merged.settings.queuePage) merged.settings.queuePage = defaultData.settings.queuePage;
+        if (!merged.groups) merged.groups = defaultData.groups;
+        if (!merged.settings.mascotSettings) merged.settings.mascotSettings = defaultData.settings.mascotSettings;
+        if (!merged.settings.googleSheetWebAppUrl) merged.settings.googleSheetWebAppUrl = defaultData.settings.googleSheetWebAppUrl;
+        
         if (merged.settings) {
-          if (merged.settings.profileImage) {
-            merged.settings.profileImage = formatDriveImageUrl(merged.settings.profileImage);
-          }
-          if (merged.settings.coverImage) {
-            merged.settings.coverImage = formatDriveImageUrl(merged.settings.coverImage);
-          }
-          if (merged.settings.pointsBarIcon) {
-            merged.settings.pointsBarIcon = formatDriveImageUrl(merged.settings.pointsBarIcon);
-          }
+          if (merged.settings.profileImage) merged.settings.profileImage = formatDriveImageUrl(merged.settings.profileImage);
+          if (merged.settings.coverImage) merged.settings.coverImage = formatDriveImageUrl(merged.settings.coverImage);
+          if (merged.settings.pointsBarIcon) merged.settings.pointsBarIcon = formatDriveImageUrl(merged.settings.pointsBarIcon);
           if (Array.isArray(merged.settings.homeBanners)) {
             merged.settings.homeBanners.forEach(b => { if (b && b.image) b.image = formatDriveImageUrl(b.image); });
           }
-          if (!merged.settings.profileImage) {
-            merged.settings.profileImage = defaultData.settings.profileImage;
-          }
+          if (!merged.settings.profileImage) merged.settings.profileImage = defaultData.settings.profileImage;
         }
         if (Array.isArray(merged.products)) {
           merged.products.forEach(p => {
@@ -897,7 +858,14 @@ const Store = (function () {
           'Accept': 'application/json'
         }
       });
-      const result = await res.json();
+      let result;
+      try {
+        const text = await res.text();
+        result = JSON.parse(text);
+      } catch (parseErr) {
+        if (typeof onUpdatedCallback === 'function') onUpdatedCallback(false, 'เซิร์ฟเวอร์ส่งข้อความที่ไม่ใช่ JSON (กรุณาตรวจสิทธิ์ Google Script)');
+        return false;
+      }
       if (result && result.status === 'success' && result.data) {
         const local = loadLocal();
         const incoming = result.data;
@@ -911,31 +879,14 @@ const Store = (function () {
         }
         merged.settings.googleSheetWebAppUrl = local.settings?.googleSheetWebAppUrl || defaultData.settings.googleSheetWebAppUrl;
 
-        // Guard array fields: If cloud returns data for a table, use it.
-        // If cloud table is empty [] but local cache has items, DO NOT overwrite with empty!
         let hasEmptyCloudTables = false;
-        const arrayKeys = ['products', 'fonts', 'groups', 'portfolio', 'reviews', 'queue_items', 'orders', 'payments', 'customers', 'group_access', 'drive_access', 'point_transactions'];
+        const arrayKeys = ['products', 'fonts', 'groups', 'portfolio', 'reviews', 'queue_items', 'orders', 'payments', 'customers', 'group_access', 'drive_access', 'point_transactions', 'calendar_tasks'];
         arrayKeys.forEach(key => {
           if (Array.isArray(incoming[key]) && incoming[key].length > 0) {
             merged[key] = incoming[key];
-          } else {
-            // Keep local data if exists
-            merged[key] = (Array.isArray(local[key]) && local[key].length > 0) ? local[key] : (defaultData[key] || []);
-            if ((!Array.isArray(incoming[key]) || incoming[key].length === 0) && merged[key].length > 0) {
-              hasEmptyCloudTables = true;
-            }
           }
         });
-        
-        // Sanitize all Drive URLs upon incoming sync
-        if (merged.settings) {
-          if (merged.settings.coverImage) merged.settings.coverImage = formatDriveImageUrl(merged.settings.coverImage);
-          if (merged.settings.profileImage) merged.settings.profileImage = formatDriveImageUrl(merged.settings.profileImage);
-          if (merged.settings.pointsBarIcon) merged.settings.pointsBarIcon = formatDriveImageUrl(merged.settings.pointsBarIcon);
-          if (Array.isArray(merged.settings.homeBanners)) {
-            merged.settings.homeBanners.forEach(b => { if (b && b.image) b.image = formatDriveImageUrl(b.image); });
-          }
-        }
+
         if (Array.isArray(merged.products)) {
           merged.products.forEach(p => {
             if (p) {
@@ -979,7 +930,6 @@ const Store = (function () {
         
         saveLocal(merged);
 
-        // Auto seed Google Sheet in background if cloud has missing tables
         if (hasEmptyCloudTables) {
           setTimeout(() => {
             callCloud('SYNC_ALL', { payload: merged });
@@ -1005,29 +955,31 @@ const Store = (function () {
     }
   }
 
- // Helper ID
- function uid(prefix = 'id') {
- return prefix + '-' + Math.random().toString(36).substr(2, 9);
- }
+  // Helper ID
+  function uid(prefix = 'id') {
+    return prefix + '-' + Math.random().toString(36).substr(2, 9);
+  }
 
- function orderNum() {
- const data = loadLocal();
- const count = (data.orders ? data.orders.length : 0) + 1001;
- return 'ORD-' + String(count).padStart(6, '0');
- }
+  function orderNum() {
+    return 'BNC-' + Math.floor(100000 + Math.random() * 900000);
+  }
 
- // Start background auto-sync immediately
- syncFromCloud();
+  return {
+    STORAGE_KEY: STORAGE_KEY,
+    defaultData: defaultData,
+    formatDriveImageUrl: formatDriveImageUrl,
+    formatDriveFontUrl: formatDriveFontUrl,
+    getFallbackFont: getFallbackFont,
+    getFontFamily: getFontFamily,
+    loadLocal: loadLocal,
+    saveLocal: saveLocal,
+    getCloudUrl: getCloudUrl,
+    syncFromCloud: syncFromCloud,
+    callCloud: callCloud,
+    uid: uid,
+    orderNum: orderNum,
 
- return {
- get: loadLocal,
- set: saveLocal,
- syncFromCloud: syncFromCloud,
- callCloud: callCloud,
- uid: uid,
- orderNum: orderNum,
-
- // Customers
+// Customers
  getCustomers: function () {
  return loadLocal().customers || [];
  },
@@ -1073,8 +1025,6 @@ const Store = (function () {
  },
  saveGroup: function (grp) {
  const data = loadLocal();
- if (grp.cover_image) grp.cover_image = formatDriveImageUrl(grp.cover_image);
- if (grp.cover_image_url) grp.cover_image_url = formatDriveImageUrl(grp.cover_image_url);
  if (!grp.id) {
  grp.id = uid('grp');
  grp.created_at = new Date().toISOString();
@@ -1108,8 +1058,6 @@ const Store = (function () {
  },
  saveProduct: function (prod) {
  const data = loadLocal();
- if (prod.image) prod.image = formatDriveImageUrl(prod.image);
- if (prod.image_url) prod.image_url = formatDriveImageUrl(prod.image_url);
  if (!prod.id) {
  prod.id = uid('prod');
  prod.created_at = new Date().toISOString();
@@ -1130,43 +1078,6 @@ const Store = (function () {
  callCloud('DELETE_PRODUCT', { id: id });
  },
 
-  // Categories
-  getFontCategories: function () {
-    const s = this.getSettings();
-    const cats = s.categories && s.categories.fonts;
-    if (Array.isArray(cats)) return cats;
-    if (typeof cats === 'string') return cats.split(',').map(s => s.trim()).filter(Boolean);
-    return ['ลายมือ', 'หัวป้าย', 'ตัวพิมพ์', 'น่ารัก'];
-  },
-  getProductCategories: function () {
-    const s = this.getSettings();
-    const cats = s.categories && s.categories.products;
-    if (Array.isArray(cats)) return cats;
-    if (typeof cats === 'string') return cats.split(',').map(s => s.trim()).filter(Boolean);
-    return ['ป้ายสำเร็จ', 'ไฟล์ตกแต่ง', 'การ์ตูน', 'องค์ประกอบ', 'เทมเพลต'];
-  },
-  getGroupCategories: function () {
-    const s = this.getSettings();
-    const cats = s.categories && s.categories.groups;
-    if (Array.isArray(cats)) return cats;
-    if (typeof cats === 'string') return cats.split(',').map(s => s.trim()).filter(Boolean);
-    return ['VIP ตลอดชีพ', 'รวมงานกราฟิก', 'การ์ตูน & คาแรกเตอร์', 'ป้ายร้าน & เมนู'];
-  },
-  getPortfolioCategories: function () {
-    const s = this.getSettings();
-    const cats = s.categories && s.categories.portfolio;
-    if (Array.isArray(cats)) return cats;
-    if (typeof cats === 'string') return cats.split(',').map(s => s.trim()).filter(Boolean);
-    return ['ป้ายเครดิต', 'ป้ายแอพพรี', 'ป้ายเติมเกม', 'ป้ายเปิดร้าน', 'ป้ายโปรโมชั่น', 'งานป้ายสั่งทำพิเศษ'];
-  },
-  getPortfolioStyles: function () {
-    const s = this.getSettings();
-    const styles = s.categories && s.categories.portfolioStyles;
-    if (Array.isArray(styles)) return styles;
-    if (typeof styles === 'string') return styles.split(',').map(s => s.trim()).filter(Boolean);
-    return ['สไตล์มินิมอล & คาเฟ่', 'สไตล์การ์ตูน & คาวาอี้', 'สไตล์ลายมือ & ฟอนต์', 'สไตล์ร้านค้า & โมเดิร์น', 'ไฟล์ตกแต่ง & เทมเพลต'];
-  },
-
  // Fonts
  getFonts: function (category) {
  let list = (loadLocal().fonts || []).filter(f => f.status === 'ACTIVE');
@@ -1180,11 +1091,6 @@ const Store = (function () {
  },
  saveFont: function (font) {
  const data = loadLocal();
- if (font.preview_image) font.preview_image = formatDriveImageUrl(font.preview_image);
- if (font.preview_image_url) font.preview_image_url = formatDriveImageUrl(font.preview_image_url);
- if (font.image_url) font.image_url = formatDriveImageUrl(font.image_url);
- if (font.font_file_url) font.font_file_url = formatDriveFontUrl(font.font_file_url);
- if (font.file_url) font.file_url = formatDriveFontUrl(font.file_url);
  if (!font.id) {
  font.id = uid('font');
  font.created_at = new Date().toISOString();
@@ -1211,10 +1117,6 @@ const Store = (function () {
  const oId = uid('ord');
  const oNum = orderNum();
 
- const costAmount = Number(orderInfo.cost_price || orderInfo.cost_amount || 0);
- const totalAmount = Number(orderInfo.amount || 0);
- const profitAmount = totalAmount - costAmount;
-
  const newOrder = {
  id: oId,
  order_number: oNum,
@@ -1223,10 +1125,7 @@ const Store = (function () {
  order_type: orderInfo.order_type,
  item_id: orderInfo.item_id,
  item_name: orderInfo.item_name,
- amount: totalAmount,
- cost_amount: costAmount,
- profit_amount: profitAmount,
- is_agent: !!orderInfo.is_agent,
+ amount: Number(orderInfo.amount),
  status: 'VERIFYING',
  line_id: orderInfo.line_id || '',
  gmail: orderInfo.gmail || '',
@@ -1297,21 +1196,7 @@ const Store = (function () {
  getAllOrders: function () {
  return this.getOrders();
  },
- getOrder: function (id) {
-    return this.getOrderById(id);
-  },
-  updateOrderStatus: function (id, status) {
-    const data = loadLocal();
-    const ord = (data.orders || []).find(o => o.id === id || o.order_number === id);
-    if (ord) {
-      ord.status = status;
-      saveLocal(data);
-      callCloud('UPDATE_ORDER_STATUS', { id: ord.id, status: status });
-      return ord;
-    }
-    return null;
-  },
-  getOrderById: function (id) {
+ getOrderById: function (id) {
  return (loadLocal().orders || []).find(o => o.id === id || o.order_number === id) || null;
  },
  getPayments: function () {
@@ -1466,10 +1351,6 @@ const Store = (function () {
  },
  addReview: function (rev) {
  const data = loadLocal();
- if (rev.image_url) rev.image_url = formatDriveImageUrl(rev.image_url);
- if (Array.isArray(rev.images)) {
- rev.images = rev.images.map(img => formatDriveImageUrl(img));
- }
  rev.id = uid('rev');
  rev.status = 'PENDING';
  rev.created_at = new Date().toISOString();
@@ -1499,67 +1380,231 @@ const Store = (function () {
  const p = loadLocal().portfolio;
  return (p && p.length > 0) ? p : defaultData.portfolio;
  },
-    savePortfolioItem: function (item) {
+ savePortfolioItem: function (item) {
+ const data = loadLocal();
+ data.portfolio = data.portfolio || [];
+ if (!item.id) {
+ item.id = uid('port');
+ item.created_at = new Date().toISOString();
+ data.portfolio.unshift(item);
+ } else {
+ const idx = data.portfolio.findIndex(p => p.id === item.id);
+ if (idx !== -1) data.portfolio[idx] = Object.assign({}, data.portfolio[idx], item);
+ else data.portfolio.unshift(item);
+ }
+ saveLocal(data);
+ callCloud('SAVE_PORTFOLIO', { item: item });
+ return item;
+ },
+ deletePortfolioItem: function (id) {
+ const data = loadLocal();
+ data.portfolio = (data.portfolio || []).filter(p => p.id !== id);
+ saveLocal(data);
+ callCloud('DELETE_PORTFOLIO', { id: id });
+ },
+
+ // Cart System (Multi-item order for Fonts & Products)
+ getCart: function () {
+ try {
+ const c = localStorage.getItem('BNC_CART_V1');
+ return c ? JSON.parse(c) : [];
+ } catch (e) {
+ return [];
+ }
+ },
+ saveCart: function (cartItems) {
+ try {
+ localStorage.setItem('BNC_CART_V1', JSON.stringify(cartItems));
+ if (typeof window !== 'undefined') {
+ window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cart: cartItems } }));
+ }
+ } catch (e) {}
+ },
+ addToCart: function (item) {
+ const cart = this.getCart();
+ const exists = cart.find(i => i.id === item.id);
+ if (!exists) {
+ cart.push(item);
+ this.saveCart(cart);
+ }
+ return cart;
+ },
+ removeFromCart: function (itemId) {
+ let cart = this.getCart();
+ cart = cart.filter(i => i.id !== itemId);
+ this.saveCart(cart);
+ return cart;
+ },
+ clearCart: function () {
+ this.saveCart([]);
+ },
+ checkoutMultiItems: function (items, customerInfo, paymentInfo) {
       const data = loadLocal();
-      if (item.image_url) item.image_url = formatDriveImageUrl(item.image_url);
-      data.portfolio = data.portfolio || [];
-      if (!item.id) {
-        item.id = uid('port');
-        item.created_at = new Date().toISOString();
-        data.portfolio.unshift(item);
-      } else {
-        const idx = data.portfolio.findIndex(p => p.id === item.id);
-        if (idx !== -1) data.portfolio[idx] = Object.assign({}, data.portfolio[idx], item);
-        else data.portfolio.unshift(item);
-      }
+      const oId = uid('ord');
+      const oNum = orderNum();
+      const totalAmount = items.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+      const itemNames = items.map(i => i.name).join(', ');
+      const allGroups = items.length > 0 && items.every(i => i.type === 'GROUP');
+
+      const newOrder = {
+        id: oId,
+        order_number: oNum,
+        customer_id: customerInfo.customer_id || 'guest',
+        customer_name: customerInfo.customer_name || 'ลูกค้าทั่วไป',
+        order_type: allGroups ? 'GROUP' : 'MULTI',
+        items: items,
+        item_name: itemNames,
+        amount: totalAmount,
+        status: 'VERIFYING',
+        line_id: customerInfo.line_id || '',
+        gmail: customerInfo.gmail || '',
+        notes: customerInfo.notes || '',
+        created_at: new Date().toISOString()
+      };
+
+      const pId = uid('pay');
+      const newPayment = {
+        id: pId,
+        order_id: oId,
+        amount: totalAmount,
+        slip_image_url: paymentInfo.slip_image_url || '',
+        verification_status: 'VERIFYING',
+        qr_ref: paymentInfo.qr_ref || '',
+        qr_trans_ref: paymentInfo.qr_trans_ref || '',
+        qr_date: paymentInfo.qr_date || '',
+        verified_at: null
+      };
+
+      // Create drive access for non-group items and group access for group items
+      items.forEach(item => {
+        if (item.type === 'GROUP') {
+          data.group_access.unshift({
+            id: uid('ga'),
+            order_id: oId,
+            customer_id: newOrder.customer_id,
+            customer_name: newOrder.customer_name,
+            group_id: item.id,
+            group_name: item.name,
+            line_id: customerInfo.line_id || '',
+            status: 'PENDING',
+            completed_at: null
+          });
+        } else {
+          data.drive_access.unshift({
+            id: uid('da'),
+            order_id: oId,
+            customer_id: newOrder.customer_id,
+            customer_name: newOrder.customer_name,
+            item_id: item.id,
+            item_name: item.name,
+            item_type: item.type || 'FONT',
+            delivery_type: item.delivery_type || 'MANUAL',
+            gmail: customerInfo.gmail || '',
+            drive_id: item.drive_folder_id || '',
+            status: (item.delivery_type === 'GOOGLE_DRIVE') ? 'WAITING_EMAIL' : 'WAITING_ADMIN',
+            completed_at: null
+          });
+        }
+      });
+
+      data.orders.unshift(newOrder);
+      data.payments.unshift(newPayment);
       saveLocal(data);
-      callCloud('SAVE_PORTFOLIO', { item: item });
-      return item;
-    },
-    deletePortfolioItem: function (id) {
-      const data = loadLocal();
-      data.portfolio = (data.portfolio || []).filter(p => p.id !== id);
-      saveLocal(data);
-      callCloud('DELETE_PORTFOLIO', { id: id });
+      this.clearCart();
+
+      // Background Google Sheet Sync
+      callCloud('MULTI_CHECKOUT', {
+        order: newOrder,
+        payment: newPayment,
+        items: items
+      });
+
+      return { order: newOrder, payment: newPayment };
     },
 
-    
-    // ── Calendar Personal Tasks ──
-    getCalendarTasks: function () {
-      return loadLocal().calendar_tasks || [];
+    // Home Banners 1:1, Queue Status & Page Headings
+    getHomeBanners: function () {
+      const s = this.getSettings();
+      return Array.isArray(s.homeBanners) && s.homeBanners.length > 0 ? s.homeBanners : (defaultData.settings.homeBanners || []);
     },
-    saveCalendarTask: function (task) {
-      const data = loadLocal();
-      data.calendar_tasks = data.calendar_tasks || [];
-      if (!task.id) {
-        task.id = uid('ct');
-        task.created_at = new Date().toISOString();
-        data.calendar_tasks.push(task);
-      } else {
-        const idx = data.calendar_tasks.findIndex(t => t.id === task.id);
-        if (idx !== -1) data.calendar_tasks[idx] = Object.assign({}, data.calendar_tasks[idx], task);
-        else data.calendar_tasks.push(task);
-      }
-      saveLocal(data);
-      callCloud('SAVE_CALENDAR_TASK', { task: task });
-      return task;
+    saveHomeBanners: function (list) {
+      return this.saveSettings({ homeBanners: list });
     },
-    deleteCalendarTask: function (id) {
-      const data = loadLocal();
-      data.calendar_tasks = (data.calendar_tasks || []).filter(t => t.id !== id);
-      saveLocal(data);
-      callCloud('DELETE_CALENDAR_TASK', { id: id });
+    getQueueStatus: function () {
+      const s = this.getSettings();
+      return s.queueStatus || defaultData.settings.queueStatus;
     },
-    toggleCalendarTask: function (id) {
+    saveQueueStatus: function (status) {
+      return this.saveSettings({ queueStatus: status });
+    },
+    getHeadings: function () {
+      const s = this.getSettings();
+      return s.headings || defaultData.settings.headings;
+    },
+    saveHeadings: function (headings) {
+      return this.saveSettings({ headings: headings });
+    },
+    togglePinGroup: function (groupId) {
       const data = loadLocal();
-      data.calendar_tasks = data.calendar_tasks || [];
-      const t = data.calendar_tasks.find(x => x.id === id);
-      if (t) {
-        t.completed = !t.completed;
+      const g = (data.groups || []).find(x => x.id === groupId);
+      if (g) {
+        g.is_pinned = !g.is_pinned;
         saveLocal(data);
-        callCloud('SAVE_CALENDAR_TASK', { task: t });
+        callCloud('SAVE_GROUP', { group: g });
       }
     },
+    updatePaymentStatus: function (paymentId, status, reason) {
+      if (status === 'PAID' || status === 'COMPLETED') {
+        this.approvePayment(paymentId);
+      } else if (status === 'REJECTED') {
+        this.rejectPayment(paymentId, reason);
+      }
+    },
+    savePaymentAccounts: function (list) {
+    return this.saveSettings({ paymentAccounts: list });
+  },
+  saveContactChannels: function (list) {
+    return this.saveSettings({ contactChannels: list });
+  },
+  togglePinReview: function (id) {
+    const data = loadLocal();
+    const rev = data.reviews.find(r => r.id === id);
+    if (rev) {
+      rev.is_pinned = !rev.is_pinned;
+      saveLocal(data);
+      callCloud('UPDATE_REVIEW_PIN', { id: id, is_pinned: rev.is_pinned });
+      return rev.is_pinned;
+    }
+    return false;
+  },
+
+  getSettings: function () {
+ const local = loadLocal();
+ return Object.assign({}, defaultData.settings, local.settings || {});
+ },
+ getPaymentAccounts: function () {
+ const s = this.getSettings();
+ return Array.isArray(s.paymentAccounts) && s.paymentAccounts.length > 0 ? s.paymentAccounts : [
+ { id: 'acc-1', bankName: s.bankName || 'ธนาคารกสิกรไทย', accountNo: s.bankAccount || '123-4-56789-0', accountName: s.bankAccountName || s.shopName || 'ร้าน บีเอ็นซี กราฟเมท', qrUrl: s.promptpayQrUrl || '' }
+ ];
+ },
+ getContactChannels: function () {
+ const s = this.getSettings();
+ return Array.isArray(s.contactChannels) && s.contactChannels.length > 0 ? s.contactChannels : [
+ { id: 'cc-1', platform: 'LINE Official', value: s.contactLine || '@bncgraphmate', url: s.lineUrl || 'https://line.me/ti/p/~bncgraphmate' },
+ { id: 'cc-2', platform: 'Facebook', value: 'BNC GraphMate', url: s.facebookUrl || '#' },
+ { id: 'cc-3', platform: 'Instagram', value: '@bncgraphmate', url: s.instagramUrl || '#' },
+ { id: 'cc-4', platform: 'เบอร์โทรศัพท์', value: s.contactPhone || '081-234-5678', url: 'tel:' + (s.contactPhone || '0812345678') }
+ ];
+ },
+ saveSettings: function (newSettings) {
+ const data = loadLocal();
+ data.settings = Object.assign({}, data.settings, newSettings);
+ saveLocal(data);
+ callCloud('SAVE_SETTINGS', { settings: data.settings });
+ return data.settings;
+ }
+ ,
 
     // ── Queue Management System (Queue != Order) ──
     getQueueItems: function (includeHidden = false) {
@@ -1645,273 +1690,51 @@ const Store = (function () {
       return this.saveSettings({ queuePage: merged });
     },
 
-    // Cart System (Multi-item order for Fonts & Products)
- getCart: function () {
- try {
- const c = localStorage.getItem('BNC_CART_V1');
- return c ? JSON.parse(c) : [];
- } catch (e) {
- return [];
- }
- },
- saveCart: function (cartItems) {
- try {
- localStorage.setItem('BNC_CART_V1', JSON.stringify(cartItems));
- if (typeof window !== 'undefined') {
- window.dispatchEvent(new CustomEvent('cart-updated', { detail: { cart: cartItems } }));
- }
- } catch (e) {}
- },
- addToCart: function (item) {
- const cart = this.getCart();
- const exists = cart.find(i => i.id === item.id);
- if (!exists) {
- cart.push(item);
- this.saveCart(cart);
- }
- return cart;
- },
- removeFromCart: function (itemId) {
- let cart = this.getCart();
- cart = cart.filter(i => i.id !== itemId);
- this.saveCart(cart);
- return cart;
- },
- clearCart: function () {
- this.saveCart([]);
- },
- checkoutMultiItems: function (items, customerInfo, paymentInfo) {
+    // ── Calendar Tasks System ──
+    getCalendarTasks: function () {
+      return loadLocal().calendar_tasks || [];
+    },
+    saveCalendarTask: function (task) {
       const data = loadLocal();
-      const oId = uid('ord');
-      const oNum = orderNum();
-      const totalAmount = items.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
-      const totalCost = items.reduce((sum, i) => sum + (Number(i.cost_price || 0)), 0);
-      const totalProfit = totalAmount - totalCost;
-      const hasAgentItem = items.some(i => i.is_agent || (Number(i.cost_price) > 0));
-      const itemNames = items.map(i => i.name).join(', ');
-      const allGroups = items.length > 0 && items.every(i => i.type === 'GROUP');
-
-      const newOrder = {
-        id: oId,
-        order_number: oNum,
-        customer_id: customerInfo.customer_id || 'guest',
-        customer_name: customerInfo.customer_name || 'ลูกค้าทั่วไป',
-        order_type: allGroups ? 'GROUP' : 'MULTI',
-        items: items,
-        item_name: itemNames,
-        amount: totalAmount,
-        cost_amount: totalCost,
-        profit_amount: totalProfit,
-        is_agent: hasAgentItem,
-        status: 'VERIFYING',
-        line_id: customerInfo.line_id || '',
-        gmail: customerInfo.gmail || '',
-        notes: customerInfo.notes || '',
-        created_at: new Date().toISOString()
-      };
-
-      const pId = uid('pay');
-      const newPayment = {
-        id: pId,
-        order_id: oId,
-        amount: totalAmount,
-        slip_image_url: paymentInfo.slip_image_url || '',
-        verification_status: 'VERIFYING',
-        qr_ref: paymentInfo.qr_ref || '',
-        qr_trans_ref: paymentInfo.qr_trans_ref || '',
-        qr_date: paymentInfo.qr_date || '',
-        verified_at: null
-      };
-
-      // Create drive access for non-group items and group access for group items
-      items.forEach(item => {
-        if (item.type === 'GROUP') {
-          data.group_access.unshift({
-            id: uid('ga'),
-            order_id: oId,
-            customer_id: newOrder.customer_id,
-            customer_name: newOrder.customer_name,
-            group_id: item.id,
-            group_name: item.name,
-            line_id: customerInfo.line_id || '',
-            status: 'PENDING',
-            completed_at: null
-          });
-        } else {
-          data.drive_access.unshift({
-            id: uid('da'),
-            order_id: oId,
-            customer_id: newOrder.customer_id,
-            customer_name: newOrder.customer_name,
-            item_id: item.id,
-            item_name: item.name,
-            item_type: item.type || 'FONT',
-            delivery_type: item.delivery_type || 'MANUAL',
-            gmail: customerInfo.gmail || '',
-            drive_id: item.drive_folder_id || '',
-            status: (item.delivery_type === 'GOOGLE_DRIVE') ? 'WAITING_EMAIL' : 'WAITING_ADMIN',
-            completed_at: null
-          });
-        }
-      });
-
-      data.orders.unshift(newOrder);
-      data.payments.unshift(newPayment);
+      data.calendar_tasks = data.calendar_tasks || [];
+      if (!task.id) {
+        task.id = uid('ct');
+        task.created_at = new Date().toISOString();
+        data.calendar_tasks.push(task);
+      } else {
+        const idx = data.calendar_tasks.findIndex(t => t.id === task.id);
+        if (idx !== -1) data.calendar_tasks[idx] = Object.assign({}, data.calendar_tasks[idx], task);
+        else data.calendar_tasks.push(task);
+      }
       saveLocal(data);
-      this.clearCart();
-
-      // Background Google Sheet Sync
-      callCloud('MULTI_CHECKOUT', {
-        order: newOrder,
-        payment: newPayment,
-        items: items
-      });
-
-      return { order: newOrder, payment: newPayment };
+      callCloud('SAVE_CALENDAR_TASK', { task: task });
+      return task;
     },
-
-    // Home Banners 1:1, Queue Status & Page Headings
-    getHomeBanners: function () {
-      const s = this.getSettings();
-      return Array.isArray(s.homeBanners) && s.homeBanners.length > 0 ? s.homeBanners : (defaultData.settings.homeBanners || []);
-    },
-    saveHomeBanners: function (list) {
-      if (Array.isArray(list)) {
-        list.forEach(b => {
-          if (b && b.image) b.image = formatDriveImageUrl(b.image);
-        });
-      }
-      return this.saveSettings({ homeBanners: list });
-    },
-    getQueueStatus: function () {
-      const s = this.getSettings();
-      return s.queueStatus || defaultData.settings.queueStatus;
-    },
-    saveQueueStatus: function (status) {
-      return this.saveSettings({ queueStatus: status });
-    },
-    getHeadings: function () {
-      const s = this.getSettings();
-      return s.headings || defaultData.settings.headings;
-    },
-    saveHeadings: function (headings) {
-      return this.saveSettings({ headings: headings });
-    },
-    setCustomerStamps: function (customerId, stamps) {
+    deleteCalendarTask: function (id) {
       const data = loadLocal();
-      const cust = (data.customers || []).find(c => c.id === customerId);
-      if (cust) {
-        cust.heart_stamps = Math.max(0, Number(stamps) || 0);
-        saveLocal(data);
-        callCloud('UPDATE_CUSTOMER_STAMPS', { customerId, stamps: cust.heart_stamps });
-        return cust.heart_stamps;
-      }
-      return 0;
-    },
-    addCustomerStamp: function (customerId, delta = 1) {
-      const data = loadLocal();
-      const cust = (data.customers || []).find(c => c.id === customerId);
-      if (cust) {
-        cust.heart_stamps = Math.max(0, (cust.heart_stamps || 0) + delta);
-        saveLocal(data);
-        callCloud('UPDATE_CUSTOMER_STAMPS', { customerId, stamps: cust.heart_stamps });
-        return cust.heart_stamps;
-      }
-      return 0;
-    },
-    togglePinGroup: function (groupId) {
-      const data = loadLocal();
-      const g = (data.groups || []).find(x => x.id === groupId);
-      if (g) {
-        g.is_pinned = !g.is_pinned;
-        saveLocal(data);
-        callCloud('SAVE_GROUP', { item: g, group: g });
-      }
-    },
-    updatePaymentStatus: function (paymentId, status, reason) {
-      if (status === 'PAID' || status === 'COMPLETED') {
-        this.approvePayment(paymentId);
-      } else if (status === 'REJECTED') {
-        this.rejectPayment(paymentId, reason);
-      }
-    },
-    savePaymentAccounts: function (list) {
-    return this.saveSettings({ paymentAccounts: list });
-  },
-  saveContactChannels: function (list) {
-    return this.saveSettings({ contactChannels: list });
-  },
-  togglePinReview: function (id) {
-    const data = loadLocal();
-    const rev = data.reviews.find(r => r.id === id);
-    if (rev) {
-      rev.is_pinned = !rev.is_pinned;
+      data.calendar_tasks = (data.calendar_tasks || []).filter(t => t.id !== id);
       saveLocal(data);
-      callCloud('UPDATE_REVIEW_PIN', { id: id, is_pinned: rev.is_pinned });
-      return rev.is_pinned;
+      callCloud('DELETE_CALENDAR_TASK', { id: id });
+    },
+    toggleCalendarTask: function (id) {
+      const data = loadLocal();
+      data.calendar_tasks = data.calendar_tasks || [];
+      const t = data.calendar_tasks.find(x => x.id === id);
+      if (t) {
+        t.completed = !t.completed;
+        saveLocal(data);
+        callCloud('SAVE_CALENDAR_TASK', { task: t });
+      }
+    },
+    syncAllToCloud: async function () {
+      const data = loadLocal();
+      return await callCloud('SYNC_ALL', { payload: data });
     }
-    return false;
-  },
-
-  getSettings: function () {
- const local = loadLocal();
- return Object.assign({}, defaultData.settings, local.settings || {});
- },
- getPaymentAccounts: function () {
- const s = this.getSettings();
- return Array.isArray(s.paymentAccounts) && s.paymentAccounts.length > 0 ? s.paymentAccounts : [
- { id: 'acc-1', bankName: s.bankName || 'ธนาคารกสิกรไทย', accountNo: s.bankAccount || '123-4-56789-0', accountName: s.bankAccountName || s.shopName || 'ร้าน บีเอ็นซี กราฟเมท', qrUrl: s.promptpayQrUrl || '' }
- ];
- },
- getContactChannels: function () {
- const s = this.getSettings();
- return Array.isArray(s.contactChannels) && s.contactChannels.length > 0 ? s.contactChannels : [
- { id: 'cc-1', platform: 'LINE Official', value: s.contactLine || '@bncgraphmate', url: s.lineUrl || 'https://line.me/ti/p/~bncgraphmate' },
- { id: 'cc-2', platform: 'Facebook', value: 'BNC GraphMate', url: s.facebookUrl || '#' },
- { id: 'cc-3', platform: 'Instagram', value: '@bncgraphmate', url: s.instagramUrl || '#' },
- { id: 'cc-4', platform: 'เบอร์โทรศัพท์', value: s.contactPhone || '081-234-5678', url: 'tel:' + (s.contactPhone || '0812345678') }
- ];
- },
-  saveSettings: function (newSettings) {
-    const data = loadLocal();
-    if (newSettings.coverImage) newSettings.coverImage = formatDriveImageUrl(newSettings.coverImage);
-    if (newSettings.profileImage) newSettings.profileImage = formatDriveImageUrl(newSettings.profileImage);
-    if (newSettings.pointsBarIcon) newSettings.pointsBarIcon = formatDriveImageUrl(newSettings.pointsBarIcon);
-    if (newSettings.promptpayQrUrl) newSettings.promptpayQrUrl = formatDriveImageUrl(newSettings.promptpayQrUrl);
-    if (newSettings.stampSettings && newSettings.stampSettings.stampIconUrl) {
-      newSettings.stampSettings.stampIconUrl = formatDriveImageUrl(newSettings.stampSettings.stampIconUrl);
-    }
-    if (newSettings.mascotSettings) {
-      ['mascot1', 'mascot2', 'mascot3'].forEach(mKey => {
-        if (newSettings.mascotSettings[mKey] && newSettings.mascotSettings[mKey].png) {
-          newSettings.mascotSettings[mKey].png = formatDriveImageUrl(newSettings.mascotSettings[mKey].png);
-        }
-      });
-    }
-    if (newSettings.queuePage && newSettings.queuePage.mascotStages) {
-      ['pct0', 'pct25', 'pct50', 'pct75', 'pct100'].forEach(k => {
-        if (newSettings.queuePage.mascotStages[k]) {
-          newSettings.queuePage.mascotStages[k] = formatDriveImageUrl(newSettings.queuePage.mascotStages[k]);
-        }
-      });
-    }
-    data.settings = Object.assign({}, data.settings, newSettings);
-    saveLocal(data);
-    callCloud('SAVE_SETTINGS', { settings: data.settings });
-    return data.settings;
-  },
-  getStampSettings: function () {
-    const s = this.getSettings();
-    return (s && s.stampSettings) ? s.stampSettings : {};
-  },
-  syncAllToCloud: async function () {
-    const data = loadLocal();
-    return await callCloud('SYNC_ALL', { payload: data });
-  }
- };
+  };
 })();
 
 window.Store = Store;
+
 
 // Helper: Get Queue Mascot Image based on percentage
 function getQueueMascotForProgress(pct, qSettings) {
@@ -4176,7 +3999,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     <small style="color: var(--text-muted);">${new Date(o.created_at).toLocaleString('th-TH')}</small>
                   </div>
                   <span class="badge ${o.status === 'PAID' || o.status === 'COMPLETED' ? 'badge--success' : (o.status === 'REJECTED' ? 'badge--warning' : 'badge--pink')}">
-                    ${o.status === 'PAID' ? 'ชำระเงินแล้ว' : (o.status === 'VERIFYING' ? '⏳ กำลังตรวจสลิป' : (o.status === 'COMPLETED' ? 'ส่งมอบสิทธิ์แล้ว' : o.status))}
+                    ${o.status === 'PAID' ? 'ชำระเงินแล้ว' : (o.status === 'VERIFYING' ? 'กำลังตรวจสลิป' : (o.status === 'COMPLETED' ? 'ส่งมอบสิทธิ์แล้ว' : o.status))}
                   </span>
                 </div>
 
@@ -6208,7 +6031,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       const originalText = btn ? btn.textContent : '';
       if (btn) {
         btn.disabled = true;
-        btn.textContent = '⏳ กำลังซิงก์...';
+        btn.textContent = 'กำลังซิงก์...';
       }
       const success = await Store.syncFromCloud((isOk, detail) => {
         if (isOk) {
@@ -6230,7 +6053,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const originalText = btn ? btn.textContent : '';
     if (btn) {
       btn.disabled = true;
-      btn.textContent = '⏳ กำลังส่งข้อมูลขึ้นชีต...';
+      btn.textContent = 'กำลังส่งข้อมูลขึ้นชีต...';
     }
     try {
       const res = await Store.syncAllToCloud();
@@ -7757,7 +7580,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <div>
             <div style="font-size: 0.82rem; color: var(--text-muted);">สถานะออเดอร์</div>
             <span class="badge ${order.status === 'PAID' || order.status === 'COMPLETED' ? 'badge--success' : (order.status === 'REJECTED' ? 'badge--warning' : 'badge--pink')}" style="margin-top: 4px;">
-              ${order.status === 'PAID' ? 'ชำระเงินแล้ว' : (order.status === 'VERIFYING' ? '⏳ กำลังตรวจสลิป' : (order.status === 'COMPLETED' ? 'ส่งมอบสิทธิ์แล้ว' : order.status))}
+              ${order.status === 'PAID' ? 'ชำระเงินแล้ว' : (order.status === 'VERIFYING' ? 'กำลังตรวจสลิป' : (order.status === 'COMPLETED' ? 'ส่งมอบสิทธิ์แล้ว' : order.status))}
             </span>
           </div>
           <div style="text-align: right;">
@@ -8346,7 +8169,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 // ── Pink Pastel Calendar View & Date Note Modal ──
 window.switchAdminQueueView = function (v) {
   state.adminQueueView = v;
-  renderCurrentView();
+  const tabEl = document.getElementById('adminTabContent');
+  if (tabEl && state.adminTab === 'queues') {
+    tabEl.innerHTML = renderAdminQueuesTab();
+  } else {
+    renderCurrentView();
+  }
 };
 
 window.changeAdminCalendarMonth = function (offset) {
