@@ -666,6 +666,78 @@ const Store = (function () {
     return trimmed;
   }
 
+  // แปลงลิงก์ Google Drive สำหรับไฟล์ฟอนต์ให้ดาวน์โหลดแบบ Direct Stream สำหรับ @font-face
+  function formatDriveFontUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    const trimmed = url.trim();
+    if (trimmed.startsWith('data:')) return trimmed;
+    if (!trimmed.includes('drive.google.com') && !trimmed.includes('docs.google.com') && !trimmed.includes('googleusercontent.com')) {
+      return trimmed;
+    }
+    let fileId = '';
+    const match1 = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    const match2 = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    const match3 = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match1 && match1[1]) fileId = match1[1];
+    else if (match2 && match2[1]) fileId = match2[1];
+    else if (match3 && match3[1]) fileId = match3[1];
+
+    if (fileId) {
+      return `https://drive.google.com/uc?export=download&id=${fileId}`;
+    }
+    return trimmed;
+  }
+
+  // ค้นหาฟอนต์ลายมือภาษาไทยที่ตรงกับหมวดหมู่หรือชื่อฟอนต์ (Mali, Itim, Sriracha, Mitr)
+  function getFallbackFont(font) {
+    if (!font) return "'Mali', cursive, sans-serif";
+    const id = String(font.id || '');
+    const name = String(font.name || '').toLowerCase();
+    const cat = String(font.category || '');
+
+    // เจาะจงตาม ID และชื่อฟอนต์มาตรฐาน
+    if (id === 'font-1' || name.includes('เนย') || name.includes('butter')) {
+      return "'Mali', cursive, sans-serif";
+    }
+    if (id === 'font-2' || name.includes('มาช') || name.includes('marshmallow')) {
+      return "'Itim', cursive, sans-serif";
+    }
+    if (id === 'font-3' || name.includes('ปิกนิก') || name.includes('picnic')) {
+      return "'Sriracha', cursive, sans-serif";
+    }
+
+    // เจาะจงตามหมวดหมู่
+    if (cat === 'ตัวพิมพ์' || cat === 'หัวป้าย') {
+      return "'Mitr', sans-serif";
+    }
+    if (cat === 'Display') {
+      return "'Mitr', 'Prompt', sans-serif";
+    }
+    if (cat === 'ลายมือ') {
+      return "'Mali', cursive, sans-serif";
+    }
+
+    // กระจายฟอนต์ลายมือที่แตกต่างกันตาม hash ของ ID เพื่อให้ทุกฟอนต์มีสไตล์เฉพาะตัว
+    const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const fallbacks = [
+      "'Mali', cursive, sans-serif",
+      "'Itim', cursive, sans-serif",
+      "'Sriracha', cursive, sans-serif",
+      "'Mitr', sans-serif"
+    ];
+    return fallbacks[hash % fallbacks.length];
+  }
+
+  // ฟังก์ชันหา Font-Family สำหรับแสดงผลทั้งในโหมดพรีวิวการ์ดและตารางเทียบ A / B
+  function getFontFamily(font) {
+    if (!font) return "'Prompt', sans-serif";
+    const customUrl = font.font_file_url || font.file_url;
+    if (customUrl && String(customUrl).trim()) {
+      return `'Font-${font.id}', ${getFallbackFont(font)}`;
+    }
+    return getFallbackFont(font);
+  }
+
   // ดึงข้อมูลจาก Local Cache ทันที (เพื่อให้เว็บโหลดเร็ว 0.01 วินาที)
   function loadLocal() {
     try {
@@ -1098,6 +1170,8 @@ const Store = (function () {
  if (font.preview_image) font.preview_image = formatDriveImageUrl(font.preview_image);
  if (font.preview_image_url) font.preview_image_url = formatDriveImageUrl(font.preview_image_url);
  if (font.image_url) font.image_url = formatDriveImageUrl(font.image_url);
+ if (font.font_file_url) font.font_file_url = formatDriveFontUrl(font.font_file_url);
+ if (font.file_url) font.file_url = formatDriveFontUrl(font.file_url);
  if (!font.id) {
  font.id = uid('font');
  font.created_at = new Date().toISOString();
@@ -1944,18 +2018,35 @@ window.Store = Store;
   }, true);
 
   function loadFontFaces() {
-    const fonts = Store.getAllFonts();
+    const fonts = Store.getAllFonts ? Store.getAllFonts() : [];
     let css = '';
     fonts.forEach(f => {
-      const fontUrl = f.font_file_url || f.file_url;
-      if (fontUrl && fontUrl.trim()) {
+      const rawUrl = f.font_file_url || f.file_url;
+      if (rawUrl && rawUrl.trim()) {
+        const fontUrl = formatDriveFontUrl(rawUrl);
+        let formatStr = '';
+        if (fontUrl.startsWith('data:font/ttf') || fontUrl.startsWith('data:application/x-font-ttf') || fontUrl.endsWith('.ttf')) {
+          formatStr = " format('truetype')";
+        } else if (fontUrl.startsWith('data:font/otf') || fontUrl.startsWith('data:application/x-font-opentype') || fontUrl.endsWith('.otf')) {
+          formatStr = " format('opentype')";
+        } else if (fontUrl.startsWith('data:font/woff2') || fontUrl.endsWith('.woff2')) {
+          formatStr = " format('woff2')";
+        } else if (fontUrl.startsWith('data:font/woff') || fontUrl.endsWith('.woff')) {
+          formatStr = " format('woff')";
+        }
         css += `
           @font-face {
             font-family: 'Font-${f.id}';
-            src: url('${fontUrl.trim()}');
+            src: url('${fontUrl}')${formatStr};
             font-display: swap;
           }
         `;
+        if (window.FontFace && document.fonts) {
+          try {
+            const ff = new FontFace(`Font-${f.id}`, `url("${fontUrl}")`);
+            ff.load().then(loaded => document.fonts.add(loaded)).catch(() => {});
+          } catch (e) {}
+        }
       }
     });
     let styleEl = document.getElementById('dynamic-font-faces');
@@ -2594,6 +2685,7 @@ window.Store = Store;
   }
 
   function renderFontsView(container) {
+    loadFontFaces();
     const s = Store.getSettings();
     const fonts = Store.getAllFonts();
     const categories = ['ALL', ...Store.getFontCategories()];
@@ -2664,7 +2756,7 @@ window.Store = Store;
                     <span class="badge badge--pink" style="font-size: 11px; height: fit-content;">Font A</span>
                   </div>
 
-                  <div class="font-compare-text-display font-display-a" style="font-size: ${state.fontTester.size}px; font-family: ${fontA.font_file_url ? `'Font-${fontA.id}', ` : ''}'Prompt', sans-serif;">
+                  <div class="font-compare-text-display font-display-a" data-font-id="${fontA?.id || ''}" style="font-size: ${state.fontTester.size}px; font-family: ${getFontFamily(fontA)};">
                     ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
                   </div>
 
@@ -2692,7 +2784,7 @@ window.Store = Store;
                     <span class="badge badge--pink" style="font-size: 11px; height: fit-content;">Font B</span>
                   </div>
 
-                  <div class="font-compare-text-display font-display-b" style="font-size: ${state.fontTester.size}px; font-family: 'IBM Plex Sans Thai', sans-serif;">
+                  <div class="font-compare-text-display font-display-b" data-font-id="${fontB?.id || ''}" style="font-size: ${state.fontTester.size}px; font-family: ${getFontFamily(fontB)};">
                     ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
                   </div>
 
@@ -5956,8 +6048,8 @@ window.Store = Store;
 
         <!-- Live Font Preview Area (Moderate & Elegant Size - Requirement 2) -->
         <div class="font-preview-area" style="padding: 0.9rem 1.25rem; min-height: 54px;">
-          <div class="font-preview-text" style="font-size: 19px; font-weight: 500; word-break: break-word; line-height: 1.4; color: var(--text);">
-            ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี ฟอนต์ลายมือน่ารัก 1234')}
+          <div class="font-preview-text" data-font-id="${f.id}" style="font-size: 22px; font-weight: 500; word-break: break-word; line-height: 1.4; color: var(--text); font-family: ${getFontFamily(f)};">
+            ${escapeHTML(state.fontTester.text || f.preview_text || 'ร้านป้ายบีเอ็นซี ฟอนต์ลายมือน่ารัก 1234')}
           </div>
         </div>
 
@@ -7276,7 +7368,17 @@ window.Store = Store;
     if (status) status.textContent = 'กำลังอ่านไฟล์ ' + file.name + '...';
     const reader = new FileReader();
     reader.onload = function(evt) {
-      const dataUrl = evt.target.result;
+      let dataUrl = evt.target.result;
+      const lowerName = file.name.toLowerCase();
+      if (lowerName.endsWith('.ttf')) {
+        dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, 'data:font/ttf;base64,');
+      } else if (lowerName.endsWith('.otf')) {
+        dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, 'data:font/otf;base64,');
+      } else if (lowerName.endsWith('.woff2')) {
+        dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, 'data:font/woff2;base64,');
+      } else if (lowerName.endsWith('.woff')) {
+        dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, 'data:font/woff;base64,');
+      }
       const input = document.getElementById('adminFontFileUrl');
       if (input) input.value = dataUrl;
       if (status) status.textContent = 'เลือกไฟล์สำเร็จ: ' + file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
