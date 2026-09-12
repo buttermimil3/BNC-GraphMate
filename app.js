@@ -3094,11 +3094,19 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const query = (state.queueSearchQuery || '').trim().toLowerCase();
     const filteredQueues = allQueues.filter(q => {
       if (!query) return true;
-      const matchNum = (q.queue_number || '').toLowerCase().includes(query);
+      const cleanQ = query.replace(/^#/, '');
+      const matchNum = (q.queue_number || '').toLowerCase().includes(cleanQ);
       const matchName = (q.customer_name || '').toLowerCase().includes(query);
       const matchLine = (q.line_id || '').toLowerCase().includes(query);
-      const matchPhone = (q.phone || '').replace(/[^0-9]/g, '').includes(query.replace(/[^0-9]/g, ''));
-      return matchNum || matchName || matchLine || matchPhone;
+      const matchContact = (q.contact || '').toLowerCase().includes(query);
+      const matchJob = (q.job_name || '').toLowerCase().includes(query);
+      const matchNote = (q.note || '').toLowerCase().includes(query);
+      
+      const qDigits = query.replace(/[^0-9]/g, '');
+      const phoneDigits = (q.phone || q.contact || '').replace(/[^0-9]/g, '');
+      const matchPhone = (qDigits.length >= 2 && phoneDigits.includes(qDigits));
+
+      return matchNum || matchName || matchLine || matchContact || matchJob || matchNote || matchPhone;
     });
 
     // Helper: Censor customer contact info for privacy
@@ -3220,6 +3228,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                   placeholder="${escapeHTML(qSettings.searchPlaceholder || 'กรอกชื่อ, LINE ID, เบอร์โทรศัพท์ หรือเลขคิว...')}"
                   value="${escapeHTML(state.queueSearchQuery || '')}"
                   oninput="handleQueueSearchInput(this.value)"
+                  onkeydown="if (event.key === 'Enter') { triggerQueueSearchSubmit(); }"
                 >
                 <button type="button" class="btn btn-primary" onclick="triggerQueueSearchSubmit()" style="border-radius: 16px; padding: 0 1.5rem; font-weight: 700;">
                   ${escapeHTML(qSettings.searchButtonText || 'ดูคิวของฉัน')}
@@ -3298,7 +3307,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
                           ${qSettings.showCustomerName !== false ? `
                             <div class="queue-card-client">
-                              ลูกค้า: <strong>${escapeHTML(maskText(item.customer_name, 2, 2))}</strong>
+                              ลูกค้า: <strong>${escapeHTML(item.customer_name || 'ลูกค้า')}</strong>
                             </div>
                           ` : ''}
 
@@ -3342,10 +3351,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <div>
                   <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem;">
                     <span style="font-size: 1.15rem; font-weight: 800; color: #71515B; font-family: var(--font-heading);">
-                      คิวงานรอคิวและคิวอื่นๆ (${otherQueues.length})
-                    </span>
-                    <span style="font-size: 0.8rem; background: #FFF1F5; color: #9D174D; padding: 2px 8px; border-radius: 999px; font-weight: 700; border: 1px solid #FBCFE8;">
-                      Queue List
+                      Queue List (${otherQueues.length})
                     </span>
                   </div>
                   <div class="queue-long-bar-list">
@@ -3370,7 +3376,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                               </div>
                               ${qSettings.showCustomerName !== false ? `
                                 <div style="font-size: 0.78rem; color: #718096;">
-                                  ลูกค้า: <strong>${escapeHTML(maskText(item.customer_name, 2, 2))}</strong>
+                                  ลูกค้า: <strong>${escapeHTML(item.customer_name || 'ลูกค้า')}</strong>
                                 </div>
                               ` : ''}
                             </div>
@@ -3434,11 +3440,17 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   // Queue View Action Handlers
   window.handleQueueSearchInput = function (val) {
     state.queueSearchQuery = val;
-    // Debounced or live re-render for responsive note search
     clearTimeout(window._qSearchTimer);
     window._qSearchTimer = setTimeout(() => {
       renderCurrentView();
-    }, 280);
+      // Keep focus on input after live filter
+      const el = $('queueSearchInput');
+      if (el) {
+        el.focus();
+        const len = el.value.length;
+        el.setSelectionRange(len, len);
+      }
+    }, 200);
   };
 
   window.handleClearQueueSearch = function () {
@@ -3448,7 +3460,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
   window.triggerQueueSearchSubmit = function () {
     const input = $('queueSearchInput');
-    if (input) state.queueSearchQuery = input.value;
+    if (input) state.queueSearchQuery = input.value.trim();
     renderCurrentView();
   };
 
@@ -3542,7 +3554,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="font-size: 0.9rem;">
             <div>
               <span style="color: #71515B; display: block; font-size: 0.8rem; font-weight: 600;">ชื่อลูกค้า:</span>
-              <strong style="color: #38282D; font-size: 0.95rem;">${escapeHTML(maskText(item.customer_name, 2, 2))}</strong>
+              <strong style="color: #38282D; font-size: 0.95rem;">${escapeHTML(item.customer_name || 'ลูกค้า')}</strong>
             </div>
             <div>
               <span style="color: #71515B; display: block; font-size: 0.8rem; font-weight: 600;">ช่องทางติดต่อ:</span>
@@ -4497,7 +4509,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         <h3 style="margin: 0 0 1rem; font-size: 1.1rem; color: var(--primary-deep);">
           สรุปแจกแจงรายรับและกำไร (${tfLabels[tf]})
         </h3>
-        ${state.adminQueueView === 'calendar' ? renderAdminQueueCalendarView(queues) : `
         <div style="overflow-x: auto;">
           <table class="admin-table">
             <thead>
@@ -4534,7 +4545,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </tbody>
           </table>
         </div>
-        `}
       </div>
     `;
   }
@@ -5020,6 +5030,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
+        ${state.adminQueueView === 'calendar' ? renderAdminQueueCalendarView(queues) : `
         <div style="overflow-x: auto;">
           <table class="admin-table">
             <thead>
@@ -5140,6 +5151,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </tbody>
           </table>
         </div>
+        `}
       </div>
     `;
   }
