@@ -433,14 +433,15 @@ input[type="radio"]:focus-visible {
   overflow: hidden;
   position: relative;
   background-color: var(--surface-alt);
-  box-shadow: 0 4px 18px rgba(222, 133, 167, 0.18);
-  border: 1.5px solid var(--border);
+  box-shadow: none; /* User requested NO shadow on cover */
+  border: 2.5px solid #ffffff;
 }
 
 @media (max-width: 640px) {
   .fb-cover-banner {
     height: 180px;
     border-radius: var(--radius-lg);
+    border-width: 2px;
   }
 }
 
@@ -455,6 +456,7 @@ input[type="radio"]:focus-visible {
   position: relative;
   padding: 0 1.25rem 1.5rem;
   margin-top: -55px;
+  max-width: 100%;
 }
 
 @media (min-width: 768px) {
@@ -512,14 +514,14 @@ input[type="radio"]:focus-visible {
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: none;
+  box-shadow: none;
   background-color: #ffffff;
   display: block;
 }
 
 .ig-avatar-wrapper.has-story .ig-avatar-img {
-  border: 3.5px solid #ffffff;
+  border: none;
 }
 
 .ig-info {
@@ -2014,7 +2016,7 @@ input[type="range"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 4px 8px rgba(113, 81, 91, 0.12));
+  filter: drop-shadow(0 2px 8px rgba(244, 114, 182, 0.22));
   transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   user-select: none;
   background: transparent;
@@ -2030,18 +2032,18 @@ input[type="range"] {
   height: 100%;
   z-index: 1;
   pointer-events: none;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
+  filter: none;
 }
 
-/* Inner Pastel Picture Area of the Stamp */
+/* Inner Solid White Frame Picture Area of the Stamp */
 .stamp-slot-inner {
   position: relative;
   z-index: 2;
   width: 74%;
   height: 74%;
   background: #FFF9FC;
-  border: 1.5px dashed #FFB7CE;
-  border-radius: 4px;
+  border: 2px solid #FFFFFF;
+  border-radius: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2053,7 +2055,7 @@ input[type="range"] {
 
 .stamp-slot.is-empty .stamp-slot-inner {
   background: #FFF7FA;
-  border-color: #F8BBD0;
+  border: 2px solid #FFFFFF;
 }
 
 .stamp-slot.is-empty .stamp-slot-num {
@@ -2066,8 +2068,8 @@ input[type="range"] {
 
 .stamp-slot.is-stamped .stamp-slot-inner {
   background: #FFF0F5;
-  border-color: #FF6B97;
-  box-shadow: inset 0 0 0 1px rgba(255, 107, 151, 0.15);
+  border: 2px solid #FFFFFF;
+  box-shadow: none;
 }
 
 .stamp-slot.is-stamped:nth-child(odd) {
@@ -2080,14 +2082,15 @@ input[type="range"] {
 
 .stamp-slot:hover {
   transform: scale(1.05) rotate(0deg);
-  filter: drop-shadow(0 6px 12px rgba(222, 133, 167, 0.25));
+  filter: drop-shadow(0 6px 14px rgba(244, 114, 182, 0.35));
 }
 
 .stamp-slot-art-img {
-  width: 82%;
-  height: 82%;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
+  border-radius: 4px;
 }
 
 .stamp-note-icon {
@@ -2322,10 +2325,10 @@ select option {
 
 .ig-avatar-wrapper.fb-overlap-avatar {
   margin-top: -75px !important;
-  width: 145px !important;
-  height: 145px !important;
-  border: 4px solid #ffffff !important;
-  box-shadow: 0 6px 18px rgba(222, 133, 167, 0.25) !important;
+  width: 140px !important;
+  height: 140px !important;
+  border: 2.5px solid #ffffff !important;
+  box-shadow: 0 4px 14px rgba(222, 133, 167, 0.2) !important;
   position: relative !important;
   z-index: 10 !important;
   background: #ffffff !important;
@@ -2336,9 +2339,9 @@ select option {
 @media (max-width: 640px) {
   .ig-avatar-wrapper.fb-overlap-avatar {
     margin-top: -50px !important;
-    width: 100px !important;
-    height: 100px !important;
-    border-width: 3px !important;
+    width: 96px !important;
+    height: 96px !important;
+    border-width: 2px !important;
   }
 }
 
@@ -2698,7 +2701,7 @@ select option {
   box-shadow: 0 0 0 3px rgba(239, 166, 193, 0.2);
 }
 
-/* Queue Cards Grid (Stationery Sticky Note Cards) */
+/* Queue Cards Container */
 .queue-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
@@ -2706,42 +2709,113 @@ select option {
   margin-top: 1.5rem;
 }
 
-.queue-note-card {
+/* 1. Post-it Sticky Note Card for Active Day Queue (ถึงคิววันนั้นๆ) */
+.queue-postit-card {
   position: relative;
-  background: #ffffff;
-  background-image: 
-    radial-gradient(#F3DCE6 0.8px, transparent 0.8px);
+  background: #FFFDF8; /* Soft warm post-it cream/yellow */
+  background-image: radial-gradient(#F9E4B7 0.8px, transparent 0.8px);
   background-size: 16px 16px;
-  border: 1.5px solid #F3DCE6;
-  border-radius: 22px;
+  border: 1.5px solid #F6D798;
+  border-radius: 18px;
   padding: 1.6rem 1.4rem 1.3rem;
-  box-shadow: 0 4px 14px rgba(239, 166, 193, 0.1);
+  box-shadow: 0 8px 24px rgba(234, 179, 8, 0.12), 0 2px 6px rgba(0,0,0,0.04);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
 }
 
-.queue-note-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(239, 166, 193, 0.2);
-  border-color: #EFA6C1;
+.queue-postit-card:hover {
+  transform: translateY(-4px) rotate(-0.5deg);
+  box-shadow: 0 12px 28px rgba(234, 179, 8, 0.22);
 }
 
-/* Card Washi Tape Corner */
-.queue-card-tape {
+.queue-postit-tape {
   position: absolute;
-  top: -9px;
-  right: 22px;
-  width: 70px;
-  height: 18px;
-  background: rgba(248, 191, 212, 0.75);
-  border: 1px dashed #EFA6C1;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1.5deg);
+  width: 80px;
+  height: 20px;
+  background: rgba(254, 240, 138, 0.85);
+  border: 1px dashed #EAB308;
   border-radius: 2px;
-  transform: rotate(2deg);
   pointer-events: none;
+  z-index: 3;
 }
 
+.queue-postit-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  background: #FEF08A;
+  color: #854D0E;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #FACC15;
+  margin-left: 6px;
+}
+
+/* 2. Rounded Long Bar for Other Waiting Queues (คิวอื่นๆ) */
+.queue-long-bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.queue-long-bar {
+  background: #FFFFFF;
+  border: 1.5px solid #FFDFE9;
+  border-radius: 999px;
+  padding: 12px 22px;
+  box-shadow: 0 2px 10px rgba(244, 114, 182, 0.08);
+  transition: all 0.22s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.queue-long-bar:hover {
+  transform: translateX(4px);
+  border-color: #F472B6;
+  box-shadow: 0 4px 16px rgba(244, 114, 182, 0.18);
+  background: #FFF9FC;
+}
+
+@media (max-width: 768px) {
+  .queue-long-bar {
+    border-radius: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+}
+
+.queue-long-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.queue-long-bar-mid {
+  flex: 1;
+  min-width: 140px;
+}
+
+.queue-long-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Generic Card Header & Details */
 .queue-card-header {
   display: flex;
   justify-content: space-between;
@@ -2752,14 +2826,16 @@ select option {
 
 .queue-pill-num {
   font-family: var(--font-heading);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #9D174D;
   background: #FFF5F8;
   border: 1px solid #FBCFE8;
-  padding: 3px 14px;
+  padding: 3px 12px;
   border-radius: 12px;
   letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
 }
 
 /* Status Badges */
@@ -2818,47 +2894,83 @@ select option {
 
 /* Card Content Details */
 .queue-card-job {
-  font-size: 1.12rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #2D3748;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   line-height: 1.3;
 }
 
 .queue-card-type-tag {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #9D174D;
   background: #FFF1F5;
   display: inline-block;
   padding: 2px 8px;
   border-radius: 6px;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.5rem;
   font-weight: 600;
 }
 
 .queue-card-client {
   font-size: 0.88rem;
   color: #718096;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
-/* Progress Bar Container */
-.queue-progress-track {
+/* 3. Progress Bar with Moving Mascot Tip at End of Bar */
+.queue-mascot-progress-wrap {
+  position: relative;
+  padding-right: 18px; /* Room for mascot head */
+  margin: 0.4rem 0;
+}
+
+.queue-mascot-progress-track {
   width: 100%;
-  height: 10px;
+  height: 12px;
   background: #FFF5F8;
-  border: 1px solid #F3DCE6;
+  border: 1.5px solid #F3DCE6;
   border-radius: 999px;
-  overflow: hidden;
-  margin: 0.5rem 0 0.85rem;
+  position: relative;
+  overflow: visible; /* Critical: allow mascot head to pop out at the tip */
+}
+
+.queue-mascot-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #F9A8D4, #F472B6);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
 }
 
-.queue-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #F8BFD4, #EFA6C1);
-  border-radius: 999px;
-  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+.queue-mascot-progress-tip {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 1.5px solid #F472B6;
+  box-shadow: 0 2px 6px rgba(244, 114, 182, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  animation: mascotTipBounce 1.8s ease-in-out infinite;
+}
+
+.queue-mascot-progress-tip img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
+
+@keyframes mascotTipBounce {
+  0%, 100% { transform: translateY(-50%) scale(1); }
+  50% { transform: translateY(-58%) scale(1.1); }
 }
 
 .queue-card-footer {

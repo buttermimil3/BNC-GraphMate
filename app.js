@@ -118,6 +118,13 @@ const Store = (function () {
         done: 'เสร็จแล้ว',
         pause: 'พักคิว',
         cancel: 'ยกเลิก'
+      },
+      mascotStages: {
+        pct0: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
+        pct25: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
+        pct50: 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
+        pct75: 'https://api.iconify.design/fluent-emoji-flat:panda.svg',
+        pct100: 'https://api.iconify.design/fluent-emoji-flat:party-popper.svg'
       }
     },
     stampSettings: {
@@ -1842,6 +1849,13 @@ const Store = (function () {
         }
       });
     }
+    if (newSettings.queuePage && newSettings.queuePage.mascotStages) {
+      ['pct0', 'pct25', 'pct50', 'pct75', 'pct100'].forEach(k => {
+        if (newSettings.queuePage.mascotStages[k]) {
+          newSettings.queuePage.mascotStages[k] = formatDriveImageUrl(newSettings.queuePage.mascotStages[k]);
+        }
+      });
+    }
     data.settings = Object.assign({}, data.settings, newSettings);
     saveLocal(data);
     callCloud('SAVE_SETTINGS', { settings: data.settings });
@@ -1860,6 +1874,24 @@ const Store = (function () {
 
 window.Store = Store;
 
+// Helper: Get Queue Mascot Image based on percentage
+function getQueueMascotForProgress(pct, qSettings) {
+  const p = Math.min(100, Math.max(0, Number(pct) || 0));
+  const stages = (qSettings && qSettings.mascotStages) ? qSettings.mascotStages : {
+    pct0: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
+    pct25: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
+    pct50: 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
+    pct75: 'https://api.iconify.design/fluent-emoji-flat:panda.svg',
+    pct100: 'https://api.iconify.design/fluent-emoji-flat:party-popper.svg'
+  };
+
+  if (p >= 100) return stages.pct100 || stages.pct75;
+  if (p >= 75) return stages.pct75 || stages.pct50;
+  if (p >= 50) return stages.pct50 || stages.pct25;
+  if (p >= 25) return stages.pct25 || stages.pct0;
+  return stages.pct0 || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg';
+}
+window.getQueueMascotForProgress = getQueueMascotForProgress;
 
 /**
  * BNC GraphMate — Unified Application Controller (SPA Architecture)
@@ -1873,6 +1905,7 @@ window.Store = Store;
   const formatDriveFontUrl = window.formatDriveFontUrl || function(u) { return u; };
   const getFallbackFont = window.getFallbackFont || function() { return "'Prompt', sans-serif"; };
   const getFontFamily = window.getFontFamily || function() { return "'Prompt', sans-serif"; };
+  const getQueueMascotForProgress = window.getQueueMascotForProgress;
 
   // Application State
   const state = {
@@ -2481,8 +2514,8 @@ window.Store = Store;
       <section style="background-color: var(--surface-alt); padding: 0.5rem 0 2.5rem; border-bottom: 1px solid var(--border-light);">
         <div class="container">
           
-          <!-- Profile Info Row -->
-          <div class="ig-profile-section" style="max-width: 680px; margin: 0 auto;">
+          <!-- Profile Info Row (Responsive on iPad/Tablet and Desktop) -->
+          <div class="ig-profile-section">
             <div class="ig-profile-header">
               
               <div class="ig-avatar-wrapper fb-overlap-avatar">
@@ -2506,20 +2539,17 @@ window.Store = Store;
                 <!-- Bio -->
                 <p class="ig-bio-text">${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้')}</p>
 
-                <!-- Action Buttons (No emojis) -->
+                <!-- Action Buttons (Dynamic Contact Channels) -->
                 <div class="ig-actions-row">
-                  <a href="${escapeHTML(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="_blank" class="btn btn-primary btn-sm">
-                    ${escapeHTML(s.btnLineText || 'ทักแชท LINE ร้าน')}
-                  </a>
-                  <a href="${escapeHTML(s.instagramUrl || 'https://instagram.com/bncgraphmate')}" target="_blank" class="btn btn-secondary btn-sm">
-                    ${escapeHTML(s.btnIgText || 'Instagram')}
-                  </a>
-                  <a href="${escapeHTML(s.facebookUrl || 'https://facebook.com/bncgraphmate')}" target="_blank" class="btn btn-secondary btn-sm">
-                    ${escapeHTML(s.btnFbText || 'Facebook')}
-                  </a>
-                  <a href="tel:${escapeHTML(s.contactPhone || '0812345678')}" class="btn btn-outline btn-sm">
-                    ${escapeHTML(s.btnPhoneText || 'โทรติดต่อ')}
-                  </a>
+                  ${Store.getContactChannels().map((ch, idx) => {
+                    const btnClass = idx === 0 ? 'btn btn-primary btn-sm' : (idx === 1 ? 'btn btn-secondary btn-sm' : 'btn btn-outline btn-sm');
+                    const isTel = (ch.url || '').startsWith('tel:');
+                    return `
+                      <a href="${escapeHTML(ch.url || '#')}" ${isTel ? '' : 'target="_blank"'} class="${btnClass}">
+                        ${escapeHTML(ch.platform || 'ติดต่อ')}${ch.value ? `: ${escapeHTML(ch.value)}` : ''}
+                      </a>
+                    `;
+                  }).join('')}
                 </div>
               </div>
             </div>
@@ -2892,11 +2922,27 @@ window.Store = Store;
       cancel: 'ยกเลิก'
     };
 
+    // Helper: Normalize status key from either English or Thai
+    const normalizeQueueStatus = (status) => {
+      if (!status) return 'waiting';
+      const s = String(status).trim().toLowerCase();
+      if (s === 'progress' || s === 'กำลังดำเนินการ' || s === 'กำลังทำ') return 'progress';
+      if (s === 'review' || s === 'รอตรวจ') return 'review';
+      if (s === 'edit' || s === 'รอแก้ไข') return 'edit';
+      if (s === 'done' || s === 'เสร็จแล้ว') return 'done';
+      if (s === 'pause' || s === 'พักคิว') return 'pause';
+      if (s === 'cancel' || s === 'ยกเลิก') return 'cancel';
+      return 'waiting';
+    };
+
     // Calculate Summary Counts
     const totalToday = allQueues.length;
-    const countWaiting = allQueues.filter(q => q.status === 'waiting').length;
-    const countProgress = allQueues.filter(q => q.status === 'progress' || q.status === 'review' || q.status === 'edit').length;
-    const countDone = allQueues.filter(q => q.status === 'done').length;
+    const countWaiting = allQueues.filter(q => normalizeQueueStatus(q.status) === 'waiting').length;
+    const countProgress = allQueues.filter(q => {
+      const k = normalizeQueueStatus(q.status);
+      return k === 'progress' || k === 'review' || k === 'edit';
+    }).length;
+    const countDone = allQueues.filter(q => normalizeQueueStatus(q.status) === 'done').length;
 
     // Filter by search query (Queue number, client name, line_id, or phone)
     const query = (state.queueSearchQuery || '').trim().toLowerCase();
@@ -3016,69 +3062,175 @@ window.Store = Store;
             </span>
           </div>
 
-          <!-- Queue Cards Grid (Stationery Sticky Note Cards) -->
-          ${filteredQueues.length > 0 ? `
-            <div class="queue-cards-grid">
-              ${filteredQueues.map(item => {
-                const statusKey = (item.status || 'waiting').toLowerCase();
-                const statusLabel = statusNames[statusKey] || statusKey;
-                const progressPct = Math.min(100, Math.max(0, Number(item.progress) || 0));
-                
-                return `
-                  <div class="queue-note-card" onclick="openQueueDetailModal('${item.id}')">
-                    <!-- Washi Tape Corner -->
-                    <div class="queue-card-tape"></div>
+          <!-- Queue List: Active Day Queue (Post-it) & Waiting Queues (Rounded Long Bar) -->
+          ${filteredQueues.length > 0 ? (() => {
+            const activeQueues = filteredQueues.filter(item => {
+              const sk = normalizeQueueStatus(item.status);
+              return sk === 'progress' || sk === 'review' || sk === 'edit';
+            });
+            const otherQueues = filteredQueues.filter(item => {
+              const sk = normalizeQueueStatus(item.status);
+              return sk !== 'progress' && sk !== 'review' && sk !== 'edit';
+            });
 
-                    <div class="queue-card-header">
-                      ${qSettings.showQueueNumber !== false ? `
-                        <div class="queue-pill-num">${escapeHTML(item.queue_number || 'Q-')}</div>
-                      ` : '<div></div>'}
-                      <span class="queue-status-chip status-${statusKey}">
-                        ${escapeHTML(statusLabel)}
-                      </span>
-                    </div>
-
-                    <!-- Job Information -->
-                    <div class="queue-card-job">${escapeHTML(item.job_name || 'งานออกแบบ')}</div>
-                    <div>
-                      <span class="queue-card-type-tag">${escapeHTML(item.job_type || 'งานออกแบบ')}</span>
-                    </div>
-
-                    ${qSettings.showCustomerName !== false ? `
-                      <div class="queue-card-client">
-                        ลูกค้า: <strong>${escapeHTML(maskText(item.customer_name, 2, 2))}</strong>
-                      </div>
-                    ` : ''}
-
-                    <!-- Progress Bar -->
-                    ${qSettings.showProgress !== false ? `
-                      <div style="margin: 0.4rem 0;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #718096; margin-bottom: 2px;">
-                          <span>ความคืบหน้า</span>
-                          <span style="font-weight: 700; color: #9D174D;">${progressPct}%</span>
-                        </div>
-                        <div class="queue-progress-track">
-                          <div class="queue-progress-fill" style="width: ${progressPct}%;"></div>
-                        </div>
-                      </div>
-                    ` : ''}
-
-                    ${qSettings.showNote !== false && item.note ? `
-                      <div style="font-size: 0.82rem; color: #4A5568; background: #FFF9FA; border-left: 3px solid #F472B6; padding: 4px 8px; border-radius: 4px; margin-top: 0.5rem;">
-                        ${escapeHTML(item.note)}
-                      </div>
-                    ` : ''}
-
-                    <!-- Card Footer with Update Timestamp -->
-                    <div class="queue-card-footer">
-                      <span>${escapeHTML(item.queue_date || 'วันนี้')}</span>
-                      <span>อัปเดต: ${escapeHTML(item.updated_at || 'เมื่อสักครู่')}</span>
-                    </div>
+            return `
+              ${activeQueues.length > 0 ? `
+                <div style="margin-bottom: 2.2rem;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;">
+                    <span style="font-size: 1.15rem; font-weight: 800; color: #854D0E; font-family: var(--font-heading);">
+                      📌 ถึงคิววันนั้นๆ / กำลังออกแบบ (${activeQueues.length})
+                    </span>
+                    <span style="font-size: 0.8rem; background: #FEF08A; color: #854D0E; padding: 2px 8px; border-radius: 999px; font-weight: 700; border: 1px solid #FDE047;">
+                      Active Today
+                    </span>
                   </div>
-                `;
-              }).join('')}
-            </div>
-          ` : `
+                  <div class="queue-cards-grid">
+                    ${activeQueues.map(item => {
+                      const statusKey = normalizeQueueStatus(item.status);
+                      const statusLabel = statusNames[statusKey] || item.status || statusKey;
+                      const progressPct = Math.min(100, Math.max(0, Number(item.progress) || 0));
+                      const mascotUrl = getQueueMascotForProgress(progressPct, qSettings);
+
+                      return `
+                        <div class="queue-postit-card" onclick="openQueueDetailModal('${item.id}')">
+                          <!-- Sticky Note Top Tape -->
+                          <div class="queue-postit-tape"></div>
+
+                          <div class="queue-card-header">
+                            ${qSettings.showQueueNumber !== false ? `
+                              <div class="queue-pill-num">
+                                ${escapeHTML(item.queue_number || 'Q-')}
+                                <span class="queue-postit-active-badge">คิววันนี้</span>
+                              </div>
+                            ` : '<div></div>'}
+                            <span class="queue-status-chip status-${statusKey}">
+                              ${escapeHTML(statusLabel)}
+                            </span>
+                          </div>
+
+                          <!-- Job Information -->
+                          <div class="queue-card-job">${escapeHTML(item.job_name || 'งานออกแบบ')}</div>
+                          <div>
+                            <span class="queue-card-type-tag">${escapeHTML(item.job_type || 'งานออกแบบ')}</span>
+                          </div>
+
+                          ${qSettings.showCustomerName !== false ? `
+                            <div class="queue-card-client">
+                              ลูกค้า: <strong>${escapeHTML(maskText(item.customer_name, 2, 2))}</strong>
+                            </div>
+                          ` : ''}
+
+                          <!-- Progress Bar with Mascot Tip -->
+                          ${qSettings.showProgress !== false ? `
+                            <div style="margin: 0.6rem 0 0.4rem;">
+                              <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #718096; margin-bottom: 4px;">
+                                <span>ความคืบหน้า</span>
+                                <span style="font-weight: 700; color: #9D174D;">${progressPct}%</span>
+                              </div>
+                              <div class="queue-mascot-progress-wrap">
+                                <div class="queue-mascot-progress-track">
+                                  <div class="queue-mascot-progress-fill" style="width: ${progressPct}%;">
+                                    <div class="queue-mascot-progress-tip" title="${progressPct}%">
+                                      <img src="${escapeHTML(mascotUrl)}" alt="Mascot">
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ` : ''}
+
+                          ${qSettings.showNote !== false && item.note ? `
+                            <div style="font-size: 0.82rem; color: #4A5568; background: #FFF9FA; border-left: 3px solid #F472B6; padding: 4px 8px; border-radius: 4px; margin-top: 0.5rem;">
+                              ${escapeHTML(item.note)}
+                            </div>
+                          ` : ''}
+
+                          <!-- Card Footer with Update Timestamp -->
+                          <div class="queue-card-footer">
+                            <span>${escapeHTML(item.queue_date || 'วันนี้')}</span>
+                            <span>อัปเดต: ${escapeHTML(item.updated_at || 'เมื่อสักครู่')}</span>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+              ${otherQueues.length > 0 ? `
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem;">
+                    <span style="font-size: 1.15rem; font-weight: 800; color: #9D174D; font-family: var(--font-heading);">
+                      📋 คิวงานรอคิว & คิวอื่นๆ (${otherQueues.length})
+                    </span>
+                    <span style="font-size: 0.8rem; background: #FFF1F5; color: #9D174D; padding: 2px 8px; border-radius: 999px; font-weight: 700; border: 1px solid #FBCFE8;">
+                      Queue List
+                    </span>
+                  </div>
+                  <div class="queue-long-bar-list">
+                    ${otherQueues.map(item => {
+                      const statusKey = normalizeQueueStatus(item.status);
+                      const statusLabel = statusNames[statusKey] || item.status || statusKey;
+                      const progressPct = Math.min(100, Math.max(0, Number(item.progress) || 0));
+                      const mascotUrl = getQueueMascotForProgress(progressPct, qSettings);
+
+                      return `
+                        <div class="queue-long-bar" onclick="openQueueDetailModal('${item.id}')">
+                          <!-- Left: Queue Number & Client/Job -->
+                          <div class="queue-long-bar-left">
+                            ${qSettings.showQueueNumber !== false ? `
+                              <div class="queue-pill-num" style="font-size: 1.1rem; padding: 2px 10px;">
+                                ${escapeHTML(item.queue_number || 'Q-')}
+                              </div>
+                            ` : ''}
+                            <div style="min-width: 0;">
+                              <div class="queue-card-job" style="font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ${escapeHTML(item.job_name || 'งานออกแบบ')}
+                              </div>
+                              ${qSettings.showCustomerName !== false ? `
+                                <div style="font-size: 0.78rem; color: #718096;">
+                                  ลูกค้า: <strong>${escapeHTML(maskText(item.customer_name, 2, 2))}</strong>
+                                </div>
+                              ` : ''}
+                            </div>
+                          </div>
+
+                          <!-- Middle: Progress Bar with Mascot Tip -->
+                          <div class="queue-long-bar-mid">
+                            ${qSettings.showProgress !== false ? `
+                              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #718096; margin-bottom: 2px;">
+                                <span>ความคืบหน้า</span>
+                                <span style="font-weight: 700; color: #9D174D;">${progressPct}%</span>
+                              </div>
+                              <div class="queue-mascot-progress-wrap">
+                                <div class="queue-mascot-progress-track">
+                                  <div class="queue-mascot-progress-fill" style="width: ${progressPct}%;">
+                                    <div class="queue-mascot-progress-tip" title="${progressPct}%">
+                                      <img src="${escapeHTML(mascotUrl)}" alt="Mascot">
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ` : ''}
+                          </div>
+
+                          <!-- Right: Status Badge & Date -->
+                          <div class="queue-long-bar-right">
+                            <span class="queue-status-chip status-${statusKey}">
+                              ${escapeHTML(statusLabel)}
+                            </span>
+                            <span style="font-size: 0.78rem; color: #A0AEC0; white-space: nowrap;">
+                              ${escapeHTML(item.queue_date || 'วันนี้')}
+                            </span>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              ` : ''}
+            `;
+          })() : `
             <div style="background: #FFFDFE; border: 1.5px dashed #FBCFE8; border-radius: 24px; padding: 4rem 1.5rem; text-align: center; color: var(--text-muted); margin-top: 1rem;">
               <div style="width: 56px; height: 56px; border-radius: 50%; background: #FFF5F8; border: 1.5px solid #FBCFE8; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #9D174D;">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -3669,7 +3821,7 @@ window.Store = Store;
                   const customStampImg = stampCfg.stampIconUrl || stampCfg.mascotIcon;
                   const stampSvgFrame = `
                     <svg class="postage-stamp-svg-border" viewBox="0 0 100 100" preserveAspectRatio="none">
-                      <path d="M 0 0 L 2.94 0 A 4.2 4.2 0 0 0 11.34 0 L 14.29 0 L 17.23 0 A 4.2 4.2 0 0 0 25.63 0 L 28.57 0 L 31.51 0 A 4.2 4.2 0 0 0 39.91 0 L 42.86 0 L 45.80 0 A 4.2 4.2 0 0 0 54.20 0 L 57.14 0 L 60.09 0 A 4.2 4.2 0 0 0 68.49 0 L 71.43 0 L 74.37 0 A 4.2 4.2 0 0 0 82.77 0 L 85.71 0 L 88.66 0 A 4.2 4.2 0 0 0 97.06 0 L 100.00 0 L 100 2.94 A 4.2 4.2 0 0 0 100 11.34 L 100 14.29 L 100 17.23 A 4.2 4.2 0 0 0 100 25.63 L 100 28.57 L 100 31.51 A 4.2 4.2 0 0 0 100 39.91 L 100 42.86 L 100 45.80 A 4.2 4.2 0 0 0 100 54.20 L 100 57.14 L 100 60.09 A 4.2 4.2 0 0 0 100 68.49 L 100 71.43 L 100 74.37 A 4.2 4.2 0 0 0 100 82.77 L 100 85.71 L 100 88.66 A 4.2 4.2 0 0 0 100 97.06 L 100 100.00 L 97.06 100 A 4.2 4.2 0 0 0 88.66 100 L 85.71 100 L 82.77 100 A 4.2 4.2 0 0 0 74.37 100 L 71.43 100 L 68.49 100 A 4.2 4.2 0 0 0 60.09 100 L 57.14 100 L 54.20 100 A 4.2 4.2 0 0 0 45.80 100 L 42.86 100 L 39.91 100 A 4.2 4.2 0 0 0 31.51 100 L 28.57 100 L 25.63 100 A 4.2 4.2 0 0 0 17.23 100 L 14.29 100 L 11.34 100 A 4.2 4.2 0 0 0 2.94 100 L 0.00 100 L 0 97.06 A 4.2 4.2 0 0 0 0 88.66 L 0 85.71 L 0 82.77 A 4.2 4.2 0 0 0 0 74.37 L 0 71.43 L 0 68.49 A 4.2 4.2 0 0 0 0 60.09 L 0 57.14 L 0 54.20 A 4.2 4.2 0 0 0 0 45.80 L 0 42.86 L 0 39.91 A 4.2 4.2 0 0 0 0 31.51 L 0 28.57 L 0 25.63 A 4.2 4.2 0 0 0 0 17.23 L 0 14.29 L 0 11.34 A 4.2 4.2 0 0 0 0 2.94 L 0 0.00 Z" fill="#FFFFFF" />
+                      <path d="M 0 0 L 2.94 0 A 4.2 4.2 0 0 0 11.34 0 L 14.29 0 L 17.23 0 A 4.2 4.2 0 0 0 25.63 0 L 28.57 0 L 31.51 0 A 4.2 4.2 0 0 0 39.91 0 L 42.86 0 L 45.80 0 A 4.2 4.2 0 0 0 54.20 0 L 57.14 0 L 60.09 0 A 4.2 4.2 0 0 0 68.49 0 L 71.43 0 L 74.37 0 A 4.2 4.2 0 0 0 82.77 0 L 85.71 0 L 88.66 0 A 4.2 4.2 0 0 0 97.06 0 L 100.00 0 L 100 2.94 A 4.2 4.2 0 0 0 100 11.34 L 100 14.29 L 100 17.23 A 4.2 4.2 0 0 0 100 25.63 L 100 28.57 L 100 31.51 A 4.2 4.2 0 0 0 100 39.91 L 100 42.86 L 100 45.80 A 4.2 4.2 0 0 0 100 54.20 L 100 57.14 L 100 60.09 A 4.2 4.2 0 0 0 100 68.49 L 100 71.43 L 100 74.37 A 4.2 4.2 0 0 0 100 82.77 L 100 85.71 L 100 88.66 A 4.2 4.2 0 0 0 100 97.06 L 100 100.00 L 97.06 100 A 4.2 4.2 0 0 0 88.66 100 L 85.71 100 L 82.77 100 A 4.2 4.2 0 0 0 74.37 100 L 71.43 100 L 68.49 100 A 4.2 4.2 0 0 0 60.09 100 L 57.14 100 L 54.20 100 A 4.2 4.2 0 0 0 45.80 100 L 42.86 100 L 39.91 100 A 4.2 4.2 0 0 0 31.51 100 L 28.57 100 L 25.63 100 A 4.2 4.2 0 0 0 17.23 100 L 14.29 100 L 11.34 100 A 4.2 4.2 0 0 0 2.94 100 L 0.00 100 L 0 97.06 A 4.2 4.2 0 0 0 0 88.66 L 0 85.71 L 0 82.77 A 4.2 4.2 0 0 0 0 74.37 L 0 71.43 L 0 68.49 A 4.2 4.2 0 0 0 0 60.09 L 0 57.14 L 0 54.20 A 4.2 4.2 0 0 0 0 45.80 L 0 42.86 L 0 39.91 A 4.2 4.2 0 0 0 0 31.51 L 0 28.57 L 0 25.63 A 4.2 4.2 0 0 0 0 17.23 L 0 14.29 L 0 11.34 A 4.2 4.2 0 0 0 0 2.94 L 0 0.00 Z" fill="#FFFFFF" stroke="#FBCFE8" stroke-width="0.8" />
                     </svg>
                   `;
 
@@ -5265,6 +5417,43 @@ window.Store = Store;
               </label>
             </div>
           </div>
+
+          <!-- Queue Mascot Stages at Progress Tip (0%, 25%, 50%, 75%, 100%) -->
+          <div style="background: #FFFFFF; border-radius: 16px; padding: 1.25rem; border: 1.5px solid var(--border); margin-top: 1.25rem;">
+            <div style="margin-bottom: 1rem;">
+              <h4 style="margin: 0 0 4px; font-size: 1rem; color: #9D174D; font-weight: 800;">
+                🐾 มาสคอตปลายหลอดคิวงานตามเปอร์เซ็นต์ (Mascot Stages at Tip)
+              </h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                ตั้งค่ารูปภาพมาสคอตที่ปลายหลอดความคืบหน้า ทั้งบนโพสอิทและแถบยาวมน โดยเปลี่ยนรูปตามเปอร์เซ็นต์ (0%, 25%, 50%, 75%, 100%)
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+              ${[
+                { key: 'pct0', label: '0% (รอเริ่ม)', def: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg' },
+                { key: 'pct25', label: '25% (เริ่มแบบ)', def: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg' },
+                { key: 'pct50', label: '50% (ครึ่งทาง)', def: 'https://api.iconify.design/fluent-emoji-flat:bear.svg' },
+                { key: 'pct75', label: '75% (ใกล้เสร็จ)', def: 'https://api.iconify.design/fluent-emoji-flat:panda.svg' },
+                { key: 'pct100', label: '100% (เสร็จแล้ว)', def: 'https://api.iconify.design/fluent-emoji-flat:party-popper.svg' }
+              ].map(st => {
+                const curVal = (queuePage.mascotStages && queuePage.mascotStages[st.key]) ? queuePage.mascotStages[st.key] : st.def;
+                return `
+                  <div style="background: var(--surface-alt); border: 1px solid var(--border); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                    <div style="width: 42px; height: 42px; border-radius: 50%; background: #fff; border: 1.5px solid #F472B6; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; overflow: hidden;">
+                      <img id="prev_mascot_${st.key}" src="${escapeHTML(curVal)}" style="width: 28px; height: 28px; object-fit: contain;">
+                    </div>
+                    <span style="font-size: 0.78rem; font-weight: 800; color: #9D174D; margin-bottom: 6px;">${st.label}</span>
+                    <input type="text" id="cfg_q_mascot_${st.key}" class="form-input" style="font-size: 11px; padding: 4px 6px; margin-bottom: 6px;" value="${escapeHTML(curVal)}" placeholder="URL" oninput="const p=$('prev_mascot_${st.key}'); if(p) p.src=this.value;">
+                    <label class="btn btn-outline btn-sm" style="cursor: pointer; font-size: 10px; padding: 2px 8px; width: 100%;">
+                      เลือกรูป
+                      <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_q_mascot_${st.key}', 'prev_mascot_${st.key}')">
+                    </label>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
         </div>
 
 
@@ -5584,27 +5773,66 @@ window.Store = Store;
           </div>
         </div>
 
-        <!-- 7. Social & Contact Channels -->
+        <!-- 7. Social & Dynamic Contact Channels (CRUD Custom Channels) -->
         <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ช่องทางติดต่อ & Social Media</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="form-group">
-              <label class="form-label">ลิงก์ LINE Official (สำหรับปุ่มทักแชท)</label>
-              <input type="text" id="cfg_lineUrl" class="form-input" value="${escapeHTML(s.lineUrl || '')}">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="color: var(--primary-deep); margin: 0 0 4px;">ช่องทางติดต่อ & Social Media (Dynamic Channels)</h3>
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">
+                เพิ่ม ลบ หรือแก้ไขช่องทางติดต่อได้ตามใจชอบ (เช่น LINE, Facebook, IG, TikTok, Shopee, Lemon8, โทร ฯลฯ)
+              </p>
             </div>
-            <div class="form-group">
-              <label class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
-              <input type="text" id="cfg_contactPhone" class="form-input" value="${escapeHTML(s.contactPhone || '')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ลิงก์ Instagram</label>
-              <input type="text" id="cfg_instagramUrl" class="form-input" value="${escapeHTML(s.instagramUrl || '')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ลิงก์ Facebook Page</label>
-              <input type="text" id="cfg_facebookUrl" class="form-input" value="${escapeHTML(s.facebookUrl || '')}">
-            </div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addNewContactChannelRow()">
+              + เพิ่มช่องทางใหม่
+            </button>
           </div>
+
+          <div id="adminContactChannelsList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.25rem;">
+            ${Store.getContactChannels().map((ch, idx) => `
+              <div class="admin-channel-row" data-channel-id="${escapeHTML(ch.id || 'cc-' + idx)}" style="background: var(--surface-alt); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 140px;">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ชื่อแพลตฟอร์ม / ปุ่ม</label>
+                  <input type="text" class="form-input channel-platform" value="${escapeHTML(ch.platform || '')}" placeholder="เช่น LINE Official, TikTok, IG">
+                </div>
+                <div style="flex: 1.2; min-width: 160px;">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ข้อความกำกับ / ไอดี</label>
+                  <input type="text" class="form-input channel-value" value="${escapeHTML(ch.value || '')}" placeholder="เช่น @bncgraphmate หรือ 081-xxx">
+                </div>
+                <div style="flex: 1.8; min-width: 200px;">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ลิงก์ URL ปลายทาง (เมื่อคลิก)</label>
+                  <input type="text" class="form-input channel-url" value="${escapeHTML(ch.url || '')}" placeholder="https://... หรือ tel:081xxx">
+                </div>
+                <div style="display: flex; align-items: flex-end; padding-top: 18px;">
+                  <button type="button" class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5; padding: 6px 10px;" onclick="removeContactChannelRow(this)" title="ลบช่องทางนี้">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Legacy direct inputs preserved for compatibility -->
+          <details style="font-size: 0.82rem; color: var(--text-muted); border-top: 1px dashed var(--border); padding-top: 8px;">
+            <summary style="cursor: pointer; font-weight: 600;">ตั้งค่าลิงก์หลักแบบดั้งเดิม (Legacy Direct Fallback)</summary>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-top: 10px;">
+              <div class="form-group">
+                <label class="form-label">ลิงก์ LINE Official</label>
+                <input type="text" id="cfg_lineUrl" class="form-input" value="${escapeHTML(s.lineUrl || '')}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
+                <input type="text" id="cfg_contactPhone" class="form-input" value="${escapeHTML(s.contactPhone || '')}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ลิงก์ Instagram</label>
+                <input type="text" id="cfg_instagramUrl" class="form-input" value="${escapeHTML(s.instagramUrl || '')}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ลิงก์ Facebook Page</label>
+                <input type="text" id="cfg_facebookUrl" class="form-input" value="${escapeHTML(s.facebookUrl || '')}">
+              </div>
+            </div>
+          </details>
         </div>
 
         <!-- 8. Payment & Bank Accounts -->
@@ -5836,7 +6064,14 @@ window.Store = Store;
           showProgress: getChecked('cfg_qp_showProgress', true),
           showTimeline: getChecked('cfg_qp_showTimeline', true),
           showCustomerName: getChecked('cfg_qp_showCustomerName', true),
-          showNote: getChecked('cfg_qp_showNote', true)
+          showNote: getChecked('cfg_qp_showNote', true),
+          mascotStages: {
+            pct0: getVal('cfg_q_mascot_pct0', 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg'),
+            pct25: getVal('cfg_q_mascot_pct25', 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg'),
+            pct50: getVal('cfg_q_mascot_pct50', 'https://api.iconify.design/fluent-emoji-flat:bear.svg'),
+            pct75: getVal('cfg_q_mascot_pct75', 'https://api.iconify.design/fluent-emoji-flat:panda.svg'),
+            pct100: getVal('cfg_q_mascot_pct100', 'https://api.iconify.design/fluent-emoji-flat:party-popper.svg')
+          }
         },
         headings: {
           fontsTitle: getVal('cfg_fontsTitle', 'ฟอนต์ทั้งหมด'),
@@ -5885,6 +6120,28 @@ window.Store = Store;
         }
       };
 
+      // Extract Dynamic Contact Channels from Admin repeater
+      const channelRows = document.querySelectorAll('#adminContactChannelsList .admin-channel-row');
+      if (channelRows && channelRows.length > 0) {
+        const channels = [];
+        channelRows.forEach((row, rIdx) => {
+          const platform = (row.querySelector('.channel-platform')?.value || '').trim();
+          const value = (row.querySelector('.channel-value')?.value || '').trim();
+          const url = (row.querySelector('.channel-url')?.value || '').trim();
+          if (platform || url || value) {
+            channels.push({
+              id: row.dataset.channelId || ('cc-' + (rIdx + 1)),
+              platform: platform || 'Contact',
+              value: value || '',
+              url: url || '#'
+            });
+          }
+        });
+        if (channels.length > 0) {
+          updated.contactChannels = channels;
+        }
+      }
+
       Store.saveSettings(updated);
       alert('บันทึกการตั้งค่าทั้งหมดเรียบร้อยแล้วค่ะ!');
       setupFloatingMascot();
@@ -5892,6 +6149,45 @@ window.Store = Store;
       renderCurrentView();
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
+    }
+  };
+
+  // Dynamic Contact Channels Repeater Handlers
+  window.addNewContactChannelRow = function () {
+    const list = $('adminContactChannelsList');
+    if (!list) return;
+    const newId = 'cc-' + Date.now();
+    const div = document.createElement('div');
+    div.className = 'admin-channel-row';
+    div.dataset.channelId = newId;
+    div.style = 'background: var(--surface-alt); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; animation: fadeIn 0.25s ease;';
+    div.innerHTML = `
+      <div style="flex: 1; min-width: 140px;">
+        <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ชื่อแพลตฟอร์ม / ปุ่ม</label>
+        <input type="text" class="form-input channel-platform" value="" placeholder="เช่น TikTok, Lemon8, Discord">
+      </div>
+      <div style="flex: 1.2; min-width: 160px;">
+        <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ข้อความกำกับ / ไอดี</label>
+        <input type="text" class="form-input channel-value" value="" placeholder="เช่น @mychannel หรือ shop.name">
+      </div>
+      <div style="flex: 1.8; min-width: 200px;">
+        <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ลิงก์ URL ปลายทาง (เมื่อคลิก)</label>
+        <input type="text" class="form-input channel-url" value="" placeholder="https://... หรือ tel:081xxx">
+      </div>
+      <div style="display: flex; align-items: flex-end; padding-top: 18px;">
+        <button type="button" class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5; padding: 6px 10px;" onclick="removeContactChannelRow(this)" title="ลบช่องทางนี้">
+          🗑️
+        </button>
+      </div>
+    `;
+    list.appendChild(div);
+  };
+
+  window.removeContactChannelRow = function (btn) {
+    const row = btn.closest('.admin-channel-row');
+    if (!row) return;
+    if (confirm('ต้องการลบช่องทางติดต่อนี้ใช่หรือไม่?')) {
+      row.remove();
     }
   };
 
