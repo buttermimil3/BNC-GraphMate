@@ -2907,30 +2907,27 @@ select option {
 
 .queue-mascot-progress-track {
   width: 100%;
-  height: 13px;
+  height: 15px;
   background: #FFF5F8;
-  border: 1.5px solid #FFDFE9;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 0 0 1.5px #FFDFE9;
   border-radius: 999px;
   position: relative;
   overflow: visible; /* Mascot pops out cleanly */
+  box-sizing: border-box;
 }
 
 /* Pastel Pink Candy Striped Pattern */
 .queue-mascot-progress-fill {
   height: 100%;
-  background-color: #FFB7CE;
-  background-image: repeating-linear-gradient(
-    45deg,
-    #FFB7CE,
-    #FFB7CE 8px,
-    #FFE4EE 8px,
-    #FFE4EE 16px
-  );
-  background-size: 200% 100%;
+  background-color: #FF9EBB;
+  background-image: radial-gradient(#FFFFFF 26%, transparent 28%);
+  background-size: 8px 8px;
+  border: 1.5px solid #FFFFFF;
+  box-sizing: border-box;
   border-radius: 999px;
   transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
-  animation: candyStripeMove 8s linear infinite;
 }
 
 @keyframes candyStripeMove {

@@ -567,6 +567,7 @@ const Store = (function () {
     queue_items: [
       {
         id: 'q-demo-1',
+        is_pinned: true,
         queue_number: 'Q28',
         customer_name: 'คุณพิมลภัส (น้องพิม)',
         line_id: 'pim_cafe99',
@@ -2575,9 +2576,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div style="font-size: 0.98rem; line-height: 2.2; color: var(--text); font-weight: 600; white-space: pre-line; max-width: 540px; margin: 0 auto;">
                 ${escapeHTML(s.notebookNotice || 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}
               </div>
-              <div style="margin-top: 1.25rem; display: flex; justify-content: center;">
-                <a href="${escapeHTML(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="_blank" class="btn btn-primary btn-sm" style="font-weight: 700; border-radius: 14px; padding: 0.6rem 1.6rem;">
-                  ทักแชทจองคิว / สั่งทำงานออกแบบ
+              <div style="margin-top: 1.25rem; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                <a href="#queue" class="btn btn-outline btn-sm" style="font-weight: 700; border-radius: 14px; padding: 0.6rem 1.4rem; background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B;">
+                  เช็คสถานะคิว
+                </a>
+                <a href="${escapeHTML(s.queueBookingUrl || s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="${(s.queueBookingUrl || '').startsWith('#') ? '_self' : '_blank'}" class="btn btn-primary btn-sm" style="font-weight: 700; border-radius: 14px; padding: 0.6rem 1.4rem;">
+                  สอบถาม | จองคิว
                 </a>
               </div>
             </div>
@@ -3103,24 +3107,32 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
           <!-- Queue List: Active Day Queue (Post-it) & Waiting Queues (Rounded Long Bar) -->
           ${filteredQueues.length > 0 ? (() => {
+            // Includes pinned queues or active stages
             const activeQueues = filteredQueues.filter(item => {
               const sk = normalizeQueueStatus(item.status);
-              return sk === 'progress' || sk === 'review' || sk === 'edit';
+              return item.is_pinned === true || sk === 'progress' || sk === 'review' || sk === 'edit';
             });
-            const otherQueues = filteredQueues.filter(item => {
-              const sk = normalizeQueueStatus(item.status);
-              return sk !== 'progress' && sk !== 'review' && sk !== 'edit';
-            });
+            const otherQueues = filteredQueues.filter(item => !activeQueues.includes(item));
 
             return `
-              ${activeQueues.length > 0 ? `
-                <div style="margin-bottom: 2.2rem;">
-                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;">
-                    <span style="font-size: 1.15rem; font-weight: 800; color: #71515B; font-family: var(--font-heading);">
-                      Today's Queue (${activeQueues.length})
-                    </span>
-                  </div>
-                  <div class="queue-cards-grid">
+              <div style="margin-bottom: 2.2rem;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;">
+                  <span style="font-size: 1.15rem; font-weight: 800; color: #71515B; font-family: var(--font-heading);">
+                    Today's Queue (${activeQueues.length})
+                  </span>
+                </div>
+                <div class="queue-cards-grid">
+                  ${activeQueues.length === 0 ? `
+                    <div class="queue-postit-card" style="text-align: center; padding: 2.2rem 1.5rem; justify-content: center; min-height: 180px;">
+                      <div class="queue-postit-pin"></div>
+                      <div style="font-size: 1.05rem; font-weight: 700; color: #71515B; margin-bottom: 0.35rem; font-family: var(--font-heading);">
+                        วันนี้ยังไม่มีคิวที่กำลังออกแบบ
+                      </div>
+                      <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+                        แอดมินจะเริ่มรันคิวถัดไปตามลำดับ หรือเช็คคิวงานทั้งหมดได้ที่แถบด้านล่างนะคะ
+                      </p>
+                    </div>
+                  ` : ''}
                     ${activeQueues.map(item => {
                       const statusKey = normalizeQueueStatus(item.status);
                       const statusLabel = statusNames[statusKey] || item.status || statusKey;
@@ -3190,8 +3202,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                       `;
                     }).join('')}
                   </div>
-                </div>
-              ` : ''}
+              </div>
 
               ${otherQueues.length > 0 ? `
                 <div>
@@ -4859,16 +4870,16 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <table class="admin-table">
             <thead>
               <tr>
-                <th style="width: 60px; text-align: center;">ลำดับ</th>
+                <th style="width: 50px; text-align: center;">ลำดับ</th>
                 <th>เลขคิว</th>
                 <th>ชื่องาน / ประเภท</th>
-                <th>ลูกค้า (LINE / เบอร์)</th>
-                <th style="text-align: center;">ยอดรับ / กำไร</th>
-                <th style="text-align: center;">สถานะ</th>
-                <th style="width: 120px; text-align: center;">ความคืบหน้า</th>
-                <th style="text-align: center;">แสดงผล</th>
-                <th style="text-align: center; width: 100px;">จัดเรียง</th>
-                <th style="text-align: center; width: 140px;">จัดการ</th>
+                <th>ลูกค้า / ช่องทางติดต่อ</th>
+                <th style="text-align: center; width: 80px;">พินคิว</th>
+                <th style="text-align: center; width: 150px;">สถานะงาน (คลิกเปลี่ยน)</th>
+                <th style="text-align: center; width: 90px;">ความคืบหน้า</th>
+                <th style="text-align: center; width: 80px;">แสดงผล</th>
+                <th style="text-align: center; width: 85px;">จัดเรียง</th>
+                <th style="text-align: center; width: 130px;">จัดการ</th>
               </tr>
             </thead>
             <tbody>
@@ -4879,7 +4890,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
                 return `
                   <tr>
-                    <td style="text-align: center; font-weight: 700; color: #9D174D;">
+                    <td style="text-align: center; font-weight: 700; color: #71515B;">
                       ${idx + 1}
                     </td>
                     <td>
@@ -4894,37 +4905,45 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                       </div>
                     </td>
                     <td>
-                      <div style="font-weight: 600;">${escapeHTML(q.customer_name || '-')}</div>
-                      <div style="font-size: 11px; color: #718096;">
-                        ${q.line_id ? `LINE: ${escapeHTML(q.line_id)}` : ''} 
-                        ${q.phone ? `(${escapeHTML(q.phone)})` : ''}
-                      </div>
-                    </td>
-                    <td style="text-align: center;">
-                      <div style="font-weight: 700; color: #2D3748;">฿${Number(q.price || 0).toLocaleString()}</div>
-                      ${Number(q.cost_price) > 0 ? `
-                        <div style="font-size: 11px; color: var(--text-muted);">ส่ง ฿${Number(q.cost_price).toLocaleString()} | <span style="color:#166534; font-weight:700;">ได้ ฿${Number((q.price || 0) - (q.cost_price || 0)).toLocaleString()}</span></div>
-                      ` : `
-                        <div style="font-size: 11px; color: #166534; font-weight:600;">กำไรเต็ม 100%</div>
-                      `}
-                    </td>
-                    <td style="text-align: center;">
-                      <span class="queue-status-chip status-${statusKey}">
-                        ${escapeHTML(statusLabel)}
-                      </span>
-                    </td>
-                    <td style="text-align: center;">
-                      <div style="font-size: 12px; font-weight: 700; color: #9D174D; margin-bottom: 2px;">${progressPct}%</div>
-                      <div class="queue-progress-track" style="margin: 0; height: 6px;">
-                        <div class="queue-progress-fill" style="width: ${progressPct}%;"></div>
+                      <div style="font-weight: 600; color: var(--text);">${escapeHTML(q.customer_name || '-')}</div>
+                      <div style="font-size: 11px; color: #71515B; margin-top: 1px;">
+                        ${escapeHTML(q.contact || q.line_id || q.phone || '-')}
                       </div>
                     </td>
                     <td style="text-align: center;">
                       <button 
                         type="button" 
-                        class="btn btn-sm ${q.is_visible !== false ? 'btn-success' : 'btn-outline'}" 
+                        class="btn btn-sm" 
+                        onclick="toggleQueuePinAdminAction('${q.id}')"
+                        title="${q.is_pinned ? 'ปลดพินคิวนี้' : 'พินคิวนี้ไว้บน Today\'s Queue'}"
+                        style="padding: 3px 8px; font-size: 11px; border-radius: 8px; font-weight: 700; ${q.is_pinned ? 'background: #FFF0F5; color: #E05A88; border: 1.5px solid #FBCFE8;' : 'background: #FFFFFF; color: #71515B; border: 1px solid #E2E8F0;'}"
+                      >
+                        ${q.is_pinned ? 'พินแล้ว' : 'พินคิว'}
+                      </button>
+                    </td>
+                    <td style="text-align: center;">
+                      <button 
+                        type="button" 
+                        class="btn btn-sm" 
+                        onclick="cycleQueueStageAdminAction('${q.id}')"
+                        title="คลิกเพื่อเลื่อนสถานะและเปอร์เซ็นต์ (0% รอคิว -> 25% รับบรีฟ -> 50% กำลังทำ -> 75% กำลังเช็ค -> 100% ส่งงานเรียบร้อย)"
+                        style="background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B; font-weight: 700; padding: 4px 10px; border-radius: 999px; cursor: pointer; white-space: nowrap; font-size: 11px;"
+                      >
+                        ${escapeHTML(getStageLabelByProgress(progressPct))} (${progressPct}%) ↻
+                      </button>
+                    </td>
+                    <td style="text-align: center;">
+                      <div class="queue-progress-track" style="margin: 0 auto; height: 8px; width: 65px; border-radius: 999px; background: #FFF5F8; border: 1px solid #FFDFE9; overflow: hidden;">
+                        <div style="width: ${progressPct}%; height: 100%; background: #FF9EBB; border-radius: 999px;"></div>
+                      </div>
+                      <div style="font-size: 10px; font-weight: 700; color: #71515B; margin-top: 2px;">${progressPct}%</div>
+                    </td>
+                    <td style="text-align: center;">
+                      <button 
+                        type="button" 
+                        class="btn btn-sm" 
                         onclick="toggleQueueVisibilityAdminAction('${q.id}')"
-                        style="padding: 3px 8px; font-size: 11px; border-radius: 8px;"
+                        style="padding: 3px 8px; font-size: 11px; border-radius: 8px; font-weight: 700; ${q.is_visible !== false ? 'background: #FFF0F5; color: #E05A88; border: 1.5px solid #FBCFE8;' : 'background: #F4F4F5; color: #71717A; border: 1px solid #E4E4E7;'}"
                       >
                         ${q.is_visible !== false ? 'เปิดแสดง' : 'ซ่อนอยู่'}
                       </button>
@@ -4972,6 +4991,59 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   }
 
   // Admin Queue Action Handlers
+  
+  
+  window.calcQueueProfitPreview = function () {
+    const price = Number(document.getElementById('adminQ_price')?.value || 0);
+    const isAgent = document.getElementById('adminQ_isAgent')?.checked || false;
+    const cost = isAgent ? Number(document.getElementById('adminQ_costPrice')?.value || 0) : 0;
+    const profit = Math.max(0, price - cost);
+    const preview = document.getElementById('adminQ_profitPreview');
+    if (preview) {
+      preview.innerHTML = 'กำไรสุทธิ: ฿' + profit.toLocaleString();
+    }
+  };
+
+  window.cycleQueueStageAdminAction = function (id) {
+    const item = Store.getQueueItemById(id);
+    if (!item) return;
+    const curPct = Math.min(100, Math.max(0, Number(item.progress) || 0));
+    
+    // 5 stages cycle: 0% รอคิว -> 25% รับบรีฟ -> 50% กำลังทำ -> 75% กำลังเช็ค -> 100% ส่งงานเรียบร้อย -> 0%
+    let nextPct = 0;
+    let nextStatus = 'waiting';
+    if (curPct < 25) {
+      nextPct = 25;
+      nextStatus = 'progress';
+    } else if (curPct < 50) {
+      nextPct = 50;
+      nextStatus = 'progress';
+    } else if (curPct < 75) {
+      nextPct = 75;
+      nextStatus = 'review';
+    } else if (curPct < 100) {
+      nextPct = 100;
+      nextStatus = 'done';
+    } else {
+      nextPct = 0;
+      nextStatus = 'waiting';
+    }
+
+    item.progress = nextPct;
+    item.status = nextStatus;
+    item.updated_at = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
+    Store.saveQueueItem(item);
+    renderCurrentView();
+  };
+
+  window.toggleQueuePinAdminAction = function (id) {
+    const item = Store.getQueueItemById(id);
+    if (!item) return;
+    item.is_pinned = !item.is_pinned;
+    Store.saveQueueItem(item);
+    renderCurrentView();
+  };
+
   window.moveQueueAdminAction = function (id, direction) {
     Store.moveQueueItem(id, direction);
     renderCurrentView();
@@ -5012,9 +5084,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const isEdit = !!item;
     const allQueues = Store.getAllQueueItems();
     const nextNum = 'Q' + (allQueues.length + 1);
+    const progressPct = Math.min(100, Math.max(0, Number(item ? item.progress : 0)));
 
     modal.innerHTML = `
-      <div class="modal-card" style="max-width: 620px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 2rem; border-radius: 24px; border: 1.5px solid #FBCFE8;">
+      <div class="modal-card" style="max-width: 600px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 2rem; border-radius: 24px; border: 1.5px solid #FBCFE8; background: #FFFFFF;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.85rem;">
           <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.25rem;">
             ${isEdit ? 'แก้ไขข้อมูลคิวงาน' : 'เพิ่มคิวงานใหม่'}
@@ -5040,7 +5113,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <input type="text" id="adminQ_jobType" class="form-input" placeholder="เช่น ออกแบบป้าย, หัวป้าย, การ์ตูน" value="${escapeHTML(item ? item.job_type : 'ออกแบบป้าย')}">
             </div>
             <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">ชื่องาน / รายละเอียดสั้น <span style="color:var(--danger)">*</span></label>
+              <label class="form-label" style="font-weight: 700;">ชื่องาน <span style="color:var(--danger)">*</span></label>
               <input type="text" id="adminQ_jobName" class="form-input" placeholder="เช่น ป้ายร้านเบเกอรี่คุณหวาน" value="${escapeHTML(item ? item.job_name : '')}" required>
             </div>
           </div>
@@ -5051,38 +5124,22 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <input type="text" id="adminQ_custName" class="form-input" placeholder="ชื่อที่ลูกค้าแจ้ง" value="${escapeHTML(item ? item.customer_name : '')}" required>
             </div>
             <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">ช่องทางติดต่อ (LINE, IG, FB, ทวิต, เบอร์โทร ฯลฯ)</label>
-              <input type="text" id="adminQ_contact" class="form-input" placeholder="เช่น LINE: @abc, IG: sweetshop, โทร: 08x..." value="${escapeHTML(item ? (item.contact || item.line_id || item.phone || '') : '')}">
+              <label class="form-label" style="font-weight: 700;">ช่องทางการติดต่อ</label>
+              <input type="text" id="adminQ_contact" class="form-input" placeholder="พิมพ์ช่องทางติดต่อ เช่น @lineid, IG, เบอร์โทร..." value="${escapeHTML(item ? (item.contact || item.line_id || item.phone || '') : '')}">
             </div>
           </div>
 
+          <!-- Single Bound Dropdown: Status + Percentage together -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
             <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">สถานะคิวงาน</label>
-              <select id="adminQ_status" class="form-input">
-                <option value="waiting" ${item && item.status === 'waiting' ? 'selected' : ''}>รอคิว (waiting)</option>
-                <option value="progress" ${item && item.status === 'progress' ? 'selected' : ''}>กำลังดำเนินการ (progress)</option>
-                <option value="review" ${item && item.status === 'review' ? 'selected' : ''}>รอตรวจ (review)</option>
-                <option value="edit" ${item && item.status === 'edit' ? 'selected' : ''}>รอแก้ไข (edit)</option>
-                <option value="done" ${item && item.status === 'done' ? 'selected' : ''}>เสร็จแล้ว (done)</option>
-                <option value="pause" ${item && item.status === 'pause' ? 'selected' : ''}>พักคิว (pause)</option>
-                <option value="cancel" ${item && item.status === 'cancel' ? 'selected' : ''}>ยกเลิก (cancel)</option>
+              <label class="form-label" style="font-weight: 700;">สถานะ & ความคืบหน้างาน</label>
+              <select id="adminQ_stage" class="form-input" style="font-weight: 600;">
+                <option value="0" ${progressPct < 25 ? 'selected' : ''}>0% - รอคิว</option>
+                <option value="25" ${progressPct >= 25 && progressPct < 50 ? 'selected' : ''}>25% - รับบรีฟ</option>
+                <option value="50" ${progressPct >= 50 && progressPct < 75 ? 'selected' : ''}>50% - กำลังทำ</option>
+                <option value="75" ${progressPct >= 75 && progressPct < 100 ? 'selected' : ''}>75% - กำลังเช็ค</option>
+                <option value="100" ${progressPct >= 100 ? 'selected' : ''}>100% - ส่งงานเรียบร้อย</option>
               </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">ความคืบหน้า (%)</label>
-              <input type="number" id="adminQ_progress" class="form-input" min="0" max="100" value="${item ? item.progress : 0}">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
-            <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">ลำดับคิว / จำนวนทั้งหมด (เช่น 1 / 10)</label>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <input type="number" id="adminQ_currentQueue" class="form-input" placeholder="คิวที่" value="${item ? (item.current_queue || 1) : 1}">
-                <span>/</span>
-                <input type="number" id="adminQ_totalQueue" class="form-input" placeholder="ทั้งหมด" value="${item ? (item.total_queue || 1) : 1}">
-              </div>
             </div>
             <div class="form-group">
               <label class="form-label" style="font-weight: 700;">เวลาอัปเดตล่าสุด</label>
@@ -5090,35 +5147,49 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
           </div>
 
-          <!-- Queue Financials & Agent Cost (สำหรับคำนวณรายได้ในแดชบอร์ด) -->
+          <!-- Pin to Today's Queue -->
+          <div style="margin-bottom: 0.85rem; background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 10px 14px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #71515B;">
+              <input type="checkbox" id="adminQ_isPinned" ${item && item.is_pinned ? 'checked' : ''}>
+              <span>พินคิวนี้ไว้บน Today's Queue (ปักหมุดโพสอิทแสดงผลทันที แม้เป็นคิวแทรก)</span>
+            </label>
+          </div>
+
+          <!-- Queue Financials & Agent Cost -->
           <div style="background: #FFF0F7; border: 1.5px solid #FFDFE9; border-radius: 16px; padding: 1rem 1.1rem; margin-bottom: 0.85rem;">
             <div style="font-weight: 700; color: var(--primary-deep); font-size: 0.92rem; margin-bottom: 0.65rem; display: flex; align-items: center; justify-content: space-between;">
-              <span>ข้อมูลการเงินคิวงาน (คำนวณแดชบอร์ดรายได้)</span>
+              <span>ข้อมูลการเงินคิวงาน</span>
               <span class="badge badge--pink" style="font-size: 0.72rem;">ระบบรายได้ & ตัวแทน</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" style="margin-bottom: 0.65rem;">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.65rem;">
               <div class="form-group">
                 <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">ยอดเงินที่รับจากลูกค้า (บาท)</label>
                 <input type="number" id="adminQ_price" class="form-input" placeholder="เช่น 350" value="${item ? (item.price || 0) : 0}" oninput="calcQueueProfitPreview()">
               </div>
               <div class="form-group">
-                <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">ต้นทุนส่งต่อ/เรทตัวแทน (บาท)</label>
-                <input type="number" id="adminQ_costPrice" class="form-input" placeholder="ถ้าไม่มีให้ใส่ 0" value="${item ? (item.cost_price || 0) : 0}" oninput="calcQueueProfitPreview()">
-              </div>
-              <div class="form-group">
                 <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">สถานะการชำระเงิน</label>
                 <select id="adminQ_payStatus" class="form-input">
-                  <option value="PAID" ${item && item.payment_status === 'PAID' ? 'selected' : (!item ? 'selected' : '')}>ชำระแล้ว (ดึงเข้าแดชบอร์ด)</option>
+                  <option value="PAID" ${item && item.payment_status === 'PAID' ? 'selected' : (!item ? 'selected' : '')}>ชำระแล้ว</option>
                   <option value="UNPAID" ${item && item.payment_status === 'UNPAID' ? 'selected' : ''}>รอชำระ / มัดจำ</option>
                 </select>
               </div>
             </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; padding-top: 4px; border-top: 1px dashed #FBCFE8;">
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #4A5568;">
-                <input type="checkbox" id="adminQ_isAgent" ${item && item.is_agent ? 'checked' : ''} onchange="toggleQueueAgentField(this.checked)">
+
+            <!-- Agent Checkbox toggle: only show rate when checked -->
+            <div style="padding-top: 4px; border-top: 1px dashed #FBCFE8;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #4A5568; font-weight: 600; font-size: 0.86rem; margin-bottom: 6px;">
+                <input type="checkbox" id="adminQ_isAgent" ${item && item.is_agent ? 'checked' : ''} onchange="document.getElementById('adminQ_agentCostWrap').style.display = this.checked ? 'block' : 'none'; calcQueueProfitPreview();">
                 <span>เป็นงานตัวแทน (มีต้นทุนต้องส่งต่อเจ้าของ)</span>
               </label>
-              <div id="adminQ_profitPreview" style="font-weight: 700; color: #166534;">
+              
+              <div id="adminQ_agentCostWrap" style="display: ${item && item.is_agent ? 'block' : 'none'}; margin-top: 8px;">
+                <div class="form-group" style="margin-bottom: 6px;">
+                  <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">ต้นทุนส่งต่อ/เรทตัวแทน (บาท)</label>
+                  <input type="number" id="adminQ_costPrice" class="form-input" placeholder="ต้นทุนที่ต้องหักจ่าย" value="${item ? (item.cost_price || 0) : 0}" oninput="calcQueueProfitPreview()">
+                </div>
+              </div>
+
+              <div id="adminQ_profitPreview" style="font-weight: 700; color: #166534; font-size: 0.88rem; margin-top: 6px;">
                 กำไรสุทธิ: ฿${Math.max(0, (Number(item ? item.price : 0) - Number(item ? item.cost_price : 0))).toLocaleString()}
               </div>
             </div>
@@ -5134,27 +5205,18 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <input type="text" id="adminQ_note" class="form-input" placeholder="เช่น ส่งแบบร่างรอบแรกตอน 16:00 น." value="${escapeHTML(item ? (item.note || '') : '')}">
           </div>
 
-          <div class="form-group" style="margin-bottom: 0.85rem;">
-            <label class="form-label" style="font-weight: 700;">ลิงก์รูปภาพตัวอย่างงาน / บรีฟ (URL หรือเลือกรูปจากเครื่อง)</label>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <input type="text" id="adminQ_imageUrl" class="form-input" placeholder="https://... หรือเลือกรูปจากเครื่อง" value="${escapeHTML(item ? (item.image_url || '') : '')}" style="flex: 1;">
-              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
-                เลือกรูป
-                <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'adminQ_imageUrl')">
-              </label>
-            </div>
-          </div>
-
           <div class="form-group" style="margin-bottom: 1.25rem;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
               <input type="checkbox" id="adminQ_isVisible" ${!item || item.is_visible !== false ? 'checked' : ''}>
-              <span style="font-weight: 700; color: var(--primary-deep);">เปิดแสดงคิวนี้บนหน้าเช็กคิวสาธารณะ</span>
+              <span style="font-size: 0.9rem; font-weight: 600;">เปิดแสดงคิวนี้บนหน้าเช็กคิวของร้าน</span>
             </label>
           </div>
 
-          <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-            <button type="button" class="btn btn-outline" onclick="closeQueueAdminModal()">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary" style="font-weight: 700;">บันทึกคิวงาน</button>
+          <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-secondary" onclick="closeQueueAdminModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700; border-radius: 12px; padding: 0.65rem 1.6rem;">
+              ${isEdit ? 'บันทึกการแก้ไข' : 'เพิ่มคิวงาน'}
+            </button>
           </div>
         </form>
       </div>
@@ -5162,24 +5224,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
     modal.classList.add('is-active');
   }
-
-  window.calcQueueProfitPreview = function () {
-    const price = Number($('adminQ_price')?.value || 0);
-    const cost = Number($('adminQ_costPrice')?.value || 0);
-    const profit = price - cost;
-    const prev = $('adminQ_profitPreview');
-    if (prev) {
-      prev.innerHTML = `กำไรสุทธิ: <span style="color: ${profit >= 0 ? '#166534' : '#DC2626'};">฿${profit.toLocaleString()}</span>`;
-    }
-  };
-
-  window.toggleQueueAgentField = function (checked) {
-    const costInp = $('adminQ_costPrice');
-    if (costInp && !checked && Number(costInp.value) === 0) {
-      // Keep as 0
-    }
-    calcQueueProfitPreview();
-  };
 
   window.closeQueueAdminModal = function () {
     const modal = $('adminQueueModal');
@@ -5191,39 +5235,47 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const queueNumber = ($('adminQ_number')?.value || '').trim();
     const jobName = ($('adminQ_jobName')?.value || '').trim();
     const custName = ($('adminQ_custName')?.value || '').trim();
+    const contact = ($('adminQ_contact')?.value || '').trim();
 
     if (!queueNumber || !jobName || !custName) {
       return alert('กรุณากรอกเลขคิว ชื่องาน และชื่อลูกค้าให้ครบถ้วนนะคะ');
     }
 
     const price = Number($('adminQ_price')?.value || 0);
-    const costPrice = Number($('adminQ_costPrice')?.value || 0);
+    const isAgent = $('adminQ_isAgent')?.checked || false;
+    const costPrice = isAgent ? Number($('adminQ_costPrice')?.value || 0) : 0;
     const profit = price - costPrice;
-    const isAgent = $('adminQ_isAgent')?.checked || costPrice > 0;
     const payStatus = $('adminQ_payStatus')?.value || 'PAID';
+    const isPinned = $('adminQ_isPinned')?.checked || false;
+
+    // Stage dropdown sets both progress & status together
+    const stageVal = Number($('adminQ_stage')?.value) || 0;
+    let statusKey = 'waiting';
+    if (stageVal >= 100) statusKey = 'done';
+    else if (stageVal >= 75) statusKey = 'review';
+    else if (stageVal >= 25) statusKey = 'progress';
+    else statusKey = 'waiting';
 
     const payload = {
       queue_number: queueNumber,
       customer_name: custName,
-      contact: ($('adminQ_contact')?.value || '').trim(),
-      line_id: ($('adminQ_contact')?.value || '').trim(),
-      phone: ($('adminQ_contact')?.value || '').trim(),
+      contact: contact,
+      line_id: contact,
+      phone: contact,
       job_type: ($('adminQ_jobType')?.value || '').trim() || 'ออกแบบป้าย',
       job_name: jobName,
       queue_date: ($('adminQ_date')?.value || '').trim(),
-      status: $('adminQ_status')?.value || 'waiting',
-      progress: Number($('adminQ_progress')?.value) || 0,
-      current_queue: Number($('adminQ_currentQueue')?.value) || 1,
-      total_queue: Number($('adminQ_totalQueue')?.value) || 1,
+      status: statusKey,
+      progress: stageVal,
       updated_at: ($('adminQ_updatedAt')?.value || '').trim() || new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.',
       price: price,
       cost_price: costPrice,
       profit: profit,
       is_agent: isAgent,
+      is_pinned: isPinned,
       payment_status: payStatus,
       description: ($('adminQ_desc')?.value || '').trim(),
       note: ($('adminQ_note')?.value || '').trim(),
-      image_url: ($('adminQ_imageUrl')?.value || '').trim(),
       is_visible: $('adminQ_isVisible')?.checked !== false
     };
 
@@ -5233,7 +5285,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
     Store.saveQueueItem(payload);
     closeQueueAdminModal();
-    alert('บันทึกข้อมูลคิวงานเรียบร้อยแล้วค่ะ!');
+    alert(id ? 'บันทึกการแก้ไขคิวงานเรียบร้อยแล้วค่ะ' : 'เพิ่มคิวงานใหม่เรียบร้อยแล้วค่ะ');
     renderCurrentView();
   };
 
@@ -5326,18 +5378,18 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         <!-- 3. Shop Queue & Notice Paper Settings -->
         <div class="card" style="margin-bottom: 1.5rem;">
           <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">กระดาษโน้ตสถานะคิวงาน & แจ้งเตือนร้าน (Shop Queue Board)</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label" style="font-weight: 700;">ข้อความบนกระดาษโน้ตสถานะคิวงาน (พิมพ์ข้อความอะไรก็ได้ที่ต้องการแสดง)</label>
+            <textarea id="cfg_notebookNotice" class="form-textarea" rows="4" placeholder="พิมพ์ข้อความสถานะร้าน เวลาทำการ หรือแจ้งเตือนตามต้องการ...">${escapeHTML(s.notebookNotice || 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}</textarea>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="form-group">
-              <label class="form-label">สถานะคิวงานออกแบบ</label>
-              <input type="text" id="cfg_queueText" class="form-input" value="${escapeHTML(queueStatus.queueText || 'ว่างพร้อมรับ 3 คิว ')}">
+              <label class="form-label" style="font-weight: 700;">ป้ายข้อความมุมขวาบนการ์ด (Badge)</label>
+              <input type="text" id="cfg_queueBadgeText" class="form-input" value="${escapeHTML(s.queueBadgeText || (queueStatus && queueStatus.queueText) || 'ว่างพร้อมรับ 3 คิว')}">
             </div>
             <div class="form-group">
-              <label class="form-label">เวลาตอบแชท</label>
-              <input type="text" id="cfg_chatHours" class="form-input" value="${escapeHTML(queueStatus.chatHours || '09:00 - 23:00 น. (ตอบไว)')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ความเร็วการส่งมอบไฟล์</label>
-              <input type="text" id="cfg_deliveryInfo" class="form-input" value="${escapeHTML(queueStatus.deliveryInfo || 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}">
+              <label class="form-label" style="font-weight: 700;">ลิงก์ปุ่ม สอบถาม | จองคิว (เช่น ลิงก์ LINE, IG, FB หรือ #queue)</label>
+              <input type="text" id="cfg_queueBookingUrl" class="form-input" placeholder="https://line.me/ti/p/~... หรือ #queue" value="${escapeHTML(s.queueBookingUrl || s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}">
             </div>
           </div>
         </div>
@@ -6065,11 +6117,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         promptpayQrUrl: getVal('cfg_promptpayQrUrl', ''),
         googleSheetWebAppUrl: getVal('cfg_sheetUrl', ''),
         adminPin: getVal('cfg_adminPin', '123456'),
+        notebookNotice: getVal('cfg_notebookNotice', 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'),
+        queueBadgeText: getVal('cfg_queueBadgeText', 'ว่างพร้อมรับ 3 คิว'),
+        queueBookingUrl: getVal('cfg_queueBookingUrl', 'https://line.me/ti/p/~bncgraphmate'),
         queueStatus: {
           isAvailable: true,
-          queueText: getVal('cfg_queueText', 'ว่างพร้อมรับ 3 คิว '),
-          chatHours: getVal('cfg_chatHours', '09:00 - 23:00 น. (ตอบไว)'),
-          deliveryInfo: getVal('cfg_deliveryInfo', 'ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')
+          queueText: getVal('cfg_queueBadgeText', 'ว่างพร้อมรับ 3 คิว'),
+          chatHours: '',
+          deliveryInfo: ''
         },
         queuePage: {
           heroTitle: getVal('cfg_qp_heroTitle', 'เช็กคิวงาน'),
