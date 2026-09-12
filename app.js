@@ -1578,6 +1578,35 @@ const Store = (function () {
     return false;
   },
 
+  getStampSettings: function () {
+    const s = this.getSettings();
+    return (s && s.stampSettings) ? s.stampSettings : (defaultData.settings.stampSettings || {});
+  },
+  getOrder: function (id) {
+    return this.getOrderById(id);
+  },
+  updateOrderStatus: function (orderId, status) {
+    const data = loadLocal();
+    const order = (data.orders || []).find(o => o.id === orderId || o.order_number === orderId);
+    if (order) {
+      order.status = status;
+      saveLocal(data);
+      callCloud('UPDATE_ORDER_STATUS', { id: order.id, status: status });
+    }
+  },
+  getPortfolioCategories: function () {
+    const cats = this.getSettings().categories?.portfolio;
+    if (Array.isArray(cats)) return cats;
+    if (typeof cats === 'string') return cats.split(',').map(s => s.trim()).filter(Boolean);
+    return ['ป้ายเครดิต', 'ป้ายแอพพรี', 'ป้ายเติมเกม', 'ป้ายเปิดร้าน', 'ป้ายโปรโมชั่น', 'งานป้ายสั่งทำพิเศษ'];
+  },
+  getPortfolioStyles: function () {
+    const cats = this.getSettings().categories?.portfolioStyles;
+    if (Array.isArray(cats)) return cats;
+    if (typeof cats === 'string') return cats.split(',').map(s => s.trim()).filter(Boolean);
+    return ['สไตล์มินิมอล & คาเฟ่', 'สไตล์การ์ตูน & คาวาอี้', 'สไตล์ลายมือ & ฟอนต์', 'สไตล์ร้านค้า & โมเดิร์น', 'ไฟล์ตกแต่ง & เทมเพลต'];
+  },
+
   getSettings: function () {
  const local = loadLocal();
  return Object.assign({}, defaultData.settings, local.settings || {});
@@ -2918,6 +2947,20 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     return 'รอคิว';
   }
 
+  // Helper: Normalize status key from either English or Thai
+  function normalizeQueueStatus(status) {
+    if (!status) return 'waiting';
+    const s = String(status).trim().toLowerCase();
+    if (s === 'progress' || s === 'กำลังดำเนินการ' || s === 'กำลังทำ') return 'progress';
+    if (s === 'review' || s === 'รอตรวจ') return 'review';
+    if (s === 'edit' || s === 'รอแก้ไข') return 'edit';
+    if (s === 'done' || s === 'เสร็จแล้ว') return 'done';
+    if (s === 'pause' || s === 'พักคิว') return 'pause';
+    if (s === 'cancel' || s === 'ยกเลิก') return 'cancel';
+    return 'waiting';
+  }
+  window.normalizeQueueStatus = normalizeQueueStatus;
+
   function renderQueueView(container) {
     const qSettings = Store.getQueuePageSettings();
     const allQueues = Store.getQueueItems(false); // Only visible items for public
@@ -2929,19 +2972,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       done: 'เสร็จแล้ว',
       pause: 'พักคิว',
       cancel: 'ยกเลิก'
-    };
-
-    // Helper: Normalize status key from either English or Thai
-    const normalizeQueueStatus = (status) => {
-      if (!status) return 'waiting';
-      const s = String(status).trim().toLowerCase();
-      if (s === 'progress' || s === 'กำลังดำเนินการ' || s === 'กำลังทำ') return 'progress';
-      if (s === 'review' || s === 'รอตรวจ') return 'review';
-      if (s === 'edit' || s === 'รอแก้ไข') return 'edit';
-      if (s === 'done' || s === 'เสร็จแล้ว') return 'done';
-      if (s === 'pause' || s === 'พักคิว') return 'pause';
-      if (s === 'cancel' || s === 'ยกเลิก') return 'cancel';
-      return 'waiting';
     };
 
     // Calculate Summary Counts
@@ -6367,6 +6397,16 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   window.switchAdminTab = function (tab) {
     state.adminTab = tab;
     window.location.hash = `admin/${tab}`;
+    const s = Store.getSettings();
+    const tabContainer = document.getElementById('adminTabContent');
+    if (tabContainer && state.view === 'admin' && state.isAdmin) {
+      tabContainer.innerHTML = renderAdminTabContent(tab, s);
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick')?.includes(`'${tab}'`));
+      });
+    } else {
+      renderCurrentView();
+    }
   };
 
   window.verifySlipAction = function (payId, status) {
@@ -8350,7 +8390,7 @@ function renderAdminQueueCalendarView(allQueues) {
 }
 
 // ── Pushpin Note Modal for Daily Schedule & Personal Life Tasks ──
-window.openCalendarDateModal = function (dateIso, day, month, year) {
+function openCalendarDateModal(dateIso, day, month, year) {
   let modal = $('calendarDateModal');
   if (!modal) {
     modal = document.createElement('div');
@@ -8500,12 +8540,14 @@ window.openCalendarDateModal = function (dateIso, day, month, year) {
   `;
 
   modal.classList.add('is-active');
-};
+}
+window.openCalendarDateModal = openCalendarDateModal;
 
-window.closeCalendarDateModal = function () {
+function closeCalendarDateModal() {
   const modal = $('calendarDateModal');
   if (modal) modal.classList.remove('is-active');
-};
+}
+window.closeCalendarDateModal = closeCalendarDateModal;
 
 window.handleToggleQueueDoneFromCalendar = function (queueId, isChecked, dateIso, day, month, year) {
   const item = Store.getQueueItemById(queueId);
