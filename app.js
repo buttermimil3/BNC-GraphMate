@@ -2380,7 +2380,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <a href="#queue" class="nav-link ${state.view === 'queue' ? 'active' : ''}">เช็กคิว</a>
           <a href="#fonts" class="nav-link ${state.view === 'fonts' ? 'active' : ''}">ฟอนต์</a>
           <a href="#products" class="nav-link ${state.view === 'products' ? 'active' : ''}">สินค้าสำเร็จ</a>
-          <a href="#groups" class="nav-link ${state.view === 'groups' ? 'active' : ''}">เข้ากลุ่ม VIP</a>
+          <a href="#groups" class="nav-link ${state.view === 'groups' ? 'active' : ''}">เข้ากลุ่ม</a>
           <a href="#portfolio" class="nav-link ${state.view === 'portfolio' ? 'active' : ''}">ผลงาน</a>
           <a href="#points" class="nav-link ${state.view === 'points' ? 'active' : ''}">สะสมแต้ม</a>
           <a href="#reviews" class="nav-link ${state.view === 'reviews' ? 'active' : ''}">รีวิว</a>
@@ -2909,6 +2909,16 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   // VIEW: QUEUE CHECKING (Stationery / Cute Kawaii Note Paper)
   // Queue != Order, Strict Zero-Emoji, Privacy Censoring
   // ============================================================
+  
+  function getStageLabelByProgress(pct) {
+    const p = Math.min(100, Math.max(0, Number(pct) || 0));
+    if (p >= 100) return 'ส่งงานเรียบร้อย';
+    if (p >= 75) return 'กำลังเช็ค';
+    if (p >= 50) return 'กำลังทำ';
+    if (p >= 25) return 'รับบรีฟ';
+    return 'รอคิว';
+  }
+
   function renderQueueView(container) {
     const qSettings = Store.getQueuePageSettings();
     const allQueues = Store.getQueueItems(false); // Only visible items for public
@@ -2997,34 +3007,54 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               ` : ''}
             </div>
 
-            <!-- 3-Stat Summary + Candy Striped Month Progress Bar -->
+            <!-- Summary Stats: คิวเดือนนี้ | รอคิว | คิววันนี้ (พร้อมหัวใจติ๊กถูก) | ความสำเร็จในเดือนนี้ -->
             ${qSettings.showSummary ? (() => {
               const monthPct = totalToday > 0 ? Math.round((countDone / totalToday) * 100) : 0;
-              const monthMascot = getQueueMascotForProgress(monthPct, qSettings);
+              const todayQueuesList = allQueues.filter(item => {
+                const sk = normalizeQueueStatus(item.status);
+                return sk === 'progress' || sk === 'review' || sk === 'edit' || item.is_today === true;
+              });
+              const todayCount = todayQueuesList.length;
+              const todayAllDone = todayCount > 0 && todayQueuesList.every(item => {
+                const sk = normalizeQueueStatus(item.status);
+                const p = Number(item.progress) || 0;
+                return sk === 'done' || p >= 100;
+              });
+
               return `
-                <div class="queue-month-candy-card">
-                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 0.85rem;">
+                <div class="queue-month-candy-card" style="padding: 1.25rem 1.5rem; background: #FFFFFF; border: 1.5px solid #FFDFE9; border-radius: 20px; box-shadow: 0 4px 12px rgba(113,81,91,0.04); margin-top: 1.25rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
                     <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                       <div>
-                        <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block;">${escapeHTML(qSettings.monthLabel || qSettings.todayLabel || 'คิวเดือนนี้')}</span>
+                        <span style="font-size: 0.82rem; color: #71515B; font-weight: 600; display: block;">${escapeHTML(qSettings.monthLabel || qSettings.todayLabel || 'คิวเดือนนี้')}</span>
                         <strong style="font-size: 1.45rem; color: #71515B; font-family: var(--font-heading); font-weight: 800;">${totalToday} <span style="font-size: 0.88rem; font-weight: 600;">คิว</span></strong>
                       </div>
                       <div style="width: 1px; height: 32px; background: #FFDFE9;"></div>
                       <div>
-                        <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block;">${escapeHTML(qSettings.waitingLabel || 'รอคิว')}</span>
-                        <strong style="font-size: 1.45rem; color: #D97706; font-family: var(--font-heading); font-weight: 800;">${countWaiting} <span style="font-size: 0.88rem; font-weight: 600;">คิว</span></strong>
+                        <span style="font-size: 0.82rem; color: #71515B; font-weight: 600; display: block;">${escapeHTML(qSettings.waitingLabel || 'รอคิว')}</span>
+                        <strong style="font-size: 1.45rem; color: #71515B; font-family: var(--font-heading); font-weight: 800;">${countWaiting} <span style="font-size: 0.88rem; font-weight: 600;">คิว</span></strong>
+                      </div>
+                      <div style="width: 1px; height: 32px; background: #FFDFE9;"></div>
+                      <div>
+                        <span style="font-size: 0.82rem; color: #71515B; font-weight: 600; display: block;">คิววันนี้</span>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                          <strong style="font-size: 1.45rem; color: #71515B; font-family: var(--font-heading); font-weight: 800;">${todayCount} <span style="font-size: 0.88rem; font-weight: 600;">คิว</span></strong>
+                          ${todayAllDone ? `
+                            <span title="เสร็จครบทุกคิวแล้วในวันนี้" style="display: inline-flex; align-items: center; gap: 3px; background: #FFF0F5; border: 1.5px solid #FBCFE8; color: #E11D48; font-size: 0.78rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="#E11D48" stroke="#E11D48" stroke-width="1.5"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                              <span>✓ เสร็จครบ</span>
+                            </span>
+                          ` : `
+                            <span title="มีคิวงานกำลังดำเนินการ" style="display: inline-flex; align-items: center; gap: 3px; background: #FFF9FC; border: 1px solid #FFDFE9; color: #71515B; font-size: 0.78rem; font-weight: 600; padding: 2px 6px; border-radius: 999px;">
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E05A88" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                            </span>
+                          `}
+                        </div>
                       </div>
                     </div>
                     <div style="text-align: right;">
-                      <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block;">${escapeHTML(qSettings.completionLabel || 'ความสำเร็จในเดือนนี้')}</span>
-                      <strong style="font-size: 1.5rem; color: #9D174D; font-family: var(--font-heading); font-weight: 800;">${monthPct}%</strong>
-                    </div>
-                  </div>
-                  <div class="queue-month-candy-track">
-                    <div class="queue-month-candy-fill" style="width: ${monthPct}%;">
-                      <div class="queue-month-candy-mascot" title="${monthPct}%">
-                        <img src="${escapeHTML(monthMascot)}" alt="Mascot">
-                      </div>
+                      <span style="font-size: 0.82rem; color: #71515B; font-weight: 600; display: block;">${escapeHTML(qSettings.completionLabel || 'ความสำเร็จในเดือนนี้')}</span>
+                      <strong style="font-size: 1.5rem; color: #71515B; font-family: var(--font-heading); font-weight: 800;">${monthPct}%</strong>
                     </div>
                   </div>
                 </div>
@@ -3064,12 +3094,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
           ` : ''}
 
-          <!-- Queue Section Title Bar -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-            <h2 style="font-size: 1.35rem; color: #831843; font-family: var(--font-heading); font-weight: 800; margin: 0;">
-              ${escapeHTML(qSettings.sectionTitle || 'คิวงานของร้าน')}
-            </h2>
-            <span style="font-size: 0.85rem; color: var(--text-muted);">
+          <!-- Queue Section Bar (Title removed per request) -->
+          <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1.25rem;">
+            <span style="font-size: 0.85rem; color: #71515B;">
               แสดง ${filteredQueues.length} จากทั้งหมด ${allQueues.length} รายการ
             </span>
           </div>
@@ -3089,11 +3116,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               ${activeQueues.length > 0 ? `
                 <div style="margin-bottom: 2.2rem;">
                   <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 1rem;">
-                    <span style="font-size: 1.15rem; font-weight: 800; color: #854D0E; font-family: var(--font-heading);">
-                      ถึงคิววันนั้นๆ / กำลังออกแบบ (${activeQueues.length})
-                    </span>
-                    <span style="font-size: 0.8rem; background: #FEF08A; color: #854D0E; padding: 2px 8px; border-radius: 999px; font-weight: 700; border: 1px solid #FDE047;">
-                      Active Today
+                    <span style="font-size: 1.15rem; font-weight: 800; color: #71515B; font-family: var(--font-heading);">
+                      Today's Queue (${activeQueues.length})
                     </span>
                   </div>
                   <div class="queue-cards-grid">
@@ -3116,7 +3140,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                               </div>
                             ` : '<div></div>'}
                             <span class="queue-status-chip status-${statusKey}">
-                              ${escapeHTML(statusLabel)}
+                              ${escapeHTML(getStageLabelByProgress(progressPct))}
                             </span>
                           </div>
 
@@ -3229,7 +3253,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                           <!-- Right: Status Badge & Date -->
                           <div class="queue-long-bar-right">
                             <span class="queue-status-chip status-${statusKey}">
-                              ${escapeHTML(statusLabel)}
+                              ${escapeHTML(getStageLabelByProgress(progressPct))}
                             </span>
                             <span style="font-size: 0.78rem; color: #A0AEC0; white-space: nowrap;">
                               ${escapeHTML(item.queue_date || 'วันนี้')}
@@ -3298,24 +3322,24 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
 
     const qSettings = Store.getQueuePageSettings();
-    const statusNames = qSettings.statusNames || {};
-    const statusKey = (item.status || 'waiting').toLowerCase();
-    const statusLabel = statusNames[statusKey] || statusKey;
     const progressPct = Math.min(100, Math.max(0, Number(item.progress) || 0));
+    const stageLabel = getStageLabelByProgress(progressPct);
 
-    // Determine Timeline Step (1: รับงาน, 2: เข้าคิว, 3: กำลังดำเนินการ, 4: รอตรวจ, 5: เสร็จแล้ว)
+    // 5 Stages based on percentage:
+    // 1: 0% = รอคิว, 2: 25% = รับบรีฟ, 3: 50% = กำลังทำ, 4: 75% = กำลังเช็ค, 5: 100% = ส่งงานเรียบร้อย
     let activeStepIndex = 1;
-    if (statusKey === 'waiting') activeStepIndex = 2;
-    else if (statusKey === 'progress' || statusKey === 'edit') activeStepIndex = 3;
-    else if (statusKey === 'review') activeStepIndex = 4;
-    else if (statusKey === 'done') activeStepIndex = 5;
+    if (progressPct >= 100) activeStepIndex = 5;
+    else if (progressPct >= 75) activeStepIndex = 4;
+    else if (progressPct >= 50) activeStepIndex = 3;
+    else if (progressPct >= 25) activeStepIndex = 2;
+    else activeStepIndex = 1;
 
     const timelineSteps = [
-      { step: 1, label: 'รับงานแล้ว' },
-      { step: 2, label: 'เข้าคิวงาน' },
-      { step: 3, label: 'กำลังออกแบบ' },
-      { step: 4, label: 'ส่งตรวจแบบ' },
-      { step: 5, label: 'เสร็จสมบูรณ์' }
+      { step: 1, label: 'รอคิว', pct: '0%' },
+      { step: 2, label: 'รับบรีฟ', pct: '25%' },
+      { step: 3, label: 'กำลังทำ', pct: '50%' },
+      { step: 4, label: 'กำลังเช็ค', pct: '75%' },
+      { step: 5, label: 'ส่งงานเรียบร้อย', pct: '100%' }
     ];
 
     const maskText = (text, keepStart = 2, keepEnd = 2) => {
@@ -3326,27 +3350,29 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     };
 
     modal.innerHTML = `
-      <div class="modal-card" style="max-width: 580px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 2rem 1.8rem; border-radius: 26px; border: 1.5px solid #FBCFE8; box-shadow: 0 16px 36px rgba(244, 114, 182, 0.2);">
+      <div class="modal-card" style="max-width: 560px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 2rem 1.8rem; border-radius: 26px; border: 1.5px solid #FFDFE9; background: #FFFFFF; box-shadow: 0 16px 36px rgba(244, 114, 182, 0.15);">
         
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <span class="queue-pill-num">${escapeHTML(item.queue_number || 'Q-')}</span>
-              <span class="queue-status-chip status-${statusKey}">${escapeHTML(statusLabel)}</span>
+              <span class="queue-status-chip">
+                ${escapeHTML(stageLabel)}
+              </span>
             </div>
-            <h2 style="font-size: 1.45rem; color: #2D3748; margin: 0.65rem 0 0.2rem; font-weight: 800;">
+            <h2 style="font-size: 1.4rem; color: #38282D; margin: 0.65rem 0 0.2rem; font-weight: 800; font-family: var(--font-heading);">
               ${escapeHTML(item.job_name || 'งานออกแบบ')}
             </h2>
-            <span class="queue-card-type-tag">${escapeHTML(item.job_type || 'งานออกแบบ')}</span>
+            <span class="queue-card-type-tag" style="color: #71515B; font-weight: 600;">${escapeHTML(item.job_type || 'งานออกแบบ')}</span>
           </div>
-          <button type="button" onclick="closeQueueDetailModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #A0AEC0;">✕</button>
+          <button type="button" onclick="closeQueueDetailModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #71515B; padding: 4px 8px;">✕</button>
         </div>
 
-        <!-- 5-Step Timeline Graphic -->
+        <!-- 5-Step Timeline Graphic: Work Status -->
         ${qSettings.showTimeline !== false ? `
-          <div style="background: #FFFDFE; border: 1px solid #FFDFE9; border-radius: 18px; padding: 1.25rem 1rem 0.75rem; margin-bottom: 1.5rem;">
-            <div style="font-size: 0.85rem; font-weight: 700; color: #9D174D; margin-bottom: 0.5rem; text-align: center;">
-              สถานะขั้นตอนการทำงาน
+          <div style="background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.25rem 1rem 0.85rem; margin-bottom: 1.35rem;">
+            <div style="font-size: 0.9rem; font-weight: 800; color: #71515B; margin-bottom: 0.75rem; text-align: center; letter-spacing: 0.5px;">
+              Work Status
             </div>
             <div class="queue-timeline-stepper">
               ${timelineSteps.map(s => {
@@ -3355,10 +3381,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 const stateClass = isActive ? 'is-active' : (isPassed ? 'is-passed' : '');
                 return `
                   <div class="queue-step-node ${stateClass}">
-                    <div class="queue-step-circle">
+                    <div class="queue-step-circle" style="font-weight: 700;">
                       ${isPassed ? '✓' : s.step}
                     </div>
-                    <div class="queue-step-title">${s.label}</div>
+                    <div class="queue-step-title" style="color: #71515B; font-weight: ${isActive ? '700' : '500'}; font-size: 0.78rem;">${s.label}</div>
                   </div>
                 `;
               }).join('')}
@@ -3367,61 +3393,42 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         ` : ''}
 
         <!-- Details Grid -->
-        <div style="background: #FFF9FA; border-radius: 18px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid #FFE4E6;">
+        <div style="background: #FFF9FC; border-radius: 18px; padding: 1.25rem; margin-bottom: 1.25rem; border: 1.5px solid #FFDFE9;">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="font-size: 0.9rem;">
             <div>
-              <span style="color: #718096; display: block; font-size: 0.8rem;">ชื่อลูกค้า:</span>
-              <strong style="color: #2D3748;">${escapeHTML(maskText(item.customer_name, 2, 2))}</strong>
+              <span style="color: #71515B; display: block; font-size: 0.8rem; font-weight: 600;">ชื่อลูกค้า:</span>
+              <strong style="color: #38282D; font-size: 0.95rem;">${escapeHTML(maskText(item.customer_name, 2, 2))}</strong>
             </div>
             <div>
-              <span style="color: #718096; display: block; font-size: 0.8rem;">LINE ID / เบอร์:</span>
-              <strong style="color: #2D3748;">${escapeHTML(maskText(item.line_id || item.phone, 2, 2))}</strong>
+              <span style="color: #71515B; display: block; font-size: 0.8rem; font-weight: 600;">ช่องทางติดต่อ:</span>
+              <strong style="color: #38282D; font-size: 0.95rem;">${escapeHTML(maskText(item.contact || item.line_id || item.phone, 2, 2))}</strong>
             </div>
             <div>
-              <span style="color: #718096; display: block; font-size: 0.8rem;">วันที่รับคิว:</span>
-              <span style="color: #2D3748;">${escapeHTML(item.queue_date || 'วันนี้')}</span>
+              <span style="color: #71515B; display: block; font-size: 0.8rem; font-weight: 600;">วันที่รับคิว:</span>
+              <span style="color: #38282D;">${escapeHTML(item.queue_date || 'วันนี้')}</span>
             </div>
             <div>
-              <span style="color: #718096; display: block; font-size: 0.8rem;">อัปเดตล่าสุด:</span>
-              <span style="color: #2D3748;">${escapeHTML(item.updated_at || 'เมื่อสักครู่')}</span>
+              <span style="color: #71515B; display: block; font-size: 0.8rem; font-weight: 600;">อัปเดตล่าสุด:</span>
+              <span style="color: #38282D;">${escapeHTML(item.updated_at || 'เมื่อสักครู่')}</span>
             </div>
-            ${item.current_queue && item.total_queue ? `
-              <div style="grid-column: 1 / -1;">
-                <span style="color: #718096; display: block; font-size: 0.8rem;">ลำดับคิวในระบบ:</span>
-                <strong style="color: #9D174D;">คิวที่ ${item.current_queue} จากทั้งหมด ${item.total_queue} คิว</strong>
-              </div>
-            ` : ''}
           </div>
 
           ${item.description ? `
-            <div style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed #FBCFE8;">
-              <span style="color: #718096; display: block; font-size: 0.8rem; margin-bottom: 2px;">รายละเอียดงาน:</span>
-              <div style="color: #4A5568; line-height: 1.5; white-space: pre-line;">${escapeHTML(item.description)}</div>
+            <div style="margin-top: 0.85rem; padding-top: 0.85rem; border-top: 1px dashed #FFDFE9;">
+              <span style="color: #71515B; display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 3px;">รายละเอียดงาน:</span>
+              <div style="color: #38282D; line-height: 1.5; white-space: pre-line;">${escapeHTML(item.description)}</div>
             </div>
           ` : ''}
 
           ${item.note ? `
-            <div style="margin-top: 0.75rem; background: #FFF5F8; border-left: 3px solid #F472B6; padding: 6px 12px; border-radius: 6px; font-size: 0.86rem; color: #9D174D;">
-              <strong>หมายเหตุจากแอดมิน:</strong> ${escapeHTML(item.note)}
+            <div style="margin-top: 0.85rem; background: #FFFFFF; border: 1.5px solid #FFDFE9; padding: 10px 14px; border-radius: 12px; font-size: 0.88rem; color: #71515B; box-shadow: 0 2px 6px rgba(113,81,91,0.03);">
+              <strong style="color: #E05A88;">หมายเหตุ:</strong> ${escapeHTML(item.note)}
             </div>
           ` : ''}
         </div>
 
-        <!-- Attached Image / Preview if any -->
-        ${qSettings.showImage !== false && item.image_url ? `
-          <div style="margin-bottom: 1.5rem; text-align: center;">
-            <span style="color: #718096; display: block; font-size: 0.8rem; margin-bottom: 6px;">ภาพประกอบ / ตัวอย่างงาน:</span>
-            <img 
-              src="${escapeHTML(item.image_url)}" 
-              alt="Queue Preview" 
-              style="max-width: 100%; max-height: 260px; object-fit: cover; border-radius: 14px; border: 1.5px solid #FBCFE8; cursor: pointer;"
-              onclick="openLightbox('${escapeHTML(item.image_url)}')"
-            >
-          </div>
-        ` : ''}
-
         <div style="display: flex; justify-content: flex-end;">
-          <button type="button" class="btn btn-secondary" onclick="closeQueueDetailModal()" style="border-radius: 14px; padding: 0.65rem 1.75rem; font-weight: 700;">
+          <button type="button" class="btn btn-secondary" onclick="closeQueueDetailModal()" style="border-radius: 14px; padding: 0.65rem 1.75rem; font-weight: 700; background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B;">
             ปิดหน้าต่าง
           </button>
         </div>
@@ -4596,7 +4603,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                   <td><span class="badge badge--pink">${escapeHTML(item.category || 'ป้าย')}</span></td>
                   <td>฿${Number(item.price || 0).toLocaleString()}</td>
                   <td>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="deletePortfolioItemAction('${item.id}')">ลบ</button>
+                    <div style="display:flex; gap:6px;">
+                      <button type="button" class="btn btn-outline btn-sm" onclick="openEditPortfolioModal('${item.id}')">แก้ไข</button>
+                      <button type="button" class="btn btn-outline btn-sm" onclick="deletePortfolioItemAction('${item.id}')" style="color:#E11D48; border-color:#FECDD3;">ลบ</button>
+                    </div>
                   </td>
                 </tr>
               `).join('')}
@@ -4620,8 +4630,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   };
 
   window.openAddPortfolioModal = function () {
+    state.editingPortfolioId = null;
     const modal = $('adminPortfolioModal');
     if (!modal) return;
+    const title = modal.querySelector('h3');
+    if (title) title.textContent = 'เพิ่มรูปผลงานใหม่';
     $('adminPortTitle').value = '';
 
     // Populate styles dynamically
@@ -4671,7 +4684,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const image = ($('adminPortImage')?.value || '').trim();
     if (!image) return alert('กรุณากรอกลิงก์รูปภาพ 1:1');
 
-    Store.savePortfolioItem({
+    const portPayload = {
       title,
       style_category,
       category,
@@ -4679,7 +4692,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       cost_price,
       is_agent,
       image_url: image
-    });
+    };
+    if (state.editingPortfolioId) portPayload.id = state.editingPortfolioId;
+    Store.savePortfolioItem(portPayload);
+    state.editingPortfolioId = null;
 
     closeAddPortfolioModal();
     alert('บันทึกผลงานใหม่เรียบร้อยแล้วค่ะ');
@@ -5029,18 +5045,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" style="margin-bottom: 0.85rem;">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
             <div class="form-group">
               <label class="form-label" style="font-weight: 700;">ชื่อลูกค้า <span style="color:var(--danger)">*</span></label>
               <input type="text" id="adminQ_custName" class="form-input" placeholder="ชื่อที่ลูกค้าแจ้ง" value="${escapeHTML(item ? item.customer_name : '')}" required>
             </div>
             <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">LINE ID</label>
-              <input type="text" id="adminQ_lineId" class="form-input" placeholder="@lineid" value="${escapeHTML(item ? (item.line_id || '') : '')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">เบอร์โทรศัพท์</label>
-              <input type="text" id="adminQ_phone" class="form-input" placeholder="08x-xxx-xxxx" value="${escapeHTML(item ? (item.phone || '') : '')}">
+              <label class="form-label" style="font-weight: 700;">ช่องทางติดต่อ (LINE, IG, FB, ทวิต, เบอร์โทร ฯลฯ)</label>
+              <input type="text" id="adminQ_contact" class="form-input" placeholder="เช่น LINE: @abc, IG: sweetshop, โทร: 08x..." value="${escapeHTML(item ? (item.contact || item.line_id || item.phone || '') : '')}">
             </div>
           </div>
 
@@ -5193,8 +5205,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const payload = {
       queue_number: queueNumber,
       customer_name: custName,
-      line_id: ($('adminQ_lineId')?.value || '').trim(),
-      phone: ($('adminQ_phone')?.value || '').trim(),
+      contact: ($('adminQ_contact')?.value || '').trim(),
+      line_id: ($('adminQ_contact')?.value || '').trim(),
+      phone: ($('adminQ_contact')?.value || '').trim(),
       job_type: ($('adminQ_jobType')?.value || '').trim() || 'ออกแบบป้าย',
       job_name: jobName,
       queue_date: ($('adminQ_date')?.value || '').trim(),
@@ -5691,11 +5704,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <input type="text" id="cfg_prodsDesc" class="form-input" value="${escapeHTML(headings.prodsDesc || 'ไฟล์กราฟิก ป้ายสำเร็จ เทมเพลตพร้อมใช้งาน')}">
             </div>
             <div class="form-group">
-              <label class="form-label">หน้าเข้ากลุ่ม VIP: หัวเรื่อง</label>
+              <label class="form-label">หน้าเข้ากลุ่ม: หัวเรื่อง</label>
               <input type="text" id="cfg_groupsTitle" class="form-input" value="${escapeHTML(headings.groupsTitle || 'เข้ากลุ่ม LINE VIP')}">
             </div>
             <div class="form-group">
-              <label class="form-label">หน้าเข้ากลุ่ม VIP: คำบรรยาย</label>
+              <label class="form-label">หน้าเข้ากลุ่ม: คำบรรยาย</label>
               <input type="text" id="cfg_groupsDesc" class="form-input" value="${escapeHTML(headings.groupsDesc || 'รวมกลุ่ม VIP อัปเดตงานต่อเนื่อง โหลดได้ไม่อั้นตลอดชีพ')}">
             </div>
             <div class="form-group">
@@ -6322,15 +6335,18 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <span class="badge badge--pink" style="margin-bottom: 0.35rem; align-self: flex-start;">${escapeHTML(p.category || 'กราฟิก')}</span>
           <h4 class="product-card__title">${escapeHTML(p.name)}</h4>
           <p class="product-card__desc">${escapeHTML(p.description || '')}</p>
-          <div class="product-card__footer">
-            <div class="product-price">฿${Number(p.price || 0).toLocaleString()}</div>
-            <div style="display: flex; gap: 0.35rem;">
-              <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${p.id}', 'PRODUCT')" title="เพิ่มลงตะกร้า">
+          <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: auto; padding-top: 0.85rem; border-top: 1px solid var(--border-light);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.82rem; color: var(--text-muted);">ราคา</span>
+              <div class="product-price" style="font-size: 1.35rem; color: #71515B;">฿${Number(p.price || 0).toLocaleString()}</div>
+            </div>
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${p.id}', 'PRODUCT')" title="เพิ่มลงตะกร้า" style="flex: 1; min-width: 80px; padding: 6px 8px; font-size: 12px; white-space: nowrap; text-align: center;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                 ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
               </button>
-              <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${p.id}', 'PRODUCT')">
-                ${escapeHTML(s.btnBuyText || 'ซื้อ')}
+              <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${p.id}', 'PRODUCT')" style="flex: 1.2; min-width: 90px; padding: 6px 10px; font-size: 12px; white-space: nowrap; text-align: center;">
+                ${escapeHTML(s.btnBuyText || 'สั่งซื้อเลย')}
               </button>
             </div>
           </div>
@@ -6342,10 +6358,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   function renderFontCard(f, s) {
     const fontImg = formatDriveImageUrl(f.preview_image || f.preview_image_url || f.image_url || 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600');
     return `
-      <div class="product-card">
-        <!-- Font Signboard / Poster Banner Preview (Requirement 3) -->
-        <div class="product-card__image-wrapper" style="position: relative; height: 240px; overflow: hidden; border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); cursor: pointer; background: var(--surface-alt);" onclick="openLightbox('${escapeHTML(fontImg)}')" title="คลิกเพื่อดูรูปป้ายฟอนต์ขนาดใหญ่">
-          <img src="${escapeHTML(fontImg)}" alt="${escapeHTML(f.name)}" style="width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s ease;" class="product-card__img" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';">
+      <div class="card font-item-card" style="display: flex; flex-direction: column; border-radius: var(--radius-lg); padding: 1.25rem; background: #FFFFFF; border: 1.5px solid #FFDFE9; box-shadow: 0 4px 14px rgba(113,81,91,0.05);">
+        <!-- 1:1 Square Font Poster with White Border Inset Margin -->
+        <div style="position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-alt); cursor: pointer; margin-bottom: 0.85rem; border: 1px solid #FFDFE9;" onclick="openLightbox('${escapeHTML(fontImg)}')" title="คลิกเพื่อดูรูปป้ายฟอนต์ขนาดใหญ่">
+          <img src="${escapeHTML(fontImg)}" alt="${escapeHTML(f.name)}" style="width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block;" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';">
           <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 6px;">
             <span class="badge badge--pink">${escapeHTML(f.category || 'ลายมือ')}</span>
           </div>
@@ -6354,31 +6370,33 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <div style="padding: 1rem 1.25rem 0.5rem; border-bottom: 1px solid var(--border-light); background: var(--surface-alt);">
-          <h3 style="font-size: 1.15rem; margin: 0; font-weight: 700;">${escapeHTML(f.name)}</h3>
+        <div style="margin-bottom: 0.5rem;">
+          <h3 style="font-size: 1.15rem; margin: 0; font-weight: 700; color: var(--text);">${escapeHTML(f.name)}</h3>
         </div>
 
-        <!-- Live Font Preview Area (Moderate & Elegant Size - Requirement 2) -->
-        <div class="font-preview-area" style="padding: 0.9rem 1.25rem; min-height: 54px;">
-          <div class="font-preview-text" data-font-id="${f.id}" style="font-size: 22px; font-weight: 500; word-break: break-word; line-height: 1.4; color: var(--text); font-family: ${getFontFamily(f)};">
+        <!-- Live Font Preview Area with Proper Inset Margin -->
+        <div class="font-preview-area" style="padding: 1rem 1.15rem; min-height: 56px; border-radius: 14px; border: 1.5px solid #FFDFE9; background: #FFFDFE; margin-bottom: 0.85rem;">
+          <div class="font-preview-text" data-font-id="${f.id}" style="font-size: 20px; font-weight: 500; word-break: break-word; line-height: 1.4; color: var(--text); font-family: ${getFontFamily(f)};">
             ${escapeHTML(state.fontTester.text || f.preview_text || 'ร้านป้ายบีเอ็นซี ฟอนต์ลายมือน่ารัก 1234')}
           </div>
         </div>
 
-        <div class="product-card__body">
-          <p class="product-card__desc">${escapeHTML(f.description || '')}</p>
-        <div class="product-card__footer">
-            <div class="product-price">฿${Number(f.price || 0).toLocaleString()}</div>
-            <div style="display: flex; gap: 0.35rem;">
-              <button type="button" class="btn btn-outline btn-sm" onclick="setCompareFont('${f.id}')" title="นำฟอนต์นี้ไปเทียบในสมุด GoodNotes ด้านบน">เทียบ</button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${f.id}', 'FONT')">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
-              </button>
-              <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${f.id}', 'FONT')">
-                ${escapeHTML(s.btnBuyText || 'สั่งซื้อเลย')}
-              </button>
-            </div>
+        ${f.description ? `<p style="font-size: 0.86rem; color: var(--text-muted); margin: 0 0 0.85rem; line-height: 1.4;">${escapeHTML(f.description)}</p>` : ''}
+
+        <!-- Clean Footer: Price on top row, Action buttons below with zero text overflow -->
+        <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: auto; padding-top: 0.85rem; border-top: 1px solid var(--border-light);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.82rem; color: var(--text-muted);">ราคาฟอนต์</span>
+            <div class="product-price" style="font-size: 1.35rem; color: #71515B;">฿${Number(f.price || 0).toLocaleString()}</div>
+          </div>
+          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="setCompareFont('${f.id}')" title="นำฟอนต์นี้ไปเทียบในสมุด GoodNotes" style="flex: 1; min-width: 52px; padding: 6px 4px; font-size: 12px; white-space: nowrap; text-align: center;">เทียบ</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${f.id}', 'FONT')" style="flex: 1.2; min-width: 80px; padding: 6px 8px; font-size: 12px; white-space: nowrap; text-align: center;">
+              ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${f.id}', 'FONT')" style="flex: 1.4; min-width: 90px; padding: 6px 10px; font-size: 12px; white-space: nowrap; text-align: center;">
+              ${escapeHTML(s.btnBuyText || 'สั่งซื้อเลย')}
+            </button>
           </div>
         </div>
       </div>
@@ -7611,8 +7629,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   };
 
   window.openAddProductModal = function () {
+    state.editingProductId = null;
     const modal = $('adminProductModal');
     if (!modal) return;
+    const title = modal.querySelector('h3');
+    if (title) title.textContent = 'เพิ่มสินค้ากราฟิกใหม่';
     $('adminProdName').value = '';
     $('adminProdImage').value = 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600';
     $('adminProdCategory').value = 'Template';
@@ -7646,7 +7667,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const desc = $('adminProdDesc').value.trim();
     const whatYouGet = $('adminProdWhatYouGet').value.trim();
 
-    Store.saveProduct({
+    const prodPayload = {
       name,
       image,
       image_url: image,
@@ -7659,7 +7680,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       description: desc,
       what_you_get: whatYouGet,
       status: 'ACTIVE'
-    });
+    };
+    if (state.editingProductId) prodPayload.id = state.editingProductId;
+    Store.saveProduct(prodPayload);
+    state.editingProductId = null;
 
     closeAddProductModal();
     alert('บันทึกสินค้าใหม่เรียบร้อยแล้วค่ะ!');
@@ -7724,8 +7748,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   };
 
   window.openAddFontModal = function () {
+    state.editingFontId = null;
     const modal = $('adminFontModal');
     if (!modal) return;
+    const title = modal.querySelector('h3');
+    if (title) title.textContent = 'เพิ่มฟอนต์ลายมือใหม่';
     $('adminFontName').value = '';
     $('adminFontImage').value = 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';
     $('adminFontFileUrl').value = '';
@@ -7763,7 +7790,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const driveLink = $('adminFontDriveLink').value.trim();
     const whatYouGet = $('adminFontWhatYouGet').value.trim();
 
-    Store.saveFont({
+    const fontPayload = {
       name,
       preview_image: image,
       preview_image_url: image,
@@ -7777,7 +7804,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       drive_folder_id: driveLink,
       what_you_get: whatYouGet,
       status: 'ACTIVE'
-    });
+    };
+    if (state.editingFontId) fontPayload.id = state.editingFontId;
+    Store.saveFont(fontPayload);
+    state.editingFontId = null;
 
     loadFontFaces();
     closeAddFontModal();
@@ -7792,8 +7822,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   };
 
   window.openAddGroupModal = function () {
+    state.editingGroupId = null;
     const modal = $('adminGroupModal');
     if (!modal) return;
+    const title = modal.querySelector('h3');
+    if (title) title.textContent = 'เพิ่มกลุ่ม LINE VIP ใหม่';
     $('adminGroupName').value = '';
     $('adminGroupCategory').value = 'VIP ตลอดชีพ';
     $('adminGroupCover').value = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600';
@@ -7825,7 +7858,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const benefits = $('adminGroupBenefits').value.trim();
     const pinned = $('adminGroupPinned').checked;
 
-    Store.saveGroup({
+    const groupPayload = {
       name,
       category,
       cover_image: cover,
@@ -7837,7 +7870,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       benefits,
       is_pinned: pinned,
       status: 'ACTIVE'
-    });
+    };
+    if (state.editingGroupId) groupPayload.id = state.editingGroupId;
+    Store.saveGroup(groupPayload);
+    state.editingGroupId = null;
 
     closeAddGroupModal();
     alert('บันทึกกลุ่มใหม่เรียบร้อยแล้วค่ะ!');
@@ -7978,4 +8014,111 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   document.addEventListener('DOMContentLoaded', initApp);
 
 })();
+
+
+
+  // ── Admin Edit Functions for Products, Fonts, Groups, Portfolio ──
+  window.openEditProductModal = function (id) {
+    const p = Store.getAllProducts().find(x => x.id === id);
+    if (!p) return;
+    state.editingProductId = id;
+    const modal = $('adminProductModal');
+    if (!modal) return;
+    const title = modal.querySelector('h3');
+    if (title) title.textContent = 'แก้ไขสินค้า';
+    $('adminProdName').value = p.name || '';
+    $('adminProdImage').value = p.image || p.image_url || '';
+    $('adminProdCategory').value = p.category || 'Template';
+    $('adminProdPrice').value = p.price || 0;
+    if ($('adminProdCostPrice')) $('adminProdCostPrice').value = p.cost_price || 0;
+    if ($('adminProdIsAgent')) $('adminProdIsAgent').checked = !!p.is_agent;
+    if ($('adminProdCostWrap')) $('adminProdCostWrap').style.display = p.is_agent ? 'block' : 'none';
+    $('adminProdDelivery').value = p.delivery_type || 'GOOGLE_DRIVE';
+    $('adminProdDriveLink').value = p.drive_folder_id || p.drive_file_id || '';
+    $('adminProdDesc').value = p.description || '';
+    $('adminProdWhatYouGet').value = p.what_you_get || '';
+    modal.classList.add('is-active');
+  };
+
+  window.openEditFontModal = function (id) {
+    const f = Store.getAllFonts().find(x => x.id === id);
+    if (!f) return;
+    state.editingFontId = id;
+    const modal = $('adminFontModal');
+    if (!modal) return;
+    const title = modal.querySelector('h3');
+    if (title) title.textContent = 'แก้ไขฟอนต์ลายมือ';
+    $('adminFontName').value = f.name || '';
+    $('adminFontImage').value = f.preview_image || f.preview_image_url || f.image_url || '';
+    $('adminFontFileUrl').value = f.font_file_url || f.file_url || '';
+    if ($('adminFontFileInput')) $('adminFontFileInput').value = '';
+    if ($('adminFontFileStatus')) $('adminFontFileStatus').textContent = f.font_file_url ? 'มีไฟล์ฟอนต์เดิมอยู่แล้ว (เลือกใหม่ได้)' : '';
+    $('adminFontPreviewText').value = f.preview_text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส 1234';
+    $('adminFontCategory').value = f.category || 'ลายมือ';
+    $('adminFontPrice').value = f.price || 0;
+    if ($('adminFontIsAgent')) $('adminFontIsAgent').checked = !!f.is_agent;
+    if ($('adminFontCostPrice')) $('adminFontCostPrice').value = f.cost_price || 0;
+    if ($('adminFontCostWrap')) $('adminFontCostWrap').style.display = f.is_agent ? 'block' : 'none';
+    $('adminFontDelivery').value = f.delivery_type || 'GOOGLE_DRIVE';
+    $('adminFontDriveLink').value = f.drive_folder_id || f.drive_file_id || '';
+    $('adminFontWhatYouGet').value = f.what_you_get || 'ไฟล์ .OTF / .TTF ครบชุด\nสิทธิ์ใช้งานเชิงพาณิชย์';
+    modal.classList.add('is-active');
+  };
+
+  window.openEditGroupModal = function (id) {
+    const g = Store.getAllGroups().find(x => x.id === id);
+    if (!g) return;
+    state.editingGroupId = id;
+    const modal = $('adminGroupModal');
+    if (!modal) return;
+    const title = modal.querySelector('h3');
+    if (title) title.textContent = 'แก้ไขกลุ่ม LINE VIP';
+    $('adminGroupName').value = g.name || '';
+    $('adminGroupCategory').value = g.category || 'VIP ตลอดชีพ';
+    $('adminGroupCover').value = g.cover_image || g.cover_image_url || '';
+    $('adminGroupPrice').value = g.price || 0;
+    if ($('adminGroupIsAgent')) $('adminGroupIsAgent').checked = !!g.is_agent;
+    if ($('adminGroupCostPrice')) $('adminGroupCostPrice').value = g.cost_price || 0;
+    if ($('adminGroupCostWrap')) $('adminGroupCostWrap').style.display = g.is_agent ? 'block' : 'none';
+    $('adminGroupDriveUrl').value = g.preview_drive_url || '';
+    $('adminGroupBenefits').value = g.benefits || '';
+    $('adminGroupPinned').checked = !!g.is_pinned;
+    modal.classList.add('is-active');
+  };
+
+  window.openEditPortfolioModal = function (id) {
+    const item = (Store.getPortfolio() || []).find(p => p.id === id);
+    if (!item) return;
+    state.editingPortfolioId = id;
+    const modal = $('adminPortfolioModal');
+    if (!modal) return;
+    const title = modal.querySelector('h3');
+    if (title) title.textContent = 'แก้ไขรูปผลงาน & อัตราค่าบริการ';
+    $('adminPortTitle').value = item.title || '';
+
+    const styleSelect = $('adminPortStyle');
+    if (styleSelect) {
+      const styles = Store.getPortfolioStyles ? Store.getPortfolioStyles() : ['สไตล์มินิมอล & คาเฟ่', 'สไตล์การ์ตูน & คาวาอี้', 'สไตล์ลายมือ & ฟอนต์', 'สไตล์ร้านค้า & โมเดิร์น', 'ไฟล์ตกแต่ง & เทมเพลต'];
+      styleSelect.innerHTML = styles.map(st => `<option value="${escapeHTML(st)}">${escapeHTML(st)}</option>`).join('') +
+        `<option value="__custom__">+ กำหนดสไตล์งานเอง...</option>`;
+      if (styles.includes(item.style_category)) {
+        styleSelect.value = item.style_category;
+        if ($('adminPortCustomStyle')) $('adminPortCustomStyle').style.display = 'none';
+      } else {
+        styleSelect.value = '__custom__';
+        if ($('adminPortCustomStyle')) {
+          $('adminPortCustomStyle').style.display = 'block';
+          $('adminPortCustomStyle').value = item.style_category || '';
+        }
+      }
+    }
+
+    $('adminPortCategory').value = item.category || 'ป้ายเครดิต';
+    $('adminPortPrice').value = item.price || 0;
+    if ($('adminPortIsAgent')) $('adminPortIsAgent').checked = !!item.is_agent;
+    if ($('adminPortCostPrice')) $('adminPortCostPrice').value = item.cost_price || 0;
+    if ($('adminPortCostWrap')) $('adminPortCostWrap').style.display = item.is_agent ? 'block' : 'none';
+    $('adminPortImage').value = item.image_url || '';
+    modal.classList.add('is-active');
+  };
 

@@ -736,9 +736,11 @@ input[type="radio"]:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   border-top: 1px solid var(--border-light);
   padding-top: 0.85rem;
   margin-top: auto;
+  flex-wrap: wrap;
 }
 
 .product-price {
@@ -2563,9 +2565,9 @@ select option {
     linear-gradient(90deg, rgba(226, 163, 183, 0.08) 1px, transparent 1px);
   background-size: 20px 20px;
   border-radius: 24px;
-  border: 1.5px solid #FFDFE9;
+  border: 2px solid #FFD1DF;
   padding: 2.25rem 2rem 1.75rem;
-  box-shadow: 0 4px 14px rgba(113, 81, 91, 0.06);
+  box-shadow: 0 8px 24px rgba(224, 90, 136, 0.10);
   margin-bottom: 2rem;
   overflow: visible;
 }
@@ -2710,11 +2712,11 @@ select option {
 /* 1. Post-it Sticky Note Card for Active Day Queue (ถึงคิววันนั้นๆ - ขาวชมพูพาสเทล พร้อมหมุดพิน) */
 .queue-postit-card {
   position: relative;
-  background: #FFF9FC; /* Soft clean white-pink */
-  border: 1.5px solid #FFDFE9;
+  background: #FFFFFF;
+  border: 2px solid #FFD1DF;
   border-radius: 18px;
   padding: 1.6rem 1.4rem 1.3rem;
-  box-shadow: 0 4px 12px rgba(113, 81, 91, 0.05);
+  box-shadow: 0 6px 18px rgba(224, 90, 136, 0.08);
   transition: transform 0.25s ease;
   cursor: pointer;
   display: flex;
@@ -2843,57 +2845,31 @@ select option {
   align-items: center;
 }
 
-/* Status Badges */
+/* Status Badges: Solid white frame, border #FFDFE9, font color same as queue number #71515B */
 .queue-status-chip {
   display: inline-flex;
   align-items: center;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   padding: 4px 12px;
   border-radius: 999px;
   white-space: nowrap;
+  background: #FFFFFF;
+  border: 1.5px solid #FFDFE9;
+  color: #71515B;
+  box-shadow: 0 1px 3px rgba(113, 81, 91, 0.04);
 }
 
-.queue-status-chip.status-waiting {
-  background: #FFFBEB;
-  color: #92400E;
-  border: 1px solid #FDE68A;
-}
-
-.queue-status-chip.status-progress {
-  background: #EFF6FF;
-  color: #1E40AF;
-  border: 1px solid #BFDBFE;
-}
-
-.queue-status-chip.status-review {
-  background: #FAF5FF;
-  color: #6B21A8;
-  border: 1px solid #E9D5FF;
-}
-
-.queue-status-chip.status-edit {
-  background: #FFF7ED;
-  color: #C2410C;
-  border: 1px solid #FFEDD5;
-}
-
-.queue-status-chip.status-done {
-  background: #F0FDF4;
-  color: #166534;
-  border: 1px solid #BBF7D0;
-}
-
-.queue-status-chip.status-pause {
-  background: #F4F4F5;
-  color: #52525B;
-  border: 1px solid #E4E4E7;
-}
-
+.queue-status-chip.status-waiting,
+.queue-status-chip.status-progress,
+.queue-status-chip.status-review,
+.queue-status-chip.status-edit,
+.queue-status-chip.status-done,
+.queue-status-chip.status-pause,
 .queue-status-chip.status-cancel {
-  background: #FFF1F2;
-  color: #9F1239;
-  border: 1px solid #FECDD3;
+  background: #FFFFFF;
+  color: #71515B;
+  border: 1.5px solid #FFDFE9;
 }
 
 /* Card Content Details */
