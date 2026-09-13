@@ -4763,14 +4763,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                   ` : ''}
                 </div>
                 <!-- Scrollable pills container -->
-                <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+                <div class="ig-pills-scroller" id="portStylePills" onwheel="if(event.deltaY!==0){event.preventDefault();this.scrollLeft+=event.deltaY;}">
                   ${styleCategories.map(st => {
                     const isActive = state.portfolioStyleFilter === st;
                     return `
                       <button type="button"
                         class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline'}"
                         onclick="filterPortfolioByStyle('${escapeHTML(st)}')"
-                        style="font-size: 0.78rem; padding: 3px 12px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; ${isActive ? 'box-shadow: none !important;' : 'border-color: #FFDFE9; color: #71515B;'}">
+                        style="font-size: 0.78rem; padding: 4px 14px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; ${isActive ? 'box-shadow: none !important;' : 'border-color: #FFDFE9; color: #71515B; background: #ffffff;'}">
                         ${st === 'ALL' ? 'ทุกสไตล์' : escapeHTML(st)}
                       </button>
                     `;
@@ -4858,7 +4858,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                           <div class="ig-post-author-sub">${dateStr || 'งานออกแบบกราฟิก 300 DPI'}</div>
                         </div>
                       </div>
-                      <span class="ig-post-category-badge">${escapeHTML(item.style_category || item.category || 'งานออกแบบ')}</span>
+                      <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        ${item.price ? `<span class="ig-post-price-badge">฿${Number(item.price).toLocaleString()}</span>` : ''}
+                        <span class="ig-post-category-badge">${escapeHTML(item.style_category || item.category || 'งานออกแบบ')}</span>
+                      </div>
                     </div>
 
                     <!-- Artwork Images (single or multi-image carousel) -->
@@ -4937,18 +4940,32 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                       <div class="ig-post-likes">
                         ถูกใจ <span id="like-count-${escapeHTML(item.id)}">${totalLikes}</span> คน
                       </div>
+                      ${item.price ? `
+                        <div style="font-size: 0.95rem; color: #B24368; font-weight: 700; margin: 4px 0 2px;">
+                          ราคาเริ่มต้น ฿${Number(item.price).toLocaleString()}
+                        </div>
+                      ` : ''}
                       <div class="ig-post-caption">
                         <strong>${escapeHTML(s.shopName || 'BNC GraphMate')}</strong>
                         <span>${escapeHTML(item.title)}</span>
                       </div>
                       ${item.description ? `
-                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 8px; line-height: 1.45;">
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 4px 0 6px; line-height: 1.45;">
                           ${escapeHTML(item.description)}
                         </p>
                       ` : ''}
-                      <div style="font-size: 0.78rem; color: var(--primary); font-weight: 600;">
-                        #BNCGraphMate #${escapeHTML((item.style_category || 'ออกแบบป้าย').replace(/\s+/g, ''))} #งานออกแบบ #ป้ายร้าน
-                      </div>
+                      ${(function() {
+                        const cleanTag = str => (str || '').replace(/[^\p{L}\p{N}]/gu, '');
+                        const tagShop = cleanTag(s.shopName || 'BNCGraphMate');
+                        const tagCat = cleanTag(item.category || item.style_category || '');
+                        const tagTitle = cleanTag(item.title || '');
+                        const tags = [];
+                        if (tagShop) tags.push('#' + tagShop);
+                        if (tagCat) tags.push('#' + tagCat);
+                        if (tagTitle) tags.push('#' + tagTitle);
+                        if (tags.length === 0) return '';
+                        return `<div style="font-size: 0.8rem; color: #B26E86; font-weight: 600; margin-top: 4px; word-break: break-word;">${tags.join(' ')}</div>`;
+                      })()}
                     </div>
                   </article>
                 `;
@@ -6036,12 +6053,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
     $('adminPortCategory').value = 'ป้ายเครดิต';
     $('adminPortPrice').value = '129';
-    if ($('adminPortIsAgent')) $('adminPortIsAgent').checked = false;
-    if ($('adminPortCostPrice')) $('adminPortCostPrice').value = '0';
-    if ($('adminPortCostWrap')) $('adminPortCostWrap').style.display = 'none';
-    // Clear multi-image textarea
-    const imgArea = $('adminPortImages');
-    if (imgArea) imgArea.value = '';
+    // Clear dynamic image rows and add one blank row
+    const imgList = document.getElementById('portImgList');
+    if (imgList) { imgList.innerHTML = ''; addPortImgRow(); }
     modal.classList.add('is-active');
   };
 
@@ -6063,24 +6077,17 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
     const category = $('adminPortCategory').value;
     const price = Number($('adminPortPrice').value) || 0;
-    const cost_price = Number($('adminPortCostPrice')?.value) || 0;
-    const is_agent = $('adminPortIsAgent')?.checked || cost_price > 0;
 
-    // Multi-image: read textarea (one URL or base64 per line)
-    const imgArea = $('adminPortImages');
-    const rawLines = imgArea ? imgArea.value.split('\n').map(l => l.trim()).filter(Boolean) : [];
-    if (rawLines.length === 0) return alert('กรุณาใส่ลิงก์รูปภาพอย่างน้อย 1 รูป');
-
-    const images = rawLines;
-    const image_url = images[0]; // first image as cover
+    // Multi-image: collect from dynamic rows
+    const images = getPortImgUrls();
+    if (images.length === 0) return alert('กรุณาใส่ลิงก์รูปภาพอย่างน้อย 1 รูป');
+    const image_url = images[0];
 
     const portPayload = {
       title,
       style_category,
       category,
       price,
-      cost_price,
-      is_agent,
       image_url,
       images
     };
@@ -9221,30 +9228,19 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <label class="form-label" style="font-weight: 700;">ราคามาตรฐาน (บาท)</label>
             <input type="number" id="adminPortPrice" class="form-input" value="129">
           </div>
-          <!-- Reseller / Agent Financials for Portfolio -->
-          <div style="background: #FFF0F7; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 10px 14px; margin-bottom: 0.85rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 700; color: var(--primary-deep);">
-                <input type="checkbox" id="adminPortIsAgent" onchange="document.getElementById('adminPortCostWrap').style.display = this.checked ? 'block' : 'none'">
-                <span>เป็นงานตัวแทน (มีต้นทุนส่งต่อให้ผู้ผลิต/นักวาด)</span>
-              </label>
-            </div>
-            <div id="adminPortCostWrap" style="display: none;">
-              <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ต้นทุนส่งต่อ (บาท)</label>
-              <input type="number" id="adminPortCostPrice" class="form-input" placeholder="เช่น 90" value="0">
-              <small style="color: var(--text-muted); font-size: 0.78rem;">สำหรับคำนวณกำไรสุทธิเมื่อมีการสั่งทำงานสไตล์นี้</small>
-            </div>
-          </div>
-          </div>
+
+          <!-- Multi-image URL inputs (dynamic) -->
           <div class="form-group" style="margin-bottom: 1.25rem;">
             <label class="form-label" style="font-weight: 700;">รูปภาพผลงาน <span style="color:var(--danger)">*</span></label>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 6px;">วางลิงก์ URL ภาพ 1 บรรทัดต่อ 1 รูป (เพิ่มได้ไม่จำกัด) รูปแรกจะเป็นหน้าปก</p>
-            <textarea id="adminPortImages" class="form-input" rows="4" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg" style="resize: vertical; font-size: 0.82rem; font-family: monospace;"></textarea>
-            <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin-top: 6px; font-size: 11px; display: inline-block;">
-              เลือกรูปจากเครื่อง (เพิ่มต่อท้าย)
-              <input type="file" accept="image/*" multiple style="display: none;" onchange="handlePortfolioMultiImageUpload(event)">
-            </label>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 10px;">รูปแรกเป็นหน้าปก สามารถกดปุ่มเพื่อเพิ่มรูปภาพได้ตามต้องการ</p>
+            <div id="portImgList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            <div style="margin-top: 10px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="addPortImgRow()" style="border-radius: 999px; border: 1.5px solid #FFDFE9; background: #FFF7F9; color: #71515B; font-weight: 700; font-size: 0.84rem; padding: 6px 18px; cursor: pointer;">
+                + เพิ่มรูปภาพ
+              </button>
+            </div>
           </div>
+
           <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
             <button type="button" class="btn btn-outline" onclick="closeAddPortfolioModal()">ยกเลิก</button>
             <button type="submit" class="btn btn-primary" style="font-weight: 700;">บันทึกผลงาน</button>
@@ -9861,35 +9857,89 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     renderCurrentView();
   };
 
-  // Multi-image upload: appends base64 data URLs to textarea (one per line)
+  // Dynamic image row helpers for portfolio modal
+  window.updatePortImgRowLabels = function () {
+    const list = document.getElementById('portImgList');
+    if (!list) return;
+    Array.from(list.children).forEach((row, i) => {
+      const badge = row.querySelector('.port-img-badge');
+      if (badge) badge.textContent = i === 0 ? 'หน้าปก' : `รูปที่ ${i + 1}`;
+      const inp = row.querySelector('.port-img-url');
+      if (inp) inp.placeholder = i === 0 ? 'วางลิงก์รูปภาพหน้าปก (URL)' : `วางลิงก์รูปที่ ${i + 1} (URL)`;
+    });
+  };
+
+  window.addPortImgRow = function (prefillUrl) {
+    const list = document.getElementById('portImgList');
+    if (!list) return;
+    const idx = list.children.length;
+    const isFirst = idx === 0;
+    const row = document.createElement('div');
+    row.className = 'port-img-row';
+    row.style.cssText = 'display: flex; gap: 8px; align-items: center; background: #FFFBFD; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 7px 10px; width: 100%; box-sizing: border-box;';
+    row.innerHTML = `
+      <span class="port-img-badge" style="font-size: 0.75rem; font-weight: 700; color: #B24368; background: #FFF0F5; border: 1px solid #FFB6CE; padding: 3px 8px; border-radius: 8px; white-space: nowrap; flex-shrink: 0;">
+        ${isFirst ? 'หน้าปก' : 'รูปที่ ' + (idx + 1)}
+      </span>
+      <input type="text" class="form-input port-img-url" value="${prefillUrl ? prefillUrl.replace(/"/g,'&quot;') : ''}" placeholder="${isFirst ? 'วางลิงก์รูปภาพหน้าปก (URL)' : 'วางลิงก์รูปที่ ' + (idx + 1) + ' (URL)'}" style="flex: 1; font-size: 0.82rem; padding: 6px 10px; font-family: monospace; min-width: 0;">
+      <label class="btn btn-outline btn-sm" style="flex-shrink: 0; margin: 0; padding: 5px 12px; border-radius: 8px; border: 1px solid #FFDFE9; background: #ffffff; color: #71515B; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap;">
+        เลือกรูปภาพ
+        <input type="file" accept="image/*" style="display:none;" onchange="handlePortImgRowUpload(event, this)">
+      </label>
+      <button type="button" onclick="deletePortImgRow(this)" style="flex-shrink: 0; background: none; border: none; color: #E11D48; font-size: 1.15rem; cursor: pointer; padding: 0 4px; line-height: 1;" title="ลบรูปนี้">
+        ✕
+      </button>
+    `;
+    list.appendChild(row);
+  };
+
+  window.deletePortImgRow = function (btn) {
+    const list = document.getElementById('portImgList');
+    if (!list) return;
+    const row = btn.closest('.port-img-row');
+    if (!row) return;
+    if (list.children.length <= 1) {
+      const inp = row.querySelector('.port-img-url');
+      if (inp) inp.value = '';
+    } else {
+      row.remove();
+      updatePortImgRowLabels();
+    }
+  };
+
+  window.handlePortImgRowUpload = function (e, fileInput) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const row = fileInput.closest('.port-img-row');
+    const urlInput = row && row.querySelector('.port-img-url');
+    if (!urlInput) return;
+    const reader = new FileReader();
+    reader.onload = evt => { urlInput.value = evt.target.result; };
+    reader.readAsDataURL(file);
+  };
+
+  window.getPortImgUrls = function () {
+    return Array.from(document.querySelectorAll('#portImgList .port-img-url'))
+      .map(inp => inp.value.trim())
+      .filter(Boolean);
+  };
+
   window.handlePortfolioMultiImageUpload = function (e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    const area = document.getElementById('adminPortImages');
-    if (!area) return;
-    let pending = files.length;
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onload = function (evt) {
-        const current = area.value.trim();
-        area.value = current ? current + '\n' + evt.target.result : evt.target.result;
-        pending--;
-      };
+      reader.onload = evt => { addPortImgRow(evt.target.result); };
       reader.readAsDataURL(file);
     });
   };
 
-  // Keep old single-file handler for backward compat
+  // Backward compat
   window.handlePortfolioImageUpload = function (e) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = function (evt) {
-      const area = document.getElementById('adminPortImages');
-      const input = document.getElementById('adminPortImage');
-      if (area) { const cur = area.value.trim(); area.value = cur ? cur + '\n' + evt.target.result : evt.target.result; }
-      else if (input) input.value = evt.target.result;
-    };
+    reader.onload = evt => { addPortImgRow(evt.target.result); };
     reader.readAsDataURL(file);
   };
 
@@ -10112,17 +10162,18 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
     $('adminPortCategory').value = item.category || 'ป้ายเครดิต';
     $('adminPortPrice').value = item.price || 0;
-    if ($('adminPortIsAgent')) $('adminPortIsAgent').checked = !!item.is_agent;
-    if ($('adminPortCostPrice')) $('adminPortCostPrice').value = item.cost_price || 0;
-    if ($('adminPortCostWrap')) $('adminPortCostWrap').style.display = item.is_agent ? 'block' : 'none';
 
-    // Populate images textarea: use images array if available, else image_url
-    const imgArea = $('adminPortImages');
-    if (imgArea) {
-      if (Array.isArray(item.images) && item.images.length > 0) {
-        imgArea.value = item.images.join('\n');
+    // Populate dynamic image rows
+    const imgList = document.getElementById('portImgList');
+    if (imgList) {
+      imgList.innerHTML = '';
+      const existingImages = Array.isArray(item.images) && item.images.length > 0
+        ? item.images
+        : (item.image_url ? [item.image_url] : []);
+      if (existingImages.length > 0) {
+        existingImages.forEach(url => addPortImgRow(url));
       } else {
-        imgArea.value = item.image_url || '';
+        addPortImgRow();
       }
     }
     modal.classList.add('is-active');
