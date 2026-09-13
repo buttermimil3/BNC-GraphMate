@@ -3223,54 +3223,47 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const featuredGroups = Store.getAllGroups();
 
     container.innerHTML = `
-      <!-- Facebook Cover Banner (Authentic Facebook Cover Dimensions) -->
-      <div class="container" style="padding-top: 1.25rem;">
-        <div class="fb-cover-banner">
-          <img src="${escapeHTML(formatDriveImageUrl(s.coverImage) || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600')}" class="fb-cover-img" alt="Cover Banner" referrerpolicy="no-referrer" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600';">
-        </div>
-      </div>
-
-      <!-- Profile & Services Header -->
-      <section style="background-color: var(--surface-alt); padding: 0.5rem 0 2.5rem; border-bottom: 1px solid var(--border-light);">
+      <!-- Facebook Style Cover & Profile Section (1920x1080 / 16:9 Cover Banner) -->
+      <section class="fb-profile-section">
         <div class="container">
-          
-          <!-- Profile Info Row (Responsive on iPad/Tablet and Desktop) -->
-          <div class="ig-profile-section">
-            <div class="ig-profile-header">
-              
-              <div class="ig-avatar-wrapper fb-overlap-avatar">
-                <img src="${escapeHTML(formatDriveImageUrl(s.profileImage) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="ig-avatar-img" alt="Studio Avatar" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
+          <!-- Facebook Cover Banner (16:9 ratio, 1920x1080 Full HD) -->
+          <div class="fb-cover-banner">
+            <img src="${escapeHTML(formatDriveImageUrl(s.coverImage) || 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600')}" class="fb-cover-img" alt="Cover Banner" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600';">
+          </div>
+
+          <!-- Facebook Profile Main Row (Avatar Overlapping Cover + Details) -->
+          <div class="fb-profile-card">
+            <div class="fb-avatar-box">
+              <img src="${escapeHTML(formatDriveImageUrl(s.profileImage) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="fb-avatar-img" alt="Studio Avatar" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
+            </div>
+
+            <div class="fb-profile-details">
+              <div class="fb-name-row">
+                <h1 class="fb-shop-title">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</h1>
+                <span class="badge badge--pink">${escapeHTML(s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล')}</span>
               </div>
 
-              <!-- Shop Info -->
-              <div class="ig-info">
-                <div class="ig-name-row">
-                  <h1 class="ig-shop-title">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</h1>
-                  <span class="badge badge--pink">${escapeHTML(s.tagline || 'Graphic & Font Studio')}</span>
-                </div>
+              <!-- Stats Pills -->
+              <div class="fb-stats-row">
+                <div class="ig-stat-item"><strong>${escapeHTML(stats.portfolioCount || '250+')}</strong> ${escapeHTML(stats.portfolioLabel || 'ผลงาน')}</div>
+                <div class="ig-stat-item"><strong>${escapeHTML(stats.fontCount || '48')}</strong> ${escapeHTML(stats.fontLabel || 'ฟอนต์')}</div>
+                <div class="ig-stat-item"><strong>${escapeHTML(stats.memberCount || '1.2k')}</strong> ${escapeHTML(stats.memberLabel || 'สมาชิก')}</div>
+              </div>
 
-                <!-- Stats Pills -->
-                <div class="ig-stats-row">
-                  <div class="ig-stat-item"><strong>${escapeHTML(stats.portfolioCount || '250+')}</strong> ${escapeHTML(stats.portfolioLabel || 'ผลงาน')}</div>
-                  <div class="ig-stat-item"><strong>${escapeHTML(stats.fontCount || '48')}</strong> ${escapeHTML(stats.fontLabel || 'ฟอนต์')}</div>
-                  <div class="ig-stat-item"><strong>${escapeHTML(stats.memberCount || '1.2k')}</strong> ${escapeHTML(stats.memberLabel || 'สมาชิก')}</div>
-                </div>
+              <!-- Bio -->
+              <p class="fb-bio-text">${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้ ตอบแชทไว ส่งงานเร็ว ไฟล์คมชัด 300 DPI ใช้งานเชิงพาณิชย์ได้')}</p>
 
-                <!-- Bio -->
-                <p class="ig-bio-text">${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้')}</p>
-
-                <!-- Action Buttons (Dynamic Contact Channels) -->
-                <div class="ig-actions-row">
-                  ${Store.getContactChannels().map((ch, idx) => {
-                    const btnClass = idx === 0 ? 'btn btn-primary btn-sm' : (idx === 1 ? 'btn btn-secondary btn-sm' : 'btn btn-outline btn-sm');
-                    const isTel = (ch.url || '').startsWith('tel:');
-                    return `
-                      <a href="${escapeHTML(ch.url || '#')}" ${isTel ? '' : 'target="_blank"'} class="${btnClass}">
-                        ${escapeHTML(ch.platform || 'ติดต่อ')}${ch.value ? `: ${escapeHTML(ch.value)}` : ''}
-                      </a>
-                    `;
-                  }).join('')}
-                </div>
+              <!-- Action Buttons (Dynamic Contact Channels) -->
+              <div class="fb-actions-row">
+                ${Store.getContactChannels().map((ch, idx) => {
+                  const btnClass = idx === 0 ? 'btn btn-primary btn-sm' : (idx === 1 ? 'btn btn-secondary btn-sm' : 'btn btn-outline btn-sm');
+                  const isTel = (ch.url || '').startsWith('tel:');
+                  return `
+                    <a href="${escapeHTML(ch.url || '#')}" ${isTel ? '' : 'target="_blank"'} class="${btnClass}">
+                      ${escapeHTML(ch.platform || 'ติดต่อ')}${ch.value ? `: ${escapeHTML(ch.value)}` : ''}
+                    </a>
+                  `;
+                }).join('')}
               </div>
             </div>
           </div>
@@ -6206,32 +6199,32 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         <div class="card" style="margin-bottom: 1.5rem;">
           <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ภาพปกร้าน, รูปโปรไฟล์ร้าน และ Bio</h3>
           <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">ลิงก์ภาพปกร้าน Facebook Cover หรือเลือกรูปจากเครื่อง</label>
+            <label class="form-label">ลิงก์ภาพปกร้าน Facebook Cover (แนะนำขนาด 1920 × 1080 px อัตราส่วน 16:9) หรือเลือกรูปจากเครื่อง</label>
             <div style="display: flex; gap: 8px; align-items: center;">
               <input type="text" id="cfg_coverImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.coverImage || '')}" placeholder="วางลิงก์รูป หรือเลือกรูปจากเครื่อง" oninput="const p=$('cfg_coverImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
               <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
                 เลือกรูป
                 <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_coverImage', 'cfg_coverImage_preview')">
               </label>
-              <div style="width: 60px; height: 36px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+              <div style="width: 64px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                 <img id="cfg_coverImage_preview" src="${escapeHTML(formatDriveImageUrl(s.coverImage) || '')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" onload="this.style.display='block';">
               </div>
             </div>
-            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป, ลิงก์ Google Drive และเลือกรูปจากเครื่องได้ทันที</small>
+            <small style="color: var(--text-muted); font-size: 0.78rem;">*แนะนำขนาด 1920 × 1080 px (16:9 Full HD) รองรับทั้งลิงก์ทั่วไป, Google Drive และเลือกไฟล์จากเครื่อง</small>
           </div>
           <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ขอบชมพูพาสเทล) หรือเลือกรูป</label>
+            <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar สไตล์ Facebook ขอบขาวหนา แนะนำ 1:1) หรือเลือกรูป</label>
             <div style="display: flex; gap: 8px; align-items: center;">
               <input type="text" id="cfg_profileImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.profileImage || '')}" placeholder="วางลิงก์รูป หรือเลือกรูปจากเครื่อง" oninput="const p=$('cfg_profileImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
               <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
                 เลือกรูป
                 <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_profileImage', 'cfg_profileImage_preview')">
               </label>
-              <div style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--primary-600); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+              <div style="width: 38px; height: 38px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.15); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                 <img id="cfg_profileImage_preview" src="${escapeHTML(formatDriveImageUrl(s.profileImage) || '')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" onload="this.style.display='block';">
               </div>
             </div>
-            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป, ลิงก์ Google Drive และเลือกรูปจากเครื่องได้ทันที</small>
+            <small style="color: var(--text-muted); font-size: 0.78rem;">*แนะนำภาพสี่เหลี่ยมจัตุรัส 1:1 คมชัด รองรับทั้งลิงก์ทั่วไป, Google Drive และเลือกไฟล์จากเครื่อง</small>
           </div>
           <div class="form-group">
             <label class="form-label">คำแนะนำร้านค้า (Bio)</label>
