@@ -8,8 +8,8 @@
 // ผู้ดูแลระบบสามารถใส่ Project URL และ Anon Key ของ Supabase ที่นี่
 // ============================================================
 const SUPABASE_CONFIG = {
-  url: 'https://vmtmmtfjhujdijbiwawa.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtdG1tdGZqaHVqZGlqYml3YXdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTIyMjMsImV4cCI6MjEwNDg2ODIyM30.26oysoMBoUzxd98gkInd4zXv7hkya4cTdAkw87G_Esk'
+  url: 'https://YOUR_PROJECT_ID.supabase.co',
+  anonKey: 'YOUR_ANON_KEY'
 };
 
 const Store = (function () {
@@ -62,23 +62,17 @@ const Store = (function () {
       mascot1: {
         name: 'น้องกระต่ายพาสเทล',
         png: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
-        quote: 'หวัดดีฮับ!',
-        quote2: 'ยินดีต้อนรับนะค้า',
-        quote3: 'เย้! BNC น่ารักจัง'
+        quote: 'หวัดดีฮับ!'
       },
       mascot2: {
         name: 'น้องหมีสตูดิโอ',
         png: 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
-        quote: 'แวะดูฟอนต์ได้น้า',
-        quote2: 'อย่าทิ้งเค้านะ!',
-        quote3: 'ร้านน่ารักม้ากก'
+        quote: 'แวะดูฟอนต์ได้น้า'
       },
       mascot3: {
         name: 'น้องแมวโมจิ',
         png: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
-        quote: 'เหมียววว~ จับได้ด้วย!',
-        quote2: 'ป้ายสวยทุกชิ้นเลย',
-        quote3: 'รัก BNC ที่สุด'
+        quote: 'เหมียววว~ จับได้ด้วย!'
       }
     },
      homeBanners: [
@@ -1220,7 +1214,11 @@ const Store = (function () {
             raw_data: s,
             updated_at: new Date().toISOString()
           };
-          await sb.from('settings').upsert(row);
+          const { error } = await sb.from('settings').upsert(row);
+          if (error) {
+            console.error('Supabase error SAVE_SETTINGS:', error);
+            return { success: false, error: error.message };
+          }
           return { success: true };
         }
 
@@ -2211,14 +2209,13 @@ const Store = (function () {
  { id: 'cc-4', platform: 'เบอร์โทรศัพท์', value: s.contactPhone || '081-234-5678', url: 'tel:' + (s.contactPhone || '0812345678') }
  ];
  },
- saveSettings: function (newSettings) {
- const data = loadLocal();
- data.settings = Object.assign({}, data.settings, newSettings);
- saveLocal(data);
- callCloud('SAVE_SETTINGS', { settings: data.settings });
- return data.settings;
- }
- ,
+    saveSettings: async function (newSettings) {
+      const data = loadLocal();
+      data.settings = Object.assign({}, data.settings, newSettings);
+      saveLocal(data);
+      const cloudRes = await callCloud('SAVE_SETTINGS', { settings: data.settings });
+      return { settings: data.settings, cloudRes };
+    },
 
     // ── Queue Management System (Queue != Order) ──
     getQueueItems: function (includeHidden = false) {
@@ -2705,33 +2702,21 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         name: m1.name || 'น้องกระต่ายพาสเทล',
         png: m1.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f430.png',
-        quotes: [
-          m1.quote || 'หวัดดีฮับ!',
-          m1.quote2 || 'ยินดีต้อนรับนะค้า',
-          m1.quote3 || 'เย้! BNC น่ารักจัง'
-        ].filter(Boolean)
+        quotes: [m1.quote || 'หวัดดีฮับ!']
       },
       {
         id: 'mascot-2',
         name: m2.name || 'น้องหมีสตูดิโอ',
         png: m2.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43b.png',
-        quotes: [
-          m2.quote || 'แวะดูฟอนต์ได้น้า',
-          m2.quote2 || 'อย่าทิ้งเค้านะ!',
-          m2.quote3 || 'ร้านน่ารักม้ากก'
-        ].filter(Boolean)
+        quotes: [m2.quote || 'แวะดูฟอนต์ได้น้า']
       },
       {
         id: 'mascot-3',
         name: m3.name || 'น้องแมวโมจิ',
         png: m3.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f431.png',
-        quotes: [
-          m3.quote || 'เหมียววว~ จับได้ด้วย!',
-          m3.quote2 || 'ป้ายสวยทุกชิ้นเลย',
-          m3.quote3 || 'รัก BNC ที่สุด'
-        ].filter(Boolean)
+        quotes: [m3.quote || 'เหมียววว~ จับได้ด้วย!']
       }
     ];
 
@@ -6029,7 +6014,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const headings = Store.getHeadings();
 
     return `
-      <form id="masterSettingsForm" onsubmit="saveMasterSettings(event)">
+      <form id="masterSettingsForm" onsubmit="event.preventDefault(); saveMasterSettings(event); return false;">
         
         <!-- 1. ข้อมูลร้าน -->
         <div class="card" style="margin-bottom: 1.5rem;">
@@ -6146,11 +6131,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </div>
 
 
-        <!-- 2. Home 1:1 Banners Manager (Hero Carousel) -->
+        <!-- 4. Home 1:1 Banners Manager (Hero Carousel) -->
         <div class="card" style="margin-bottom: 1.5rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
             <div>
-              <h3 style="color: var(--primary-deep); margin: 0 0 0.25rem;">ป้ายแบนเนอร์ 1:1 สี่เหลี่ยมจัตุรัสหน้าแรก (Hero Carousel)</h3>
+              <h3 style="color: var(--primary-deep); margin: 0 0 0.25rem;">แบนเนอร์ 1:1 สี่เหลี่ยมจัตุรัสหน้าแรก (Hero Carousel)</h3>
               <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">ภาพสไลด์จัตุรัส 1:1 ด้านบนสุดหน้าแรก สลับเปลี่ยนอัตโนมัติ</p>
             </div>
             <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddBannerForm()">+ เพิ่มแบนเนอร์ใหม่</button>
@@ -6197,7 +6182,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 3. Shop Queue & Notice Paper Settings -->
+        <!-- 5. กระดาษโน้ตสถานะคิวงาน & แจ้งเตือนร้าน (Shop Queue Board) -->
         <div class="card" style="margin-bottom: 1.5rem;">
           <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">กระดาษโน้ตสถานะคิวงาน & แจ้งเตือนร้าน (Shop Queue Board)</h3>
           <div class="form-group" style="margin-bottom: 1rem;">
@@ -6216,7 +6201,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 3.0 Queue Page Settings (หน้าเช็กคิวงาน ปรับแต่งข้อความทุกจุด) -->
+        <!-- 6. Queue Page Settings (หน้าเช็กคิวงาน ปรับแต่งข้อความทุกจุด) -->
         <div class="card" style="margin-bottom: 1.5rem;">
           <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ตั้งค่าหน้าเช็กคิวงาน (Queue Page Settings)</h3>
           <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">
@@ -6280,7 +6265,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
 
 
-        <!-- 3.0.1 Custom Categories Configuration (Item 13B) -->
+        <!-- 7. Custom Categories Configuration -->
         <div class="card" style="margin-bottom: 1.5rem;">
           <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ตั้งค่าหมวดหมู่สินค้า & ผลงาน (Categories)</h3>
           <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">พิมพ์หมวดหมู่ที่ต้องการแยกด้วยเครื่องหมายจุลภาค (,) ระบบจะอัปเดตแท็บตัวกรองและเมนูเลือกหมวดหมู่อัตโนมัติ</p>
@@ -6309,7 +6294,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 3.0.2 น้องมาสคอตลอยหน้าจอ (Interactive Floating Mascot) -->
+        <!-- 8. น้องมาสคอตลอยหน้าจอ (Interactive Floating Mascot) -->
         <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 8px;">
             <div>
@@ -6349,16 +6334,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 1</label>
-                <input type="text" id="cfg_mascot1_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote || 'หวัดดีฮับ!')}">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 2</label>
-                <input type="text" id="cfg_mascot1_quote2" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote2 || 'ยินดีต้อนรับนะค้า')}">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 3</label>
-                <input type="text" id="cfg_mascot1_quote3" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.quote3 || 'เย้! BNC น่ารักจัง')}">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดของน้อง (1 คำพูด)</label>
+                <input type="text" id="cfg_mascot1_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" placeholder="เช่น หวัดดีฮับ!" value="${escapeHTML(s.mascotSettings?.mascot1?.quote || 'หวัดดีฮับ!')}">
               </div>
             </div>
 
@@ -6388,16 +6365,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 1</label>
-                <input type="text" id="cfg_mascot2_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.quote || 'แวะดูฟอนต์ได้น้า')}">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 2</label>
-                <input type="text" id="cfg_mascot2_quote2" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.quote2 || 'อย่าทิ้งเค้านะ!')}">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 3</label>
-                <input type="text" id="cfg_mascot2_quote3" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.quote3 || 'ร้านน่ารักม้ากก')}">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดของน้อง (1 คำพูด)</label>
+                <input type="text" id="cfg_mascot2_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" placeholder="เช่น แวะดูฟอนต์ได้น้า" value="${escapeHTML(s.mascotSettings?.mascot2?.quote || 'แวะดูฟอนต์ได้น้า')}">
               </div>
             </div>
 
@@ -6427,23 +6396,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 1</label>
-                <input type="text" id="cfg_mascot3_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.quote || 'เหมียววว~ จับได้ด้วย!')}">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 2</label>
-                <input type="text" id="cfg_mascot3_quote2" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.quote2 || 'ป้ายสวยทุกชิ้นเลย')}">
-              </div>
-              <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดจิ้มรอบที่ 3</label>
-                <input type="text" id="cfg_mascot3_quote3" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.quote3 || 'รัก BNC ที่สุด')}">
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดของน้อง (1 คำพูด)</label>
+                <input type="text" id="cfg_mascot3_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" placeholder="เช่น เหมียววว~ จับได้ด้วย!" value="${escapeHTML(s.mascotSettings?.mascot3?.quote || 'เหมียววว~ จับได้ด้วย!')}">
               </div>
             </div>
           </div>
           <small style="display: block; margin-top: 0.85rem; color: var(--text-muted); font-size: 0.8rem;">แนะนำใช้ภาพ PNG โปร่งใส (Transparent PNG) หรือ SVG เพื่อให้น้องลอยได้อย่างน่ารักและไม่มีกรอบขาวกวนใจค่ะ</small>
         </div>
 
-        <!-- 3.1 Stamp Card Configuration -->
+        <!-- 9. Stamp Card Configuration -->
         <div class="card" style="margin-bottom: 1.5rem;">
           <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ตั้งค่าบัตรสะสมแต้มปั๊มหัวใจ 10 ดวง</h3>
           <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">สามารถปรับแต่งข้อความ กติกา และรูปมาสคอตบนหลอดโปรเกรสได้ทุกจุด</p>
@@ -6479,7 +6440,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 4. Page Headings & Descriptions Settings -->
+        <!-- 10. Page Headings & Descriptions Settings -->
         <div class="card" style="margin-bottom: 1.5rem;">
           <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ข้อความหัวเรื่องแต่ละหน้า (Page Headings & Descriptions)</h3>
           <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">สามารถปรับแต่งชื่อหัวข้อและคำบรรยายของทุกหน้าได้ตามต้องการ</p>
@@ -6535,7 +6496,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- บัญชีธนาคาร & คิวอาร์โค้ดรับชำระเงิน (Dynamic Bank Accounts) -->
+        <!-- 11. บัญชีธนาคาร & คิวอาร์โค้ดรับชำระเงิน (Dynamic Bank Accounts) -->
         <div class="card" style="margin-bottom: 2rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 8px;">
             <div>
@@ -6595,7 +6556,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <div style="font-weight: 700; color: var(--primary-deep);">พร้อมบันทึกการเปลี่ยนแปลงแล้วหรือยัง?</div>
             <small style="color: var(--text-muted);">ระบบจะอัปเดตการแสดงผลและข้อมูลคลาวด์ทันที</small>
           </div>
-          <button type="submit" class="btn btn-primary" style="font-weight: 800; padding: 0.75rem 2rem; font-size: 1rem; border-radius: 14px;">
+          <button type="button" onclick="saveMasterSettings(event)" class="btn btn-primary" style="font-weight: 800; padding: 0.75rem 2rem; font-size: 1rem; border-radius: 14px;">
             บันทึกการตั้งค่าทั้งหมด
           </button>
         </div>
@@ -6729,9 +6690,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
   };
 
-  window.saveMasterSettings = function (e) {
-    e.preventDefault();
+  window.saveMasterSettings = async function (e) {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+      if (typeof e.stopPropagation === 'function') e.stopPropagation();
+    }
     try {
+      const currentSettings = Store.getSettings() || {};
       const getVal = (id, fallback = '') => {
         const el = $(id);
         return el ? el.value.trim() : fallback;
@@ -6741,7 +6706,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         return el ? el.checked : fallback;
       };
 
-      const curQp = s.queuePage || {};
+      const curQp = currentSettings.queuePage || {};
       const updated = {
         shopName: getVal('cfg_shopName', 'BNC GraphMate Studio'),
         tagline: getVal('cfg_tagline', 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
@@ -6799,24 +6764,25 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           mascot1: {
             name: getVal('cfg_mascot1_name', 'น้องกระต่ายพาสเทล'),
             png: getVal('cfg_mascot1_png', 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg'),
-            quote: getVal('cfg_mascot1_quote', 'หวัดดีฮับ!'),
-            quote2: getVal('cfg_mascot1_quote2', 'ยินดีต้อนรับนะค้า'),
-            quote3: getVal('cfg_mascot1_quote3', 'เย้! BNC น่ารักจัง')
+            quote: getVal('cfg_mascot1_quote', 'หวัดดีฮับ!')
           },
           mascot2: {
             name: getVal('cfg_mascot2_name', 'น้องหมีสตูดิโอ'),
             png: getVal('cfg_mascot2_png', 'https://api.iconify.design/fluent-emoji-flat:bear.svg'),
-            quote: getVal('cfg_mascot2_quote', 'แวะดูฟอนต์ได้น้า'),
-            quote2: getVal('cfg_mascot2_quote2', 'อย่าทิ้งเค้านะ!'),
-            quote3: getVal('cfg_mascot2_quote3', 'ร้านน่ารักม้ากก')
+            quote: getVal('cfg_mascot2_quote', 'แวะดูฟอนต์ได้น้า')
           },
           mascot3: {
             name: getVal('cfg_mascot3_name', 'น้องแมวโมจิ'),
             png: getVal('cfg_mascot3_png', 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg'),
-            quote: getVal('cfg_mascot3_quote', 'เหมียววว~ จับได้ด้วย!'),
-            quote2: getVal('cfg_mascot3_quote2', 'ป้ายสวยทุกชิ้นเลย'),
-            quote3: getVal('cfg_mascot3_quote3', 'รัก BNC ที่สุด')
+            quote: getVal('cfg_mascot3_quote', 'เหมียววว~ จับได้ด้วย!')
           }
+        },
+        stampSettings: {
+          cardTitle: getVal('cfg_stampTitle', 'บัตรสะสมแต้ม BNC GraphMate'),
+          cardSubtitle: getVal('cfg_stampSubtitle', 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี'),
+          rewardText: getVal('cfg_stampRewardText', 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ'),
+          stampIconUrl: getVal('cfg_stampIconUrl', ''),
+          rulesText: getVal('cfg_stampRules', '')
         }
       };
 
@@ -6871,8 +6837,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         }
       }
 
-      Store.saveSettings(updated);
-      alert('บันทึกการตั้งค่าทั้งหมดเรียบร้อยแล้วค่ะ!');
+      const saveResult = await Store.saveSettings(updated);
+      if (saveResult && saveResult.cloudRes && saveResult.cloudRes.error) {
+        alert('บันทึกข้อมูลในเครื่องเรียบร้อยแล้ว แต่พบข้อผิดพลาดบน Supabase: ' + saveResult.cloudRes.error);
+      } else {
+        alert('บันทึกการตั้งค่าทั้งหมดเรียบร้อยแล้วค่ะ!');
+      }
       setupFloatingMascot();
       renderNavbar();
       renderCurrentView();
