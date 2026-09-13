@@ -2759,6 +2759,67 @@ select option {
   border-bottom: none;
 }
 
+/* Cute Washi Note Header for Secondary Pages (Gallery, Groups, Products, Reviews) */
+.page-washi-header {
+  position: relative;
+  background-color: #ffffff;
+  background-image: 
+    linear-gradient(rgba(226, 163, 183, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226, 163, 183, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+  border-radius: 24px;
+  border: 1.5px solid #FFD1DF;
+  padding: 1.85rem 1.75rem 1.5rem;
+  box-shadow: 0 6px 22px rgba(224, 90, 136, 0.08);
+  margin: 0 auto 2.25rem;
+  max-width: 780px;
+  text-align: center;
+  overflow: visible;
+}
+
+.page-washi-header .washi-tape-strip {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 120px;
+  height: 24px;
+  background: rgba(255, 183, 206, 0.75);
+  border: 1px solid #E2A3B7;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(113, 81, 91, 0.06);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.page-washi-header .section-tag {
+  display: inline-block;
+  background: #FFF0F5;
+  color: #B24368;
+  border: 1px solid #FFB6CE;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.page-washi-header .page-washi-title {
+  font-family: var(--font-heading);
+  color: #71515B;
+  font-size: 1.6rem;
+  margin: 0 0 0.4rem;
+  font-weight: 700;
+}
+
+.page-washi-header .page-washi-desc {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
 /* Notebook Spiral / Ring Binder Holes */
 .notebook-rings-bar {
   display: flex;
@@ -3396,7 +3457,7 @@ select option {
   gap: 1rem;
   padding-right: 1rem;
   flex-shrink: 0;
-  animation: reviewsScroll 36s linear infinite;
+  animation: reviewsScroll 55s linear infinite;
 }
 
 .reviews-marquee-track:hover .reviews-marquee-group {

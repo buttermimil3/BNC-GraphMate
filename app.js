@@ -3396,7 +3396,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 if (revList.length === 0) revList = allRev.slice(0, 8);
                 if (revList.length === 0) return '';
                 let loopList = [...revList];
-                while (loopList.length < 8) {
+                while (loopList.length < 16) {
                   loopList = loopList.concat(revList);
                 }
                 const renderCard = (r) => {
@@ -3412,7 +3412,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     </div>
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 3px;">
                       ${r.product_name ? `<span style="font-size: 0.76rem; color: var(--primary-deep); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(r.product_name)}</span>` : '<span></span>'}
-                      ${hasProof ? `<span style="font-size: 0.68rem; color: #059669; background: #ECFDF5; border: 1px solid #A7F3D0; padding: 1px 6px; border-radius: 999px; font-weight: 600; flex-shrink: 0;">มีหลักฐาน</span>` : ''}
+                      ${hasProof ? `<span style="font-size: 0.68rem; color: #B24368; background: #FFF0F5; border: 1px solid #FFB6CE; padding: 1px 7px; border-radius: 999px; font-weight: 600; flex-shrink: 0;">มีหลักฐาน</span>` : ''}
                     </div>
                     <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                       ${escapeHTML(r.message || '')}
@@ -4502,11 +4502,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
  container.innerHTML = `
  <section style="padding: 2.5rem 0 4rem;">
  <div class="container">
- <div class="section-header">
- <span class="section-tag">Digital Catalog</span>
- <h2 class="section-title">สินค้ากราฟิกสำเร็จรูป</h2>
- <p class="section-desc">ไฟล์คุณภาพสูง คมชัด 300 DPI ส่งมอบผ่าน Google Drive ทันทีหลังยืนยันการชำระเงิน</p>
- </div>
+          <!-- Kawaii Washi Note Header -->
+          <div class="page-washi-header">
+            <div class="washi-tape-strip"></div>
+            <div>
+              <span class="section-tag">Digital Catalog</span>
+            </div>
+            <h2 class="page-washi-title">สินค้ากราฟิกสำเร็จรูป</h2>
+            <p class="page-washi-desc">ไฟล์คุณภาพสูง คมชัด 300 DPI ส่งมอบผ่าน Google Drive ทันทีหลังยืนยันการชำระเงิน</p>
+          </div>
 
  <!-- Category Filters & Search -->
  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
@@ -4570,10 +4574,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     container.innerHTML = `
       <section style="padding: 2.5rem 0 4rem;">
         <div class="container">
-          <div class="section-header">
-            <span class="section-tag">VIP Community</span>
-            <h2 class="section-title">เข้ากลุ่ม LINE VIP รวมทรัพยากร</h2>
-            <p class="section-desc">จ่ายครั้งเดียวเข้ากลุ่มถาวร เลือกใส่ตะกร้าได้หลายกลุ่มพร้อมกัน พร้อมรับการอัปเดตไฟล์ใหม่ตลอดชีพ</p>
+          <!-- Kawaii Washi Note Header -->
+          <div class="page-washi-header">
+            <div class="washi-tape-strip"></div>
+            <div>
+              <span class="section-tag">VIP Community</span>
+            </div>
+            <h2 class="page-washi-title">เข้ากลุ่ม LINE VIP รวมทรัพยากร</h2>
+            <p class="page-washi-desc">จ่ายครั้งเดียวเข้ากลุ่มถาวร เลือกใส่ตะกร้าได้หลายกลุ่มพร้อมกัน พร้อมรับการอัปเดตไฟล์ใหม่ตลอดชีพ</p>
           </div>
 
           <!-- Category Filter Tabs -->
@@ -4657,12 +4665,27 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     container.innerHTML = `
       <section style="padding: 2.5rem 0 4rem;">
         <div class="container">
-          <div class="section-header">
-            <span class="section-tag">Our Works & Gallery</span>
-            <h2 class="section-title">${escapeHTML(headings.portTitle || 'แกลเลอรีผลงาน & อัตราค่าบริการ')}</h2>
-            <p class="section-desc">${escapeHTML(headings.portDesc || 'เลือกดูตามสไตล์งานที่คุณชื่นชอบ และเลือกหมวดหมู่ป้ายเพื่อดูราคาและตัวอย่างงานได้ทันที')}</p>
-            <div style="margin-top: 1.25rem; display: flex; justify-content: center; gap: 10px;">
-              <a href="${escapeHTML(s.portfolioContactUrl || s.lineUrl || '#contact-us')}" target="${(s.portfolioContactUrl || s.lineUrl || '').startsWith('#') ? '_self' : '_blank'}" class="btn btn-primary" style="font-weight: 800; border-radius: 999px; padding: 0.7rem 2.2rem; font-size: 1rem; box-shadow: 0 4px 16px rgba(255,107,151,0.25); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+          <!-- Kawaii Washi Note Header with Profile Picture & Pin -->
+          <div class="page-washi-header">
+            <div class="washi-tape-strip"></div>
+            
+            <!-- Circular Profile Picture with Cute Pin -->
+            <div style="position: relative; display: inline-block; margin-bottom: 8px;">
+              <div class="pushpin-pin" style="top: -12px; left: 50%; z-index: 10;"></div>
+              <img src="${escapeHTML(s.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80')}" alt="Shop Profile" style="width: 78px; height: 78px; border-radius: 50%; object-fit: cover; border: 3.5px solid #ffffff; outline: 1.5px solid #FFDFE9; display: block; margin: 0 auto; box-shadow: none;">
+            </div>
+            <div style="font-weight: 800; font-size: 1.15rem; color: #71515B; margin-bottom: 0.5rem; font-family: var(--font-heading);">
+              ${escapeHTML(s.shopName || 'BNC GraphMate Studio')}
+            </div>
+
+            <div>
+              <span class="section-tag">Our Works & Gallery</span>
+            </div>
+            <h2 class="page-washi-title">${escapeHTML(headings.portTitle || 'แกลเลอรีผลงาน & อัตราค่าบริการ')}</h2>
+            <p class="page-washi-desc">${escapeHTML(headings.portDesc || 'เลือกดูตามสไตล์งานที่คุณชื่นชอบ และเลือกหมวดหมู่ป้ายเพื่อดูราคาและตัวอย่างงานได้ทันที')}</p>
+
+            <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 10px;">
+              <a href="${escapeHTML(s.portfolioContactUrl || s.lineUrl || '#contact-us')}" target="${(s.portfolioContactUrl || s.lineUrl || '').startsWith('#') ? '_self' : '_blank'}" class="btn btn-primary" style="font-weight: 800; border-radius: 999px; padding: 0.65rem 2rem; font-size: 0.95rem; box-shadow: none !important; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
                 <span>สนใจสั่งงาน (ติดต่อร้าน)</span>
               </a>
             </div>
@@ -4963,13 +4986,19 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     container.innerHTML = `
       <section style="padding: 2.5rem 0 4rem;">
         <div class="container" style="max-width: 920px;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+          <!-- Kawaii Washi Note Header -->
+          <div class="page-washi-header">
+            <div class="washi-tape-strip"></div>
             <div>
               <span class="section-tag">Testimonials</span>
-              <h2 class="section-title" style="margin: 0;">รีวิวและความประทับใจจากลูกค้า</h2>
-              <p class="section-desc" style="margin: 0.35rem 0 0;">คำชมและความประทับใจจากลูกค้าที่สั่งทำป้ายและซื้อฟอนต์กับ BNC GraphMate</p>
             </div>
-            <button type="button" class="btn btn-primary" onclick="openReviewModal()">+ เขียนรีวิวร้าน</button>
+            <h2 class="page-washi-title">รีวิวและความประทับใจจากลูกค้า</h2>
+            <p class="page-washi-desc">คำชมและความประทับใจจากลูกค้าที่สั่งทำป้ายและซื้อฟอนต์กับ BNC GraphMate</p>
+            <div style="margin-top: 1rem; display: flex; justify-content: center;">
+              <button type="button" class="btn btn-primary" onclick="openReviewModal()" style="font-weight: 700; border-radius: 999px; padding: 0.55rem 1.8rem; font-size: 0.92rem; box-shadow: none !important;">
+                + เขียนรีวิวร้าน
+              </button>
+            </div>
           </div>
 
           <!-- Pinned Reviews Board (White-Pink Note Paper with Pushpin) -->
@@ -4996,7 +5025,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px; flex-wrap: wrap; gap: 6px;">
                       <div>
                         ${hasProof ? `
-                          <button type="button" class="btn btn-outline btn-sm" onclick="viewReviewDetailModal('${r.id}')" style="font-size: 11px; padding: 2px 8px; color: #059669; border-color: #A7F3D0; background: #ECFDF5;">
+                          <button type="button" class="btn btn-outline btn-sm" onclick="viewReviewDetailModal('${r.id}')" style="font-size: 11px; padding: 2px 8px; color: #B24368; border-color: #FFB6CE; background: #FFF0F5;">
                             ดูหลักฐานการซื้อขาย
                           </button>
                         ` : ''}
@@ -5034,7 +5063,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                   <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px; flex-wrap: wrap; gap: 6px;">
                     <div>
                       ${hasProof ? `
-                        <button type="button" class="btn btn-outline btn-sm" onclick="viewReviewDetailModal('${r.id}')" style="font-size: 11px; padding: 2px 8px; color: #059669; border-color: #A7F3D0; background: #ECFDF5;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="viewReviewDetailModal('${r.id}')" style="font-size: 11px; padding: 2px 8px; color: #B24368; border-color: #FFB6CE; background: #FFF0F5;">
                           ดูหลักฐานการซื้อขาย
                         </button>
                       ` : ''}
@@ -8111,7 +8140,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
             <strong style="font-size: 0.9rem; color: var(--text);">หลักฐานการสั่งซื้อจริง</strong>
             ${proofImg ? `
-              <span style="font-size: 0.75rem; color: #059669; background: #ECFDF5; border: 1px solid #A7F3D0; padding: 2px 8px; border-radius: 999px; font-weight: 600;">
+              <span style="font-size: 0.75rem; color: #B24368; background: #FFF0F5; border: 1px solid #FFB6CE; padding: 2px 8px; border-radius: 999px; font-weight: 600;">
                 ยืนยันการซื้อขายแล้ว
               </span>
             ` : ''}
