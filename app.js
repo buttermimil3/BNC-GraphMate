@@ -3153,14 +3153,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </nav>
 
         <div class="navbar-end-actions">
-          <a href="#home" class="nav-circle-btn" aria-label="หน้าแรก" title="หน้าแรก">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B97" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <a href="#home" class="nav-circle-btn" aria-label="หน้าแรก" title="หน้าแรก" onclick="toggleMobileNav(false)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B26E86" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z"/>
               <polyline points="9 22 9 12 15 12 15 22"/>
             </svg>
           </a>
           <button class="hamburger-btn nav-circle-btn" onclick="toggleMobileNav()" aria-label="เปิดเมนู" title="เมนู">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B97" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B26E86" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="4" y1="12" x2="20" y2="12"/>
               <line x1="4" y1="6" x2="20" y2="6"/>
               <line x1="4" y1="18" x2="20" y2="18"/>
@@ -3169,12 +3169,26 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </div>
       </div>
     `;
- }
+  }
 
- window.toggleMobileNav = function () {
- const menu = $('navbarMenu');
- if (menu) menu.classList.toggle('is-open');
- };
+  window.toggleMobileNav = function (forceState) {
+    const menu = $('navbarMenu');
+    if (!menu) return;
+    if (typeof forceState === 'boolean') {
+      menu.classList.toggle('is-open', forceState);
+    } else {
+      menu.classList.toggle('is-open');
+    }
+  };
+
+  // Close menu when clicking outside
+  document.addEventListener('click', (e) => {
+    const menu = $('navbarMenu');
+    const actions = e.target.closest('.navbar-end-actions');
+    if (menu && menu.classList.contains('is-open') && !menu.contains(e.target) && !actions) {
+      menu.classList.remove('is-open');
+    }
+  });
 
  // ── Master View Switcher ─────────────────────────────────────
  function renderCurrentView() {
@@ -3382,11 +3396,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 if (revList.length === 0) revList = allRev.slice(0, 8);
                 if (revList.length === 0) return '';
                 let loopList = [...revList];
-                while (loopList.length < 5) {
+                while (loopList.length < 8) {
                   loopList = loopList.concat(revList);
                 }
-                const renderCard = (r) => `
-                  <div class="review-ticker-bubble" onclick="location.hash='#reviews'">
+                const renderCard = (r) => {
+                  const hasProof = !!(r.proof_image || r.proof_image_url || r.image_url);
+                  return `
+                  <div class="review-ticker-bubble" onclick="viewReviewDetailModal('${r.id}')" title="คลิกเพื่อดูรีวิวและหลักฐานการซื้อขาย">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
                       <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
                         <span class="ticker-avatar">${escapeHTML((r.customer_name || 'U').trim().charAt(0))}</span>
@@ -3394,12 +3410,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                       </div>
                       <span style="color: #F59E0B; font-size: 0.82rem; letter-spacing: 1px; flex-shrink: 0;">${'★'.repeat(r.rating || 5)}</span>
                     </div>
-                    ${r.product_name ? `<div style="font-size: 0.76rem; color: var(--primary-deep); font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(r.product_name)}</div>` : ''}
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 3px;">
+                      ${r.product_name ? `<span style="font-size: 0.76rem; color: var(--primary-deep); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(r.product_name)}</span>` : '<span></span>'}
+                      ${hasProof ? `<span style="font-size: 0.68rem; color: #059669; background: #ECFDF5; border: 1px solid #A7F3D0; padding: 1px 6px; border-radius: 999px; font-weight: 600; flex-shrink: 0;">มีหลักฐาน</span>` : ''}
+                    </div>
                     <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                       ${escapeHTML(r.message || '')}
                     </p>
                   </div>
-                `;
+                `;};
                 return `
                   <div class="home-reviews-marquee-container">
                     <div class="reviews-marquee-track">
@@ -4644,7 +4663,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <p class="section-desc">${escapeHTML(headings.portDesc || 'เลือกดูตามสไตล์งานที่คุณชื่นชอบ และเลือกหมวดหมู่ป้ายเพื่อดูราคาและตัวอย่างงานได้ทันที')}</p>
             <div style="margin-top: 1.25rem; display: flex; justify-content: center; gap: 10px;">
               <a href="${escapeHTML(s.portfolioContactUrl || s.lineUrl || '#contact-us')}" target="${(s.portfolioContactUrl || s.lineUrl || '').startsWith('#') ? '_self' : '_blank'}" class="btn btn-primary" style="font-weight: 800; border-radius: 999px; padding: 0.7rem 2.2rem; font-size: 1rem; box-shadow: 0 4px 16px rgba(255,107,151,0.25); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                <span>💬 สนใจสั่งงาน (ติดต่อร้าน)</span>
+                <span>สนใจสั่งงาน (ติดต่อร้าน)</span>
               </a>
             </div>
           </div>
@@ -4963,8 +4982,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 ${pinnedReviews.map(r => {
                   const isHome = homeIds.includes(r.id);
+                  const hasProof = !!(r.proof_image || r.proof_image_url || r.image_url);
                   return `
-                  <div class="pinned-review-card">
+                  <div class="pinned-review-card" style="cursor: pointer;" onclick="if (!event.target.closest('button')) viewReviewDetailModal('${r.id}')" title="คลิกเพื่อดูรีวิวและหลักฐาน">
                     <div class="pushpin-pin"></div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                       <span class="pinned-tape-badge">รีวิวแนะนำ</span>
@@ -4973,14 +4993,23 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     <div style="font-weight: 700; color: var(--text); font-size: 1.05rem; margin-bottom: 4px;">${escapeHTML(r.customer_name || 'ลูกค้า')}</div>
                     ${r.product_name ? `<span class="badge badge--pink" style="margin-bottom: 0.6rem; display: inline-block;">${escapeHTML(r.product_name)}</span>` : ''}
                     <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 0 0 0.75rem;">${escapeHTML(r.message)}</p>
-                    ${state.isAdmin ? `
-                      <div style="display: flex; justify-content: flex-end; gap: 6px; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px;">
-                        <button type="button" class="btn btn-sm ${isHome ? 'btn-primary' : 'btn-outline'}" onclick="toggleHomeReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">
-                          ${isHome ? '✓ แสดงหน้าโฮม' : '+ โชว์หน้าโฮม'}
-                        </button>
-                        <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">ปลดหมุด</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px; flex-wrap: wrap; gap: 6px;">
+                      <div>
+                        ${hasProof ? `
+                          <button type="button" class="btn btn-outline btn-sm" onclick="viewReviewDetailModal('${r.id}')" style="font-size: 11px; padding: 2px 8px; color: #059669; border-color: #A7F3D0; background: #ECFDF5;">
+                            ดูหลักฐานการซื้อขาย
+                          </button>
+                        ` : ''}
                       </div>
-                    ` : ''}
+                      ${state.isAdmin ? `
+                        <div style="display: flex; gap: 6px;">
+                          <button type="button" class="btn btn-sm ${isHome ? 'btn-primary' : 'btn-outline'}" onclick="toggleHomeReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">
+                            ${isHome ? 'แสดงหน้าโฮม' : 'โชว์หน้าโฮม'}
+                          </button>
+                          <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">ปลดหมุด</button>
+                        </div>
+                      ` : ''}
+                    </div>
                   </div>
                 `;}).join('')}
               </div>
@@ -4993,22 +5022,32 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               ${regularReviews.map(r => {
                 const isHome = homeIds.includes(r.id);
+                const hasProof = !!(r.proof_image || r.proof_image_url || r.image_url);
                 return `
-                <div class="card">
+                <div class="card" style="cursor: pointer;" onclick="if (!event.target.closest('button')) viewReviewDetailModal('${r.id}')" title="คลิกเพื่อดูรีวิวและหลักฐาน">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
                     <span style="font-weight: 700; color: var(--text); font-size: 1rem;">${escapeHTML(r.customer_name || 'ลูกค้า')}</span>
                     <span style="color: #F59E0B; font-size: 1rem;">${'★'.repeat(r.rating || 5)}</span>
                   </div>
                   ${r.product_name ? `<span class="badge badge--pink" style="margin-bottom: 0.5rem;">${escapeHTML(r.product_name)}</span>` : ''}
                   <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin: 0 0 0.75rem;">${escapeHTML(r.message)}</p>
-                  ${state.isAdmin ? `
-                    <div style="display: flex; justify-content: flex-end; gap: 6px; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px;">
-                      <button type="button" class="btn btn-sm ${isHome ? 'btn-primary' : 'btn-outline'}" onclick="toggleHomeReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">
-                        ${isHome ? '✓ แสดงหน้าโฮม' : '+ โชว์หน้าโฮม'}
-                      </button>
-                      <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">ปักหมุด</button>
+                  <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px; flex-wrap: wrap; gap: 6px;">
+                    <div>
+                      ${hasProof ? `
+                        <button type="button" class="btn btn-outline btn-sm" onclick="viewReviewDetailModal('${r.id}')" style="font-size: 11px; padding: 2px 8px; color: #059669; border-color: #A7F3D0; background: #ECFDF5;">
+                          ดูหลักฐานการซื้อขาย
+                        </button>
+                      ` : ''}
                     </div>
-                  ` : ''}
+                    ${state.isAdmin ? `
+                      <div style="display: flex; gap: 6px;">
+                        <button type="button" class="btn btn-sm ${isHome ? 'btn-primary' : 'btn-outline'}" onclick="toggleHomeReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">
+                          ${isHome ? 'แสดงหน้าโฮม' : 'โชว์หน้าโฮม'}
+                        </button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">ปักหมุด</button>
+                      </div>
+                    ` : ''}
+                  </div>
                 </div>
               `;}).join('')}
             </div>
@@ -5103,7 +5142,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
           <div style="text-align: center; margin-top: 1.5rem;">
             <button type="button" id="btnRefreshOrders" class="btn btn-outline btn-sm" onclick="refreshOrdersView(this)" style="gap: 6px;">
-              🔄 รีเฟรชออเดอร์
+              รีเฟรชออเดอร์
             </button>
           </div>
         </div>
@@ -5119,10 +5158,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   }
 
   window.refreshOrdersView = function(btn) {
-    if (btn) { btn.textContent = '⏳ กำลังโหลด...'; btn.disabled = true; }
+    if (btn) { btn.textContent = 'กำลังโหลด...'; btn.disabled = true; }
     Store.syncFromCloud((isOk) => {
       if (state.view === 'orders') renderCurrentView();
-      if (btn) { btn.textContent = '🔄 รีเฟรชออเดอร์'; btn.disabled = false; }
+      if (btn) { btn.textContent = 'รีเฟรชออเดอร์'; btn.disabled = false; }
     });
   };
 
@@ -5182,7 +5221,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <div class="form-group" style="margin-bottom: 1.35rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
                 <label class="form-label" style="margin: 0; font-weight: 600; font-size: 0.85rem;">รหัสผ่าน (Password)</label>
-                <span style="font-size: 0.78rem; color: var(--primary); cursor: pointer; font-weight: 600;" onclick="togglePasswordVisibility('authPassword')">👁️ ดูรหัส</span>
+                <span style="font-size: 0.78rem; color: var(--primary); cursor: pointer; font-weight: 600;" onclick="togglePasswordVisibility('authPassword')">ดูรหัส</span>
               </div>
               <input type="password" id="authPassword" class="form-input" placeholder="••••••••" required minlength="6" autocomplete="current-password">
             </div>
@@ -5190,12 +5229,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <div id="authErrorMessage" style="display: none; padding: 0.65rem 0.85rem; border-radius: 10px; background: #fee2e2; color: #b91c1c; font-size: 0.82rem; margin-bottom: 1rem; border: 1px solid #fca5a5;"></div>
 
             <button type="submit" id="authSubmitBtn" class="btn btn-primary" style="width: 100%; border-radius: 14px; font-weight: 700; padding: 0.85rem; font-size: 0.95rem; box-shadow: var(--shadow-sm);">
-              🔓 เข้าสู่ระบบ
+              เข้าสู่ระบบ
             </button>
           </form>
 
           <div style="margin-top: 1.5rem; text-align: center; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
-            💡 บัญชีทดสอบเริ่มต้น: <code>admin@bnc.com</code> / รหัสผ่าน: <code>123456</code>
+            บัญชีทดสอบเริ่มต้น: <code>admin@bnc.com</code> / รหัสผ่าน: <code>123456</code>
           </div>
 
         </div>
@@ -5221,7 +5260,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   </div>
   </div>
   <div style="display: flex; gap: 0.5rem; align-items: center;">
-  <button type="button" class="btn btn-outline btn-sm" onclick="syncCloudManual()">🔄 รีเฟรช Cloud</button>
+  <button type="button" class="btn btn-outline btn-sm" onclick="syncCloudManual()">รีเฟรช Cloud</button>
   <button type="button" class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="handleAdminLogout()">ออกจากระบบ</button>
   </div>
   </div></div>
@@ -6009,7 +6048,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                         title="คลิกเพื่อเลื่อนสถานะและเปอร์เซ็นต์ (0% รอคิว -> 25% รับบรีฟ -> 50% กำลังทำ -> 75% กำลังเช็ค -> 100% ส่งงานเรียบร้อย)"
                         style="background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B; font-weight: 700; padding: 4px 10px; border-radius: 999px; cursor: pointer; white-space: nowrap; font-size: 11px;"
                       >
-                        ${escapeHTML(getStageLabelByProgress(progressPct))} (${progressPct}%) ↻
+                        ${escapeHTML(getStageLabelByProgress(progressPct))} (${progressPct}%)
                       </button>
                     </td>
                     <td style="text-align: center;">
@@ -6663,7 +6702,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 8px;">
             <div>
               <h3 style="color: var(--primary-deep); margin-bottom: 0.25rem;">น้องมาสคอตลอยหน้าจอ (Interactive Floating Mascot)</h3>
-              <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0;">ลอย 1 ตัวน่ารักบนหน้าจอ พร้อมแปลงร่างและพูดคุยเมื่อคลิกวนรอบ 3 ครั้ง: <strong>คลิกครั้งที่ 1 (ตัวที่ 1) ➔ คลิกครั้งที่ 2 (แปลงร่างเป็นตัวที่ 2) ➔ คลิกครั้งที่ 3 (แปลงร่างเป็นตัวที่ 3)</strong> และกดค้างลากน้องไปมาได้รอบจอ (รองรับไฟล์ .GIF ดุ๊กดิ๊ก, .PNG, .SVG)</p>
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0;">ลอย 1 ตัวน่ารักบนหน้าจอ พร้อมแปลงร่างและพูดคุยเมื่อคลิกวนรอบ 3 ครั้ง: <strong>คลิกครั้งที่ 1 (ตัวที่ 1) -> คลิกครั้งที่ 2 (แปลงร่างเป็นตัวที่ 2) -> คลิกครั้งที่ 3 (แปลงร่างเป็นตัวที่ 3)</strong> และกดค้างลากน้องไปมาได้รอบจอ (รองรับไฟล์ .GIF ดุ๊กดิ๊ก, .PNG, .SVG)</p>
             </div>
             <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: var(--surface-alt); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);">
               <input type="checkbox" id="cfg_mascotEnabled" ${(s.mascotSettings?.enabled !== false) ? 'checked' : ''} style="accent-color: var(--primary-600);">
@@ -6927,7 +6966,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         <div class="card" style="margin-bottom: 1.5rem;">
           <div class="card-header">
             <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-              <span>📄 ข้อมูลท้ายเว็บ (Footer ท้ายกระดาษ)</span>
+              <span>ข้อมูลท้ายเว็บ (Footer ท้ายกระดาษ)</span>
             </h3>
             <p class="card-subtitle">ปรับแต่งข้อความชื่อสตูดิโอ คำอธิบาย และลิขสิทธิ์ที่แสดงท้ายหน้าเว็บ</p>
           </div>
@@ -6951,7 +6990,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         <div class="card" style="margin-bottom: 1.5rem;">
           <div class="card-header">
             <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-              <span>⭐ เลือกรีวิวแสดงที่หน้าโฮม (ใต้ Contact)</span>
+              <span>เลือกรีวิวแสดงที่หน้าโฮม (ใต้ Contact)</span>
             </h3>
             <p class="card-subtitle">เลือกรีวิวจากลูกค้าที่ต้องการให้ไหลแสดงต่อเนื่องใต้ช่องทางติดต่อหน้าแรก</p>
           </div>
@@ -6982,7 +7021,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         <div class="card" style="margin-bottom: 1.5rem;">
           <div class="card-header">
             <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-              <span>🎨 ลิงก์ปุ่มสนใจสั่งงาน (Our Works & Gallery)</span>
+              <span>ลิงก์ปุ่มสนใจสั่งงาน (Our Works & Gallery)</span>
             </h3>
             <p class="card-subtitle">กำหนดลิงก์ที่ต้องการให้ลูกค้ากดจากปุ่ม "สนใจสั่งงาน" (เช่น ลิงก์ LINE หรือช่องทางติดต่อ)</p>
           </div>
@@ -7041,7 +7080,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       const originalText = btn ? btn.textContent : '';
       if (btn) {
         btn.disabled = true;
-        btn.textContent = '⏳ กำลังซิงก์ Cloud...';
+        btn.textContent = 'กำลังซิงก์ Cloud...';
       }
       await Store.syncFromCloud((isOk, detail) => {
         if (isOk) {
@@ -7446,7 +7485,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
     if (btn) {
       btn.disabled = true;
-      btn.textContent = '⏳ กำลังตรวจสอบสิทธิ์...';
+      btn.textContent = 'กำลังตรวจสอบสิทธิ์...';
     }
 
     const sb = Store.getSupabase();
@@ -7498,7 +7537,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     } else {
       if (btn) {
         btn.disabled = false;
-        btn.textContent = '🔓 เข้าสู่ระบบ';
+        btn.textContent = 'เข้าสู่ระบบ';
       }
       if (errBox) {
         errBox.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้งค่ะ';
@@ -7971,6 +8010,138 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
   window.closeReceiptModal = function () {
     const modal = $('receiptModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
+  window.openReviewModal = function (orderId = '', productName = '') {
+    const modal = $('reviewModal');
+    if (!modal) return;
+    if ($('rev_name')) $('rev_name').value = '';
+    if ($('rev_rating')) $('rev_rating').value = '5';
+    if ($('rev_product')) $('rev_product').value = productName || '';
+    if ($('rev_message')) $('rev_message').value = '';
+    if ($('rev_proof_image')) $('rev_proof_image').value = '';
+    const prev = $('rev_proof_preview');
+    const wrap = $('rev_proof_preview_wrap');
+    if (prev) prev.src = '';
+    if (wrap) wrap.style.display = 'none';
+    modal.classList.add('is-active');
+  };
+
+  window.closeReviewModal = function () {
+    const modal = $('reviewModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
+  window.handleReviewProofUpload = function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const b64 = evt.target.result;
+      const inp = $('rev_proof_image');
+      const prev = $('rev_proof_preview');
+      const wrap = $('rev_proof_preview_wrap');
+      if (inp) inp.value = b64;
+      if (prev) prev.src = b64;
+      if (wrap) wrap.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.handleSaveReviewSubmit = async function (e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const name = ($('rev_name')?.value || '').trim();
+    const rating = parseInt($('rev_rating')?.value || '5', 10);
+    const prod = ($('rev_product')?.value || '').trim();
+    const msg = ($('rev_message')?.value || '').trim();
+    const proof = ($('rev_proof_image')?.value || '').trim();
+
+    if (!name || !msg) {
+      alert('กรุณากรอกชื่อและข้อความรีวิวให้ครบถ้วนนะคะ');
+      return;
+    }
+
+    const proofUrl = formatDriveImageUrl(proof);
+    const newRev = {
+      customer_name: name,
+      rating: rating,
+      product_name: prod,
+      message: msg,
+      proof_image: proofUrl,
+      image_url: proofUrl,
+      status: 'APPROVED'
+    };
+
+    Store.addReview(newRev);
+    alert('ขอบคุณสำหรับรีวิวค่ะ บันทึกข้อมูลเรียบร้อยแล้ว');
+    closeReviewModal();
+    renderCurrentView();
+  };
+
+  window.viewReviewDetailModal = function (reviewId) {
+    const rev = (Store.getAllReviews() || []).find(r => r.id === reviewId);
+    if (!rev) return;
+    const modal = $('reviewDetailModal');
+    const body = $('reviewDetailModalBody');
+    if (!modal || !body) return;
+
+    const proofImg = rev.proof_image || rev.proof_image_url || rev.image_url;
+    const cleanStars = '★'.repeat(rev.rating || 5);
+
+    body.innerHTML = `
+      <div style="text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+          <div>
+            <h3 style="margin: 0 0 4px; font-size: 1.15rem; color: var(--primary-deep); font-weight: 700;">
+              ${escapeHTML(rev.customer_name || 'ลูกค้า')}
+            </h3>
+            ${rev.product_name ? `<span class="badge badge--pink" style="font-size: 0.78rem;">${escapeHTML(rev.product_name)}</span>` : ''}
+          </div>
+          <span style="color: #F59E0B; font-size: 1.1rem; letter-spacing: 2px;">${cleanStars}</span>
+        </div>
+
+        <div style="background: var(--surface-alt); border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 1rem; margin-bottom: 1.25rem;">
+          <p style="margin: 0; font-size: 0.95rem; color: var(--text); line-height: 1.6; white-space: pre-line;">
+            ${escapeHTML(rev.message || '')}
+          </p>
+        </div>
+
+        <div style="border-top: 1px solid var(--border-light); padding-top: 1rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+            <strong style="font-size: 0.9rem; color: var(--text);">หลักฐานการสั่งซื้อจริง</strong>
+            ${proofImg ? `
+              <span style="font-size: 0.75rem; color: #059669; background: #ECFDF5; border: 1px solid #A7F3D0; padding: 2px 8px; border-radius: 999px; font-weight: 600;">
+                ยืนยันการซื้อขายแล้ว
+              </span>
+            ` : ''}
+          </div>
+
+          ${proofImg ? `
+            <div style="text-align: center; background: #FFF7F9; border: 1.5px dashed #FFDFE9; border-radius: 14px; padding: 10px;">
+              <img src="${escapeHTML(proofImg)}" alt="หลักฐานการซื้อขาย" style="max-height: 280px; max-width: 100%; border-radius: 10px; cursor: pointer; object-fit: contain; box-shadow: 0 2px 8px rgba(113,81,91,0.08);" onclick="openLightbox('${escapeHTML(proofImg)}')" title="คลิกเพื่อดูรูปขยาย">
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">คลิกที่รูปเพื่อดูภาพขนาดใหญ่</div>
+            </div>
+          ` : `
+            <div style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.85rem; background: var(--surface-alt); border-radius: 12px;">
+              ไม่มีภาพหลักฐานแนบมาสำหรับรีวิวนี้
+            </div>
+          `}
+        </div>
+
+        <div style="margin-top: 1.25rem; text-align: right;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="closeReviewDetailModal()" style="font-weight: 700; padding: 0.5rem 1.5rem; border-radius: 12px;">
+            ปิดหน้าต่าง
+          </button>
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('is-active');
+  };
+
+  window.closeReviewDetailModal = function () {
+    const modal = $('reviewDetailModal');
     if (modal) modal.classList.remove('is-active');
   };
 
@@ -8744,6 +8915,76 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       </div>
     `;
     document.body.appendChild(receiptModal);
+
+    // Review Modal (ลูกค้าเขียนรีวิว + แนบภาพหลักฐานการซื้อขาย)
+    const reviewModal = document.createElement('div');
+    reviewModal.id = 'reviewModal';
+    reviewModal.className = 'modal-overlay';
+    reviewModal.onclick = (e) => { if (e.target === reviewModal) closeReviewModal(); };
+    reviewModal.innerHTML = `
+      <div class="modal-card" style="max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem; font-weight: 700;">เขียนรีวิวร้านค้า</h3>
+          <button type="button" onclick="closeReviewModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color: var(--text-muted);">✕</button>
+        </div>
+        <form onsubmit="handleSaveReviewSubmit(event)">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ชื่อของคุณ / นามแฝง <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="rev_name" class="form-input" placeholder="เช่น ลูกค้าประจำ, คุณแนน" required>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">คะแนนความพึงพอใจ</label>
+              <select id="rev_rating" class="form-input">
+                <option value="5">★★★★★ (5 ดาว - ประทับใจมาก)</option>
+                <option value="4">★★★★☆ (4 ดาว - ดีมาก)</option>
+                <option value="3">★★★☆☆ (3 ดาว - ปานกลาง)</option>
+                <option value="2">★★☆☆☆ (2 ดาว - พอใช้)</option>
+                <option value="1">★☆☆☆☆ (1 ดาว - ปรับปรุง)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ชื่องาน / สินค้าที่สั่งซื้อ</label>
+              <input type="text" id="rev_product" class="form-input" placeholder="เช่น ป้ายเมนู, ฟอนต์ลายมือ">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <label class="form-label" style="font-weight: 700;">ความประทับใจ / ข้อความรีวิว <span style="color:var(--danger)">*</span></label>
+            <textarea id="rev_message" class="form-input" rows="3" placeholder="ประทับใจงานมาก ลายมือน่ารัก ส่งงานไว..." required></textarea>
+          </div>
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-weight: 700;">แนบภาพหลักฐานการซื้อขายจริง (สลิปโอน / แชทสั่งซื้อ / ผลงานที่ได้รับ)</label>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px;">* ภาพจะแสดงเป็นหลักฐานยืนยันความน่าเชื่อถือเมื่อมีคนกดดูรีวิวเท่านั้น ไม่โชว์หน้าแรก</div>
+            <input type="file" id="rev_proof_file" class="form-input" accept="image/*" onchange="handleReviewProofUpload(event)" style="padding: 6px;">
+            <input type="hidden" id="rev_proof_image">
+            <div id="rev_proof_preview_wrap" style="display: none; margin-top: 8px; text-align: center;">
+              <img id="rev_proof_preview" src="" style="max-height: 160px; max-width: 100%; border-radius: 8px; border: 1px solid var(--border);">
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="closeReviewModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="font-weight: 700;">ส่งรีวิวร้าน</button>
+          </div>
+        </form>
+      </div>
+    `;
+    document.body.appendChild(reviewModal);
+
+    // Review Detail Modal (เปิดดูรายละเอียดรีวิว + ภาพหลักฐานการซื้อขายจริง)
+    const reviewDetailModal = document.createElement('div');
+    reviewDetailModal.id = 'reviewDetailModal';
+    reviewDetailModal.className = 'modal-overlay';
+    reviewDetailModal.onclick = (e) => { if (e.target === reviewDetailModal) closeReviewDetailModal(); };
+    reviewDetailModal.innerHTML = `
+      <div class="modal-card" style="max-width: 520px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem; font-weight: 700;">รายละเอียดรีวิวจากลูกค้า</h3>
+          <button type="button" onclick="closeReviewDetailModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color: var(--text-muted);">✕</button>
+        </div>
+        <div id="reviewDetailModalBody"></div>
+      </div>
+    `;
+    document.body.appendChild(reviewDetailModal);
   }
 
   // ── Lightbox Helpers ──────────────────────────────────────────
