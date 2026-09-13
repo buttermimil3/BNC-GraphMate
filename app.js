@@ -737,20 +737,94 @@ const Store = (function () {
     return getFallbackFont(font);
   }
 
+  // ── IndexedDB Storage Engine (รองรับไฟล์รูป GIF ดุ๊กดิ๊ก และรูปภาพขนาดใหญ่ได้ไม่จำกัด) ──
+  const IDB_NAME = 'BNC_GRAPHMATE_STORE_DB';
+  const IDB_STORE_NAME = 'store_data';
+
+  function openIDB() {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined' || !window.indexedDB) return resolve(null);
+      try {
+        const req = window.indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(IDB_STORE_NAME)) {
+            db.createObjectStore(IDB_STORE_NAME);
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      } catch (err) {
+        resolve(null);
+      }
+    });
+  }
+
+  async function idbSaveStore(data) {
+    try {
+      const db = await openIDB();
+      if (!db) return;
+      const tx = db.transaction(IDB_STORE_NAME, 'readwrite');
+      tx.objectStore(IDB_STORE_NAME).put(data, 'main_data');
+    } catch (err) {
+      console.warn('idbSaveStore error:', err);
+    }
+  }
+
+  async function idbLoadStore() {
+    try {
+      const db = await openIDB();
+      if (!db) return null;
+      return new Promise((resolve) => {
+        const tx = db.transaction(IDB_STORE_NAME, 'readonly');
+        const req = tx.objectStore(IDB_STORE_NAME).get('main_data');
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    } catch (err) {
+      return null;
+    }
+  }
+
+  let _memoryStoreData = null;
+
+  // Hydrate from IndexedDB on startup (loads full GIF animations and images)
+  if (typeof window !== 'undefined' && window.indexedDB) {
+    idbLoadStore().then(idbData => {
+      if (idbData && idbData.settings) {
+        _memoryStoreData = idbData;
+        if (typeof setupFloatingMascot === 'function') setupFloatingMascot();
+      }
+    }).catch(() => {});
+  }
+
   // ดึงข้อมูลจาก Local Cache ทันที (เพื่อให้เว็บโหลดเร็ว 0.01 วินาที)
   function loadLocal() {
+    if (_memoryStoreData) {
+      return _memoryStoreData;
+    }
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         const merged = Object.assign({}, defaultData, parsed);
         merged.settings = Object.assign({}, defaultData.settings, parsed.settings || {});
+
+        // Deep merge mascotSettings so mascot2 & mascot3 are never lost
+        const defM = defaultData.settings.mascotSettings || {};
+        const parM = parsed.settings?.mascotSettings || {};
+        merged.settings.mascotSettings = {
+          enabled: parM.enabled !== undefined ? parM.enabled : defM.enabled,
+          mascot1: Object.assign({}, defM.mascot1 || {}, parM.mascot1 || {}),
+          mascot2: Object.assign({}, defM.mascot2 || {}, parM.mascot2 || {}),
+          mascot3: Object.assign({}, defM.mascot3 || {}, parM.mascot3 || {})
+        };
+
         if (!merged.settings.stampSettings) merged.settings.stampSettings = defaultData.settings.stampSettings;
         if (!merged.settings.homeBanners || merged.settings.homeBanners.length === 0) merged.settings.homeBanners = defaultData.settings.homeBanners;
         if (!merged.queue_items || merged.queue_items.length === 0) merged.queue_items = defaultData.queue_items;
         if (!merged.settings.queuePage) merged.settings.queuePage = defaultData.settings.queuePage;
         if (!merged.groups) merged.groups = defaultData.groups;
-        if (!merged.settings.mascotSettings) merged.settings.mascotSettings = defaultData.settings.mascotSettings;
         
         if (merged.settings) {
           if (merged.settings.profileImage) merged.settings.profileImage = formatDriveImageUrl(merged.settings.profileImage);
@@ -801,19 +875,36 @@ const Store = (function () {
             }
           });
         }
+        _memoryStoreData = merged;
         return merged;
       }
     } catch (e) {
       console.warn('Load local cache failed', e);
     }
-    return JSON.parse(JSON.stringify(defaultData));
+    const fallback = JSON.parse(JSON.stringify(defaultData));
+    _memoryStoreData = fallback;
+    return fallback;
   }
 
   function saveLocal(data) {
+    _memoryStoreData = data;
+    // Always persist full data (including large GIF animations) to IndexedDB
+    idbSaveStore(data);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
-      console.error('Save local cache failed', e);
+      console.warn('LocalStorage save failed (likely quota exceeded for large images), falling back to slim cache:', e);
+      try {
+        const slim = JSON.parse(JSON.stringify(data, (key, value) => {
+          if (typeof value === 'string' && value.startsWith('data:') && value.length > 50000) {
+            return value.slice(0, 100);
+          }
+          return value;
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+      } catch (err2) {
+        console.warn('LocalStorage slim save also failed, relying on in-memory and IndexedDB:', err2);
+      }
     }
   }
 
@@ -1390,7 +1481,17 @@ const Store = (function () {
           pointsPerHundredBaht: sRow.points_per_hundred_baht || sObj.pointsPerHundredBaht || local.settings.pointsPerHundredBaht,
           adminPin: sRow.admin_pin || sObj.adminPin || local.settings.adminPin || '123456',
           stats: sRow.stats || sObj.stats || local.settings.stats,
-          mascotSettings: sRow.mascot_settings || sObj.mascotSettings || local.settings.mascotSettings,
+          mascotSettings: (() => {
+            const cloudM = sRow.mascot_settings || sObj.mascotSettings || {};
+            const locM = (local.settings && local.settings.mascotSettings) ? local.settings.mascotSettings : {};
+            const defM = defaultData.settings.mascotSettings || {};
+            return {
+              enabled: cloudM.enabled !== undefined ? cloudM.enabled : (locM.enabled !== undefined ? locM.enabled : defM.enabled),
+              mascot1: Object.assign({}, defM.mascot1 || {}, locM.mascot1 || {}, cloudM.mascot1 || {}),
+              mascot2: Object.assign({}, defM.mascot2 || {}, locM.mascot2 || {}, cloudM.mascot2 || {}),
+              mascot3: Object.assign({}, defM.mascot3 || {}, locM.mascot3 || {}, cloudM.mascot3 || {})
+            };
+          })(),
           homeBanners: sRow.home_banners || sObj.homeBanners || local.settings.homeBanners,
           queueStatus: sRow.queue_status || sObj.queueStatus || local.settings.queueStatus,
           queuePage: sRow.queue_page || sObj.queuePage || local.settings.queuePage,
@@ -2700,21 +2801,21 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       {
         id: 'mascot-1',
         name: m1.name || 'น้องกระต่ายพาสเทล',
-        png: m1.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
+        png: formatDriveImageUrl(m1.png) || m1.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f430.png',
         quotes: [m1.quote || 'หวัดดีฮับ!']
       },
       {
         id: 'mascot-2',
         name: m2.name || 'น้องหมีสตูดิโอ',
-        png: m2.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
+        png: formatDriveImageUrl(m2.png) || m2.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f43b.png',
         quotes: [m2.quote || 'แวะดูฟอนต์ได้น้า']
       },
       {
         id: 'mascot-3',
         name: m3.name || 'น้องแมวโมจิ',
-        png: m3.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
+        png: formatDriveImageUrl(m3.png) || m3.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
         fallbackPng: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f431.png',
         quotes: [m3.quote || 'เหมียววว~ จับได้ด้วย!']
       }
@@ -2737,7 +2838,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     img.style.userSelect = 'none';
     img.onerror = () => {
       const cur = mascotConfigs[currentIdx];
-      if (cur && cur.fallbackPng && img.src !== cur.fallbackPng) {
+      if (cur && cur.fallbackPng && img.src !== cur.fallbackPng && !img.src.startsWith('data:')) {
         img.src = cur.fallbackPng;
       }
     };
@@ -2786,7 +2887,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       img.src = cur.png;
       img.alt = cur.name;
       img.onerror = () => {
-        if (cur.fallbackPng && img.src !== cur.fallbackPng) {
+        if (cur.fallbackPng && img.src !== cur.fallbackPng && !img.src.startsWith('data:')) {
           img.src = cur.fallbackPng;
         }
       };
@@ -2819,17 +2920,17 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       const n3 = document.getElementById('cfg_mascot3_name')?.value;
 
       if (mascotConfigs[0]) {
-        if (p1) mascotConfigs[0].png = p1;
+        if (p1) mascotConfigs[0].png = formatDriveImageUrl(p1) || p1;
         if (q1) mascotConfigs[0].quotes = [q1];
         if (n1) mascotConfigs[0].name = n1;
       }
       if (mascotConfigs[1]) {
-        if (p2) mascotConfigs[1].png = p2;
+        if (p2) mascotConfigs[1].png = formatDriveImageUrl(p2) || p2;
         if (q2) mascotConfigs[1].quotes = [q2];
         if (n2) mascotConfigs[1].name = n2;
       }
       if (mascotConfigs[2]) {
-        if (p3) mascotConfigs[2].png = p3;
+        if (p3) mascotConfigs[2].png = formatDriveImageUrl(p3) || p3;
         if (q3) mascotConfigs[2].quotes = [q3];
         if (n3) mascotConfigs[2].name = n3;
       }
@@ -6382,7 +6483,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <div style="background: #ffffff; border: 1.5px solid var(--border); border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
-                  <img id="cfg_mascot1_preview" src="${escapeHTML(s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
+                  <img id="cfg_mascot1_preview" src="${escapeHTML(formatDriveImageUrl(s.mascotSettings?.mascot1?.png) || s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
                 </div>
                 <div>
                   <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary-deep); background: var(--primary-soft); padding: 2px 8px; border-radius: 999px;">คลิกครั้งที่ 1 (ตัวเริ่มต้น)</span>
@@ -6396,7 +6497,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG / GIF ใส หรือเลือกรูป</label>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                  <input type="text" id="cfg_mascot1_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" oninput="const p=$('cfg_mascot1_preview'); if(p) p.src=this.value;">
+                  <input type="text" id="cfg_mascot1_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" oninput="const p=$('cfg_mascot1_preview'); if(p) p.src=formatDriveImageUrl(this.value);">
                   <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
                     เลือกรูป
                     <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_mascot1_png', 'cfg_mascot1_preview')">
@@ -6416,7 +6517,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <div style="background: #ffffff; border: 1.5px solid var(--border); border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
-                  <img id="cfg_mascot2_preview" src="${escapeHTML(s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
+                  <img id="cfg_mascot2_preview" src="${escapeHTML(formatDriveImageUrl(s.mascotSettings?.mascot2?.png) || s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
                 </div>
                 <div>
                   <span style="font-size: 0.78rem; font-weight: 700; color: #7c3aed; background: #ede9fe; padding: 2px 8px; border-radius: 999px;">คลิกครั้งที่ 2 (แปลงร่าง)</span>
@@ -6430,7 +6531,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG / GIF ใส หรือเลือกรูป</label>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                  <input type="text" id="cfg_mascot2_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" oninput="const p=$('cfg_mascot2_preview'); if(p) p.src=this.value;">
+                  <input type="text" id="cfg_mascot2_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" oninput="const p=$('cfg_mascot2_preview'); if(p) p.src=formatDriveImageUrl(this.value);">
                   <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
                     เลือกรูป
                     <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_mascot2_png', 'cfg_mascot2_preview')">
@@ -6450,7 +6551,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <div style="background: #ffffff; border: 1.5px solid var(--border); border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
-                  <img id="cfg_mascot3_preview" src="${escapeHTML(s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
+                  <img id="cfg_mascot3_preview" src="${escapeHTML(formatDriveImageUrl(s.mascotSettings?.mascot3?.png) || s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
                 </div>
                 <div>
                   <span style="font-size: 0.78rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 999px;">คลิกครั้งที่ 3 (แปลงร่าง)</span>
@@ -6464,7 +6565,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG / GIF ใส หรือเลือกรูป</label>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                  <input type="text" id="cfg_mascot3_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" oninput="const p=$('cfg_mascot3_preview'); if(p) p.src=this.value;">
+                  <input type="text" id="cfg_mascot3_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" oninput="const p=$('cfg_mascot3_preview'); if(p) p.src=formatDriveImageUrl(this.value);">
                   <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
                     เลือกรูป
                     <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_mascot3_png', 'cfg_mascot3_preview')">
@@ -6778,7 +6879,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       const currentSettings = Store.getSettings() || {};
       const getVal = (id, fallback = '') => {
         const el = $(id);
-        return el ? el.value.trim() : fallback;
+        if (!el) return fallback;
+        const val = el.value.trim();
+        return val !== '' ? val : fallback;
       };
       const getChecked = (id, fallback = false) => {
         const el = $(id);
@@ -6789,8 +6892,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       const updated = {
         shopName: getVal('cfg_shopName', 'BNC GraphMate Studio'),
         tagline: getVal('cfg_tagline', 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
-        coverImage: getVal('cfg_coverImage', ''),
-        profileImage: getVal('cfg_profileImage', ''),
+        coverImage: formatDriveImageUrl(getVal('cfg_coverImage', '')),
+        profileImage: formatDriveImageUrl(getVal('cfg_profileImage', '')),
         shopBio: getVal('cfg_shopBio', ''),
         lineUrl: getVal('cfg_lineUrl', ''),
         contactPhone: getVal('cfg_contactPhone', ''),
@@ -6842,17 +6945,17 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           enabled: getChecked('cfg_mascotEnabled', true),
           mascot1: {
             name: getVal('cfg_mascot1_name', 'น้องกระต่ายพาสเทล'),
-            png: getVal('cfg_mascot1_png', 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg'),
+            png: formatDriveImageUrl(getVal('cfg_mascot1_png', 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')),
             quote: getVal('cfg_mascot1_quote', 'หวัดดีฮับ!')
           },
           mascot2: {
             name: getVal('cfg_mascot2_name', 'น้องหมีสตูดิโอ'),
-            png: getVal('cfg_mascot2_png', 'https://api.iconify.design/fluent-emoji-flat:bear.svg'),
+            png: formatDriveImageUrl(getVal('cfg_mascot2_png', 'https://api.iconify.design/fluent-emoji-flat:bear.svg')),
             quote: getVal('cfg_mascot2_quote', 'แวะดูฟอนต์ได้น้า')
           },
           mascot3: {
             name: getVal('cfg_mascot3_name', 'น้องแมวโมจิ'),
-            png: getVal('cfg_mascot3_png', 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg'),
+            png: formatDriveImageUrl(getVal('cfg_mascot3_png', 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')),
             quote: getVal('cfg_mascot3_quote', 'เหมียววว~ จับได้ด้วย!')
           }
         },
