@@ -8,8 +8,8 @@
 // ผู้ดูแลระบบสามารถใส่ Project URL และ Anon Key ของ Supabase ที่นี่
 // ============================================================
 const SUPABASE_CONFIG = {
-  url: 'https://vmtmmtfjhujdijbiwawa.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtdG1tdGZqaHVqZGlqYml3YXdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTIyMjMsImV4cCI6MjEwNDg2ODIyM30.26oysoMBoUzxd98gkInd4zXv7hkya4cTdAkw87G_Esk'
+  url: 'https://YOUR_PROJECT_ID.supabase.co',
+  anonKey: 'YOUR_ANON_KEY'
 };
 
 const Store = (function () {
@@ -2722,14 +2722,19 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
     // Exactly 1 floating mascot element on screen
     let currentIdx = 0;
+    let clickCount = 0;
     const el = document.createElement('div');
     el.id = 'singleFloatingMascot';
     el.className = 'falling-mascot-item';
+    el.style.userSelect = 'none';
+    el.style.webkitUserSelect = 'none';
 
     const img = document.createElement('img');
     img.className = 'falling-mascot-img';
     img.alt = mascotConfigs[0].name;
     img.src = mascotConfigs[0].png;
+    img.setAttribute('draggable', 'false');
+    img.style.userSelect = 'none';
     img.onerror = () => {
       const cur = mascotConfigs[currentIdx];
       if (cur && cur.fallbackPng && img.src !== cur.fallbackPng) {
@@ -2745,16 +2750,35 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     let posY = 120;
     let isDragging = false;
     let hasMoved = false;
+    let pointerStartTime = 0;
     let startMouseX = 0;
     let startMouseY = 0;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
     let origPosX = 0;
     let origPosY = 0;
     let tick = Math.random() * 100;
     let bubbleTimeout = null;
-    let quoteIndex = 0;
 
     el.style.left = `${posX}px`;
     el.style.top = `${posY}px`;
+
+    // Speech bubble popup on tap/click
+    const showSpeechBubble = () => {
+      let bubble = el.querySelector('.mascot-bubble-talk');
+      if (!bubble) {
+        bubble = document.createElement('div');
+        bubble.className = 'mascot-bubble-talk';
+        el.appendChild(bubble);
+      }
+      const cur = mascotConfigs[currentIdx];
+      const textToShow = (cur.quotes && cur.quotes.length > 0) ? cur.quotes[0] : (cur.name || 'สวัสดีฮับ!');
+      bubble.textContent = textToShow;
+      clearTimeout(bubbleTimeout);
+      bubbleTimeout = setTimeout(() => {
+        if (bubble && bubble.parentNode) bubble.parentNode.removeChild(bubble);
+      }, 3000);
+    };
 
     // Function to update mascot character (cycles Mascot 1 -> Mascot 2 -> Mascot 3 -> Mascot 1)
     const updateMascotAppearance = () => {
@@ -2767,42 +2791,77 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         }
       };
       // Cute pop animation
-      el.style.transform = 'scale(1.22)';
+      el.style.transform = 'scale(1.25)';
       setTimeout(() => {
         if (!isDragging) el.style.transform = 'scale(1)';
-      }, 180);
+      }, 200);
       showSpeechBubble();
       if (typeof playCuteClickSound === 'function') playCuteClickSound();
     };
 
-    // Speech bubble popup on tap/click
-    const showSpeechBubble = () => {
-      let bubble = el.querySelector('.mascot-bubble-talk');
-      if (!bubble) {
-        bubble = document.createElement('div');
-        bubble.className = 'mascot-bubble-talk';
-        el.appendChild(bubble);
+    // Automatically say hello on Mascot 1 after 1.5s on page load
+    setTimeout(() => {
+      if (clickCount === 0 && !isDragging) {
+        showSpeechBubble();
       }
-      const cur = mascotConfigs[currentIdx];
-      const availableQuotes = (cur.quotes && cur.quotes.length > 0) ? cur.quotes : ['สวัสดีฮับ!'];
-      const textToShow = availableQuotes[quoteIndex % availableQuotes.length];
-      quoteIndex++;
-      bubble.textContent = textToShow;
-      clearTimeout(bubbleTimeout);
-      bubbleTimeout = setTimeout(() => {
-        if (bubble && bubble.parentNode) bubble.parentNode.removeChild(bubble);
-      }, 2600);
+    }, 1500);
+
+    // Global switcher for admin test preview buttons
+    window._switchMascotByIndex = (targetIdx) => {
+      const p1 = document.getElementById('cfg_mascot1_png')?.value;
+      const q1 = document.getElementById('cfg_mascot1_quote')?.value;
+      const n1 = document.getElementById('cfg_mascot1_name')?.value;
+      const p2 = document.getElementById('cfg_mascot2_png')?.value;
+      const q2 = document.getElementById('cfg_mascot2_quote')?.value;
+      const n2 = document.getElementById('cfg_mascot2_name')?.value;
+      const p3 = document.getElementById('cfg_mascot3_png')?.value;
+      const q3 = document.getElementById('cfg_mascot3_quote')?.value;
+      const n3 = document.getElementById('cfg_mascot3_name')?.value;
+
+      if (mascotConfigs[0]) {
+        if (p1) mascotConfigs[0].png = p1;
+        if (q1) mascotConfigs[0].quotes = [q1];
+        if (n1) mascotConfigs[0].name = n1;
+      }
+      if (mascotConfigs[1]) {
+        if (p2) mascotConfigs[1].png = p2;
+        if (q2) mascotConfigs[1].quotes = [q2];
+        if (n2) mascotConfigs[1].name = n2;
+      }
+      if (mascotConfigs[2]) {
+        if (p3) mascotConfigs[2].png = p3;
+        if (q3) mascotConfigs[2].quotes = [q3];
+        if (n3) mascotConfigs[2].name = n3;
+      }
+
+      currentIdx = ((targetIdx % mascotConfigs.length) + mascotConfigs.length) % mascotConfigs.length;
+      clickCount = currentIdx + 1;
+      updateMascotAppearance();
+    };
+
+    // Handle Tap/Click on Mascot
+    const handleMascotTap = () => {
+      clickCount++;
+      // Click 1 = Mascot 1 (bounce & quote)
+      // Click 2 = Mascot 2 (switch & quote)
+      // Click 3 = Mascot 3 (switch & quote)
+      // Click 4 = Mascot 1 (repeat)
+      currentIdx = (clickCount - 1) % mascotConfigs.length;
+      updateMascotAppearance();
     };
 
     // Pointer events for Drag and Hold (Mouse & Touch)
     const onPointerDown = (e) => {
       isDragging = true;
       hasMoved = false;
+      pointerStartTime = Date.now();
       el.style.transition = 'none';
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
       startMouseX = clientX;
       startMouseY = clientY;
+      lastMouseX = clientX;
+      lastMouseY = clientY;
       origPosX = posX;
       origPosY = posY;
       e.stopPropagation();
@@ -2812,10 +2871,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       if (!isDragging) return;
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      lastMouseX = clientX;
+      lastMouseY = clientY;
       const deltaX = clientX - startMouseX;
       const deltaY = clientY - startMouseY;
 
-      if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
+      // Higher threshold to distinguish drag from finger tap jitter
+      if (Math.hypot(deltaX, deltaY) > 16) {
         hasMoved = true;
       }
 
@@ -2841,10 +2903,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       el.style.transition = 'transform 0.15s ease';
       el.style.transform = 'scale(1)';
 
-      // If user tapped/clicked without dragging, cycle to next mascot!
-      if (!hasMoved) {
-        currentIdx = (currentIdx + 1) % mascotConfigs.length;
-        updateMascotAppearance();
+      const duration = Date.now() - pointerStartTime;
+      const moveDist = Math.hypot(lastMouseX - startMouseX, lastMouseY - startMouseY);
+
+      // If user tapped/clicked without dragging
+      if (!hasMoved || (moveDist < 16 && duration < 400)) {
+        handleMascotTap();
       }
     };
 
@@ -2880,6 +2944,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
     requestAnimationFrame(animLoop);
   }
+
+  window.switchFloatingMascot = function (targetIdx) {
+    if (typeof window._switchMascotByIndex === 'function') {
+      window._switchMascotByIndex(targetIdx);
+    }
+  };
   
   function setupRouting() {
  window.addEventListener('hashchange', handleHash);
@@ -6299,7 +6369,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 8px;">
             <div>
               <h3 style="color: var(--primary-deep); margin-bottom: 0.25rem;">น้องมาสคอตลอยหน้าจอ (Interactive Floating Mascot)</h3>
-              <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0;">ลอยน่ารัก 1 ตัวบนหน้าจอ ลูกค้าสามารถคลิกเพื่อเปลี่ยนตัวละครวน 3 ตัว (1 ➔ 2 ➔ 3) และกดค้างลากน้องไปมาได้ (รองรับไฟล์ .GIF ดุ๊กดิ๊ก, .PNG, .SVG)</p>
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0;">ลอย 1 ตัวน่ารักบนหน้าจอ พร้อมแปลงร่างและพูดคุยเมื่อคลิกวนรอบ 3 ครั้ง: <strong>คลิกครั้งที่ 1 (ตัวที่ 1) ➔ คลิกครั้งที่ 2 (แปลงร่างเป็นตัวที่ 2) ➔ คลิกครั้งที่ 3 (แปลงร่างเป็นตัวที่ 3)</strong> และกดค้างลากน้องไปมาได้รอบจอ (รองรับไฟล์ .GIF ดุ๊กดิ๊ก, .PNG, .SVG)</p>
             </div>
             <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: var(--surface-alt); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);">
               <input type="checkbox" id="cfg_mascotEnabled" ${(s.mascotSettings?.enabled !== false) ? 'checked' : ''} style="accent-color: var(--primary-600);">
@@ -6308,15 +6378,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.25rem;">
-            <!-- Mascot 1 -->
+            <!-- Mascot 1 (Click 1) -->
             <div style="background: #ffffff; border: 1.5px solid var(--border); border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
                   <img id="cfg_mascot1_preview" src="${escapeHTML(s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
                 </div>
                 <div>
-                  <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary-deep); background: var(--primary-soft); padding: 2px 8px; border-radius: 999px;">ตัวที่ 1 (ซ้าย)</span>
-                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); margin-top: 2px;">น้องตัวที่ 1</div>
+                  <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary-deep); background: var(--primary-soft); padding: 2px 8px; border-radius: 999px;">คลิกครั้งที่ 1 (ตัวเริ่มต้น)</span>
+                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); margin-top: 2px;">น้องตัวที่ 1 (เริ่มต้น)</div>
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
@@ -6324,7 +6394,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <input type="text" id="cfg_mascot1_name" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot1?.name || 'น้องกระต่ายพาสเทล')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส หรือเลือกรูป</label>
+                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG / GIF ใส หรือเลือกรูป</label>
                 <div style="display: flex; gap: 8px; align-items: center;">
                   <input type="text" id="cfg_mascot1_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot1?.png || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg')}" oninput="const p=$('cfg_mascot1_preview'); if(p) p.src=this.value;">
                   <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
@@ -6334,20 +6404,23 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดของน้อง (1 คำพูด)</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดเมื่อคลิกครั้งที่ 1</label>
                 <input type="text" id="cfg_mascot1_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" placeholder="เช่น หวัดดีฮับ!" value="${escapeHTML(s.mascotSettings?.mascot1?.quote || 'หวัดดีฮับ!')}">
               </div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.switchFloatingMascot(0)" style="font-size: 11px; padding: 4px 10px; border-color: var(--primary-300); color: var(--primary-deep); margin-top: 4px;">
+                ▶ ทดสอบเรียกดูตัวที่ 1 บนหน้าจอ
+              </button>
             </div>
 
-            <!-- Mascot 2 -->
+            <!-- Mascot 2 (Click 2) -->
             <div style="background: #ffffff; border: 1.5px solid var(--border); border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
                   <img id="cfg_mascot2_preview" src="${escapeHTML(s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
                 </div>
                 <div>
-                  <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary-deep); background: var(--primary-soft); padding: 2px 8px; border-radius: 999px;">ตัวที่ 2 (กลาง)</span>
-                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); margin-top: 2px;">น้องตัวที่ 2</div>
+                  <span style="font-size: 0.78rem; font-weight: 700; color: #7c3aed; background: #ede9fe; padding: 2px 8px; border-radius: 999px;">คลิกครั้งที่ 2 (แปลงร่าง)</span>
+                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); margin-top: 2px;">น้องตัวที่ 2 (แปลงร่าง)</div>
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
@@ -6355,7 +6428,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <input type="text" id="cfg_mascot2_name" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot2?.name || 'น้องหมีสตูดิโอ')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส หรือเลือกรูป</label>
+                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG / GIF ใส หรือเลือกรูป</label>
                 <div style="display: flex; gap: 8px; align-items: center;">
                   <input type="text" id="cfg_mascot2_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot2?.png || 'https://api.iconify.design/fluent-emoji-flat:bear.svg')}" oninput="const p=$('cfg_mascot2_preview'); if(p) p.src=this.value;">
                   <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
@@ -6365,20 +6438,23 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดของน้อง (1 คำพูด)</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #7c3aed;">คำพูดเมื่อคลิกครั้งที่ 2</label>
                 <input type="text" id="cfg_mascot2_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" placeholder="เช่น แวะดูฟอนต์ได้น้า" value="${escapeHTML(s.mascotSettings?.mascot2?.quote || 'แวะดูฟอนต์ได้น้า')}">
               </div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.switchFloatingMascot(1)" style="font-size: 11px; padding: 4px 10px; border-color: #c4b5fd; color: #6d28d9; margin-top: 4px;">
+                ▶ ทดสอบเรียกดูตัวที่ 2 บนหน้าจอ
+              </button>
             </div>
 
-            <!-- Mascot 3 -->
+            <!-- Mascot 3 (Click 3) -->
             <div style="background: #ffffff; border: 1.5px solid var(--border); border-radius: 16px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0;">
                   <img id="cfg_mascot3_preview" src="${escapeHTML(s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" style="width: 36px; height: 36px; object-fit: contain;">
                 </div>
                 <div>
-                  <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary-deep); background: var(--primary-soft); padding: 2px 8px; border-radius: 999px;">ตัวที่ 3 (ขวา)</span>
-                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); margin-top: 2px;">น้องตัวที่ 3</div>
+                  <span style="font-size: 0.78rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 999px;">คลิกครั้งที่ 3 (แปลงร่าง)</span>
+                  <div style="font-weight: 700; font-size: 0.92rem; color: var(--text); margin-top: 2px;">น้องตัวที่ 3 (แปลงร่าง)</div>
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
@@ -6386,7 +6462,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <input type="text" id="cfg_mascot3_name" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" value="${escapeHTML(s.mascotSettings?.mascot3?.name || 'น้องแมวโมจิ')}">
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG ใส หรือเลือกรูป</label>
+                <label class="form-label" style="font-size: 0.8rem;">ลิงก์ภาพ PNG / GIF ใส หรือเลือกรูป</label>
                 <div style="display: flex; gap: 8px; align-items: center;">
                   <input type="text" id="cfg_mascot3_png" class="form-input" style="font-size: 0.82rem; padding: 0.45rem 0.75rem; flex: 1;" value="${escapeHTML(s.mascotSettings?.mascot3?.png || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg')}" oninput="const p=$('cfg_mascot3_preview'); if(p) p.src=this.value;">
                   <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
@@ -6396,12 +6472,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 </div>
               </div>
               <div class="form-group" style="margin-bottom: 0;">
-                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-deep);">คำพูดของน้อง (1 คำพูด)</label>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600; color: #0284c7;">คำพูดเมื่อคลิกครั้งที่ 3</label>
                 <input type="text" id="cfg_mascot3_quote" class="form-input" style="font-size: 0.86rem; padding: 0.45rem 0.75rem;" placeholder="เช่น เหมียววว~ จับได้ด้วย!" value="${escapeHTML(s.mascotSettings?.mascot3?.quote || 'เหมียววว~ จับได้ด้วย!')}">
               </div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="window.switchFloatingMascot(2)" style="font-size: 11px; padding: 4px 10px; border-color: #7dd3fc; color: #0369a1; margin-top: 4px;">
+                ▶ ทดสอบเรียกดูตัวที่ 3 บนหน้าจอ
+              </button>
             </div>
           </div>
-          <small style="display: block; margin-top: 0.85rem; color: var(--text-muted); font-size: 0.8rem;">แนะนำใช้ภาพ PNG โปร่งใส (Transparent PNG) หรือ SVG เพื่อให้น้องลอยได้อย่างน่ารักและไม่มีกรอบขาวกวนใจค่ะ</small>
+          <small style="display: block; margin-top: 0.85rem; color: var(--text-muted); font-size: 0.8rem;">แนะนำใช้ภาพ PNG โปร่งใส (Transparent PNG) หรือภาพ GIF แบบพื้นหลังใส เพื่อให้น้องลอยได้อย่างน่ารักและไม่มีกรอบขาวกวนใจค่ะ</small>
         </div>
 
         <!-- 9. Stamp Card Configuration -->
@@ -8763,6 +8842,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   window.handleImageFileInput = function (e, targetInputId, previewImgId) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert('ไฟล์รูปมีขนาด ' + (file.size / (1024 * 1024)).toFixed(1) + 'MB ซึ่งค่อนข้างใหญ่ แนะนำใช้ไฟล์ขนาดไม่เกิน 1.5MB หรือใช้ลิงก์ภาพ URL เพื่อให้โหลดเร็วและบันทึกลงฐานข้อมูลได้ราบรื่นนะคะ');
+    }
     const reader = new FileReader();
     reader.onload = function (evt) {
       const dataUrl = evt.target.result;
