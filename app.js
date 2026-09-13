@@ -51,6 +51,8 @@ const Store = (function () {
  footerBrand: 'BNC GraphMate Studio',
  footerCopy: 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล',
  footerCopyright: '© 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.',
+ portfolioContactUrl: '',
+ homeReviewIds: ['rev-1'],
  stats: {
  portfolioCount: '250+',
  fontCount: '48',
@@ -1507,7 +1509,9 @@ const Store = (function () {
           headings: sRow.headings || sObj.headings || local.settings.headings,
           footerBrand: sRow.footer_brand || sObj.footerBrand || local.settings.footerBrand,
           footerCopy: sRow.footer_copy || sObj.footerCopy || local.settings.footerCopy,
-          footerCopyright: sRow.footer_copyright || sObj.footerCopyright || local.settings.footerCopyright
+          footerCopyright: sRow.footer_copyright || sObj.footerCopyright || local.settings.footerCopyright,
+          portfolioContactUrl: sObj.portfolioContactUrl || local.settings.portfolioContactUrl || '',
+          homeReviewIds: sObj.homeReviewIds || local.settings.homeReviewIds || ['rev-1']
         });
       }
 
@@ -2269,6 +2273,16 @@ const Store = (function () {
       return rev.is_pinned;
     }
     return false;
+  },
+  toggleHomeReview: function (id) {
+    const s = this.getSettings() || {};
+    let ids = Array.isArray(s.homeReviewIds) ? [...s.homeReviewIds] : ['rev-1'];
+    if (ids.includes(id)) {
+      ids = ids.filter(x => x !== id);
+    } else {
+      ids.push(id);
+    }
+    return this.saveSettings({ homeReviewIds: ids });
   },
 
   getStampSettings: function () {
@@ -3138,9 +3152,21 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </a>
         </nav>
 
-        <button class="hamburger-btn" onclick="toggleMobileNav()" aria-label="เปิดเมนู">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
+        <div class="navbar-end-actions">
+          <a href="#home" class="nav-circle-btn" aria-label="หน้าแรก" title="หน้าแรก">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B97" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </a>
+          <button class="hamburger-btn nav-circle-btn" onclick="toggleMobileNav()" aria-label="เปิดเมนู" title="เมนู">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B97" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="12" x2="20" y2="12"/>
+              <line x1="4" y1="6" x2="20" y2="6"/>
+              <line x1="4" y1="18" x2="20" y2="18"/>
+            </svg>
+          </button>
+        </div>
       </div>
     `;
  }
@@ -3347,6 +3373,47 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                   }).join('')}
                 </div>
               </div>
+
+              <!-- Flowing Reviews Marquee (Continuous Ticker Under Contact) -->
+              ${(() => {
+                const allRev = Store.getAllReviews() || [];
+                const selIds = Array.isArray(s.homeReviewIds) ? s.homeReviewIds : ['rev-1'];
+                let revList = allRev.filter(r => selIds.includes(r.id));
+                if (revList.length === 0) revList = allRev.slice(0, 8);
+                if (revList.length === 0) return '';
+                let loopList = [...revList];
+                while (loopList.length < 5) {
+                  loopList = loopList.concat(revList);
+                }
+                const renderCard = (r) => `
+                  <div class="review-ticker-bubble" onclick="location.hash='#reviews'">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px;">
+                      <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
+                        <span class="ticker-avatar">${escapeHTML((r.customer_name || 'U').trim().charAt(0))}</span>
+                        <span style="font-weight: 700; font-size: 0.88rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(r.customer_name || 'ลูกค้า')}</span>
+                      </div>
+                      <span style="color: #F59E0B; font-size: 0.82rem; letter-spacing: 1px; flex-shrink: 0;">${'★'.repeat(r.rating || 5)}</span>
+                    </div>
+                    ${r.product_name ? `<div style="font-size: 0.76rem; color: var(--primary-deep); font-weight: 600; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(r.product_name)}</div>` : ''}
+                    <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                      ${escapeHTML(r.message || '')}
+                    </p>
+                  </div>
+                `;
+                return `
+                  <div class="home-reviews-marquee-container">
+                    <div class="reviews-marquee-track">
+                      <div class="reviews-marquee-group">
+                        ${loopList.map(r => renderCard(r)).join('')}
+                      </div>
+                      <div class="reviews-marquee-group" aria-hidden="true">
+                        ${loopList.map(r => renderCard(r)).join('')}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              })()}
+
             </div>
           </div>
 
@@ -3373,6 +3440,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div style="margin-top: 1.25rem; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
                 <a href="#queue" class="btn btn-outline btn-sm" style="font-weight: 700; border-radius: 14px; padding: 0.6rem 1.4rem; background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B;">
                   เช็คสถานะคิว
+                </a>
+                <a href="#points" class="btn btn-outline btn-sm" style="font-weight: 700; border-radius: 14px; padding: 0.6rem 1.4rem; background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B;">
+                  สะสมแต้ม
                 </a>
                 <a href="${escapeHTML(s.queueBookingUrl || s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}" target="${(s.queueBookingUrl || '').startsWith('#') ? '_self' : '_blank'}" class="btn btn-primary btn-sm" style="font-weight: 700; border-radius: 14px; padding: 0.6rem 1.4rem;">
                   สอบถาม | จองคิว
@@ -3429,9 +3499,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                   <div class="compact-card-title">${escapeHTML(p.title || p.name || 'งานออกแบบ')}</div>
                   <div class="compact-card-footer">
                     <span class="product-price" style="font-size: 1.05rem;">฿${Number(p.price || 0).toLocaleString()}</span>
-                    <button type="button" class="btn btn-primary btn-sm" onclick="addToCartItem('${p.id}', 'PORTFOLIO')" style="padding: 4px 10px; font-size: 11px;">
-                      ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
-                    </button>
+                    <a href="${escapeHTML(s.portfolioContactUrl || s.lineUrl || '#contact-us')}" target="${(s.portfolioContactUrl || s.lineUrl || '').startsWith('#') ? '_self' : '_blank'}" class="btn btn-primary btn-sm" style="padding: 5px 12px; font-size: 11px; text-decoration: none; font-weight: 700;">
+                      สนใจสั่งงาน
+                    </a>
                   </div>
                 </div>
               </div>
@@ -4572,6 +4642,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <span class="section-tag">Our Works & Gallery</span>
             <h2 class="section-title">${escapeHTML(headings.portTitle || 'แกลเลอรีผลงาน & อัตราค่าบริการ')}</h2>
             <p class="section-desc">${escapeHTML(headings.portDesc || 'เลือกดูตามสไตล์งานที่คุณชื่นชอบ และเลือกหมวดหมู่ป้ายเพื่อดูราคาและตัวอย่างงานได้ทันที')}</p>
+            <div style="margin-top: 1.25rem; display: flex; justify-content: center; gap: 10px;">
+              <a href="${escapeHTML(s.portfolioContactUrl || s.lineUrl || '#contact-us')}" target="${(s.portfolioContactUrl || s.lineUrl || '').startsWith('#') ? '_self' : '_blank'}" class="btn btn-primary" style="font-weight: 800; border-radius: 999px; padding: 0.7rem 2.2rem; font-size: 1rem; box-shadow: 0 4px 16px rgba(255,107,151,0.25); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                <span>💬 สนใจสั่งงาน (ติดต่อร้าน)</span>
+              </a>
+            </div>
           </div>
 
           <!-- Tier 1: Primary Filter by Work Style (สไตล์งานออกแบบ) -->
@@ -4860,6 +4935,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   }
 
   function renderReviewsView(container) {
+    const s = Store.getSettings();
+    const homeIds = Array.isArray(s.homeReviewIds) ? s.homeReviewIds : ['rev-1'];
     const allReviews = Store.getAllReviews();
     const pinnedReviews = allReviews.filter(r => r.is_pinned);
     const regularReviews = allReviews.filter(r => !r.is_pinned);
@@ -4884,7 +4961,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <h3 style="margin: 0; font-size: 1.15rem; color: var(--primary-deep);">รีวิวปักหมุดแนะนำ</h3>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                ${pinnedReviews.map(r => `
+                ${pinnedReviews.map(r => {
+                  const isHome = homeIds.includes(r.id);
+                  return `
                   <div class="pinned-review-card">
                     <div class="pushpin-pin"></div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -4895,12 +4974,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     ${r.product_name ? `<span class="badge badge--pink" style="margin-bottom: 0.6rem; display: inline-block;">${escapeHTML(r.product_name)}</span>` : ''}
                     <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin: 0 0 0.75rem;">${escapeHTML(r.message)}</p>
                     ${state.isAdmin ? `
-                      <div style="text-align: right; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px;">
-                        <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px;">ปลดหมุด</button>
+                      <div style="display: flex; justify-content: flex-end; gap: 6px; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px;">
+                        <button type="button" class="btn btn-sm ${isHome ? 'btn-primary' : 'btn-outline'}" onclick="toggleHomeReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">
+                          ${isHome ? '✓ แสดงหน้าโฮม' : '+ โชว์หน้าโฮม'}
+                        </button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">ปลดหมุด</button>
                       </div>
                     ` : ''}
                   </div>
-                `).join('')}
+                `;}).join('')}
               </div>
             </div>
           ` : ''}
@@ -4909,7 +4991,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <div style="margin-top: 2rem;">
             <h4 style="font-size: 1.05rem; margin-bottom: 1rem; color: var(--text-muted);">รีวิวทั้งหมด (${allReviews.length} รีวิว)</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              ${regularReviews.map(r => `
+              ${regularReviews.map(r => {
+                const isHome = homeIds.includes(r.id);
+                return `
                 <div class="card">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
                     <span style="font-weight: 700; color: var(--text); font-size: 1rem;">${escapeHTML(r.customer_name || 'ลูกค้า')}</span>
@@ -4918,12 +5002,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                   ${r.product_name ? `<span class="badge badge--pink" style="margin-bottom: 0.5rem;">${escapeHTML(r.product_name)}</span>` : ''}
                   <p style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin: 0 0 0.75rem;">${escapeHTML(r.message)}</p>
                   ${state.isAdmin ? `
-                    <div style="text-align: right; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px;">
-                      <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px;">ปักหมุด</button>
+                    <div style="display: flex; justify-content: flex-end; gap: 6px; border-top: 1.5px dashed var(--border); padding-top: 8px; margin-top: 8px;">
+                      <button type="button" class="btn btn-sm ${isHome ? 'btn-primary' : 'btn-outline'}" onclick="toggleHomeReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">
+                        ${isHome ? '✓ แสดงหน้าโฮม' : '+ โชว์หน้าโฮม'}
+                      </button>
+                      <button type="button" class="btn btn-outline btn-sm" onclick="togglePinReview('${r.id}')" style="font-size: 11px; padding: 2px 8px;">ปักหมุด</button>
                     </div>
                   ` : ''}
                 </div>
-              `).join('')}
+              `;}).join('')}
             </div>
           </div>
 
@@ -4934,6 +5021,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
   window.togglePinReview = function (id) {
     Store.togglePinReview(id);
+    renderCurrentView();
+  };
+
+  window.toggleHomeReview = function (id) {
+    Store.toggleHomeReview(id);
     renderCurrentView();
   };
 
@@ -6855,6 +6947,53 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
+        <!-- 13. เลือกรีวิวแสดงที่หน้าโฮม (Home Reviews Flow) -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div class="card-header">
+            <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+              <span>⭐ เลือกรีวิวแสดงที่หน้าโฮม (ใต้ Contact)</span>
+            </h3>
+            <p class="card-subtitle">เลือกรีวิวจากลูกค้าที่ต้องการให้ไหลแสดงต่อเนื่องใต้ช่องทางติดต่อหน้าแรก</p>
+          </div>
+          <div class="card-body">
+            <div style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding: 4px;">
+              ${(Store.getAllReviews() || []).map(r => {
+                const homeIds = Array.isArray(s.homeReviewIds) ? s.homeReviewIds : ['rev-1'];
+                const isChecked = homeIds.includes(r.id);
+                return `
+                  <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--surface-alt); border: 1.5px solid ${isChecked ? 'var(--primary-300)' : 'var(--border)'}; border-radius: 12px; cursor: pointer;">
+                    <input type="checkbox" class="cfg-home-review-cb" value="${escapeHTML(r.id)}" ${isChecked ? 'checked' : ''} style="margin-top: 3px; accent-color: var(--primary);">
+                    <div style="flex: 1;">
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong style="font-size: 0.9rem; color: var(--text);">${escapeHTML(r.customer_name || 'ลูกค้า')}</strong>
+                        <span style="color: #F59E0B; font-size: 0.82rem;">${'★'.repeat(r.rating || 5)}</span>
+                      </div>
+                      ${r.product_name ? `<span style="font-size: 0.75rem; color: var(--primary-deep); font-weight: 600;">${escapeHTML(r.product_name)}</span><br>` : ''}
+                      <small style="color: var(--text-secondary); line-height: 1.4;">${escapeHTML(r.message || '')}</small>
+                    </div>
+                  </label>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- 14. ลิงก์ปุ่มสนใจสั่งงาน (Our Works & Gallery Contact Link) -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div class="card-header">
+            <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+              <span>🎨 ลิงก์ปุ่มสนใจสั่งงาน (Our Works & Gallery)</span>
+            </h3>
+            <p class="card-subtitle">กำหนดลิงก์ที่ต้องการให้ลูกค้ากดจากปุ่ม "สนใจสั่งงาน" (เช่น ลิงก์ LINE หรือช่องทางติดต่อ)</p>
+          </div>
+          <div class="card-body">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">ลิงก์ช่องทางติดต่อสั่งงาน (Contact URL)</label>
+              <input type="text" id="cfg_portfolioContactUrl" class="form-input" value="${escapeHTML(s.portfolioContactUrl || '')}" placeholder="เช่น https://line.me/ti/p/~bncgraphmate (หากเว้นว่างจะใช้ลิงก์ LINE ของร้านอัตโนมัติ)">
+            </div>
+          </div>
+        </div>
+
         <!-- Save Master Settings Bar -->
         <div style="position: sticky; bottom: 1.5rem; background: rgba(255,255,255,0.96); backdrop-filter: blur(8px); padding: 1rem 1.5rem; border-radius: var(--radius-lg); border: 2px solid var(--border); box-shadow: var(--shadow-lg); display: flex; justify-content: space-between; align-items: center; z-index: 50;">
           <div>
@@ -7027,6 +7166,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         footerBrand: getVal('cfg_footerBrand', 'BNC GraphMate Studio'),
         footerCopy: getVal('cfg_footerCopy', 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล'),
         footerCopyright: getVal('cfg_footerCopyright', '© 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.'),
+        portfolioContactUrl: getVal('cfg_portfolioContactUrl', ''),
         notebookNotice: getVal('cfg_notebookNotice', 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'),
         queueBadgeText: getVal('cfg_queueBadgeText', 'ว่างพร้อมรับ 3 คิว'),
         queueBookingUrl: getVal('cfg_queueBookingUrl', 'https://line.me/ti/p/~bncgraphmate'),
@@ -7145,6 +7285,16 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           updated.bankAccountName = accounts[0].accountName;
           updated.promptpayQrUrl = accounts[0].qrUrl;
         }
+      }
+
+      // Extract Selected Home Reviews
+      const homeRevBoxes = document.querySelectorAll('.cfg-home-review-cb');
+      if (homeRevBoxes && homeRevBoxes.length > 0) {
+        const selectedRevIds = [];
+        homeRevBoxes.forEach(cb => {
+          if (cb.checked) selectedRevIds.push(cb.value);
+        });
+        updated.homeReviewIds = selectedRevIds;
       }
 
       const saveResult = await Store.saveSettings(updated);
