@@ -48,6 +48,9 @@ const Store = (function () {
  coverImage: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600&auto=format&fit=crop&q=80',
  profileImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80',
  shopBio: 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้\nตอบแชทไว ส่งงานเร็ว ไฟล์คมชัด 300 DPI ใช้งานเชิงพาณิชย์ได้',
+ footerBrand: 'BNC GraphMate Studio',
+ footerCopy: 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล',
+ footerCopyright: '© 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.',
  stats: {
  portfolioCount: '250+',
  fontCount: '48',
@@ -1302,6 +1305,9 @@ const Store = (function () {
             headings: s.headings || {},
             notebook_notice: s.notebookNotice || '',
             queue_badge_text: s.queueBadgeText || '',
+            footer_brand: s.footerBrand || '',
+            footer_copy: s.footerCopy || '',
+            footer_copyright: s.footerCopyright || '',
             raw_data: s,
             updated_at: new Date().toISOString()
           };
@@ -1498,7 +1504,10 @@ const Store = (function () {
           paymentAccounts: sRow.payment_accounts || sObj.paymentAccounts || local.settings.paymentAccounts,
           contactChannels: sRow.contact_channels || sObj.contactChannels || local.settings.contactChannels,
           stampSettings: sRow.stamp_settings || sObj.stampSettings || local.settings.stampSettings,
-          headings: sRow.headings || sObj.headings || local.settings.headings
+          headings: sRow.headings || sObj.headings || local.settings.headings,
+          footerBrand: sRow.footer_brand || sObj.footerBrand || local.settings.footerBrand,
+          footerCopy: sRow.footer_copy || sObj.footerCopy || local.settings.footerCopy,
+          footerCopyright: sRow.footer_copyright || sObj.footerCopyright || local.settings.footerCopyright
         });
       }
 
@@ -2708,27 +2717,44 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     styleEl.textContent = css;
   }
 
+  function updateFooterDisplay() {
+    try {
+      const s = Store.getSettings();
+      const brandEl = document.querySelector('.footer-brand');
+      const copyEl = document.querySelector('.footer-copy');
+      const crEl = document.querySelector('.footer-copyright');
+      if (brandEl) brandEl.textContent = s.footerBrand || s.shopName || 'BNC GraphMate Studio';
+      if (copyEl) copyEl.textContent = s.footerCopy || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล';
+      if (crEl) crEl.textContent = s.footerCopyright || '© 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.';
+    } catch (e) {
+      console.warn('updateFooterDisplay error:', e);
+    }
+  }
+
   function initApp() {
     loadFontFaces();
- setupRouting();
- setupCartDrawer();
- setupModals();
- renderNavbar();
+    setupRouting();
+    setupCartDrawer();
+    setupModals();
+    renderNavbar();
     setupFloatingMascot();
- renderCurrentView();
+    updateFooterDisplay();
+    renderCurrentView();
 
- // Listen to store updates (sync from Google Sheets)
- window.addEventListener('storage', () => {
- renderCurrentView();
- updateCartBadge();
- });
+    // Listen to store updates (sync from Google Sheets)
+    window.addEventListener('storage', () => {
+      renderCurrentView();
+      updateCartBadge();
+      updateFooterDisplay();
+    });
 
- // Initial background sync from Google Sheets if configured
- if (typeof Store !== 'undefined' && Store.syncFromCloud) {
+    // Initial background sync from Google Sheets if configured
+    if (typeof Store !== 'undefined' && Store.syncFromCloud) {
       Store.syncFromCloud((isOk) => {
         if (isOk) {
           renderNavbar();
           setupFloatingMascot();
+          updateFooterDisplay();
           renderCurrentView();
         }
       });
@@ -3269,6 +3295,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const featuredProds = Store.getAllProducts();
     const featuredFonts = Store.getAllFonts();
     const featuredGroups = Store.getAllGroups();
+    const featuredPortfolio = Store.getPortfolio();
 
     container.innerHTML = `
       <!-- Facebook Style Cover & Profile Section (1920x1080 / 16:9 Cover Banner) -->
@@ -3356,9 +3383,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
           <!-- 1:1 Square Hero Carousel (Repositioned to be directly AFTER Notebook Paper) -->
           <div style="margin-top: 2.5rem;">
-            <div style="text-align: center; margin-bottom: 0.85rem;">
-              <span class="badge badge--pink" style="font-size: 11px;">ป้ายแบนเนอร์แนะนำ</span>
-            </div>
             <div class="hero-carousel-wrapper">
               <div class="hero-carousel-container" id="heroCarouselSlides">
                 ${banners.map((b, idx) => `
@@ -3384,13 +3408,44 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </div>
       </section>
 
-      <!-- VIP LINE Groups Section (1-Row Compact Horizontal Slider with Pop-Out Badges) -->
-      <section style="padding: 3rem 0 2.5rem;">
+      <!-- Our Works & Gallery Section (Directly under Hero Carousel) -->
+      <section style="padding: 2.5rem 0 2rem;">
         <div class="container">
           <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
             <div>
-              <span class="section-tag">LINE VIP Groups</span>
-              <h2 class="section-title" style="margin: 0.25rem 0 0;">กลุ่ม VIP รวมไฟล์กราฟิก & ป้าย</h2>
+              <h2 class="section-title" style="margin: 0;">Our Works & Gallery</h2>
+            </div>
+            <a href="#portfolio" class="btn btn-outline btn-sm">ดูทั้งหมด (${featuredPortfolio.length}) →</a>
+          </div>
+
+          <div class="compact-horizontal-slider" style="padding-top: 15px;">
+            ${featuredPortfolio.map(p => {
+              const pImg = formatDriveImageUrl(p.image_url || p.image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700');
+              return `
+              <div class="compact-card-item">
+                <div class="pop-out-badge">${escapeHTML(p.style_category || p.category || 'ผลงาน')}</div>
+                <img src="${escapeHTML(pImg)}" class="compact-card-thumb" alt="${escapeHTML(p.title || p.name || '')}" loading="lazy" onclick="openLightbox('${escapeHTML(pImg)}')" style="cursor: pointer;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
+                <div class="compact-card-content">
+                  <div class="compact-card-title">${escapeHTML(p.title || p.name || 'งานออกแบบ')}</div>
+                  <div class="compact-card-footer">
+                    <span class="product-price" style="font-size: 1.05rem;">฿${Number(p.price || 0).toLocaleString()}</span>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="addToCartItem('${p.id}', 'PORTFOLIO')" style="padding: 4px 10px; font-size: 11px;">
+                      ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;}).join('')}
+          </div>
+        </div>
+      </section>
+
+      <!-- Groups Section (1-Row Compact Horizontal Slider with Pop-Out Badges) -->
+      <section style="padding: 2.5rem 0 2rem; background-color: var(--surface-alt);">
+        <div class="container">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+            <div>
+              <h2 class="section-title" style="margin: 0;">Groups</h2>
             </div>
             <a href="#groups" class="btn btn-outline btn-sm">ดูทั้งหมด (${featuredGroups.length}) →</a>
           </div>
@@ -3417,13 +3472,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </div>
       </section>
 
-      <!-- Handwritten Fonts Section (1-Row Compact Horizontal Slider with Pop-Out Badges) -->
-      <section style="padding: 2rem 0 2.5rem; background-color: var(--surface-alt);">
+      <!-- Fonts Section (1-Row Compact Horizontal Slider with Pop-Out Badges) -->
+      <section style="padding: 2.5rem 0 2rem;">
         <div class="container">
           <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
             <div>
-              <span class="section-tag">Handwritten Fonts</span>
-              <h2 class="section-title" style="margin: 0.25rem 0 0;">ฟอนต์ลายมือเชิงพาณิชย์</h2>
+              <h2 class="section-title" style="margin: 0;">Fonts</h2>
             </div>
             <a href="#fonts" class="btn btn-outline btn-sm">ดูทั้งหมด (${featuredFonts.length}) →</a>
           </div>
@@ -3451,13 +3505,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </div>
       </section>
 
-      <!-- Graphic Products Section (1-Row Compact Horizontal Slider with Pop-Out Badges) -->
-      <section style="padding: 2.5rem 0 3.5rem;">
+      <!-- Digital Product Section (1-Row Compact Horizontal Slider with Pop-Out Badges) -->
+      <section style="padding: 2.5rem 0 3.5rem; background-color: var(--surface-alt);">
         <div class="container">
           <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
             <div>
-              <span class="section-tag">Graphic Ready</span>
-              <h2 class="section-title" style="margin: 0.25rem 0 0;">สินค้าสำเร็จ & ไฟล์ตกแต่ง</h2>
+              <h2 class="section-title" style="margin: 0;">Digital Product</h2>
             </div>
             <a href="#products" class="btn btn-outline btn-sm">ดูทั้งหมด (${featuredProds.length}) →</a>
           </div>
@@ -6778,6 +6831,30 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
+        <!-- 12. ข้อมูลท้ายเว็บ (Footer ท้ายกระดาษ) -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div class="card-header">
+            <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+              <span>📄 ข้อมูลท้ายเว็บ (Footer ท้ายกระดาษ)</span>
+            </h3>
+            <p class="card-subtitle">ปรับแต่งข้อความชื่อสตูดิโอ คำอธิบาย และลิขสิทธิ์ที่แสดงท้ายหน้าเว็บ</p>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">ชื่อสตูดิโอ / แบรนด์ (Footer Brand)</label>
+              <input type="text" id="cfg_footerBrand" class="form-input" value="${escapeHTML(s.footerBrand || s.shopName || 'BNC GraphMate Studio')}" placeholder="เช่น BNC GraphMate Studio">
+            </div>
+            <div class="form-group">
+              <label class="form-label">คำบรรยายท้ายเว็บ (Footer Description)</label>
+              <textarea id="cfg_footerCopy" class="form-textarea" rows="2" placeholder="เช่น สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล">${escapeHTML(s.footerCopy || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล')}</textarea>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">ข้อความลิขสิทธิ์ (Footer Copyright)</label>
+              <input type="text" id="cfg_footerCopyright" class="form-input" value="${escapeHTML(s.footerCopyright || '© 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.')}" placeholder="เช่น © 2026 BNC GraphMate. All Rights Reserved.">
+            </div>
+          </div>
+        </div>
+
         <!-- Save Master Settings Bar -->
         <div style="position: sticky; bottom: 1.5rem; background: rgba(255,255,255,0.96); backdrop-filter: blur(8px); padding: 1rem 1.5rem; border-radius: var(--radius-lg); border: 2px solid var(--border); box-shadow: var(--shadow-lg); display: flex; justify-content: space-between; align-items: center; z-index: 50;">
           <div>
@@ -6947,6 +7024,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         contactPhone: getVal('cfg_contactPhone', ''),
         instagramUrl: getVal('cfg_instagramUrl', ''),
         facebookUrl: getVal('cfg_facebookUrl', ''),
+        footerBrand: getVal('cfg_footerBrand', 'BNC GraphMate Studio'),
+        footerCopy: getVal('cfg_footerCopy', 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล'),
+        footerCopyright: getVal('cfg_footerCopyright', '© 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.'),
         notebookNotice: getVal('cfg_notebookNotice', 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'),
         queueBadgeText: getVal('cfg_queueBadgeText', 'ว่างพร้อมรับ 3 คิว'),
         queueBookingUrl: getVal('cfg_queueBookingUrl', 'https://line.me/ti/p/~bncgraphmate'),
@@ -7074,6 +7154,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         alert('บันทึกการตั้งค่าทั้งหมดเรียบร้อยแล้วค่ะ!');
       }
       setupFloatingMascot();
+      updateFooterDisplay();
       renderNavbar();
       renderCurrentView();
     } catch (err) {

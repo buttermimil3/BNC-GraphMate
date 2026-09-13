@@ -1925,6 +1925,7 @@ input[type="range"] {
 .queue-notebook-paper {
   position: relative;
   background-color: #ffffff;
+  background-image: none !important;
   padding: 28px 24px;
   min-height: 180px;
   box-sizing: border-box;
@@ -1933,9 +1934,8 @@ input[type="range"] {
 
 @media (max-width: 640px) {
   .queue-notebook-paper {
-    background-image: 
-      linear-gradient(90deg, transparent 32px, #F7B5CD 32px, #F7B5CD 34px, transparent 34px); background-size: 100% 100%;
-    padding: 18px 14px 18px 44px;
+    background-image: none !important;
+    padding: 20px 16px;
   }
 }
 
