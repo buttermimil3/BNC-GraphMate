@@ -1,7 +1,16 @@
 /**
- * BNC GraphMate — Unified Data Store (Google Sheets Cloud Database + Vercel Fast Cache)
- * ทำให้ข้อมูลตรงกันทุกเครื่อง 100% (ทั้งมือถือลูกค้า และคอมพิวเตอร์แอดมิน)
+ * BNC GraphMate — Unified Data Store (Supabase Cloud Database + Vercel Fast Cache)
+ * ข้อมูลตรงกันทุกเครื่อง 100% (ทั้งมือถือลูกค้า และคอมพิวเตอร์แอดมิน)
  */
+
+// ============================================================
+// SUPABASE CLOUD DATABASE CONFIGURATION
+// ผู้ดูแลระบบสามารถใส่ Project URL และ Anon Key ของ Supabase ที่นี่
+// ============================================================
+const SUPABASE_CONFIG = {
+  url: 'https://YOUR_PROJECT_ID.supabase.co',
+  anonKey: 'YOUR_ANON_KEY'
+};
 
 const Store = (function () {
  const STORAGE_KEY = 'BNC_GRAPHMATE_DATA_V1';
@@ -23,7 +32,6 @@ const Store = (function () {
  bankAccount: '123-4-56789-0',
  bankAccountName: 'ร้าน บีเอ็นซี กราฟเมท',
  promptpayQrUrl: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=0812345678',
- googleSheetWebAppUrl: 'https://script.google.com/macros/s/AKfycbynC_xFFqdiUmB1VD3GHbMdPvOlggTOSsKJ-JtqC1GI7pWmUXjtboSv8Asp8B0iLId9/exec',
  pointsPerHundredBaht: 10,
  announcement: '',
  announcementEnabled: false,
@@ -749,9 +757,6 @@ const Store = (function () {
         if (!merged.settings.queuePage) merged.settings.queuePage = defaultData.settings.queuePage;
         if (!merged.groups) merged.groups = defaultData.groups;
         if (!merged.settings.mascotSettings) merged.settings.mascotSettings = defaultData.settings.mascotSettings;
-        if (!merged.settings.googleSheetWebAppUrl || merged.settings.googleSheetWebAppUrl.includes('AKfycbxyIs8F9uzV6siNgYSDuF0NdBiIbXAtWoRUHo5ci72XHnEogrtIeHIBrJTl070DdOi5')) {
-          merged.settings.googleSheetWebAppUrl = defaultData.settings.googleSheetWebAppUrl;
-        }
         
         if (merged.settings) {
           if (merged.settings.profileImage) merged.settings.profileImage = formatDriveImageUrl(merged.settings.profileImage);
@@ -818,170 +823,708 @@ const Store = (function () {
     }
   }
 
-  function getCloudUrl() {
-    const data = loadLocal();
-    return (data.settings && data.settings.googleSheetWebAppUrl) ? data.settings.googleSheetWebAppUrl.trim() : '';
+  // ============================================================
+  // Supabase Client Initialization (Singleton)
+  // ============================================================
+  let _supabaseClient = null;
+
+  function getSupabase() {
+    if (_supabaseClient) return _supabaseClient;
+    const cfgUrl = (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.url) ? SUPABASE_CONFIG.url.trim() : '';
+    const cfgKey = (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.anonKey) ? SUPABASE_CONFIG.anonKey.trim() : '';
+
+    if (cfgUrl && cfgKey && !cfgUrl.includes('YOUR_PROJECT_ID') && window.supabase && window.supabase.createClient) {
+      try {
+        _supabaseClient = window.supabase.createClient(cfgUrl, cfgKey);
+        return _supabaseClient;
+      } catch (err) {
+        console.warn('Supabase createClient error:', err);
+      }
+    }
+    return null;
   }
 
-  // ส่งคำสั่งไปยัง Google Sheet Web App เบื้องหลัง (CORS friendly ด้วย text/plain)
+  function getCloudUrl() {
+    return (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.url) ? SUPABASE_CONFIG.url.trim() : '';
+  }
+
+  // ============================================================
+  // callCloud: ส่งคำสั่ง CRUD ตรงเข้าสู่ Supabase 100%
+  // ============================================================
   async function callCloud(action, payload = {}) {
-    const url = getCloudUrl();
-    if (!url || !url.startsWith('https://script.google.com')) return null;
+    const sb = getSupabase();
+    if (!sb) {
+      // Supabase ยังไม่ได้ระบุใน SUPABASE_CONFIG ข้อมูลยังคงใช้งานได้ผ่าน LocalStorage
+      return null;
+    }
 
     try {
-      payload.action = action;
-      // Send action in URL query param too — GAS 302 redirect drops POST body
-      // but e.parameter.action (from query string) survives the redirect
-      const urlWithAction = url + (url.includes('?') ? '&' : '?') + 'action=' + encodeURIComponent(action);
-      const res = await fetch(urlWithAction, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-      const json = await res.json();
-      return json;
+      switch (action) {
+        case 'SAVE_CUSTOMER': {
+          const cust = payload.customer || payload.item;
+          if (!cust) return null;
+          const row = {
+            id: String(cust.id),
+            name: cust.name || '',
+            member_code: cust.member_code || '',
+            line_id: cust.line_id || '',
+            email: cust.email || '',
+            phone: cust.phone || '',
+            total_points: Number(cust.total_points) || 0,
+            member_level: cust.member_level || 'BRONZE',
+            heart_stamps: Number(cust.heart_stamps !== undefined ? cust.heart_stamps : cust.stamps) || 0,
+            created_at: cust.created_at || new Date().toISOString()
+          };
+          const { error } = await sb.from('customers').upsert(row);
+          if (error) console.error('Supabase error SAVE_CUSTOMER:', error);
+          return { success: !error };
+        }
+
+        case 'SAVE_GROUP': {
+          const grp = payload.item || payload.group;
+          if (!grp) return null;
+          const row = {
+            id: String(grp.id),
+            name: grp.name || '',
+            category: grp.category || '',
+            description: grp.description || '',
+            cover_image: grp.cover_image || grp.cover_image_url || '',
+            cover_image_url: grp.cover_image_url || grp.cover_image || '',
+            price: Number(grp.price) || 0,
+            preview_drive_url: grp.preview_drive_url || '',
+            benefits: grp.benefits || '',
+            status: grp.status || 'ACTIVE',
+            created_at: grp.created_at || new Date().toISOString()
+          };
+          const { error } = await sb.from('groups').upsert(row);
+          if (error) console.error('Supabase error SAVE_GROUP:', error);
+          return { success: !error };
+        }
+
+        case 'DELETE_GROUP': {
+          const { error } = await sb.from('groups').delete().eq('id', String(payload.id));
+          if (error) console.error('Supabase error DELETE_GROUP:', error);
+          return { success: !error };
+        }
+
+        case 'SAVE_PRODUCT': {
+          const prod = payload.item || payload.product;
+          if (!prod) return null;
+          const row = {
+            id: String(prod.id),
+            name: prod.name || '',
+            category: prod.category || '',
+            description: prod.description || '',
+            price: Number(prod.price) || 0,
+            image: prod.image || prod.image_url || '',
+            image_url: prod.image_url || prod.image || '',
+            delivery_type: prod.delivery_type || 'MANUAL',
+            drive_folder_id: prod.drive_folder_id || '',
+            drive_file_id: prod.drive_file_id || '',
+            status: prod.status || 'ACTIVE',
+            what_you_get: prod.what_you_get || '',
+            created_at: prod.created_at || new Date().toISOString()
+          };
+          const { error } = await sb.from('products').upsert(row);
+          if (error) console.error('Supabase error SAVE_PRODUCT:', error);
+          return { success: !error };
+        }
+
+        case 'DELETE_PRODUCT': {
+          const { error } = await sb.from('products').delete().eq('id', String(payload.id));
+          if (error) console.error('Supabase error DELETE_PRODUCT:', error);
+          return { success: !error };
+        }
+
+        case 'SAVE_FONT': {
+          const font = payload.item || payload.font;
+          if (!font) return null;
+          const row = {
+            id: String(font.id),
+            name: font.name || '',
+            category: font.category || '',
+            description: font.description || '',
+            price: Number(font.price) || 0,
+            preview_text: font.preview_text || '',
+            preview_image: font.preview_image || font.preview_image_url || font.image_url || '',
+            preview_image_url: font.preview_image_url || font.preview_image || font.image_url || '',
+            image_url: font.image_url || font.preview_image_url || font.preview_image || '',
+            font_file_url: font.font_file_url || font.file_url || '',
+            delivery_type: font.delivery_type || 'MANUAL',
+            drive_folder_id: font.drive_folder_id || '',
+            drive_file_id: font.drive_file_id || '',
+            status: font.status || 'ACTIVE',
+            what_you_get: font.what_you_get || '',
+            created_at: font.created_at || new Date().toISOString()
+          };
+          const { error } = await sb.from('fonts').upsert(row);
+          if (error) console.error('Supabase error SAVE_FONT:', error);
+          return { success: !error };
+        }
+
+        case 'DELETE_FONT': {
+          const { error } = await sb.from('fonts').delete().eq('id', String(payload.id));
+          if (error) console.error('Supabase error DELETE_FONT:', error);
+          return { success: !error };
+        }
+
+        case 'CREATE_ORDER':
+        case 'MULTI_CHECKOUT': {
+          const order = payload.order || payload.orderInfo;
+          const payment = payload.payment || payload.paymentInfo;
+          const items = payload.items || (order && order.items) || [];
+          if (order) {
+            const orderRow = {
+              id: String(order.id),
+              order_number: order.order_number || '',
+              customer_id: order.customer_id || 'guest',
+              customer_name: order.customer_name || 'ลูกค้าทั่วไป',
+              order_type: order.order_type || 'PRODUCT',
+              item_id: order.item_id || '',
+              item_name: order.item_name || '',
+              amount: Number(order.amount) || 0,
+              status: order.status || 'VERIFYING',
+              line_id: order.line_id || '',
+              gmail: order.gmail || '',
+              notes: order.notes || '',
+              items: items,
+              items_json: JSON.stringify(items),
+              created_at: order.created_at || new Date().toISOString()
+            };
+            await sb.from('orders').upsert(orderRow);
+          }
+          if (payment) {
+            const payRow = {
+              id: String(payment.id),
+              order_id: payment.order_id || (order && order.id) || '',
+              amount: Number(payment.amount) || (order && Number(order.amount)) || 0,
+              slip_image_url: payment.slip_image_url || '',
+              verification_status: payment.verification_status || 'VERIFYING',
+              qr_ref: payment.qr_ref || '',
+              qr_trans_ref: payment.qr_trans_ref || '',
+              qr_date: payment.qr_date || '',
+              verified_at: payment.verified_at || null,
+              verification_notes: payment.verification_notes || '',
+              created_at: payment.created_at || new Date().toISOString()
+            };
+            await sb.from('payments').upsert(payRow);
+          }
+          if (Array.isArray(items) && items.length > 0 && order) {
+            for (const it of items) {
+              if (it.type === 'GROUP') {
+                await sb.from('group_access').upsert({
+                  id: 'ga-' + uid(),
+                  order_id: order.id,
+                  customer_id: order.customer_id || 'guest',
+                  customer_name: order.customer_name || 'ลูกค้าทั่วไป',
+                  group_id: it.id,
+                  group_name: it.name,
+                  line_id: order.line_id || '',
+                  status: 'PENDING',
+                  created_at: new Date().toISOString()
+                });
+              } else {
+                const delivery = it.delivery_type || 'MANUAL';
+                await sb.from('drive_access').upsert({
+                  id: 'da-' + uid(),
+                  order_id: order.id,
+                  customer_id: order.customer_id || 'guest',
+                  customer_name: order.customer_name || 'ลูกค้าทั่วไป',
+                  item_id: it.id,
+                  item_name: it.name,
+                  item_type: it.type || 'PRODUCT',
+                  delivery_type: delivery,
+                  gmail: order.gmail || '',
+                  drive_id: it.drive_folder_id || it.drive_id || '',
+                  status: (delivery === 'GOOGLE_DRIVE') ? 'WAITING_VERIFY' : 'WAITING_ADMIN',
+                  created_at: new Date().toISOString()
+                });
+              }
+            }
+          }
+          return { success: true };
+        }
+
+        case 'UPDATE_ORDER_STATUS': {
+          await sb.from('orders').update({ status: payload.status }).eq('id', String(payload.id));
+          return { success: true };
+        }
+
+        case 'APPROVE_PAYMENT': {
+          const now = new Date().toISOString();
+          await sb.from('payments').update({ verification_status: 'PAID', verified_at: now }).eq('id', String(payload.paymentId));
+          const data = loadLocal();
+          const pay = (data.payments || []).find(p => p.id === payload.paymentId);
+          if (pay && pay.order_id) {
+            await sb.from('orders').update({ status: 'PAID' }).eq('id', String(pay.order_id));
+            await sb.from('drive_access').update({ status: 'COMPLETED', completed_at: now }).eq('order_id', String(pay.order_id));
+          }
+          return { success: true };
+        }
+
+        case 'REJECT_PAYMENT': {
+          const now = new Date().toISOString();
+          await sb.from('payments').update({ verification_status: 'REJECTED', verified_at: now, verification_notes: payload.reason || '' }).eq('id', String(payload.paymentId));
+          const data = loadLocal();
+          const pay = (data.payments || []).find(p => p.id === payload.paymentId);
+          if (pay && pay.order_id) {
+            await sb.from('orders').update({ status: 'REJECTED' }).eq('id', String(pay.order_id));
+          }
+          return { success: true };
+        }
+
+        case 'COMPLETE_GROUP_ACCESS': {
+          await sb.from('group_access').update({ status: 'COMPLETED', completed_at: new Date().toISOString() }).eq('id', String(payload.accessId));
+          return { success: true };
+        }
+
+        case 'FAIL_GROUP_ACCESS': {
+          await sb.from('group_access').update({ status: 'FAILED', notes: payload.note || '' }).eq('id', String(payload.accessId));
+          return { success: true };
+        }
+
+        case 'COMPLETE_DRIVE_ACCESS': {
+          await sb.from('drive_access').update({ status: 'COMPLETED', completed_at: new Date().toISOString() }).eq('id', String(payload.accessId));
+          return { success: true };
+        }
+
+        case 'ADJUST_POINTS': {
+          const pt = {
+            id: 'pt-' + uid(),
+            customer_id: String(payload.customerId),
+            amount: Number(payload.amount) || 0,
+            type: payload.type || 'ADJUST',
+            description: payload.description || 'ปรับคะแนนโดยแอดมิน',
+            created_at: new Date().toISOString()
+          };
+          await sb.from('point_transactions').upsert(pt);
+          const data = loadLocal();
+          const cust = (data.customers || []).find(c => c.id === payload.customerId);
+          if (cust) {
+            await sb.from('customers').update({ total_points: cust.total_points, member_level: cust.member_level }).eq('id', String(payload.customerId));
+          }
+          return { success: true };
+        }
+
+        case 'UPDATE_CUSTOMER_STAMPS': {
+          const stVal = (payload.stamps !== undefined) ? payload.stamps : payload.heart_stamps;
+          await sb.from('customers').update({ heart_stamps: Number(stVal) || 0 }).eq('id', String(payload.customerId));
+          return { success: true };
+        }
+
+        case 'ADD_REVIEW': {
+          const rev = payload.review;
+          if (!rev) return null;
+          const row = {
+            id: String(rev.id),
+            customer_id: rev.customer_id || '',
+            customer_name: rev.customer_name || 'ลูกค้าทั่วไป',
+            order_id: rev.order_id || '',
+            product_name: rev.product_name || '',
+            rating: Number(rev.rating) || 5,
+            message: rev.message || '',
+            image_url: rev.image_url || '',
+            images: rev.images || [],
+            status: rev.status || 'APPROVED',
+            is_pinned: !!rev.is_pinned,
+            created_at: rev.created_at || new Date().toISOString()
+          };
+          await sb.from('reviews').upsert(row);
+          return { success: true };
+        }
+
+        case 'UPDATE_REVIEW_STATUS': {
+          await sb.from('reviews').update({ status: payload.status }).eq('id', String(payload.id));
+          return { success: true };
+        }
+
+        case 'UPDATE_REVIEW_PIN': {
+          await sb.from('reviews').update({ is_pinned: !!payload.is_pinned }).eq('id', String(payload.id));
+          return { success: true };
+        }
+
+        case 'DELETE_REVIEW': {
+          await sb.from('reviews').delete().eq('id', String(payload.id));
+          return { success: true };
+        }
+
+        case 'SAVE_PORTFOLIO': {
+          const item = payload.item;
+          if (!item) return null;
+          const row = {
+            id: String(item.id),
+            title: item.title || '',
+            category: item.category || '',
+            style_category: item.style_category || '',
+            description: item.description || '',
+            image_url: item.image_url || '',
+            sort_order: Number(item.sort_order) || 0,
+            is_featured: !!item.is_featured,
+            created_at: item.created_at || new Date().toISOString()
+          };
+          await sb.from('portfolio').upsert(row);
+          return { success: true };
+        }
+
+        case 'DELETE_PORTFOLIO': {
+          await sb.from('portfolio').delete().eq('id', String(payload.id));
+          return { success: true };
+        }
+
+        case 'SAVE_SETTINGS': {
+          const s = payload.settings;
+          if (!s) return null;
+          const row = {
+            id: 1,
+            shop_name: s.shopName || 'BNC GraphMate Studio',
+            tagline: s.tagline || '',
+            logo_text: s.logoText || '',
+            theme_color: s.themeColor || '#FF6B97',
+            contact_phone: s.contactPhone || '',
+            contact_line: s.contactLine || '',
+            line_url: s.lineUrl || '',
+            instagram_url: s.instagramUrl || '',
+            facebook_url: s.facebookUrl || '',
+            tiktok_url: s.tiktokUrl || '',
+            bank_name: s.bankName || '',
+            bank_account: s.bankAccount || '',
+            bank_account_name: s.bankAccountName || '',
+            promptpay_qr_url: s.promptpayQrUrl || '',
+            points_per_hundred_baht: Number(s.pointsPerHundredBaht) || 10,
+            announcement: s.announcement || '',
+            announcement_enabled: !!s.announcementEnabled,
+            admin_pin: s.adminPin || '123456',
+            btn_line_text: s.btnLineText || '',
+            btn_ig_text: s.btnIgText || '',
+            btn_fb_text: s.btnFbText || '',
+            btn_phone_text: s.btnPhoneText || '',
+            btn_cart_text: s.btnCartText || '',
+            btn_buy_text: s.btnBuyText || '',
+            btn_preview_text: s.btnPreviewText || '',
+            btn_checkout_text: s.btnCheckoutText || '',
+            cover_image: s.coverImage || '',
+            profile_image: s.profileImage || '',
+            shop_bio: s.shopBio || '',
+            stats: s.stats || {},
+            points_bar_icon: s.pointsBarIcon || '',
+            mascot_settings: s.mascotSettings || {},
+            home_banners: s.homeBanners || [],
+            queue_status: s.queueStatus || {},
+            queue_page: s.queuePage || {},
+            payment_accounts: s.paymentAccounts || [],
+            contact_channels: s.contactChannels || [],
+            stamp_settings: s.stampSettings || {},
+            headings: s.headings || {},
+            notebook_notice: s.notebookNotice || '',
+            queue_badge_text: s.queueBadgeText || '',
+            raw_data: s,
+            updated_at: new Date().toISOString()
+          };
+          await sb.from('settings').upsert(row);
+          return { success: true };
+        }
+
+        case 'SAVE_QUEUE_ITEM': {
+          const q = payload.item;
+          if (!q) return null;
+          const row = {
+            id: String(q.id),
+            queue_number: q.queue_number || '',
+            customer_name: q.customer_name || '',
+            line_id: q.line_id || '',
+            phone: q.phone || '',
+            job_type: q.job_type || 'ออกแบบป้าย',
+            job_name: q.job_name || '',
+            description: q.description || '',
+            status: q.status || 'รอคิว',
+            progress: Number(q.progress) || 0,
+            current_queue: Number(q.current_queue) || 1,
+            total_queue: Number(q.total_queue) || 1,
+            queue_date: q.queue_date || '',
+            updated_at: q.updated_at || '',
+            note: q.note || '',
+            image_url: q.image_url || '',
+            is_pinned: !!q.is_pinned,
+            is_visible: q.is_visible !== false,
+            sort_order: Number(q.sort_order) || 0,
+            created_at: q.created_at || new Date().toISOString()
+          };
+          await sb.from('queue_items').upsert(row);
+          return { success: true };
+        }
+
+        case 'DELETE_QUEUE_ITEM': {
+          await sb.from('queue_items').delete().eq('id', String(payload.id));
+          return { success: true };
+        }
+
+        case 'REORDER_QUEUES': {
+          const items = payload.items || [];
+          for (let idx = 0; idx < items.length; idx++) {
+            if (items[idx] && items[idx].id) {
+              await sb.from('queue_items').update({ sort_order: idx }).eq('id', String(items[idx].id));
+            }
+          }
+          return { success: true };
+        }
+
+        case 'SAVE_CALENDAR_TASK': {
+          const task = payload.task;
+          if (!task) return null;
+          const row = {
+            id: String(task.id),
+            date: task.date || '',
+            title: task.title || '',
+            type: task.type || '',
+            status: task.status || '',
+            completed: !!task.completed,
+            queue_id: task.queue_id || '',
+            created_at: task.created_at || new Date().toISOString()
+          };
+          await sb.from('calendar_tasks').upsert(row);
+          return { success: true };
+        }
+
+        case 'DELETE_CALENDAR_TASK': {
+          await sb.from('calendar_tasks').delete().eq('id', String(payload.id));
+          return { success: true };
+        }
+
+        case 'SYNC_ALL': {
+          const p = payload.payload;
+          if (!p) return null;
+          if (p.settings) await callCloud('SAVE_SETTINGS', { settings: p.settings });
+          const tables = [
+            { key: 'groups', action: 'SAVE_GROUP' },
+            { key: 'products', action: 'SAVE_PRODUCT' },
+            { key: 'fonts', action: 'SAVE_FONT' },
+            { key: 'customers', action: 'SAVE_CUSTOMER' },
+            { key: 'portfolio', action: 'SAVE_PORTFOLIO' },
+            { key: 'queue_items', action: 'SAVE_QUEUE_ITEM' },
+            { key: 'reviews', action: 'ADD_REVIEW' },
+            { key: 'calendar_tasks', action: 'SAVE_CALENDAR_TASK' }
+          ];
+          for (const tbl of tables) {
+            const list = p[tbl.key];
+            if (Array.isArray(list) && list.length > 0) {
+              for (const item of list) {
+                await callCloud(tbl.action, { item: item, [tbl.key.slice(0, -1)]: item });
+              }
+            }
+          }
+          return { success: true };
+        }
+
+        default:
+          console.warn('Unknown Supabase cloud action:', action);
+          return null;
+      }
     } catch (err) {
-      console.log('Cloud call background sync info:', err);
+      console.error('callCloud Supabase error:', err);
       return null;
     }
   }
 
-  // ซิงก์ข้อมูลทั้งหมดจาก Google Sheet ลง Local Cache (ทำให้เห็นตรงกันทุกเครื่อง)
+  // ============================================================
+  // syncFromCloud: ซิงก์ข้อมูลทั้งหมดจาก Supabase ลง Local Cache
+  // ============================================================
   async function syncFromCloud(onUpdatedCallback) {
-    const url = getCloudUrl();
-    if (!url || !url.startsWith('https://script.google.com')) {
-      if (typeof onUpdatedCallback === 'function') onUpdatedCallback(false, 'ยังไม่ได้ระบุ Google Apps Script URL');
+    const sb = getSupabase();
+    if (!sb) {
+      if (typeof onUpdatedCallback === 'function') {
+        onUpdatedCallback(false, 'ยังไม่ได้กำหนดค่า Supabase (SUPABASE_CONFIG) ใน app.js');
+      }
       return false;
     }
 
     try {
-      // Use POST (same as callCloud) — GAS GET redirects cause 404 in some browsers
-      const fetchUrl = url + (url.includes('?') ? '&' : '?') + 'action=GET_ALL&_t=' + Date.now();
-      const res = await fetch(fetchUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'GET_ALL' })
-      });
-      if (!res.ok) {
-        if (res.status === 404) {
-          if (typeof onUpdatedCallback === 'function') {
-            onUpdatedCallback(false, 'Google Apps Script URL ส่งกลับ Error 404 (กรุณาตรวจสอบว่า Deploy เป็น Web App และเลือก Anyone ค่ะ)');
-          }
-          return false;
-        }
-        if (res.status === 401 || res.status === 403) {
-          if (typeof onUpdatedCallback === 'function') {
-            onUpdatedCallback(false, 'ไม่มีสิทธิ์เข้าถึง Google Apps Script (กรุณาตั้งค่า "Who has access" เป็น "Anyone" ค่ะ)');
-          }
-          return false;
-        }
+      const [
+        resSettings,
+        resProducts,
+        resFonts,
+        resGroups,
+        resPortfolio,
+        resReviews,
+        resQueue,
+        resCustomers,
+        resOrders,
+        resPayments,
+        resGroupAccess,
+        resDriveAccess,
+        resPointTransactions,
+        resCalendarTasks
+      ] = await Promise.all([
+        sb.from('settings').select('*').limit(1),
+        sb.from('products').select('*'),
+        sb.from('fonts').select('*'),
+        sb.from('groups').select('*'),
+        sb.from('portfolio').select('*').order('sort_order', { ascending: true }),
+        sb.from('reviews').select('*').order('created_at', { ascending: false }),
+        sb.from('queue_items').select('*').order('sort_order', { ascending: true }),
+        sb.from('customers').select('*'),
+        sb.from('orders').select('*').order('created_at', { ascending: false }),
+        sb.from('payments').select('*'),
+        sb.from('group_access').select('*'),
+        sb.from('drive_access').select('*'),
+        sb.from('point_transactions').select('*'),
+        sb.from('calendar_tasks').select('*')
+      ]);
+
+      const local = loadLocal();
+      const merged = Object.assign({}, local);
+
+      // Safe merge settings
+      if (resSettings.data && resSettings.data.length > 0) {
+        const sRow = resSettings.data[0];
+        const sObj = sRow.raw_data || {};
+        merged.settings = Object.assign({}, local.settings || {}, sObj, {
+          shopName: sRow.shop_name || sObj.shopName || local.settings.shopName,
+          tagline: sRow.tagline || sObj.tagline || local.settings.tagline,
+          logoText: sRow.logo_text || sObj.logoText || local.settings.logoText,
+          themeColor: sRow.theme_color || sObj.themeColor || local.settings.themeColor,
+          contactPhone: sRow.contact_phone || sObj.contactPhone || local.settings.contactPhone,
+          contactLine: sRow.contact_line || sObj.contactLine || local.settings.contactLine,
+          lineUrl: sRow.line_url || sObj.lineUrl || local.settings.lineUrl,
+          bankName: sRow.bank_name || sObj.bankName || local.settings.bankName,
+          bankAccount: sRow.bank_account || sObj.bankAccount || local.settings.bankAccount,
+          bankAccountName: sRow.bank_account_name || sObj.bankAccountName || local.settings.bankAccountName,
+          promptpayQrUrl: sRow.promptpay_qr_url || sObj.promptpayQrUrl || local.settings.promptpayQrUrl,
+          pointsPerHundredBaht: sRow.points_per_hundred_baht || sObj.pointsPerHundredBaht || local.settings.pointsPerHundredBaht,
+          adminPin: sRow.admin_pin || sObj.adminPin || local.settings.adminPin || '123456',
+          stats: sRow.stats || sObj.stats || local.settings.stats,
+          mascotSettings: sRow.mascot_settings || sObj.mascotSettings || local.settings.mascotSettings,
+          homeBanners: sRow.home_banners || sObj.homeBanners || local.settings.homeBanners,
+          queueStatus: sRow.queue_status || sObj.queueStatus || local.settings.queueStatus,
+          queuePage: sRow.queue_page || sObj.queuePage || local.settings.queuePage,
+          paymentAccounts: sRow.payment_accounts || sObj.paymentAccounts || local.settings.paymentAccounts,
+          contactChannels: sRow.contact_channels || sObj.contactChannels || local.settings.contactChannels,
+          stampSettings: sRow.stamp_settings || sObj.stampSettings || local.settings.stampSettings,
+          headings: sRow.headings || sObj.headings || local.settings.headings
+        });
       }
 
-      let result;
-      try {
-        const text = await res.text();
-        result = JSON.parse(text);
-      } catch (parseErr) {
-        if (typeof onUpdatedCallback === 'function') onUpdatedCallback(false, 'เซิร์ฟเวอร์ส่งกลับหน้า HTML แทน JSON (ตรวจสอบ URL และสิทธิ์ Anyone)');
-        return false;
+      // Arrays
+      if (Array.isArray(resProducts.data) && resProducts.data.length > 0) merged.products = resProducts.data;
+      if (Array.isArray(resFonts.data) && resFonts.data.length > 0) merged.fonts = resFonts.data;
+      if (Array.isArray(resGroups.data) && resGroups.data.length > 0) merged.groups = resGroups.data;
+      if (Array.isArray(resPortfolio.data) && resPortfolio.data.length > 0) merged.portfolio = resPortfolio.data;
+      if (Array.isArray(resReviews.data) && resReviews.data.length > 0) merged.reviews = resReviews.data;
+      if (Array.isArray(resQueue.data) && resQueue.data.length > 0) merged.queue_items = resQueue.data;
+      if (Array.isArray(resCustomers.data) && resCustomers.data.length > 0) merged.customers = resCustomers.data;
+      if (Array.isArray(resGroupAccess.data) && resGroupAccess.data.length > 0) merged.group_access = resGroupAccess.data;
+      if (Array.isArray(resDriveAccess.data) && resDriveAccess.data.length > 0) merged.drive_access = resDriveAccess.data;
+      if (Array.isArray(resPointTransactions.data) && resPointTransactions.data.length > 0) merged.point_transactions = resPointTransactions.data;
+      if (Array.isArray(resCalendarTasks.data) && resCalendarTasks.data.length > 0) merged.calendar_tasks = resCalendarTasks.data;
+
+      // Merge orders/payments: keep local records that cloud doesn't have yet
+      if (Array.isArray(resOrders.data) && resOrders.data.length > 0) {
+        const incomingIds = new Set(resOrders.data.map(x => x && x.id).filter(Boolean));
+        const localOnly = Array.isArray(local.orders) ? local.orders.filter(x => x && x.id && !incomingIds.has(x.id)) : [];
+        merged.orders = [...localOnly, ...resOrders.data];
       }
-      if (result && result.status === 'success' && result.data) {
-        const local = loadLocal();
-        const incoming = result.data;
-        const merged = Object.assign({}, local);
+      if (Array.isArray(resPayments.data) && resPayments.data.length > 0) {
+        const incomingIds = new Set(resPayments.data.map(x => x && x.id).filter(Boolean));
+        const localOnly = Array.isArray(local.payments) ? local.payments.filter(x => x && x.id && !incomingIds.has(x.id)) : [];
+        merged.payments = [...localOnly, ...resPayments.data];
+      }
 
-        // Safe merge settings
-        if (incoming.settings && typeof incoming.settings === 'object') {
-          merged.settings = Object.assign({}, local.settings || {}, incoming.settings);
-        } else {
-          merged.settings = merged.settings || {};
-        }
-        merged.settings.googleSheetWebAppUrl = local.settings?.googleSheetWebAppUrl || defaultData.settings.googleSheetWebAppUrl;
-
-        let hasEmptyCloudTables = false;
-        const mergeKeys = ['orders', 'payments'];
-        const arrayKeys = ['products', 'fonts', 'groups', 'portfolio', 'reviews', 'queue_items', 'customers', 'group_access', 'drive_access', 'point_transactions', 'calendar_tasks'];
-        arrayKeys.forEach(key => {
-          if (Array.isArray(incoming[key]) && incoming[key].length > 0) {
-            merged[key] = incoming[key];
+      // Direct image formatting
+      if (Array.isArray(merged.products)) {
+        merged.products.forEach(p => {
+          if (p) {
+            if (p.image) p.image = formatDriveImageUrl(p.image);
+            if (p.image_url) p.image_url = formatDriveImageUrl(p.image_url);
           }
         });
-        // Merge orders/payments: keep local records that cloud doesn't have yet
-        mergeKeys.forEach(key => {
-          const incomingArr = incoming[key];
-          const localArr = local[key];
-          if (Array.isArray(incomingArr) && incomingArr.length > 0) {
-            const incomingIds = new Set(incomingArr.map(x => x && x.id).filter(Boolean));
-            const localOnly = Array.isArray(localArr) ? localArr.filter(x => x && x.id && !incomingIds.has(x.id)) : [];
-            merged[key] = [...localOnly, ...incomingArr];
+      }
+      if (Array.isArray(merged.fonts)) {
+        merged.fonts.forEach(f => {
+          if (f) {
+            if (f.preview_image) f.preview_image = formatDriveImageUrl(f.preview_image);
+            if (f.preview_image_url) f.preview_image_url = formatDriveImageUrl(f.preview_image_url);
+            if (f.image_url) f.image_url = formatDriveImageUrl(f.image_url);
           }
         });
-
-        if (Array.isArray(merged.products)) {
-          merged.products.forEach(p => {
-            if (p) {
-              if (p.image) p.image = formatDriveImageUrl(p.image);
-              if (p.image_url) p.image_url = formatDriveImageUrl(p.image_url);
-            }
-          });
-        }
-        if (Array.isArray(merged.fonts)) {
-          merged.fonts.forEach(f => {
-            if (f) {
-              if (f.preview_image) f.preview_image = formatDriveImageUrl(f.preview_image);
-              if (f.preview_image_url) f.preview_image_url = formatDriveImageUrl(f.preview_image_url);
-              if (f.image_url) f.image_url = formatDriveImageUrl(f.image_url);
-            }
-          });
-        }
-        if (Array.isArray(merged.groups)) {
-          merged.groups.forEach(g => {
-            if (g) {
-              if (g.cover_image) g.cover_image = formatDriveImageUrl(g.cover_image);
-              if (g.cover_image_url) g.cover_image_url = formatDriveImageUrl(g.cover_image_url);
-            }
-          });
-        }
-        if (Array.isArray(merged.portfolio)) {
-          merged.portfolio.forEach(item => {
-            if (item && item.image_url) item.image_url = formatDriveImageUrl(item.image_url);
-          });
-        }
-        if (Array.isArray(merged.reviews)) {
-          merged.reviews.forEach(r => {
-            if (r) {
-              if (r.image_url) r.image_url = formatDriveImageUrl(r.image_url);
-              if (Array.isArray(r.images)) {
-                r.images = r.images.map(img => formatDriveImageUrl(img));
-              }
-            }
-          });
-        }
-        
-        saveLocal(merged);
-
-        if (hasEmptyCloudTables) {
-          setTimeout(() => {
-            callCloud('SYNC_ALL', { payload: merged });
-          }, 1000);
-        }
-
-        if (typeof onUpdatedCallback === 'function') {
-          onUpdatedCallback(true, merged);
-        }
-        return true;
-      } else {
-        if (typeof onUpdatedCallback === 'function') {
-          onUpdatedCallback(false, result?.error || 'เซิร์ฟเวอร์ตอบกลับไม่สำเร็จ');
-        }
-        return false;
       }
+      if (Array.isArray(merged.groups)) {
+        merged.groups.forEach(g => {
+          if (g) {
+            if (g.cover_image) g.cover_image = formatDriveImageUrl(g.cover_image);
+            if (g.cover_image_url) g.cover_image_url = formatDriveImageUrl(g.cover_image_url);
+          }
+        });
+      }
+      if (Array.isArray(merged.portfolio)) {
+        merged.portfolio.forEach(item => {
+          if (item && item.image_url) item.image_url = formatDriveImageUrl(item.image_url);
+        });
+      }
+      if (Array.isArray(merged.reviews)) {
+        merged.reviews.forEach(r => {
+          if (r) {
+            if (r.image_url) r.image_url = formatDriveImageUrl(r.image_url);
+            if (Array.isArray(r.images)) {
+              r.images = r.images.map(img => formatDriveImageUrl(img));
+            }
+          }
+        });
+      }
+
+      saveLocal(merged);
+
+      // หากฐานข้อมูล Supabase ยังว่างอยู่ ให้นำเข้าข้อมูลเริ่มต้นทันทีอัตโนมัติ
+      if ((!resProducts.data || resProducts.data.length === 0) && merged.products && merged.products.length > 0) {
+        console.log('Seeding initial data into Supabase Cloud...');
+        callCloud('SYNC_ALL', { payload: merged });
+      }
+
+      if (typeof onUpdatedCallback === 'function') {
+        onUpdatedCallback(true, merged);
+      }
+      return true;
     } catch (err) {
-      console.log('Cloud sync GET info:', err);
+      console.warn('Supabase sync error:', err);
       if (typeof onUpdatedCallback === 'function') {
         onUpdatedCallback(false, err.message);
       }
       return false;
+    }
+  }
+
+  // ============================================================
+  // Supabase Realtime Listener
+  // ============================================================
+  let _realtimeSubscribed = false;
+  function initRealtimeSync() {
+    const sb = getSupabase();
+    if (!sb || _realtimeSubscribed) return;
+    try {
+      sb.channel('bnc_store_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'queue_items' }, () => {
+          syncFromCloud(() => {
+            if (typeof state !== 'undefined' && (state.view === 'queue' || state.view === 'admin')) {
+              renderCurrentView();
+            }
+          });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+          syncFromCloud(() => {
+            if (typeof state !== 'undefined' && (state.view === 'orders' || state.view === 'admin')) {
+              renderCurrentView();
+            }
+          });
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => {
+          syncFromCloud(() => {
+            if (typeof state !== 'undefined' && (state.view === 'orders' || state.view === 'admin')) {
+              renderCurrentView();
+            }
+          });
+        })
+        .subscribe();
+      _realtimeSubscribed = true;
+    } catch (e) {
+      console.warn('Realtime subscription warning:', e);
     }
   }
 
@@ -1003,9 +1546,12 @@ const Store = (function () {
     getFontFamily: getFontFamily,
     loadLocal: loadLocal,
     saveLocal: saveLocal,
+    getSupabase: getSupabase,
     getCloudUrl: getCloudUrl,
     syncFromCloud: syncFromCloud,
     callCloud: callCloud,
+    syncAllToCloud: function () { return callCloud('SYNC_ALL', { payload: loadLocal() }); },
+    initRealtimeSync: initRealtimeSync,
     uid: uid,
     orderNum: orderNum,
 
@@ -2088,6 +2634,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           renderCurrentView();
         }
       });
+      if (Store.initRealtimeSync) {
+        Store.initRealtimeSync();
+      }
     }
  }
 
@@ -4273,7 +4822,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
  <h1 style="font-size: 1.5rem; margin: 0;">ระบบจัดการร้านค้า BNC Admin</h1>
  </div>
  <div style="display: flex; gap: 0.5rem;">
- <button type="button" class="btn btn-outline btn-sm" onclick="syncSheetsManual()">ซิงก์ Google Sheet</button>
+ <button type="button" class="btn btn-outline btn-sm" onclick="syncCloudManual()">🔄 รีเฟรช Cloud</button>
  <button type="button" class="btn btn-outline btn-sm" onclick="handleAdminLogout()">ออกจากระบบ</button>
  </div>
  </div>
@@ -6073,32 +6622,20 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 9. Google Sheets Cloud Sync & Admin Passcode -->
+        <!-- 9. รหัสผ่านความปลอดภัยแอดมิน -->
         <div class="card" style="margin-bottom: 2rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">Google Sheets Database & รหัสผ่านแอดมิน</h3>
-          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">เชื่อมต่อระบบคลาวด์เพื่อให้ข้อมูลตรงกันทุกอุปกรณ์ และตั้งรหัสผ่านกดเข้าหลังบ้าน</p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="form-group">
-              <label class="form-label">Google Apps Script Web App URL</label>
-              <input type="text" id="cfg_sheetUrl" class="form-input" value="${escapeHTML(s.googleSheetWebAppUrl || '')}" placeholder="https://script.google.com/macros/s/.../exec">
-              <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button type="button" class="btn btn-outline btn-sm" onclick="testAdminSheetSync()">ทดสอบการเชื่อมต่อ</button>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="syncSheetsManual()">ดึงข้อมูลจากชีต</button>
-                <button type="button" class="btn btn-primary btn-sm" style="background: #166534; border-color: #166534;" onclick="syncAllToCloudManual()">ส่งข้อมูลทั้งหมดขึ้นชีต (Sync All to Sheet)</button>
-              </div>
-              <div id="adminSheetFeedback" style="display: none; font-size: 0.82rem; margin-top: 0.5rem;"></div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">รหัสผ่านแอดมิน (PIN 6 หลักสำหรับเครื่องคิดเลข)</label>
-              <input type="password" id="cfg_adminPin" class="form-input" value="${escapeHTML(s.adminPin || '123456')}" maxlength="6" style="letter-spacing: 4px; font-weight: 700;">
-              <small style="color: var(--text-muted);">*รหัสมาตรฐาน: 123456</small>
-            </div>
+          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">🔒 รหัสผ่านความปลอดภัยแอดมิน</h3>
+          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">ตั้งรหัสผ่าน PIN 6 หลักสำหรับเข้าสู่ระบบหลังบ้านผ่านเครื่องคิดเลข (ระบบฐานข้อมูลเชื่อมต่อผ่าน Supabase ในโค้ดอัตโนมัติ)</p>
+          <div class="form-group" style="max-width: 360px;">
+            <label class="form-label">รหัสผ่านแอดมิน (PIN 6 หลักสำหรับเครื่องคิดเลข)</label>
+            <input type="password" id="cfg_adminPin" class="form-input" value="${escapeHTML(s.adminPin || '123456')}" maxlength="6" style="letter-spacing: 4px; font-weight: 700;">
+            <small style="color: var(--text-muted);">*รหัสมาตรฐานเริ่มต้น: 123456</small>
           </div>
 
           <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border);">
             <h4 style="color: var(--primary); font-size: 0.95rem; margin-bottom: 0.35rem;">⚡ โอนย้ายข้อมูลข้ามเครื่องด่วน (Phone &lt;-&gt; iPad &lt;-&gt; คอมพิวเตอร์)</h4>
             <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-              ในกรณีที่ยังไม่ได้ติดตั้ง Google Apps Script หรือต้องการให้ข้อมูลในมือถือและ iPad ตรงกันทันที คุณสามารถกดคัดลอกข้อมูลจากเครื่องหลัก แล้วนำไปวางในอีกเครื่องได้ทันทีค่ะ
+              คุณสามารถคัดลอกข้อมูลร้าน หรือดาวน์โหลดไฟล์สำรอง (.json) เพื่อนำไปเปิดในเครื่องอื่น หรือเก็บสำรองไว้ได้ตลอดเวลาค่ะ
             </p>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
               <button type="button" class="btn btn-secondary btn-sm" onclick="exportDataJsonPrompt()">📋 คัดลอกข้อมูลร้านทั้งหมด (ส่งไปอีกเครื่อง)</button>
@@ -6149,51 +6686,20 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     Store.saveHomeBanners(banners);
     renderCurrentView();
   };
-
-  window.testAdminSheetSync = async function () {
-    const url = ($('cfg_sheetUrl')?.value || '').trim();
-    const fb = $('adminSheetFeedback');
-    if (!fb) return;
-    fb.style.display = 'block';
-
-    if (!url) {
-      fb.innerHTML = '<span style="color: #dc2626;">กรุณากรอก URL ก่อนนะคะ</span>';
-      return;
-    }
-
-    if (url.includes('docs.google.com/spreadsheets')) {
-      fb.innerHTML = '<div style="color: #166534; font-weight:600;">ตรวจพบลิงก์ชีต บันทึกและเปิดใช้งานได้ทันทีค่ะ</div>';
-      return;
-    }
-
-    fb.innerHTML = '<span style="color: #2563eb;">กำลังทดสอบการเชื่อมต่อ...</span>';
-    try {
-      const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'action=PING');
-      const json = await res.json();
-      if (json && (json.status === 'success' || json.data)) {
-        fb.innerHTML = '<div style="color: #166534; font-weight:600;">เชื่อมต่อชีตสำเร็จ 100%! ระบบจะซิงก์ออเดอร์อัตโนมัติ</div>';
-      } else {
-        fb.innerHTML = `<div style="color: #d97706;">ตอบกลับจากเซิร์ฟเวอร์: ${json.message || 'บันทึกพร้อมใช้งาน'}</div>`;
-      }
-    } catch (err) {
-      fb.innerHTML = '<div style="color: #166534; font-weight:600;">บันทึกลิงก์เรียบร้อยแล้วค่ะ (ระบบจะส่งข้อมูลเบื้องหลังอัตโนมัติ)</div>';
-    }
-  };
-
-  window.syncSheetsManual = async function () {
+  window.syncCloudManual = async function () {
     if (Store.syncFromCloud) {
       const btn = event?.target;
       const originalText = btn ? btn.textContent : '';
       if (btn) {
         btn.disabled = true;
-        btn.textContent = 'กำลังซิงก์...';
+        btn.textContent = '⏳ กำลังซิงก์ Cloud...';
       }
-      const success = await Store.syncFromCloud((isOk, detail) => {
+      await Store.syncFromCloud((isOk, detail) => {
         if (isOk) {
-          alert('ซิงก์ข้อมูลจาก Google Sheets เรียบร้อยแล้วค่ะ!');
+          alert('ซิงก์ข้อมูลจาก Supabase Cloud เรียบร้อยแล้วค่ะ!');
           renderCurrentView();
         } else {
-          alert('ไม่สามารถซิงก์ได้: ' + (typeof detail === 'string' ? detail : 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต'));
+          alert('ผลการซิงก์: ' + (typeof detail === 'string' ? detail : 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือ SUPABASE_CONFIG ค่ะ'));
         }
       });
       if (btn) {
@@ -6202,23 +6708,25 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       }
     }
   };
+  window.syncSheetsManual = window.syncCloudManual;
+  window.testAdminSheetSync = window.syncCloudManual;
 
   window.syncAllToCloudManual = async function () {
     const btn = event?.target;
     const originalText = btn ? btn.textContent : '';
     if (btn) {
       btn.disabled = true;
-      btn.textContent = 'กำลังส่งข้อมูลขึ้นชีต...';
+      btn.textContent = 'กำลังส่งข้อมูลขึ้น Cloud...';
     }
     try {
       const res = await Store.syncAllToCloud();
-      if (res && (res.status === 'success' || res.message)) {
-        alert('ส่งข้อมูลทั้งหมด (สินค้า, ฟอนต์, กลุ่ม, แต้ม, การตั้งค่า) ขึ้น Google Sheet เรียบร้อยแล้วค่ะ!');
+      if (res && (res.success || res.status === 'success' || res.message)) {
+        alert('ส่งข้อมูลทั้งหมดขึ้น Supabase Cloud เรียบร้อยแล้วค่ะ!');
       } else {
-        alert('ระบบบันทึกลงชีตเรียบร้อยแล้วค่ะ');
+        alert('บันทึกข้อมูลเรียบร้อยแล้วค่ะ');
       }
     } catch (e) {
-      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ Google Apps Script: ' + e.message);
+      alert('เกิดข้อผิดพลาดในการเชื่อมต่อ Supabase: ' + e.message);
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -6309,7 +6817,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         bankAccount: getVal('cfg_bankAccount', ''),
         bankAccountName: getVal('cfg_bankAccountName', ''),
         promptpayQrUrl: getVal('cfg_promptpayQrUrl', ''),
-        googleSheetWebAppUrl: getVal('cfg_sheetUrl', ''),
         adminPin: getVal('cfg_adminPin', '123456'),
         notebookNotice: getVal('cfg_notebookNotice', 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'),
         queueBadgeText: getVal('cfg_queueBadgeText', 'ว่างพร้อมรับ 3 คิว'),
