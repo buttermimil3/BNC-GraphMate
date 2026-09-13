@@ -4663,146 +4663,208 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     state.lightboxList = filtered;
 
     container.innerHTML = `
-      <section style="padding: 2.5rem 0 4rem;">
-        <div class="container">
-          <!-- Kawaii Washi Note Header with Profile Picture & Pin -->
-          <div class="page-washi-header">
-            <div class="washi-tape-strip"></div>
-            
-            <!-- Circular Profile Picture with Cute Pin -->
-            <div style="position: relative; display: inline-block; margin-bottom: 8px;">
-              <div class="pushpin-pin" style="top: -12px; left: 50%; z-index: 10;"></div>
-              <img src="${escapeHTML(s.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80')}" alt="Shop Profile" style="width: 78px; height: 78px; border-radius: 50%; object-fit: cover; border: 3.5px solid #ffffff; outline: 1.5px solid #FFDFE9; display: block; margin: 0 auto; box-shadow: none;">
-            </div>
-            <div style="font-weight: 800; font-size: 1.15rem; color: #71515B; margin-bottom: 0.5rem; font-family: var(--font-heading);">
-              ${escapeHTML(s.shopName || 'BNC GraphMate Studio')}
-            </div>
+      <section style="padding: 2rem 0 4.5rem;">
+        <div class="container" style="max-width: 1120px;">
 
-            <div>
-              <span class="section-tag">Our Works & Gallery</span>
-            </div>
-            <h2 class="page-washi-title">${escapeHTML(headings.portTitle || 'แกลเลอรีผลงาน & อัตราค่าบริการ')}</h2>
-            <p class="page-washi-desc">${escapeHTML(headings.portDesc || 'เลือกดูตามสไตล์งานที่คุณชื่นชอบ และเลือกหมวดหมู่ป้ายเพื่อดูราคาและตัวอย่างงานได้ทันที')}</p>
+          <div class="gallery-ig-container">
 
-            <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 10px;">
-              <a href="${escapeHTML(s.portfolioContactUrl || s.lineUrl || '#contact-us')}" target="${(s.portfolioContactUrl || s.lineUrl || '').startsWith('#') ? '_self' : '_blank'}" class="btn btn-primary" style="font-weight: 800; border-radius: 999px; padding: 0.65rem 2rem; font-size: 0.95rem; box-shadow: none !important; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                <span>สนใจสั่งงาน (ติดต่อร้าน)</span>
-              </a>
-            </div>
-          </div>
+            <!-- Left Column: Sticky Profile & Contact Card on iPad/Desktop -->
+            <aside class="gallery-ig-sidebar">
+              <!-- Washi Tape Decor -->
+              <div class="washi-tape-strip"></div>
 
-          <!-- Tier 1: Primary Filter by Work Style (สไตล์งานออกแบบ) -->
-          <div style="margin-bottom: 1.75rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
-              <span style="font-size: 0.95rem; font-weight: 700; color: var(--primary-deep);">
-                เลือกสไตล์งานที่ต้องการ (Style Categories)
-              </span>
-              ${state.portfolioStyleFilter !== 'ALL' ? `
-                <button type="button" class="btn btn-outline btn-sm" onclick="filterPortfolioByStyle('ALL')" style="font-size: 0.8rem; padding: 3px 10px;">
-                  รีเซ็ตสไตล์งาน (ดูทั้งหมด)
-                </button>
-              ` : ''}
-            </div>
+              <!-- Profile Avatar with Cute 3D Pin -->
+              <div class="ig-profile-avatar-wrap">
+                <div class="pushpin-pin" style="top: -10px; left: 50%; z-index: 10;"></div>
+                <img src="${escapeHTML(formatDriveImageUrl(s.profileImage) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" alt="Shop Profile" class="ig-profile-avatar" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
+              </div>
 
-            <div class="portfolio-style-tabs">
-              ${styleCategories.map(st => {
-                const isActive = state.portfolioStyleFilter === st;
-                const count = st === 'ALL' ? portfolio.length : portfolio.filter(p => {
-                  const pStyle = (p.style_category || '').toLowerCase();
-                  const target = st.toLowerCase();
-                  if (pStyle && pStyle.includes(target)) return true;
-                  const kws = target.split(/[&,/ ]+/).map(k => k.trim()).filter(k => k.length > 1 && k !== 'สไตล์');
-                  return kws.some(kw => pStyle.includes(kw) || (p.title || '').toLowerCase().includes(kw));
-                }).length;
+              <h2 class="ig-profile-name">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</h2>
+              <div class="ig-profile-tagline">${escapeHTML(s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล')}</div>
+
+              <div class="ig-profile-status">
+                <span class="ig-status-dot"></span>
+                <span>เปิดรับคิวงานออกแบบ</span>
+              </div>
+
+              <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 1rem;">
+                ${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้')}
+              </p>
+
+              <!-- Contact us Section -->
+              <div class="ig-contact-section">
+                <div class="ig-contact-title">Contact us</div>
+                <div class="ig-contact-buttons">
+                  ${Store.getContactChannels().map(ch => {
+                    const isTel = (ch.url || '').startsWith('tel:');
+                    const isMail = (ch.url || '').startsWith('mailto:');
+                    const target = (isTel || isMail) ? '' : 'target="_blank" rel="noopener noreferrer"';
+                    const iconSvg = getContactChannelIcon(ch.platform, ch.url);
+                    const label = ch.platform || 'ติดต่อ';
+                    return `
+                      <a href="${escapeHTML(ch.url || '#')}" ${target} class="fb-contact-btn" title="${escapeHTML(label)}" aria-label="${escapeHTML(label)}">
+                        ${iconSvg}
+                      </a>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              <!-- Direct Action Button -->
+              <div style="margin-top: 1.25rem;">
+                <a href="${escapeHTML(s.portfolioContactUrl || s.lineUrl || '#contact-us')}" target="${(s.portfolioContactUrl || s.lineUrl || '').startsWith('#') ? '_self' : '_blank'}" class="btn btn-primary" style="width: 100%; border-radius: 999px; font-weight: 800; padding: 0.7rem 1rem; font-size: 0.95rem; box-shadow: none !important; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <span>สนใจสั่งงาน (ติดต่อร้าน)</span>
+                </a>
+              </div>
+
+              <!-- Quick Style Filter inside Sidebar -->
+              <div style="margin-top: 1.5rem; border-top: 1.5px dashed var(--border); padding-top: 1rem; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
+                  <span style="font-size: 0.85rem; font-weight: 700; color: #71515B;">เลือกสไตล์งาน (Filter)</span>
+                  ${state.portfolioStyleFilter !== 'ALL' ? `
+                    <button type="button" class="btn btn-link btn-sm" onclick="filterPortfolioByStyle('ALL')" style="font-size: 0.75rem; color: var(--primary); padding: 0; text-decoration: underline;">
+                      ดูทั้งหมด
+                    </button>
+                  ` : ''}
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                  ${styleCategories.map(st => {
+                    const isActive = state.portfolioStyleFilter === st;
+                    return `
+                      <button type="button" 
+                        class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline'}" 
+                        onclick="filterPortfolioByStyle('${escapeHTML(st)}')"
+                        style="font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; ${isActive ? 'box-shadow: none !important;' : 'border-color: #FFDFE9; color: #71515B;'}">
+                        ${st === 'ALL' ? 'ทุกสไตล์งาน' : escapeHTML(st)}
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            </aside>
+
+            <!-- Right Column: Instagram-style Vertical Feed Stream -->
+            <main class="gallery-ig-feed">
+              <!-- Feed Top Bar -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; padding: 0 4px; flex-wrap: wrap; gap: 6px;">
+                <div>
+                  <h1 style="font-size: 1.25rem; color: #71515B; font-family: var(--font-heading); margin: 0; font-weight: 700;">
+                    ${escapeHTML(headings.portTitle || 'แกลเลอรีผลงานออกแบบ')}
+                  </h1>
+                  <small style="color: var(--text-muted); font-size: 0.82rem;">
+                    แสดง: <strong>${state.portfolioStyleFilter === 'ALL' ? 'ทุกสไตล์' : escapeHTML(state.portfolioStyleFilter)}</strong> (${filtered.length} ผลงาน)
+                  </small>
+                </div>
+                <span class="badge badge--pink">ฟีดผลงาน IG Style</span>
+              </div>
+
+              <!-- Feed Post Cards -->
+              ${filtered.length > 0 ? filtered.map((item, idx) => {
+                const rawImg = item.image_url || item.cover_image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
+                const img = formatDriveImageUrl(rawImg);
+                const likesKey = 'BNC_PORTFOLIO_LIKES';
+                let likesMap = {};
+                try { likesMap = JSON.parse(localStorage.getItem(likesKey) || '{}'); } catch(e) {}
+                const isLiked = !!likesMap[item.id];
+                const charCode = (item.id && item.id.length > 0) ? item.id.charCodeAt(item.id.length - 1) : 5;
+                const baseLikes = 22 + (charCode % 17);
+                const totalLikes = baseLikes + (isLiked ? 1 : 0);
 
                 return `
-                  <button type="button" 
-                    class="portfolio-style-pill ${isActive ? 'is-active' : ''}" 
-                    onclick="filterPortfolioByStyle('${escapeHTML(st)}')"
-                    title="เลือกสไตล์ ${escapeHTML(st)}">
-                    <span>${st === 'ALL' ? 'ทุกสไตล์งาน' : escapeHTML(st)}</span>
-                    <span class="portfolio-style-pill-badge">${count}</span>
-                  </button>
-                `;
-              }).join('')}
-            </div>
-          </div>
-
-          <!-- Tier 2: Standard Price Menu Card (Click to filter by Sign Category) -->
-          <div class="price-menu-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1.5px dashed var(--border); padding-bottom: 0.75rem;">
-              <div>
-                <h3 style="font-size: 1.15rem; margin: 0; color: var(--primary-deep);">ตารางอัตราค่าบริการ & รายการราคาป้ายยอดนิยม</h3>
-                <small style="color: var(--text-muted); font-size: 0.82rem;">คลิกเลือกประเภทป้ายด้านล่าง เพื่อกรองดูตัวอย่างงานป้ายนั้นๆ ร่วมกับสไตล์ที่เลือกไว้ได้ทันที</small>
-              </div>
-              <span class="badge badge--pink">อัปเดต 2026</span>
-            </div>
-
-            <div class="price-menu-grid">
-              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'ป้ายเครดิต' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('ป้ายเครดิต')" title="คลิกเพื่อดูผลงานป้ายเครดิต">
-                <span class="price-menu-title">ป้ายเครดิต</span>
-                <span class="price-menu-price">฿129</span>
-              </div>
-              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'ป้ายแอพพรี' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('ป้ายแอพพรี')" title="คลิกเพื่อดูผลงานป้ายแอพพรี">
-                <span class="price-menu-title">ป้ายแอพพรี</span>
-                <span class="price-menu-price">฿199</span>
-              </div>
-              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'ป้ายเติมเกม' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('ป้ายเติมเกม')" title="คลิกเพื่อดูผลงานป้ายเติมเกม">
-                <span class="price-menu-title">ป้ายเติมเกม</span>
-                <span class="price-menu-price">฿189</span>
-              </div>
-              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'ป้ายเปิดร้าน' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('ป้ายเปิดร้าน')" title="คลิกเพื่อดูผลงานป้ายเปิดร้าน">
-                <span class="price-menu-title">ป้ายเปิดร้าน / ป้ายเลขบัญชี</span>
-                <span class="price-menu-price">฿150</span>
-              </div>
-              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'ป้ายโปรโมชั่น' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('ป้ายโปรโมชั่น')" title="คลิกเพื่อดูผลงานป้ายโปรโมชั่น">
-                <span class="price-menu-title">ป้ายโปรโมชั่น / บอร์ดเมนู</span>
-                <span class="price-menu-price">฿250</span>
-              </div>
-              <div class="price-menu-item is-interactive ${state.portfolioPriceFilter === 'งานป้ายสั่งทำพิเศษ' ? 'is-active' : ''}" onclick="filterPortfolioByPrice('งานป้ายสั่งทำพิเศษ')" title="คลิกเพื่อดูงานป้ายสั่งทำพิเศษ">
-                <span class="price-menu-title">งานป้ายสั่งทำพิเศษ</span>
-                <span class="price-menu-price">฿390</span>
-              </div>
-            </div>
-
-            <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-              <small style="color: var(--text-muted); font-size: 0.85rem;">
-                กำลังแสดง: <strong>${state.portfolioStyleFilter !== 'ALL' ? escapeHTML(state.portfolioStyleFilter) : 'ทุกสไตล์'}</strong>
-                ${state.portfolioPriceFilter !== 'ALL' ? ` | หมวดป้าย: <strong>${escapeHTML(state.portfolioPriceFilter)}</strong>` : ''}
-                (${filtered.length} รายการ)
-              </small>
-              <div style="display: flex; gap: 8px;">
-                ${state.portfolioPriceFilter !== 'ALL' ? `
-                  <button type="button" class="btn btn-outline btn-sm" onclick="filterPortfolioByPrice('ALL')">ดูทุกหมวดป้าย</button>
-                ` : ''}
-                ${state.portfolioStyleFilter !== 'ALL' || state.portfolioPriceFilter !== 'ALL' ? `
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="resetAllPortfolioFilters()">ล้างตัวกรองทั้งหมด</button>
-                ` : ''}
-              </div>
-            </div>
-          </div>
-
-          <!-- Pure Square Image Gallery (1:1 Ratio, No Captions) -->
-          <div class="square-gallery-grid">
-            ${filtered.length > 0 ? filtered.map((item, idx) => {
-              const rawImg = item.image_url || item.cover_image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
-              const img = formatDriveImageUrl(rawImg);
-              return `
-                <div class="square-gallery-item" onclick="openLightbox(${idx})" title="คลิกเพื่อดูรูปขยาย">
-                  <img src="${escapeHTML(img)}" alt="Portfolio Graphic" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
-                  <div class="square-gallery-overlay">
-                    <div class="square-gallery-overlay-icon">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                  <article class="ig-post-card" id="ig-post-${escapeHTML(item.id)}">
+                    <!-- Post Header -->
+                    <div class="ig-post-header">
+                      <div class="ig-post-author">
+                        <img src="${escapeHTML(formatDriveImageUrl(s.profileImage) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="ig-post-author-img" alt="Author" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
+                        <div>
+                          <div class="ig-post-author-name">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</div>
+                          <div class="ig-post-author-sub">งานออกแบบกราฟิก 300 DPI</div>
+                        </div>
+                      </div>
+                      <span class="ig-post-category-badge">${escapeHTML(item.style_category || item.category || 'งานออกแบบ')}</span>
                     </div>
-                  </div>
+
+                    <!-- Artwork Image (Click to Lightbox, Double Click to Like) -->
+                    <div class="ig-post-image-wrap" onclick="openLightbox(${idx})" ondblclick="event.stopPropagation(); togglePortfolioLike('${escapeHTML(item.id)}');" title="คลิกเพื่อดูรูปขยาย หรือดับเบิ้ลคลิกเพื่อกดใจ">
+                      <img src="${escapeHTML(img)}" alt="${escapeHTML(item.title)}" class="ig-post-image" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
+                    </div>
+
+                    <!-- Post Action Bar (Heart, Message/Contact, View Fullscreen) -->
+                    <div class="ig-post-actions">
+                      <div class="ig-actions-left">
+                        <!-- Heart / Like Button (กดใจ) -->
+                        <button type="button" 
+                          id="like-btn-${escapeHTML(item.id)}" 
+                          class="ig-action-btn ${isLiked ? 'is-liked' : ''}" 
+                          onclick="togglePortfolioLike('${escapeHTML(item.id)}')" 
+                          title="กดใจผลงานนี้" 
+                          aria-label="ถูกใจ">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                          </svg>
+                        </button>
+
+                        <!-- Message / Contact Button (กดภาพเมสเสทเพื่อติดต่อสั่งงาน) -->
+                        <button type="button" 
+                          class="ig-action-btn" 
+                          onclick="openWorkInquiryModal('${escapeHTML(item.id)}')" 
+                          title="ทักแชท / สนใจสั่งงานชิ้นนี้" 
+                          aria-label="ติดต่อสั่งงาน">
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                          </svg>
+                        </button>
+
+                        <!-- View / Lightbox Button -->
+                        <button type="button" 
+                          class="ig-action-btn" 
+                          onclick="openLightbox(${idx})" 
+                          title="ดูภาพขนาดใหญ่" 
+                          aria-label="ดูภาพขนาดใหญ่">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            <line x1="11" y1="8" x2="11" y2="14"/>
+                            <line x1="8" y1="11" x2="14" y2="11"/>
+                          </svg>
+                        </button>
+                      </div>
+
+                      <!-- Fast Order CTA inside action bar -->
+                      <button type="button" class="ig-post-order-btn" onclick="openWorkInquiryModal('${escapeHTML(item.id)}')">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span>สนใจสั่งงาน</span>
+                      </button>
+                    </div>
+
+                    <!-- Post Details / Caption -->
+                    <div class="ig-post-body">
+                      <div class="ig-post-likes">
+                        ถูกใจ <span id="like-count-${escapeHTML(item.id)}">${totalLikes}</span> คน
+                      </div>
+                      <div class="ig-post-caption">
+                        <strong>${escapeHTML(s.shopName || 'BNC GraphMate')}</strong>
+                        <span>${escapeHTML(item.title)}</span>
+                      </div>
+                      ${item.description ? `
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0 0 8px; line-height: 1.45;">
+                          ${escapeHTML(item.description)}
+                        </p>
+                      ` : ''}
+                      <div style="font-size: 0.78rem; color: var(--primary); font-weight: 600;">
+                        #BNCGraphMate #${escapeHTML((item.style_category || 'ออกแบบป้าย').replace(/\s+/g, ''))} #งานออกแบบ #ป้ายร้าน
+                      </div>
+                    </div>
+                  </article>
+                `;
+              }).join('') : `
+                <div style="text-align: center; padding: 3rem 1.5rem; background: #ffffff; border: 1.5px solid #FFDFE9; border-radius: 24px;">
+                  <p style="color: var(--text-muted); margin-bottom: 1rem;">ไม่พบผลงานในสไตล์ที่เลือก</p>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="filterPortfolioByStyle('ALL')">ดูทุกสไตล์งาน</button>
                 </div>
-              `;
-            }).join('') : `
-              <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">
-                <p>ยังไม่มีรูปผลงานในหมวดหรือสไตล์นี้ค่ะ แอดมินสามารถเพิ่มรูปได้ในเมนูหลังบ้าน (จัดการผลงาน)</p>
-                <button type="button" class="btn btn-outline btn-sm" onclick="resetAllPortfolioFilters()">ดูผลงานทั้งหมด</button>
-              </div>
-            `}
+              `}
+            </main>
+
           </div>
 
         </div>
@@ -5214,6 +5276,28 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       });
     } else {
       prompt('คัดลอก Gmail:', email);
+    }
+  };
+
+  window.copyTextToClipboard = function (text, btn) {
+    if (!text) return;
+    const doFeedback = () => {
+      if (!btn) return;
+      const orig = btn.innerHTML;
+      btn.innerHTML = 'คัดลอกแล้ว!';
+      btn.style.background = '#22c55e';
+      btn.style.color = '#ffffff';
+      setTimeout(() => {
+        btn.innerHTML = orig;
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 2000);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(doFeedback).catch(() => { prompt('คัดลอก:', text); });
+    } else {
+      prompt('คัดลอก:', text);
+      doFeedback();
     }
   };
 
@@ -8174,6 +8258,86 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (modal) modal.classList.remove('is-active');
   };
 
+  window.togglePortfolioLike = function (workId) {
+    const likesKey = 'BNC_PORTFOLIO_LIKES';
+    let likesMap = {};
+    try {
+      likesMap = JSON.parse(localStorage.getItem(likesKey) || '{}');
+    } catch (e) {}
+
+    const isLiked = !likesMap[workId];
+    likesMap[workId] = isLiked;
+    try {
+      localStorage.setItem(likesKey, JSON.stringify(likesMap));
+    } catch (e) {}
+
+    const btn = document.getElementById(`like-btn-${workId}`);
+    const countEl = document.getElementById(`like-count-${workId}`);
+    if (btn) {
+      if (isLiked) {
+        btn.classList.add('is-liked', 'heart-pop-anim');
+        setTimeout(() => btn.classList.remove('heart-pop-anim'), 400);
+      } else {
+        btn.classList.remove('is-liked');
+      }
+    }
+    if (countEl) {
+      const charCode = (workId && workId.length > 0) ? workId.charCodeAt(workId.length - 1) : 5;
+      const baseLikes = 22 + (charCode % 17);
+      countEl.textContent = `${baseLikes + (isLiked ? 1 : 0)} คน`;
+    }
+  };
+
+  window.openWorkInquiryModal = function (workId) {
+    const portfolio = Store.getPortfolio() || [];
+    const item = portfolio.find(p => p.id === workId) || portfolio[0] || {};
+    const s = Store.getSettings();
+    const modal = $('workInquiryModal');
+    const body = $('workInquiryModalBody');
+    if (!modal || !body) return;
+
+    const rawImg = item.image_url || item.cover_image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
+    const img = formatDriveImageUrl(rawImg);
+    const contactUrl = s.portfolioContactUrl || s.lineUrl || '#contact-us';
+    const title = item.title || 'ผลงานออกแบบ';
+
+    body.innerHTML = `
+      <div style="text-align: left;">
+        <div style="display: flex; gap: 14px; align-items: center; background: #FFF7F9; border: 1.5px solid #FFDFE9; border-radius: 16px; padding: 12px; margin-bottom: 1.25rem;">
+          <img src="${escapeHTML(img)}" alt="Work Preview" style="width: 72px; height: 72px; border-radius: 12px; object-fit: cover; border: 2px solid #ffffff; flex-shrink: 0;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
+          <div>
+            <span style="font-size: 0.75rem; color: #B24368; background: #FFF0F5; border: 1px solid #FFB6CE; padding: 2px 8px; border-radius: 999px; font-weight: 600;">
+              ${escapeHTML(item.style_category || item.category || 'ผลงานแนะนำ')}
+            </span>
+            <h4 style="margin: 4px 0 2px; font-size: 0.98rem; color: #71515B; font-weight: 700;">${escapeHTML(title)}</h4>
+            <small style="color: var(--text-muted); font-size: 0.8rem;">รหัสงาน: #${escapeHTML(item.id || 'work')}</small>
+          </div>
+        </div>
+
+        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem;">
+          สนใจสั่งงานออกแบบชิ้นนี้ หรือต้องการปรับเปลี่ยนสไตล์ โทนสี และข้อความ สามารถทักแชทร้านเพื่อสอบถามคิวและสั่งทำได้ทันทีค่ะ
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <a href="${escapeHTML(contactUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%; border-radius: 999px; font-weight: 800; padding: 0.75rem; font-size: 0.95rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none !important;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>ทักแชท LINE ร้านเพื่อสั่งงาน</span>
+          </a>
+          <button type="button" class="btn btn-outline" onclick="copyTextToClipboard('สนใจสั่งงานออกแบบ: ${escapeHTML(title).replace(/'/g, "\\'")} (#${escapeHTML(item.id || '')})', this)" style="width: 100%; border-radius: 999px; font-weight: 700; padding: 0.65rem; font-size: 0.88rem; color: #71515B; border-color: #FFDFE9;">
+            คัดลอกชื่องานเพื่อส่งแชท
+          </button>
+        </div>
+      </div>
+    `;
+
+    modal.classList.add('is-active');
+  };
+
+  window.closeWorkInquiryModal = function () {
+    const modal = $('workInquiryModal');
+    if (modal) modal.classList.remove('is-active');
+  };
+
   window.downloadReceiptImage = async function () {
     const printArea = $('receiptPrintArea');
     if (!printArea) return;
@@ -9014,6 +9178,22 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       </div>
     `;
     document.body.appendChild(reviewDetailModal);
+
+    // Work Inquiry Modal (ติดต่อสั่งงานออกแบบจากฟีดไอจี)
+    const workInquiryModal = document.createElement('div');
+    workInquiryModal.id = 'workInquiryModal';
+    workInquiryModal.className = 'modal-overlay';
+    workInquiryModal.onclick = (e) => { if (e.target === workInquiryModal) closeWorkInquiryModal(); };
+    workInquiryModal.innerHTML = `
+      <div class="modal-card" style="max-width: 480px; width: 92%; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.75rem;">
+          <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.15rem; font-weight: 700;">ติดต่อสั่งงานออกแบบ</h3>
+          <button type="button" onclick="closeWorkInquiryModal()" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color: var(--text-muted);">✕</button>
+        </div>
+        <div id="workInquiryModalBody"></div>
+      </div>
+    `;
+    document.body.appendChild(workInquiryModal);
   }
 
   // ── Lightbox Helpers ──────────────────────────────────────────

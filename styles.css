@@ -1735,6 +1735,319 @@ input[type="range"] {
 }
 
 /* ============================================================
+   KAWAII INSTAGRAM-STYLE GALLERY FEED (ฟีดไอจีเลื่อนขึ้น + ไซด์บาร์โปรไฟล์)
+   ============================================================ */
+.gallery-ig-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+@media (min-width: 860px) {
+  .gallery-ig-container {
+    grid-template-columns: 320px 1fr;
+    gap: 2.25rem;
+    align-items: start;
+  }
+}
+
+/* Left Sidebar: Profile & Contact Card (Sticky on iPad/Desktop) */
+.gallery-ig-sidebar {
+  background: #ffffff;
+  border: 1.5px solid #FFDFE9;
+  border-radius: 28px;
+  padding: 1.85rem 1.4rem 1.5rem;
+  box-shadow: 0 8px 24px rgba(113, 81, 91, 0.05);
+  text-align: center;
+  position: relative;
+}
+
+@media (min-width: 860px) {
+  .gallery-ig-sidebar {
+    position: sticky;
+    top: 90px;
+  }
+}
+
+.gallery-ig-sidebar .washi-tape-strip {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 120px;
+  height: 24px;
+  background: rgba(255, 183, 206, 0.75);
+  border: 1px solid #E2A3B7;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(113, 81, 91, 0.06);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.ig-profile-avatar-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 0.75rem;
+}
+
+.ig-profile-avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3.5px solid #ffffff;
+  outline: 2px solid #FFDFE9;
+  display: block;
+  margin: 0 auto;
+  box-shadow: none !important;
+}
+
+.ig-profile-name {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #71515B;
+  margin-bottom: 0.25rem;
+}
+
+.ig-profile-tagline {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 0.65rem;
+}
+
+.ig-profile-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFF0F5;
+  color: #B24368;
+  border: 1px solid #FFB6CE;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin-bottom: 0.85rem;
+}
+
+.ig-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  display: inline-block;
+}
+
+.ig-contact-section {
+  border-top: 1.5px dashed #FFDFE9;
+  padding-top: 1rem;
+  margin-top: 0.75rem;
+}
+
+.ig-contact-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #71515B;
+  margin-bottom: 0.65rem;
+}
+
+.ig-contact-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Right Feed: Instagram Style Cards Stream */
+.gallery-ig-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.ig-post-card {
+  background: #ffffff;
+  border: 1.5px solid #FFDFE9;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(113, 81, 91, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ig-post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(113, 81, 91, 0.08);
+}
+
+.ig-post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #FFF1F5;
+}
+
+.ig-post-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ig-post-author-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #FFDFE9;
+}
+
+.ig-post-author-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #71515B;
+  line-height: 1.2;
+}
+
+.ig-post-author-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ig-post-category-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #FFF0F5;
+  color: #B24368;
+  border: 1px solid #FFB6CE;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.ig-post-image-wrap {
+  position: relative;
+  width: 100%;
+  background: #FFF7F9;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.ig-post-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.ig-post-image-wrap:hover .ig-post-image {
+  transform: scale(1.02);
+}
+
+.ig-post-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px 8px;
+}
+
+.ig-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ig-action-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #71515B;
+  border-radius: 50%;
+  transition: transform 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.ig-action-btn:hover {
+  transform: scale(1.15);
+  color: #E05A88;
+  background: #FFF0F5;
+}
+
+.ig-action-btn.is-liked {
+  color: #E05A88;
+}
+
+.ig-action-btn.is-liked svg {
+  fill: #E05A88;
+}
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.heart-pop-anim {
+  animation: heartPop 0.35s ease;
+}
+
+.ig-post-body {
+  padding: 0 16px 16px;
+}
+
+.ig-post-likes {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #71515B;
+  margin-bottom: 6px;
+}
+
+.ig-post-caption {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.ig-post-caption strong {
+  color: #71515B;
+  margin-right: 6px;
+}
+
+.ig-post-order-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFF7F9;
+  border: 1.5px solid #FFDFE9;
+  color: #B24368;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.ig-post-order-btn:hover {
+  background: #FFEBF2;
+  border-color: #FFB6CE;
+  color: #993355;
+  transform: translateY(-1px);
+}
+
+/* ============================================================
    PRICING MENU LIST CARD (Before Gallery Grid)
    ============================================================ */
 .price-menu-card {
