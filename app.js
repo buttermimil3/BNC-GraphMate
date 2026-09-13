@@ -1241,7 +1241,7 @@ const Store = (function () {
         case 'SAVE_PORTFOLIO': {
           const item = payload.item;
           if (!item) return null;
-          const row = {
+          const basicRow = {
             id: String(item.id),
             title: item.title || '',
             category: item.category || '',
@@ -1252,12 +1252,28 @@ const Store = (function () {
             is_featured: !!item.is_featured,
             created_at: item.created_at || new Date().toISOString()
           };
-          await sb.from('portfolio').upsert(row);
+          const richRow = Object.assign({}, basicRow, {
+            price: Number(item.price) || 129,
+            images: Array.isArray(item.images) ? item.images : (item.image_url ? [item.image_url] : [])
+          });
+          let res = await sb.from('portfolio').upsert(richRow);
+          if (res && res.error) {
+            console.warn('Supabase SAVE_PORTFOLIO rich upsert failed, retrying with base schema:', res.error);
+            res = await sb.from('portfolio').upsert(basicRow);
+          }
+          if (res && res.error) {
+            console.error('Supabase SAVE_PORTFOLIO failed:', res.error);
+            return { success: false, error: res.error.message };
+          }
           return { success: true };
         }
 
         case 'DELETE_PORTFOLIO': {
-          await sb.from('portfolio').delete().eq('id', String(payload.id));
+          const { error } = await sb.from('portfolio').delete().eq('id', String(payload.id));
+          if (error) {
+            console.error('Supabase DELETE_PORTFOLIO failed:', error);
+            return { success: false, error: error.message };
+          }
           return { success: true };
         }
 
@@ -1519,7 +1535,15 @@ const Store = (function () {
       if (Array.isArray(resProducts.data) && resProducts.data.length > 0) merged.products = resProducts.data;
       if (Array.isArray(resFonts.data) && resFonts.data.length > 0) merged.fonts = resFonts.data;
       if (Array.isArray(resGroups.data) && resGroups.data.length > 0) merged.groups = resGroups.data;
-      if (Array.isArray(resPortfolio.data) && resPortfolio.data.length > 0) merged.portfolio = resPortfolio.data;
+      if (Array.isArray(resPortfolio.data) && resPortfolio.data.length > 0) {
+        merged.portfolio = resPortfolio.data.map(cloudItem => {
+          const localItem = (local.portfolio || []).find(p => p && p.id === cloudItem.id);
+          return Object.assign({}, localItem || {}, cloudItem, {
+            price: cloudItem.price !== undefined ? cloudItem.price : (localItem?.price || 129),
+            images: Array.isArray(cloudItem.images) && cloudItem.images.length > 0 ? cloudItem.images : (localItem?.images || (cloudItem.image_url ? [cloudItem.image_url] : []))
+          });
+        });
+      }
       if (Array.isArray(resReviews.data) && resReviews.data.length > 0) merged.reviews = resReviews.data;
       if (Array.isArray(resQueue.data) && resQueue.data.length > 0) merged.queue_items = resQueue.data;
       if (Array.isArray(resCustomers.data) && resCustomers.data.length > 0) merged.customers = resCustomers.data;
@@ -2074,64 +2098,68 @@ const Store = (function () {
       return item;
     });
   },
- savePortfolioItem: function (item) {
- const data = loadLocal();
- data.portfolio = data.portfolio || [];
- if (!item.id) {
- item.id = uid('port');
- item.created_at = new Date().toISOString();
- data.portfolio.unshift(item);
- } else {
- const idx = data.portfolio.findIndex(p => p.id === item.id);
- if (idx !== -1) data.portfolio[idx] = Object.assign({}, data.portfolio[idx], item);
- else data.portfolio.unshift(item);
- }
- saveLocal(data);
- callCloud('SAVE_PORTFOLIO', { item: item });
- return item;
- },
- deletePortfolioItem: function (id) {
- const data = loadLocal();
- data.portfolio = (data.portfolio || []).filter(p => p.id !== id);
- saveLocal(data);
- callCloud('DELETE_PORTFOLIO', { id: id });
- },
+  savePortfolioItem: async function (item) {
+    const data = loadLocal();
+    data.portfolio = data.portfolio || [];
+    if (!item.id) {
+      item.id = uid('port');
+      item.created_at = new Date().toISOString();
+      data.portfolio.unshift(item);
+    } else {
+      const idx = data.portfolio.findIndex(p => p.id === item.id);
+      if (idx !== -1) data.portfolio[idx] = Object.assign({}, data.portfolio[idx], item);
+      else data.portfolio.unshift(item);
+    }
+    saveLocal(data);
+    const cloudRes = await callCloud('SAVE_PORTFOLIO', { item: item });
+    return { item, cloudRes };
+  },
+  deletePortfolioItem: async function (id) {
+    const data = loadLocal();
+    data.portfolio = (data.portfolio || []).filter(p => p.id !== id);
+    saveLocal(data);
+    const cloudRes = await callCloud('DELETE_PORTFOLIO', { id: id });
+    return { success: true, cloudRes };
+  },
 
- // Portfolio like counts (real counts stored per item, start at 0)
- getPortfolioLikes: function (itemId) {
-   const data = loadLocal();
-   const likeCounts = data.portfolioLikeCounts || {};
-   return Number(likeCounts[itemId] || 0);
- },
- addPortfolioLike: function (itemId, delta) {
-   const data = loadLocal();
-   data.portfolioLikeCounts = data.portfolioLikeCounts || {};
-   const current = Number(data.portfolioLikeCounts[itemId] || 0);
-   data.portfolioLikeCounts[itemId] = Math.max(0, current + delta);
-   saveLocal(data);
- },
+  // Portfolio like counts (real counts stored per item, start at 0)
+  getPortfolioLikes: function (itemId) {
+    const data = loadLocal();
+    const likeCounts = data.portfolioLikeCounts || {};
+    return Number(likeCounts[itemId] || 0);
+  },
+  addPortfolioLike: function (itemId, delta) {
+    const data = loadLocal();
+    data.portfolioLikeCounts = data.portfolioLikeCounts || {};
+    const current = Number(data.portfolioLikeCounts[itemId] || 0);
+    data.portfolioLikeCounts[itemId] = Math.max(0, current + delta);
+    saveLocal(data);
+  },
 
- // Pricing table for mini price display in gallery
- getPricingTable: function () {
-   const data = loadLocal();
-   if (Array.isArray(data.pricingTable) && data.pricingTable.length > 0) return data.pricingTable;
-   const s = this.getSettings();
-   if (Array.isArray(s.pricingTable) && s.pricingTable.length > 0) return s.pricingTable;
-   return [
-     { label: 'ป้ายเครดิต', price: 129 },
-     { label: 'ป้ายแอพพรี', price: 149 },
-     { label: 'ป้ายเติมเกม', price: 149 },
-     { label: 'ป้ายโปรโมชั่น', price: 169 },
-     { label: 'ป้ายเปิดร้าน', price: 189 },
-     { label: 'งานสั่งทำพิเศษ', price: 199 }
-   ];
- },
- savePricingTable: async function (rows) {
-   const data = loadLocal();
-   data.pricingTable = rows;
-   saveLocal(data);
-   await callCloud('SAVE_SETTINGS', { settings: Object.assign({}, data.settings, { pricingTable: rows }) });
- },
+  // Pricing table for mini price display in gallery
+  getPricingTable: function () {
+    const data = loadLocal();
+    if (Array.isArray(data.pricingTable) && data.pricingTable.length > 0) return data.pricingTable;
+    const s = this.getSettings();
+    if (Array.isArray(s.pricingTable) && s.pricingTable.length > 0) return s.pricingTable;
+    return [
+      { label: 'ป้ายเครดิต', price: 129 },
+      { label: 'ป้ายแอพพรี', price: 149 },
+      { label: 'ป้ายเติมเกม', price: 149 },
+      { label: 'ป้ายโปรโมชั่น', price: 169 },
+      { label: 'ป้ายเปิดร้าน', price: 189 },
+      { label: 'งานสั่งทำพิเศษ', price: 199 }
+    ];
+  },
+  savePricingTable: async function (rows) {
+    const data = loadLocal();
+    data.pricingTable = rows;
+    if (!data.settings) data.settings = {};
+    data.settings.pricingTable = rows;
+    saveLocal(data);
+    const cloudRes = await callCloud('SAVE_SETTINGS', { settings: Object.assign({}, data.settings, { pricingTable: rows }) });
+    return cloudRes;
+  },
 
  // Cart System (Multi-item order for Fonts & Products)
  getCart: function () {
@@ -2609,6 +2637,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
  portfolioFilter: 'ALL',
  portfolioStyleFilter: 'ALL',
  portfolioPriceFilter: 'ALL',
+ portfolioAccordions: { gallerySettings: false, portfolioItems: true, pricingTable: false },
  activeStoryIndex: 0,
  lightboxImage: null,
  searchPointsQuery: '',
@@ -2728,12 +2757,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   }
 
   // Universal alias so any mascot / popup caller works
+  window.playCuteClickSound = playCuteClickSound;
   window.playCuteStampPopSound = playCuteStampPopSound;
   window.playPopSound = playCuteStampPopSound;
 
   // Global listener for interactive sound
   document.addEventListener('click', (e) => {
-    if (e.target.closest('button, .btn, .nav-link, .price-menu-item, .stamp-slot, .compact-card-item, .hero-carousel-prev, .hero-carousel-next, .hero-carousel-dot, .calc-key')) {
+    if (e.target.closest('button, .btn, .nav-link, .nav-circle-btn, .brand-link, .price-menu-item, .stamp-slot, .compact-card-item, .hero-carousel-prev, .hero-carousel-next, .hero-carousel-dot, .calc-key')) {
       playCuteClickSound();
     }
   }, true);
@@ -3195,7 +3225,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </nav>
 
         <div class="navbar-end-actions">
-          <a href="#home" class="nav-circle-btn" aria-label="หน้าแรก" title="หน้าแรก" onclick="toggleMobileNav(false)">
+          <a href="#home" class="nav-circle-btn" aria-label="หน้าแรก" title="หน้าแรก" onclick="if(typeof playCuteClickSound==='function')playCuteClickSound(); toggleMobileNav(false);">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B26E86" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z"/>
               <polyline points="9 22 9 12 15 12 15 22"/>
@@ -4711,9 +4741,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <div class="gallery-ig-container">
 
             <!-- Left Column: Sticky Profile & Contact Card on iPad/Desktop -->
-            <aside class="gallery-ig-sidebar">
-              <!-- Washi Tape Decor -->
+            <aside class="gallery-ig-sidebar" style="position: relative;">
+              <!-- Washi Tape Decor (Pops out above card) -->
               <div class="washi-tape-strip"></div>
+
+              <!-- Shop Status Badge (Top Right Corner of Card) -->
+              <div class="ig-profile-status" style="position: absolute; top: 14px; right: 14px; margin: 0; background: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#FFF1F2' : '#ECFDF5'}; border-color: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#FECDD3' : '#A7F3D0'}; color: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#BE123C' : '#047857'}; z-index: 10;">
+                <span class="ig-status-dot" style="background: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#EF4444' : '#10B981'};"></span>
+                <span>${escapeHTML(s.shopStatusText || ((s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? 'ปิดร้าน' : 'เปิดร้าน'))}</span>
+              </div>
 
               <!-- Profile Avatar -->
               <div class="ig-profile-avatar-wrap">
@@ -4723,12 +4759,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <h2 class="ig-profile-name">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</h2>
               <div class="ig-profile-tagline">${escapeHTML(s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล')}</div>
 
-              <div class="ig-profile-status" style="background: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#FFF1F2' : '#ECFDF5'}; border-color: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#FECDD3' : '#A7F3D0'}; color: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#BE123C' : '#047857'};">
-                <span class="ig-status-dot" style="background: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#EF4444' : '#10B981'};"></span>
-                <span>${escapeHTML(s.shopStatusText || ((s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? 'ปิดร้าน' : 'เปิดร้าน'))}</span>
-              </div>
-
-              <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 1rem;">
+              <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; margin: 0.75rem 0 1rem;">
                 ${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้')}
               </p>
 
@@ -4823,7 +4854,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; padding: 0 4px; flex-wrap: wrap; gap: 6px;">
                 <div>
                   <h1 style="font-size: 1.25rem; color: #71515B; font-family: var(--font-heading); margin: 0; font-weight: 700;">
-                    ${escapeHTML(headings.portTitle || 'My Gallery')}
+                    ${escapeHTML((!headings.portTitle || headings.portTitle.trim() === 'ผลงานการออกแบบ' || headings.portTitle.trim() === 'แกลเลอรีผลงานออกแบบ') ? 'My Gallery' : headings.portTitle)}
                   </h1>
                   <small style="color: var(--text-muted); font-size: 0.82rem;">
                     แสดง: <strong>${state.portfolioStyleFilter === 'ALL' ? 'ทุกสไตล์' : escapeHTML(state.portfolioStyleFilter)}</strong> (${filtered.length} ผลงาน)
@@ -5918,175 +5949,246 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const pricingRows = Store.getPricingTable ? Store.getPricingTable() : [];
     const s = Store.getSettings();
     const headings = s.headings || {};
+    const rawHeading = (headings.portTitle || '').trim();
+    const galleryHeading = (!rawHeading || rawHeading === 'ผลงานการออกแบบ' || rawHeading === 'แกลเลอรีผลงานออกแบบ') ? 'My Gallery' : rawHeading;
     const isOpen = (s.shopStatus !== 'CLOSED' && s.shopStatus !== 'ปิดร้าน');
+
+    if (!state.portfolioAccordions) {
+      state.portfolioAccordions = { gallerySettings: false, portfolioItems: true, pricingTable: false };
+    }
+    const isGalleryOpen = !!state.portfolioAccordions.gallerySettings;
+    const isItemsOpen = !!state.portfolioAccordions.portfolioItems;
+    const isPricingOpen = !!state.portfolioAccordions.pricingTable;
 
     return `
       <!-- 1. Gallery & Profile Settings Card -->
-      <div class="card" style="border-radius: 18px; margin-bottom: 1.25rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #FFDFE9; padding-bottom: 0.75rem;">
-          <div>
-            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">ตั้งค่าหน้าผลงาน & โปรไฟล์ร้าน</h3>
-            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">จัดการข้อมูลทั้งหมดที่แสดงในหน้า My Gallery</p>
+      <div class="card" style="border-radius: 18px; margin-bottom: 1.25rem; border: 1.5px solid #FFDFE9; background: #FFFBFD; overflow: hidden; padding: 0;">
+        <div id="accordion-header-gallerySettings" onclick="togglePortfolioAccordion('gallerySettings')" style="display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.25rem; cursor: pointer; background: #FFF7F9; border-bottom: ${isGalleryOpen ? '1px solid #FFDFE9' : 'none'}; user-select: none; transition: background 0.2s;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: #FFE4EE; color: #B26E86; font-size: 0.95rem; font-weight: 800;">1</span>
+            <div>
+              <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.15rem; font-weight: 700;">ตั้งค่าหน้าผลงาน &amp; โปรไฟล์ร้าน</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">จัดการหัวข้อ สโลแกน แนะนำร้าน รูปโปรไฟล์ หมวดหมู่ และสถานะเปิด/ปิดร้าน</p>
+            </div>
           </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); saveGallerySettingsAdmin();" style="box-shadow: none !important; font-size: 0.8rem; padding: 5px 12px;">
+              บันทึกการตั้งค่า
+            </button>
+            <span id="accordion-badge-gallerySettings" class="badge" style="background: ${isGalleryOpen ? '#FFE4EE' : '#FFF0F5'}; color: #B26E86; font-size: 0.78rem; font-weight: 700; border: 1px solid #FFDFE9; padding: 4px 10px; border-radius: 999px;">
+              ${isGalleryOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย'}
+            </span>
+            <span id="accordion-arrow-gallerySettings" style="display: inline-block; transition: transform 0.25s ease; transform: ${isGalleryOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; color: #B26E86; font-weight: 700; font-size: 0.85rem;">
+              ▼
+            </span>
+          </div>
+        </div>
+
+        <div id="accordion-body-gallerySettings" style="display: ${isGalleryOpen ? 'block' : 'none'}; padding: 1.25rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <!-- Heading -->
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">หัวข้อหน้าผลงาน (Heading)</label>
+              <input type="text" id="adminGalleryHeading" class="form-input" value="${escapeHTML(galleryHeading)}" placeholder="เช่น My Gallery">
+            </div>
+
+            <!-- Shop Status (เปิดร้าน / ปิดร้าน) -->
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">สถานะร้าน (Status)</label>
+              <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 6px;">
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 700; color: #047857;">
+                  <input type="radio" name="adminShopStatus" value="OPEN" ${isOpen ? 'checked' : ''} onchange="document.getElementById('adminShopStatusCustom').value='เปิดร้าน'">
+                  <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+                  <span>เปิดร้าน</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 700; color: #BE123C;">
+                  <input type="radio" name="adminShopStatus" value="CLOSED" ${!isOpen ? 'checked' : ''} onchange="document.getElementById('adminShopStatusCustom').value='ปิดร้าน'">
+                  <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #EF4444;"></span>
+                  <span>ปิดร้าน</span>
+                </label>
+              </div>
+              <input type="text" id="adminShopStatusCustom" class="form-input" placeholder="ข้อความสถานะ (เช่น เปิดร้าน หรือ ปิดร้าน)" value="${escapeHTML(s.shopStatusText || (isOpen ? 'เปิดร้าน' : 'ปิดร้าน'))}">
+            </div>
+
+            <!-- Shop Name -->
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ชื่อร้าน (Shop Name)</label>
+              <input type="text" id="adminGalleryShopName" class="form-input" value="${escapeHTML(s.shopName || 'BNC GraphMate Studio')}" placeholder="เช่น BNC GraphMate Studio">
+            </div>
+
+            <!-- Tagline -->
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">สโลแกนร้าน (Tagline)</label>
+              <input type="text" id="adminGalleryTagline" class="form-input" value="${escapeHTML(s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล')}" placeholder="สโลแกนใต้ชื่อร้าน">
+            </div>
+          </div>
+
+          <!-- Bio -->
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label" style="font-weight: 700;">ข้อความแนะนำร้าน (Bio)</label>
+            <textarea id="adminGalleryBio" class="form-textarea" rows="2" placeholder="ข้อความแนะนำร้านในหน้าผลงาน">${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้')}</textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <!-- Profile Image -->
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ภาพโปรไฟล์ (Profile Image)</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <img id="adminGalleryProfilePreview" src="${escapeHTML(formatDriveImageUrl(s.profileImage) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #FFDFE9; flex-shrink: 0;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
+                <input type="text" id="adminGalleryProfileImage" class="form-input" value="${escapeHTML(s.profileImage || '')}" placeholder="วางลิงก์รูปภาพ (URL)" style="flex: 1;" oninput="document.getElementById('adminGalleryProfilePreview').src = this.value;">
+                <label class="btn btn-outline btn-sm" style="flex-shrink: 0; margin: 0; padding: 6px 12px; cursor: pointer; white-space: nowrap; border-color: #FFDFE9; color: #71515B; background: #FFF7F9;">
+                  เลือกรูป
+                  <input type="file" accept="image/*" style="display:none;" onchange="handleGalleryProfileImageUpload(event)">
+                </label>
+              </div>
+            </div>
+
+            <!-- Contact / Order Button URL -->
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ลิงก์ปุ่ม &quot;สนใจสั่งงาน (ติดต่อร้าน)&quot;</label>
+              <input type="text" id="adminGalleryContactUrl" class="form-input" value="${escapeHTML(s.portfolioContactUrl || s.lineUrl || '')}" placeholder="เช่น https://line.me/ti/p/~... หรือ #contact-us">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+            <!-- Portfolio Categories -->
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">หมวดหมู่ป้าย / ราคา (Portfolio Categories)</label>
+              <input type="text" id="adminGalleryCategories" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolio) ? s.categories.portfolio.join(', ') : (s.categories?.portfolio || 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ'))}">
+              <small style="color: var(--text-muted); font-size: 0.78rem;">แยกแต่ละหมวดหมู่ด้วยเครื่องหมายจุลภาค (,)</small>
+            </div>
+
+            <!-- Portfolio Styles (Filter Tabs) -->
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">หมวดหมู่สไตล์งานออกแบบ (Filter Pills Tabs)</label>
+              <input type="text" id="adminGalleryStyles" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolioStyles) ? s.categories.portfolioStyles.join(', ') : (s.categories?.portfolioStyles || 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต'))}">
+              <small style="color: var(--text-muted); font-size: 0.78rem;">แยกด้วยเครื่องหมายจุลภาค (,) รายการนี้จะขึ้นเป็นปุ่มให้ลูกค้ากดเลือกสไตล์ในหน้าผลงาน</small>
+            </div>
+          </div>
+
           <button type="button" class="btn btn-primary btn-sm" onclick="saveGallerySettingsAdmin()" style="box-shadow: none !important;">
             บันทึกการตั้งค่าหน้าผลงาน
           </button>
         </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-          <!-- Heading -->
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700;">หัวข้อหน้าผลงาน (Heading)</label>
-            <input type="text" id="adminGalleryHeading" class="form-input" value="${escapeHTML(headings.portTitle || 'My Gallery')}" placeholder="เช่น My Gallery">
-          </div>
-
-          <!-- Shop Status (เปิดร้าน / ปิดร้าน) -->
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700;">สถานะร้าน (Status)</label>
-            <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 6px;">
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 700; color: #047857;">
-                <input type="radio" name="adminShopStatus" value="OPEN" ${isOpen ? 'checked' : ''} onchange="document.getElementById('adminShopStatusCustom').value='เปิดร้าน'">
-                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
-                <span>เปิดร้าน</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 700; color: #BE123C;">
-                <input type="radio" name="adminShopStatus" value="CLOSED" ${!isOpen ? 'checked' : ''} onchange="document.getElementById('adminShopStatusCustom').value='ปิดร้าน'">
-                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #EF4444;"></span>
-                <span>ปิดร้าน</span>
-              </label>
-            </div>
-            <input type="text" id="adminShopStatusCustom" class="form-input" placeholder="ข้อความสถานะ (เช่น เปิดร้าน หรือ ปิดร้าน)" value="${escapeHTML(s.shopStatusText || (isOpen ? 'เปิดร้าน' : 'ปิดร้าน'))}">
-          </div>
-
-          <!-- Shop Name -->
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700;">ชื่อร้าน (Shop Name)</label>
-            <input type="text" id="adminGalleryShopName" class="form-input" value="${escapeHTML(s.shopName || 'BNC GraphMate Studio')}" placeholder="เช่น BNC GraphMate Studio">
-          </div>
-
-          <!-- Tagline -->
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700;">สโลแกนร้าน (Tagline)</label>
-            <input type="text" id="adminGalleryTagline" class="form-input" value="${escapeHTML(s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล')}" placeholder="สโลแกนใต้ชื่อร้าน">
-          </div>
-        </div>
-
-        <!-- Bio -->
-        <div class="form-group" style="margin-bottom: 1rem;">
-          <label class="form-label" style="font-weight: 700;">ข้อความแนะนำร้าน (Bio)</label>
-          <textarea id="adminGalleryBio" class="form-textarea" rows="2" placeholder="ข้อความแนะนำร้านในหน้าผลงาน">${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้')}</textarea>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-          <!-- Profile Image -->
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700;">ภาพโปรไฟล์ (Profile Image)</label>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <img id="adminGalleryProfilePreview" src="${escapeHTML(formatDriveImageUrl(s.profileImage) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #FFDFE9; flex-shrink: 0;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
-              <input type="text" id="adminGalleryProfileImage" class="form-input" value="${escapeHTML(s.profileImage || '')}" placeholder="วางลิงก์รูปภาพ (URL)" style="flex: 1;" oninput="document.getElementById('adminGalleryProfilePreview').src = this.value;">
-              <label class="btn btn-outline btn-sm" style="flex-shrink: 0; margin: 0; padding: 6px 12px; cursor: pointer; white-space: nowrap; border-color: #FFDFE9; color: #71515B; background: #FFF7F9;">
-                เลือกรูป
-                <input type="file" accept="image/*" style="display:none;" onchange="handleGalleryProfileImageUpload(event)">
-              </label>
-            </div>
-          </div>
-
-          <!-- Contact / Order Button URL -->
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700;">ลิงก์ปุ่ม "สนใจสั่งงาน (ติดต่อร้าน)"</label>
-            <input type="text" id="adminGalleryContactUrl" class="form-input" value="${escapeHTML(s.portfolioContactUrl || s.lineUrl || '')}" placeholder="เช่น https://line.me/ti/p/~... หรือ #contact-us">
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-          <!-- Portfolio Categories -->
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700;">หมวดหมู่ป้าย / ราคา (Portfolio Categories)</label>
-            <input type="text" id="adminGalleryCategories" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolio) ? s.categories.portfolio.join(', ') : (s.categories?.portfolio || 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ'))}">
-            <small style="color: var(--text-muted); font-size: 0.78rem;">แยกแต่ละหมวดหมู่ด้วยเครื่องหมายจุลภาค (,)</small>
-          </div>
-
-          <!-- Portfolio Styles (Filter Tabs) -->
-          <div class="form-group">
-            <label class="form-label" style="font-weight: 700;">หมวดหมู่สไตล์งานออกแบบ (Filter Pills Tabs)</label>
-            <input type="text" id="adminGalleryStyles" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolioStyles) ? s.categories.portfolioStyles.join(', ') : (s.categories?.portfolioStyles || 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต'))}">
-            <small style="color: var(--text-muted); font-size: 0.78rem;">แยกด้วยเครื่องหมายจุลภาค (,) รายการนี้จะขึ้นเป็นปุ่มให้ลูกค้ากดเลือกสไตล์ในหน้าผลงาน</small>
-          </div>
-        </div>
-
-        <button type="button" class="btn btn-primary btn-sm" onclick="saveGallerySettingsAdmin()" style="box-shadow: none !important;">
-          บันทึกการตั้งค่าหน้าผลงาน
-        </button>
       </div>
 
       <!-- 2. Portfolio Card Grid -->
-      <div class="card" style="border-radius: 18px; margin-bottom: 1.25rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
-          <div>
-            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">จัดการรูปผลงาน</h3>
-            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">${portfolio.length} ผลงาน — กดแก้ไข/ลบที่การ์ดได้เลย</p>
+      <div class="card" style="border-radius: 18px; margin-bottom: 1.25rem; border: 1.5px solid #FFDFE9; background: #FFFBFD; overflow: hidden; padding: 0;">
+        <div id="accordion-header-portfolioItems" onclick="togglePortfolioAccordion('portfolioItems')" style="display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.25rem; cursor: pointer; background: #FFF7F9; border-bottom: ${isItemsOpen ? '1px solid #FFDFE9' : 'none'}; user-select: none; transition: background 0.2s;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: #FFE4EE; color: #B26E86; font-size: 0.95rem; font-weight: 800;">2</span>
+            <div>
+              <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.15rem; font-weight: 700;">จัดการรูปผลงาน</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">${portfolio.length} ผลงาน — เพิ่มผลงานใหม่ แก้ไขรูปภาพ ราคา หรือลบผลงาน</p>
+            </div>
           </div>
-          <button type="button" class="btn btn-primary btn-sm" onclick="openAddPortfolioModal()" style="box-shadow: none !important;">+ เพิ่มผลงานใหม่</button>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openAddPortfolioModal();" style="box-shadow: none !important; font-size: 0.8rem; padding: 5px 12px;">+ เพิ่มผลงานใหม่</button>
+            <span id="accordion-badge-portfolioItems" class="badge" style="background: ${isItemsOpen ? '#FFE4EE' : '#FFF0F5'}; color: #B26E86; font-size: 0.78rem; font-weight: 700; border: 1px solid #FFDFE9; padding: 4px 10px; border-radius: 999px;">
+              ${isItemsOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย'}
+            </span>
+            <span id="accordion-arrow-portfolioItems" style="display: inline-block; transition: transform 0.25s ease; transform: ${isItemsOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; color: #B26E86; font-weight: 700; font-size: 0.85rem;">
+              ▼
+            </span>
+          </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
-          ${portfolio.length === 0 ? `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">ยังไม่มีผลงาน กดปุ่มเพิ่มผลงานใหม่</div>` : ''}
-          ${portfolio.map(item => {
-            const thumbImg = Array.isArray(item.images) && item.images.length > 0
-              ? item.images[0]
-              : (item.image_url || '');
-            const imgCount = Array.isArray(item.images) ? item.images.length : (item.image_url ? 1 : 0);
-            const likes = Store.getPortfolioLikes ? Store.getPortfolioLikes(item.id) : 0;
-            const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) : '';
-            return `
-              <div style="background: #FFFBFD; border: 1.5px solid #FFDFE9; border-radius: 14px; overflow: hidden; position: relative;">
-                <div style="position: relative; aspect-ratio: 1; background: #FFF0F5; overflow: hidden;">
-                  <img src="${escapeHTML(thumbImg)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400';">
-                  ${imgCount > 1 ? `<div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 999px;">${imgCount} ภาพ</div>` : ''}
+        <div id="accordion-body-portfolioItems" style="display: ${isItemsOpen ? 'block' : 'none'}; padding: 1.25rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+            ${portfolio.length === 0 ? `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">ยังไม่มีผลงาน กดปุ่มเพิ่มผลงานใหม่</div>` : ''}
+            ${portfolio.map(item => {
+              const thumbImg = Array.isArray(item.images) && item.images.length > 0
+                ? item.images[0]
+                : (item.image_url || '');
+              const imgCount = Array.isArray(item.images) ? item.images.length : (item.image_url ? 1 : 0);
+              const likes = Store.getPortfolioLikes ? Store.getPortfolioLikes(item.id) : 0;
+              const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) : '';
+              return `
+                <div style="background: #FFFBFD; border: 1.5px solid #FFDFE9; border-radius: 14px; overflow: hidden; position: relative;">
+                  <div style="position: relative; aspect-ratio: 1; background: #FFF0F5; overflow: hidden;">
+                    <img src="${escapeHTML(thumbImg)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400';">
+                    ${imgCount > 1 ? `<div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 999px;">${imgCount} ภาพ</div>` : ''}
+                  </div>
+                  <div style="padding: 10px 12px;">
+                    <div style="font-weight: 700; font-size: 0.88rem; color: #71515B; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(item.title || '')}">${escapeHTML(item.title || 'My Gallery')}</div>
+                    <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px;">
+                      <span class="badge" style="background:#FFF0F7; color:#9D174D; border:1px solid #FBCFE8; font-size: 0.72rem;">${escapeHTML(item.style_category || 'ทั่วไป')}</span>
+                      <span class="badge badge--pink" style="font-size: 0.72rem;">${escapeHTML(item.category || 'ป้าย')}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                      <span style="font-size: 0.8rem; color: #B24368; font-weight: 700;">฿${Number(item.price || 129).toLocaleString()}</span>
+                      <span style="font-size: 0.73rem; color: var(--text-muted);">${dateStr}</span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                      <button type="button" class="btn btn-outline btn-sm" onclick="openEditPortfolioModal('${item.id}')" style="flex: 1; font-size: 0.8rem; padding: 4px 8px;">แก้ไข</button>
+                      <button type="button" class="btn btn-outline btn-sm" onclick="deletePortfolioItemAction('${item.id}')" style="color:#E11D48; border-color:#FECDD3; font-size: 0.8rem; padding: 4px 8px;">ลบ</button>
+                    </div>
+                  </div>
                 </div>
-                <div style="padding: 10px 12px;">
-                  <div style="font-weight: 700; font-size: 0.88rem; color: #71515B; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(item.title || '')}">${escapeHTML(item.title || 'My Gallery')}</div>
-                  <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px;">
-                    <span class="badge" style="background:#FFF0F7; color:#9D174D; border:1px solid #FBCFE8; font-size: 0.72rem;">${escapeHTML(item.style_category || 'ทั่วไป')}</span>
-                    <span class="badge badge--pink" style="font-size: 0.72rem;">${escapeHTML(item.category || 'ป้าย')}</span>
-                  </div>
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="font-size: 0.8rem; color: #B24368; font-weight: 700;">฿${Number(item.price || 129).toLocaleString()}</span>
-                    <span style="font-size: 0.73rem; color: var(--text-muted);">${dateStr}</span>
-                  </div>
-                  <div style="display: flex; gap: 6px;">
-                    <button type="button" class="btn btn-outline btn-sm" onclick="openEditPortfolioModal('${item.id}')" style="flex: 1; font-size: 0.8rem; padding: 4px 8px;">แก้ไข</button>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="deletePortfolioItemAction('${item.id}')" style="color:#E11D48; border-color:#FECDD3; font-size: 0.8rem; padding: 4px 8px;">ลบ</button>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('')}
+              `;
+            }).join('')}
+          </div>
         </div>
       </div>
 
       <!-- 3. Pricing Table Editor -->
-      <div class="card" style="border-radius: 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
-          <div>
-            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.1rem;">ตั้งค่าตารางราคา</h3>
-            <p style="font-size: 0.83rem; color: var(--text-muted); margin: 0;">แสดงใน sidebar แกลเลอรีหน้าลูกค้า</p>
-          </div>
-          <button type="button" class="btn btn-outline btn-sm" onclick="addPricingRow()" style="border-color: #FFDFE9; color: #71515B;">+ เพิ่มรายการ</button>
-        </div>
-        <div id="pricingRowsContainer">
-          ${pricingRows.map((row, ri) => `
-            <div class="pricing-admin-row" id="pricing-row-${ri}" style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-              <input type="text" value="${escapeHTML(row.label)}" placeholder="ชื่อบริการ" class="form-input" style="flex: 1; font-size: 0.85rem; padding: 6px 10px;" onchange="updatePricingRow(${ri}, 'label', this.value)">
-              <input type="number" value="${Number(row.price)}" placeholder="ราคา" class="form-input" style="width: 90px; font-size: 0.85rem; padding: 6px 10px;" onchange="updatePricingRow(${ri}, 'price', Number(this.value))">
-              <button type="button" onclick="deletePricingRow(${ri})" style="background: none; border: none; color: #E11D48; cursor: pointer; font-size: 1rem; padding: 4px;">x</button>
+      <div class="card" style="border-radius: 18px; border: 1.5px solid #FFDFE9; background: #FFFBFD; overflow: hidden; padding: 0;">
+        <div id="accordion-header-pricingTable" onclick="togglePortfolioAccordion('pricingTable')" style="display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.25rem; cursor: pointer; background: #FFF7F9; border-bottom: ${isPricingOpen ? '1px solid #FFDFE9' : 'none'}; user-select: none; transition: background 0.2s;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: #FFE4EE; color: #B26E86; font-size: 0.95rem; font-weight: 800;">3</span>
+            <div>
+              <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.15rem; font-weight: 700;">ตั้งค่าตารางราคา</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">แสดงใน Sidebar หรือกล่องดูราคาในหน้าผลงาน My Gallery (${pricingRows.length} รายการ)</p>
             </div>
-          `).join('')}
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="event.stopPropagation(); if(!state.portfolioAccordions?.pricingTable) togglePortfolioAccordion('pricingTable'); addPricingRow();" style="border-color: #FFDFE9; color: #71515B; font-size: 0.8rem; padding: 5px 10px;">+ เพิ่มรายการ</button>
+            <span id="accordion-badge-pricingTable" class="badge" style="background: ${isPricingOpen ? '#FFE4EE' : '#FFF0F5'}; color: #B26E86; font-size: 0.78rem; font-weight: 700; border: 1px solid #FFDFE9; padding: 4px 10px; border-radius: 999px;">
+              ${isPricingOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย'}
+            </span>
+            <span id="accordion-arrow-pricingTable" style="display: inline-block; transition: transform 0.25s ease; transform: ${isPricingOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; color: #B26E86; font-weight: 700; font-size: 0.85rem;">
+              ▼
+            </span>
+          </div>
         </div>
-        <button type="button" class="btn btn-primary btn-sm" onclick="savePricingTableAdmin()" style="margin-top: 0.75rem; box-shadow: none !important;">บันทึกตารางราคา</button>
+
+        <div id="accordion-body-pricingTable" style="display: ${isPricingOpen ? 'block' : 'none'}; padding: 1.25rem;">
+          <div id="pricingRowsContainer">
+            ${pricingRows.map((row, ri) => `
+              <div class="pricing-admin-row" id="pricing-row-${ri}" style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+                <input type="text" value="${escapeHTML(row.label)}" placeholder="ชื่อบริการ" class="form-input" style="flex: 1; font-size: 0.85rem; padding: 6px 10px;" onchange="updatePricingRow(${ri}, 'label', this.value)">
+                <input type="number" value="${Number(row.price)}" placeholder="ราคา" class="form-input" style="width: 90px; font-size: 0.85rem; padding: 6px 10px;" onchange="updatePricingRow(${ri}, 'price', Number(this.value))">
+                <button type="button" onclick="deletePricingRow(${ri})" style="background: none; border: none; color: #E11D48; cursor: pointer; font-size: 1rem; padding: 4px;">x</button>
+              </div>
+            `).join('')}
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="savePricingTableAdmin()" style="margin-top: 0.75rem; box-shadow: none !important;">บันทึกตารางราคา</button>
+        </div>
       </div>
     `;
   }
+
+  // Accordion Toggle Function
+  window.togglePortfolioAccordion = function (key) {
+    if (!state.portfolioAccordions) {
+      state.portfolioAccordions = { gallerySettings: false, portfolioItems: true, pricingTable: false };
+    }
+    state.portfolioAccordions[key] = !state.portfolioAccordions[key];
+    const isOpen = state.portfolioAccordions[key];
+    const body = document.getElementById('accordion-body-' + key);
+    const arrow = document.getElementById('accordion-arrow-' + key);
+    const badge = document.getElementById('accordion-badge-' + key);
+    const header = document.getElementById('accordion-header-' + key);
+    if (body) body.style.display = isOpen ? 'block' : 'none';
+    if (arrow) arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    if (badge) {
+      badge.textContent = isOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย';
+      badge.style.background = isOpen ? '#FFE4EE' : '#FFF0F5';
+    }
+    if (header) {
+      header.style.borderBottom = isOpen ? '1px solid #FFDFE9' : 'none';
+    }
+  };
 
   // Pricing table editor helpers
   let _pricingRowsCache = null;
@@ -6109,7 +6211,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   };
 
   window.updatePricingRow = function (ri, field, value) {
-    // Just update the DOM value; saved on savePricingTableAdmin
+    // Value kept in DOM inputs and collected on savePricingTableAdmin
   };
 
   window.deletePricingRow = function (ri) {
@@ -6127,8 +6229,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         if (label) rows.push({ label, price });
       }
     });
-    await Store.savePricingTable(rows);
-    alert('บันทึกตารางราคาเรียบร้อยแล้ว');
+    const result = await Store.savePricingTable(rows);
+    const isCloud = !!getSupabase();
+    if (isCloud && result?.success === false) {
+      alert('บันทึกในเครื่องแล้ว แต่การเชื่อมต่อไปยัง Supabase มีปัญหา: ' + (result.error || 'โปรดตรวจสอบสัญญาณอินเทอร์เน็ต'));
+    } else {
+      alert('บันทึกตารางราคาเรียบร้อยแล้วค่ะ ' + (isCloud ? '(บันทึกลงระบบคลาวด์ Supabase แล้ว)' : ''));
+    }
   };
 
   window.handleGalleryProfileImageUpload = function (e) {
@@ -6175,8 +6282,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (bio !== undefined) updatePayload.shopBio = bio;
     if (profileImage) updatePayload.profileImage = profileImage;
 
-    await Store.saveSettings(updatePayload);
-    alert('บันทึกการตั้งค่าหน้าผลงานเรียบร้อยแล้วค่ะ');
+    const result = await Store.saveSettings(updatePayload);
+    const isCloud = !!getSupabase();
+    if (isCloud && result?.cloudRes?.success === false) {
+      alert('บันทึกในเครื่องแล้ว แต่การเชื่อมต่อไปยัง Supabase มีปัญหา: ' + (result.cloudRes.error || 'โปรดตรวจสอบสัญญาณอินเทอร์เน็ต'));
+    } else {
+      alert('บันทึกการตั้งค่าหน้าผลงานเรียบร้อยแล้วค่ะ ' + (isCloud ? '(บันทึกลงระบบคลาวด์ Supabase แล้ว)' : ''));
+    }
     renderCurrentView();
   };
 
@@ -6228,7 +6340,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (modal) modal.classList.remove('is-active');
   };
 
-  window.handleSavePortfolioSubmit = function (e) {
+  window.handleSavePortfolioSubmit = async function (e) {
     e.preventDefault();
     const title = ($('adminPortTitle')?.value || '').trim();
     if (!title) return alert('กรุณากรอกชื่อผลงาน');
@@ -6256,17 +6368,26 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       images
     };
     if (state.editingPortfolioId) portPayload.id = state.editingPortfolioId;
-    Store.savePortfolioItem(portPayload);
+    const result = await Store.savePortfolioItem(portPayload);
     state.editingPortfolioId = null;
 
     closeAddPortfolioModal();
-    alert('บันทึกผลงานเรียบร้อยแล้วค่ะ');
+    const isCloud = !!getSupabase();
+    if (isCloud && result?.cloudRes?.success === false) {
+      alert('บันทึกในเครื่องแล้ว แต่การเชื่อมต่อไปยัง Supabase มีปัญหา: ' + (result.cloudRes.error || ''));
+    } else {
+      alert('บันทึกผลงานเรียบร้อยแล้วค่ะ ' + (isCloud ? '(บันทึกลงระบบคลาวด์ Supabase แล้ว)' : ''));
+    }
     renderCurrentView();
   };
 
-  window.deletePortfolioItemAction = function (id) {
+  window.deletePortfolioItemAction = async function (id) {
     if (!confirm('ยืนยันการลบผลงานนี้ใช่หรือไม่?')) return;
-    Store.deletePortfolioItem(id);
+    const result = await Store.deletePortfolioItem(id);
+    const isCloud = !!getSupabase();
+    if (isCloud && result?.cloudRes?.success === false) {
+      alert('ลบในเครื่องแล้ว แต่การเชื่อมต่อไปยัง Supabase มีปัญหา: ' + (result.cloudRes.error || ''));
+    }
     renderCurrentView();
   };
 
