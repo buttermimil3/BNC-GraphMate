@@ -5160,18 +5160,18 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     </svg>
                   `;
 
-                  // Authentic, natural hand-stamped tilt angles and slight jitter for empty and stamped slots
-                  const slotTilts = [-5.5, 4.5, -3.5, 5, -4, 4.5, -5, 3.5, -4.5, 5.5, -3.5, 4.5, -5.5, 4];
-                  const stampedTilts = [-9, 8, -6.5, 10, -7.5, 9, -9.5, 7.5, -8, 9.5, -7, 8.5, -9, 8];
+                  // Distinct, fun hand-stamped tilt angles and jitter
+                  const slotTilts = [-6, 5, -4, 6, -5, 5.5, -6, 4.5, -5, 6, -4.5, 5, -6, 4];
+                  const stampedTilts = [-8.5, 7.5, -6, 8, -7, 8.5, -8, 6.5, -7.5, 8.5, -6.5, 7.5, -8, 7];
                   const tilt = isStamped ? stampedTilts[idx % stampedTilts.length] : slotTilts[idx % slotTilts.length];
                   const offX = (((idx * 7) % 7) - 3);
                   const offY = (((idx * 11) % 7) - 3);
 
                   if (isStamped) {
                     return `
-                      <div class="stamp-slot is-stamped" style="transform: rotate(${tilt}deg) translate(${offX}px, ${offY}px); animation: stampBouncePop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: ${idx * 120}ms;" title="แต้มที่ ${num}: ปั๊มแล้ว">
+                      <div class="stamp-slot is-stamped" style="transform: rotate(${tilt}deg) translate(${offX}px, ${offY}px);" title="แต้มที่ ${num}: ปั๊มแล้ว">
                         ${stampSvgFrame}
-                        <div class="stamp-slot-inner">
+                        <div class="stamp-slot-inner" style="animation: stampBouncePop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: ${idx * 110}ms;">
                           ${customStampImg ? `
                             <img src="${escapeHTML(formatDriveImageUrl(customStampImg))}" alt="Stamp" class="stamp-slot-art-img" onerror="this.outerHTML='<svg class=\\'stamp-note-icon\\' viewBox=\\'0 0 24 24\\' width=\\'42\\' height=\\'42\\' fill=\\'none\\' stroke=\\'%23FF6B97\\' stroke-width=\\'2.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M9 18V5l12-2v13\\'/><circle cx=\\'6\\' cy=\\'18\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/><circle cx=\\'18\\' cy=\\'16\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/></svg>';">
                           ` : `
@@ -5246,8 +5246,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div style="margin-top: 2.25rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding: 0 4px; flex-wrap: wrap; gap: 6px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; background: #FFE4EE; color: #B24368;">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="#B24368" stroke="#B24368" stroke-width="1.5"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; background: #FF6B97; color: #FFFFFF; box-shadow: 0 2px 6px rgba(255,107,151,0.25);">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </span>
                     <h4 style="margin: 0; font-size: 1.08rem; color: var(--primary-deep); font-weight: 700;">ตัวอย่างของรางวัลสะสมแต้ม</h4>
                   </div>
