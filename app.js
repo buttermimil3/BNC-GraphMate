@@ -155,7 +155,7 @@ const Store = (function () {
       prodsDesc: 'ไฟล์กราฟิก ป้ายสำเร็จ เทมเพลตพร้อมใช้งาน',
       groupsTitle: 'เข้ากลุ่ม LINE VIP',
       groupsDesc: 'รวมกลุ่ม VIP อัปเดตงานต่อเนื่อง โหลดได้ไม่อั้นตลอดชีพ',
-      portTitle: 'ผลงานการออกแบบ',
+      portTitle: 'My Gallery',
       portDesc: 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน',
       reviewsTitle: 'รีวิวจากลูกค้า',
       reviewsDesc: 'ความประทับใจจริงจากลูกค้าที่ใช้บริการ BNC GraphMate',
@@ -2063,11 +2063,17 @@ const Store = (function () {
  callCloud('DELETE_REVIEW', { id: id });
  },
 
- // Portfolio
- getPortfolio: function () {
- const p = loadLocal().portfolio;
- return (p && p.length > 0) ? p : defaultData.portfolio;
- },
+  // Portfolio
+  getPortfolio: function () {
+    const p = loadLocal().portfolio;
+    const list = (p && p.length > 0) ? p : defaultData.portfolio;
+    return list.map(item => {
+      if (!item.price || Number(item.price) <= 0) {
+        item.price = item.category === 'ฟอนต์' ? 149 : (item.category === 'การ์ตูน' ? 179 : 129);
+      }
+      return item;
+    });
+  },
  savePortfolioItem: function (item) {
  const data = loadLocal();
  data.portfolio = data.portfolio || [];
@@ -4717,9 +4723,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <h2 class="ig-profile-name">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</h2>
               <div class="ig-profile-tagline">${escapeHTML(s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล')}</div>
 
-              <div class="ig-profile-status">
-                <span class="ig-status-dot"></span>
-                <span>เปิดรับคิวงานออกแบบ</span>
+              <div class="ig-profile-status" style="background: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#FFF1F2' : '#ECFDF5'}; border-color: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#FECDD3' : '#A7F3D0'}; color: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#BE123C' : '#047857'};">
+                <span class="ig-status-dot" style="background: ${(s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? '#EF4444' : '#10B981'};"></span>
+                <span>${escapeHTML(s.shopStatusText || ((s.shopStatus === 'CLOSED' || s.shopStatus === 'ปิดร้าน') ? 'ปิดร้าน' : 'เปิดร้าน'))}</span>
               </div>
 
               <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 1rem;">
@@ -4817,7 +4823,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; padding: 0 4px; flex-wrap: wrap; gap: 6px;">
                 <div>
                   <h1 style="font-size: 1.25rem; color: #71515B; font-family: var(--font-heading); margin: 0; font-weight: 700;">
-                    ${escapeHTML(headings.portTitle || 'แกลเลอรีผลงานออกแบบ')}
+                    ${escapeHTML(headings.portTitle || 'My Gallery')}
                   </h1>
                   <small style="color: var(--text-muted); font-size: 0.82rem;">
                     แสดง: <strong>${state.portfolioStyleFilter === 'ALL' ? 'ทุกสไตล์' : escapeHTML(state.portfolioStyleFilter)}</strong> (${filtered.length} ผลงาน)
@@ -4847,6 +4853,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 const postDate = item.created_at ? new Date(item.created_at) : null;
                 const dateStr = postDate ? postDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + ' \xB7 ' + postDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '';
 
+                // Item Price (guaranteed valid price)
+                const itemPrice = (item.price !== undefined && item.price !== null && Number(item.price) > 0)
+                  ? Number(item.price)
+                  : 129;
+
                 return `
                   <article class="ig-post-card" id="ig-post-${escapeHTML(item.id)}">
                     <!-- Post Header -->
@@ -4859,7 +4870,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                         </div>
                       </div>
                       <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                        ${item.price ? `<span class="ig-post-price-badge">฿${Number(item.price).toLocaleString()}</span>` : ''}
+                        <span class="ig-post-price-badge">฿${itemPrice.toLocaleString()}</span>
                         <span class="ig-post-category-badge">${escapeHTML(item.style_category || item.category || 'งานออกแบบ')}</span>
                       </div>
                     </div>
@@ -4940,11 +4951,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                       <div class="ig-post-likes">
                         ถูกใจ <span id="like-count-${escapeHTML(item.id)}">${totalLikes}</span> คน
                       </div>
-                      ${item.price ? `
-                        <div style="font-size: 0.95rem; color: #B24368; font-weight: 700; margin: 4px 0 2px;">
-                          ราคาเริ่มต้น ฿${Number(item.price).toLocaleString()}
-                        </div>
-                      ` : ''}
+                      <div style="font-size: 0.95rem; color: #B24368; font-weight: 800; margin: 4px 0 2px;">
+                        ราคาเริ่มต้น ฿${itemPrice.toLocaleString()}
+                      </div>
                       <div class="ig-post-caption">
                         <strong>${escapeHTML(s.shopName || 'BNC GraphMate')}</strong>
                         <span>${escapeHTML(item.title)}</span>
@@ -5907,9 +5916,111 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   function renderAdminPortfolioTab() {
     const portfolio = Store.getPortfolio();
     const pricingRows = Store.getPricingTable ? Store.getPricingTable() : [];
+    const s = Store.getSettings();
+    const headings = s.headings || {};
+    const isOpen = (s.shopStatus !== 'CLOSED' && s.shopStatus !== 'ปิดร้าน');
+
     return `
-      <!-- Portfolio Card Grid -->
-      <div class="card" style="border-radius: 18px; margin-bottom: 1rem;">
+      <!-- 1. Gallery & Profile Settings Card -->
+      <div class="card" style="border-radius: 18px; margin-bottom: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #FFDFE9; padding-bottom: 0.75rem;">
+          <div>
+            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">ตั้งค่าหน้าผลงาน & โปรไฟล์ร้าน</h3>
+            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">จัดการข้อมูลทั้งหมดที่แสดงในหน้า My Gallery</p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="saveGallerySettingsAdmin()" style="box-shadow: none !important;">
+            บันทึกการตั้งค่าหน้าผลงาน
+          </button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+          <!-- Heading -->
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">หัวข้อหน้าผลงาน (Heading)</label>
+            <input type="text" id="adminGalleryHeading" class="form-input" value="${escapeHTML(headings.portTitle || 'My Gallery')}" placeholder="เช่น My Gallery">
+          </div>
+
+          <!-- Shop Status (เปิดร้าน / ปิดร้าน) -->
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">สถานะร้าน (Status)</label>
+            <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 6px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 700; color: #047857;">
+                <input type="radio" name="adminShopStatus" value="OPEN" ${isOpen ? 'checked' : ''} onchange="document.getElementById('adminShopStatusCustom').value='เปิดร้าน'">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+                <span>เปิดร้าน</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 700; color: #BE123C;">
+                <input type="radio" name="adminShopStatus" value="CLOSED" ${!isOpen ? 'checked' : ''} onchange="document.getElementById('adminShopStatusCustom').value='ปิดร้าน'">
+                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #EF4444;"></span>
+                <span>ปิดร้าน</span>
+              </label>
+            </div>
+            <input type="text" id="adminShopStatusCustom" class="form-input" placeholder="ข้อความสถานะ (เช่น เปิดร้าน หรือ ปิดร้าน)" value="${escapeHTML(s.shopStatusText || (isOpen ? 'เปิดร้าน' : 'ปิดร้าน'))}">
+          </div>
+
+          <!-- Shop Name -->
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">ชื่อร้าน (Shop Name)</label>
+            <input type="text" id="adminGalleryShopName" class="form-input" value="${escapeHTML(s.shopName || 'BNC GraphMate Studio')}" placeholder="เช่น BNC GraphMate Studio">
+          </div>
+
+          <!-- Tagline -->
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">สโลแกนร้าน (Tagline)</label>
+            <input type="text" id="adminGalleryTagline" class="form-input" value="${escapeHTML(s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล')}" placeholder="สโลแกนใต้ชื่อร้าน">
+          </div>
+        </div>
+
+        <!-- Bio -->
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" style="font-weight: 700;">ข้อความแนะนำร้าน (Bio)</label>
+          <textarea id="adminGalleryBio" class="form-textarea" rows="2" placeholder="ข้อความแนะนำร้านในหน้าผลงาน">${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้')}</textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+          <!-- Profile Image -->
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">ภาพโปรไฟล์ (Profile Image)</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <img id="adminGalleryProfilePreview" src="${escapeHTML(formatDriveImageUrl(s.profileImage) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #FFDFE9; flex-shrink: 0;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
+              <input type="text" id="adminGalleryProfileImage" class="form-input" value="${escapeHTML(s.profileImage || '')}" placeholder="วางลิงก์รูปภาพ (URL)" style="flex: 1;" oninput="document.getElementById('adminGalleryProfilePreview').src = this.value;">
+              <label class="btn btn-outline btn-sm" style="flex-shrink: 0; margin: 0; padding: 6px 12px; cursor: pointer; white-space: nowrap; border-color: #FFDFE9; color: #71515B; background: #FFF7F9;">
+                เลือกรูป
+                <input type="file" accept="image/*" style="display:none;" onchange="handleGalleryProfileImageUpload(event)">
+              </label>
+            </div>
+          </div>
+
+          <!-- Contact / Order Button URL -->
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">ลิงก์ปุ่ม "สนใจสั่งงาน (ติดต่อร้าน)"</label>
+            <input type="text" id="adminGalleryContactUrl" class="form-input" value="${escapeHTML(s.portfolioContactUrl || s.lineUrl || '')}" placeholder="เช่น https://line.me/ti/p/~... หรือ #contact-us">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+          <!-- Portfolio Categories -->
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">หมวดหมู่ป้าย / ราคา (Portfolio Categories)</label>
+            <input type="text" id="adminGalleryCategories" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolio) ? s.categories.portfolio.join(', ') : (s.categories?.portfolio || 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ'))}">
+            <small style="color: var(--text-muted); font-size: 0.78rem;">แยกแต่ละหมวดหมู่ด้วยเครื่องหมายจุลภาค (,)</small>
+          </div>
+
+          <!-- Portfolio Styles (Filter Tabs) -->
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 700;">หมวดหมู่สไตล์งานออกแบบ (Filter Pills Tabs)</label>
+            <input type="text" id="adminGalleryStyles" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolioStyles) ? s.categories.portfolioStyles.join(', ') : (s.categories?.portfolioStyles || 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต'))}">
+            <small style="color: var(--text-muted); font-size: 0.78rem;">แยกด้วยเครื่องหมายจุลภาค (,) รายการนี้จะขึ้นเป็นปุ่มให้ลูกค้ากดเลือกสไตล์ในหน้าผลงาน</small>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveGallerySettingsAdmin()" style="box-shadow: none !important;">
+          บันทึกการตั้งค่าหน้าผลงาน
+        </button>
+      </div>
+
+      <!-- 2. Portfolio Card Grid -->
+      <div class="card" style="border-radius: 18px; margin-bottom: 1.25rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
           <div>
             <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">จัดการรูปผลงาน</h3>
@@ -5934,13 +6045,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                   ${imgCount > 1 ? `<div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 999px;">${imgCount} ภาพ</div>` : ''}
                 </div>
                 <div style="padding: 10px 12px;">
-                  <div style="font-weight: 700; font-size: 0.88rem; color: #71515B; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(item.title || '')}">${escapeHTML(item.title || 'ผลงานการออกแบบ')}</div>
+                  <div style="font-weight: 700; font-size: 0.88rem; color: #71515B; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(item.title || '')}">${escapeHTML(item.title || 'My Gallery')}</div>
                   <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px;">
                     <span class="badge" style="background:#FFF0F7; color:#9D174D; border:1px solid #FBCFE8; font-size: 0.72rem;">${escapeHTML(item.style_category || 'ทั่วไป')}</span>
                     <span class="badge badge--pink" style="font-size: 0.72rem;">${escapeHTML(item.category || 'ป้าย')}</span>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="font-size: 0.8rem; color: #B24368; font-weight: 700;">฿${Number(item.price || 0).toLocaleString()}</span>
+                    <span style="font-size: 0.8rem; color: #B24368; font-weight: 700;">฿${Number(item.price || 129).toLocaleString()}</span>
                     <span style="font-size: 0.73rem; color: var(--text-muted);">${dateStr}</span>
                   </div>
                   <div style="display: flex; gap: 6px;">
@@ -5954,7 +6065,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </div>
       </div>
 
-      <!-- Pricing Table Editor -->
+      <!-- 3. Pricing Table Editor -->
       <div class="card" style="border-radius: 18px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
           <div>
@@ -6016,9 +6127,57 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         if (label) rows.push({ label, price });
       }
     });
-    if (rows.length === 0) return alert('กรุณาเพิ่มอย่างน้อย 1 รายการ');
     await Store.savePricingTable(rows);
     alert('บันทึกตารางราคาเรียบร้อยแล้ว');
+  };
+
+  window.handleGalleryProfileImageUpload = function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      const inp = $('adminGalleryProfileImage');
+      if (inp) inp.value = evt.target.result;
+      const preview = $('adminGalleryProfilePreview');
+      if (preview) preview.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.saveGallerySettingsAdmin = async function () {
+    const heading = ($('adminGalleryHeading')?.value || '').trim() || 'My Gallery';
+    const shopStatus = document.querySelector('input[name="adminShopStatus"]:checked')?.value || 'OPEN';
+    const shopStatusCustom = ($('adminShopStatusCustom')?.value || '').trim();
+    const shopName = ($('adminGalleryShopName')?.value || '').trim();
+    const tagline = ($('adminGalleryTagline')?.value || '').trim();
+    const bio = ($('adminGalleryBio')?.value || '').trim();
+    const profileImage = ($('adminGalleryProfileImage')?.value || '').trim();
+    const contactUrl = ($('adminGalleryContactUrl')?.value || '').trim();
+    const catPortRaw = ($('adminGalleryCategories')?.value || '').trim();
+    const catStylesRaw = ($('adminGalleryStyles')?.value || '').trim();
+
+    const currentSettings = Store.getSettings();
+    const headings = Object.assign({}, currentSettings.headings || {}, { portTitle: heading });
+    const categories = Object.assign({}, currentSettings.categories || {}, {
+      portfolio: catPortRaw.split(',').map(s => s.trim()).filter(Boolean),
+      portfolioStyles: catStylesRaw.split(',').map(s => s.trim()).filter(Boolean)
+    });
+
+    const updatePayload = {
+      headings,
+      categories,
+      shopStatus,
+      shopStatusText: shopStatusCustom || (shopStatus === 'CLOSED' ? 'ปิดร้าน' : 'เปิดร้าน'),
+      portfolioContactUrl: contactUrl
+    };
+    if (shopName) updatePayload.shopName = shopName;
+    if (tagline !== undefined) updatePayload.tagline = tagline;
+    if (bio !== undefined) updatePayload.shopBio = bio;
+    if (profileImage) updatePayload.profileImage = profileImage;
+
+    await Store.saveSettings(updatePayload);
+    alert('บันทึกการตั้งค่าหน้าผลงานเรียบร้อยแล้วค่ะ');
+    renderCurrentView();
   };
 
   window.handleAdminPortStyleChange = function (val) {
@@ -6051,7 +6210,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const customStyleInp = $('adminPortCustomStyle');
     if (customStyleInp) { customStyleInp.style.display = 'none'; customStyleInp.value = ''; }
 
-    $('adminPortCategory').value = 'ป้ายเครดิต';
+    const catSelect = $('adminPortCategory');
+    if (catSelect) {
+      const cats = Store.getPortfolioCategories ? Store.getPortfolioCategories() : ['ป้ายเครดิต', 'ป้ายแอพพรี', 'ป้ายเติมเกม', 'ป้ายเปิดร้าน', 'ป้ายโปรโมชั่น', 'งานป้ายสั่งทำพิเศษ'];
+      catSelect.innerHTML = cats.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+      catSelect.value = cats[0] || 'ป้ายเครดิต';
+    }
     $('adminPortPrice').value = '129';
     // Clear dynamic image rows and add one blank row
     const imgList = document.getElementById('portImgList');
@@ -6972,14 +7136,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <label class="form-label">หมวดหมู่รวมกลุ่ม VIP</label>
               <input type="text" id="cfg_catGroups" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.groups) ? s.categories.groups.join(', ') : (s.categories?.groups || 'VIP ตลอดชีพ, รวมงานกราฟิก, การ์ตูน & คาแรกเตอร์, ป้ายร้าน & เมนู'))}">
             </div>
-            <div class="form-group">
-              <label class="form-label">หมวดหมู่ผลงาน / ราคาป้าย (Portfolio Signs)</label>
-              <input type="text" id="cfg_catPortfolio" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolio) ? s.categories.portfolio.join(', ') : (s.categories?.portfolio || 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ'))}">
-            </div>
-            <div class="form-group" style="grid-column: 1 / -1;">
-              <label class="form-label">หมวดหมู่สไตล์งานออกแบบ (Portfolio Styles)</label>
-              <input type="text" id="cfg_catPortfolioStyles" class="form-input" value="${escapeHTML(Array.isArray(s.categories?.portfolioStyles) ? s.categories.portfolioStyles.join(', ') : (s.categories?.portfolioStyles || 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต'))}">
-              <small style="color: var(--text-muted); font-size: 0.8rem;">แยกด้วยเครื่องหมายจุลภาค (,) หมวดหมู่นี้จะขึ้นเป็นปุ่มแท็บสไตล์งานให้ลูกค้าเลือกดูก่อนเป็นอันดับแรก</small>
+            <div class="form-group" style="grid-column: 1 / -1; background: #FFF7F9; border: 1.5px dashed #FFDFE9; border-radius: 12px; padding: 12px 14px;">
+              <span style="font-weight: 700; color: #B24368;">ตั้งค่าหมวดหมู่และสไตล์หน้าผลงาน:</span> ย้ายไปรวมอยู่ที่แท็บ <a href="javascript:void(0)" onclick="switchAdminTab('portfolio')" style="color: var(--primary); text-decoration: underline; font-weight: 700;">จัดการผลงาน</a> แล้วค่ะ
             </div>
           </div>
         </div>
@@ -7170,7 +7328,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
             <div class="form-group">
               <label class="form-label">หน้าผลงาน: หัวเรื่อง</label>
-              <input type="text" id="cfg_portTitle" class="form-input" value="${escapeHTML(headings.portTitle || 'ผลงานการออกแบบ')}">
+              <input type="text" id="cfg_portTitle" class="form-input" value="${escapeHTML(headings.portTitle || 'My Gallery')}">
             </div>
             <div class="form-group">
               <label class="form-label">หน้าผลงาน: คำบรรยาย</label>
@@ -7521,7 +7679,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           prodsDesc: getVal('cfg_prodsDesc', 'ไฟล์กราฟิก ป้ายสำเร็จ เทมเพลตพร้อมใช้งาน'),
           groupsTitle: getVal('cfg_groupsTitle', 'เข้ากลุ่ม LINE VIP'),
           groupsDesc: getVal('cfg_groupsDesc', 'รวมกลุ่ม VIP อัปเดตงานต่อเนื่อง โหลดได้ไม่อั้นตลอดชีพ'),
-          portTitle: getVal('cfg_portTitle', 'ผลงานการออกแบบ'),
+          portTitle: getVal('cfg_portTitle', headings.portTitle || 'My Gallery'),
           portDesc: getVal('cfg_portDesc', 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน'),
           reviewsTitle: getVal('cfg_reviewsTitle', 'รีวิวจากลูกค้า'),
           reviewsDesc: getVal('cfg_reviewsDesc', 'ความประทับใจจริงจากลูกค้าที่ใช้บริการ BNC GraphMate'),
@@ -7532,8 +7690,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           fonts: getVal('cfg_catFonts', 'ลายมือ, หัวป้าย, ตัวพิมพ์, น่ารัก'),
           products: getVal('cfg_catProducts', 'ป้ายสำเร็จ, ไฟล์ตกแต่ง, การ์ตูน, องค์ประกอบ, เทมเพลต'),
           groups: getVal('cfg_catGroups', 'VIP ตลอดชีพ, รวมงานกราฟิก, การ์ตูน & คาแรกเตอร์, ป้ายร้าน & เมนู'),
-          portfolio: getVal('cfg_catPortfolio', 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ'),
-          portfolioStyles: getVal('cfg_catPortfolioStyles', 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต')
+          portfolio: getVal('cfg_catPortfolio', Array.isArray(s.categories?.portfolio) ? s.categories.portfolio.join(', ') : (s.categories?.portfolio || 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ')),
+          portfolioStyles: getVal('cfg_catPortfolioStyles', Array.isArray(s.categories?.portfolioStyles) ? s.categories.portfolioStyles.join(', ') : (s.categories?.portfolioStyles || 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต'))
         },
         mascotSettings: {
           enabled: getChecked('cfg_mascotEnabled', true),
@@ -10160,8 +10318,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       }
     }
 
-    $('adminPortCategory').value = item.category || 'ป้ายเครดิต';
-    $('adminPortPrice').value = item.price || 0;
+    const catSelect = $('adminPortCategory');
+    if (catSelect) {
+      const cats = Store.getPortfolioCategories ? Store.getPortfolioCategories() : ['ป้ายเครดิต', 'ป้ายแอพพรี', 'ป้ายเติมเกม', 'ป้ายเปิดร้าน', 'ป้ายโปรโมชั่น', 'งานป้ายสั่งทำพิเศษ'];
+      catSelect.innerHTML = cats.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+      catSelect.value = item.category || cats[0] || 'ป้ายเครดิต';
+    }
+    $('adminPortPrice').value = item.price || 129;
 
     // Populate dynamic image rows
     const imgList = document.getElementById('portImgList');
