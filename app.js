@@ -5246,7 +5246,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div style="margin-top: 2.25rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding: 0 4px; flex-wrap: wrap; gap: 6px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; background: #FF6B97; color: #FFFFFF; box-shadow: 0 2px 6px rgba(255,107,151,0.25);">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #FFB7CE; border: 1px solid #E2A3B7; color: #FFFFFF; box-shadow: 0 2px 5px rgba(226,163,183,0.35);">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </span>
                     <h4 style="margin: 0; font-size: 1.08rem; color: var(--primary-deep); font-weight: 700;">ตัวอย่างของรางวัลสะสมแต้ม</h4>
