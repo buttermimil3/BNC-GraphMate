@@ -2091,6 +2091,42 @@ const Store = (function () {
  callCloud('DELETE_PORTFOLIO', { id: id });
  },
 
+ // Portfolio like counts (real counts stored per item, start at 0)
+ getPortfolioLikes: function (itemId) {
+   const data = loadLocal();
+   const likeCounts = data.portfolioLikeCounts || {};
+   return Number(likeCounts[itemId] || 0);
+ },
+ addPortfolioLike: function (itemId, delta) {
+   const data = loadLocal();
+   data.portfolioLikeCounts = data.portfolioLikeCounts || {};
+   const current = Number(data.portfolioLikeCounts[itemId] || 0);
+   data.portfolioLikeCounts[itemId] = Math.max(0, current + delta);
+   saveLocal(data);
+ },
+
+ // Pricing table for mini price display in gallery
+ getPricingTable: function () {
+   const data = loadLocal();
+   if (Array.isArray(data.pricingTable) && data.pricingTable.length > 0) return data.pricingTable;
+   const s = this.getSettings();
+   if (Array.isArray(s.pricingTable) && s.pricingTable.length > 0) return s.pricingTable;
+   return [
+     { label: 'ป้ายเครดิต', price: 129 },
+     { label: 'ป้ายแอพพรี', price: 149 },
+     { label: 'ป้ายเติมเกม', price: 149 },
+     { label: 'ป้ายโปรโมชั่น', price: 169 },
+     { label: 'ป้ายเปิดร้าน', price: 189 },
+     { label: 'งานสั่งทำพิเศษ', price: 199 }
+   ];
+ },
+ savePricingTable: async function (rows) {
+   const data = loadLocal();
+   data.pricingTable = rows;
+   saveLocal(data);
+   await callCloud('SAVE_SETTINGS', { settings: Object.assign({}, data.settings, { pricingTable: rows }) });
+ },
+
  // Cart System (Multi-item order for Fonts & Products)
  getCart: function () {
  try {
@@ -4673,9 +4709,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <!-- Washi Tape Decor -->
               <div class="washi-tape-strip"></div>
 
-              <!-- Profile Avatar with Cute 3D Pin -->
+              <!-- Profile Avatar -->
               <div class="ig-profile-avatar-wrap">
-                <div class="pushpin-pin" style="top: -10px; left: 50%; z-index: 10;"></div>
                 <img src="${escapeHTML(formatDriveImageUrl(s.profileImage) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" alt="Shop Profile" class="ig-profile-avatar" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
               </div>
 
@@ -4720,26 +4755,59 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <!-- Quick Style Filter inside Sidebar -->
               <div style="margin-top: 1.5rem; border-top: 1.5px dashed var(--border); padding-top: 1rem; text-align: left;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
-                  <span style="font-size: 0.85rem; font-weight: 700; color: #71515B;">เลือกสไตล์งาน (Filter)</span>
+                  <span style="font-size: 0.85rem; font-weight: 700; color: #71515B;">เลือกสไตล์งาน</span>
                   ${state.portfolioStyleFilter !== 'ALL' ? `
                     <button type="button" class="btn btn-link btn-sm" onclick="filterPortfolioByStyle('ALL')" style="font-size: 0.75rem; color: var(--primary); padding: 0; text-decoration: underline;">
                       ดูทั้งหมด
                     </button>
                   ` : ''}
                 </div>
-                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                <!-- Scrollable pills container -->
+                <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
                   ${styleCategories.map(st => {
                     const isActive = state.portfolioStyleFilter === st;
                     return `
-                      <button type="button" 
-                        class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline'}" 
+                      <button type="button"
+                        class="btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline'}"
                         onclick="filterPortfolioByStyle('${escapeHTML(st)}')"
-                        style="font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; ${isActive ? 'box-shadow: none !important;' : 'border-color: #FFDFE9; color: #71515B;'}">
-                        ${st === 'ALL' ? 'ทุกสไตล์งาน' : escapeHTML(st)}
+                        style="font-size: 0.78rem; padding: 3px 12px; border-radius: 999px; white-space: nowrap; flex-shrink: 0; ${isActive ? 'box-shadow: none !important;' : 'border-color: #FFDFE9; color: #71515B;'}">
+                        ${st === 'ALL' ? 'ทุกสไตล์' : escapeHTML(st)}
                       </button>
                     `;
                   }).join('')}
                 </div>
+              </div>
+
+              <!-- Pricing Mini-Table -->
+              <div style="margin-top: 1.25rem; border-top: 1.5px dashed var(--border); padding-top: 1rem;">
+                <div style="font-size: 0.85rem; font-weight: 700; color: #71515B; margin-bottom: 0.5rem;">ราคาเริ่มต้น</div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
+                  <thead>
+                    <tr style="background: #FFF0F5;">
+                      <th style="padding: 5px 8px; text-align: left; color: #B26E86; font-weight: 700; border-radius: 6px 0 0 6px;">บริการ</th>
+                      <th style="padding: 5px 8px; text-align: right; color: #B26E86; font-weight: 700; border-radius: 0 6px 6px 0; white-space: nowrap;">ราคา</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${(function() {
+                      const pricingRows = Store.getPricingTable ? Store.getPricingTable() : [
+                        { label: 'ป้ายเครดิต', price: 129 },
+                        { label: 'ป้ายแอพพรี', price: 149 },
+                        { label: 'ป้ายเติมเกม', price: 149 },
+                        { label: 'งานสั่งทำพิเศษ', price: 199 }
+                      ];
+                      return pricingRows.slice(0, 4).map((row, ri) => `
+                        <tr style="border-bottom: 1px solid #FFF0F5; ${ri % 2 === 1 ? 'background: #FFFBFD;' : ''}">
+                          <td style="padding: 5px 8px; color: #71515B;">${escapeHTML(row.label)}</td>
+                          <td style="padding: 5px 8px; text-align: right; color: #B24368; font-weight: 700;">฿${Number(row.price).toLocaleString()}+</td>
+                        </tr>
+                      `).join('');
+                    })()}
+                  </tbody>
+                </table>
+                <button type="button" onclick="openPricingDetailModal()" style="margin-top: 0.5rem; width: 100%; padding: 6px; border-radius: 999px; border: 1.5px solid #FFDFE9; background: #FFF7F9; color: #B26E86; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+                  ดูราคาเพิ่มเติม
+                </button>
               </div>
             </aside>
 
@@ -4755,20 +4823,29 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     แสดง: <strong>${state.portfolioStyleFilter === 'ALL' ? 'ทุกสไตล์' : escapeHTML(state.portfolioStyleFilter)}</strong> (${filtered.length} ผลงาน)
                   </small>
                 </div>
-                <span class="badge badge--pink">ฟีดผลงาน IG Style</span>
               </div>
 
               <!-- Feed Post Cards -->
               ${filtered.length > 0 ? filtered.map((item, idx) => {
-                const rawImg = item.image_url || item.cover_image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
-                const img = formatDriveImageUrl(rawImg);
+                // Multi-image support: images array OR single image_url
+                const rawImages = Array.isArray(item.images) && item.images.length > 0
+                  ? item.images
+                  : [item.image_url || item.cover_image || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700'];
+                const imgs = rawImages.map(u => formatDriveImageUrl(u));
+                const firstImg = imgs[0];
+                const hasMultiple = imgs.length > 1;
+
+                // Real like count from Store (starts at 0)
+                const realLikes = Store.getPortfolioLikes ? Store.getPortfolioLikes(item.id) : 0;
                 const likesKey = 'BNC_PORTFOLIO_LIKES';
                 let likesMap = {};
                 try { likesMap = JSON.parse(localStorage.getItem(likesKey) || '{}'); } catch(e) {}
                 const isLiked = !!likesMap[item.id];
-                const charCode = (item.id && item.id.length > 0) ? item.id.charCodeAt(item.id.length - 1) : 5;
-                const baseLikes = 22 + (charCode % 17);
-                const totalLikes = baseLikes + (isLiked ? 1 : 0);
+                const totalLikes = realLikes + (isLiked ? 1 : 0);
+
+                // Post date/time
+                const postDate = item.created_at ? new Date(item.created_at) : null;
+                const dateStr = postDate ? postDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) + ' \xB7 ' + postDate.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '';
 
                 return `
                   <article class="ig-post-card" id="ig-post-${escapeHTML(item.id)}">
@@ -4778,16 +4855,34 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                         <img src="${escapeHTML(formatDriveImageUrl(s.profileImage) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="ig-post-author-img" alt="Author" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
                         <div>
                           <div class="ig-post-author-name">${escapeHTML(s.shopName || 'BNC GraphMate Studio')}</div>
-                          <div class="ig-post-author-sub">งานออกแบบกราฟิก 300 DPI</div>
+                          <div class="ig-post-author-sub">${dateStr || 'งานออกแบบกราฟิก 300 DPI'}</div>
                         </div>
                       </div>
                       <span class="ig-post-category-badge">${escapeHTML(item.style_category || item.category || 'งานออกแบบ')}</span>
                     </div>
 
-                    <!-- Artwork Image (Click to Lightbox, Double Click to Like) -->
-                    <div class="ig-post-image-wrap" onclick="openLightbox(${idx})" ondblclick="event.stopPropagation(); togglePortfolioLike('${escapeHTML(item.id)}');" title="คลิกเพื่อดูรูปขยาย หรือดับเบิ้ลคลิกเพื่อกดใจ">
-                      <img src="${escapeHTML(img)}" alt="${escapeHTML(item.title)}" class="ig-post-image" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
-                    </div>
+                    <!-- Artwork Images (single or multi-image carousel) -->
+                    ${hasMultiple ? `
+                      <div class="ig-post-multi-images" id="gallery-${escapeHTML(item.id)}">
+                        ${imgs.map((imgUrl, imgIdx) => `
+                          <div class="ig-multi-img-slide" style="${imgIdx === 0 ? '' : 'display:none;'}">
+                            <img src="${escapeHTML(imgUrl)}" alt="${escapeHTML(item.title)} ภาพ ${imgIdx + 1}" class="ig-post-image" loading="${imgIdx === 0 ? 'eager' : 'lazy'}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';" ondblclick="togglePortfolioLike('${escapeHTML(item.id)}');">
+                          </div>
+                        `).join('')}
+                        <div class="ig-multi-dots">
+                          ${imgs.map((_, imgIdx) => `<span class="ig-multi-dot ${imgIdx === 0 ? 'active' : ''}" onclick="switchPostImage('${escapeHTML(item.id)}', ${imgIdx})"></span>`).join('')}
+                        </div>
+                        <div class="ig-multi-count-badge">${imgs.length} ภาพ</div>
+                        ${imgs.length > 1 ? `
+                          <button class="ig-multi-arrow ig-multi-prev" onclick="switchPostImagePrev('${escapeHTML(item.id)}', ${imgs.length})">&#8249;</button>
+                          <button class="ig-multi-arrow ig-multi-next" onclick="switchPostImageNext('${escapeHTML(item.id)}', ${imgs.length})">&#8250;</button>
+                        ` : ''}
+                      </div>
+                    ` : `
+                      <div class="ig-post-image-wrap" onclick="openLightbox(${idx})" ondblclick="event.stopPropagation(); togglePortfolioLike('${escapeHTML(item.id)}');" title="คลิกเพื่อดูรูปขยาย หรือดับเบิ้ลคลิกเพื่อกดใจ">
+                        <img src="${escapeHTML(firstImg)}" alt="${escapeHTML(item.title)}" class="ig-post-image" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
+                      </div>
+                    `}
 
                     <!-- Post Action Bar (Heart, Message/Contact, View Fullscreen) -->
                     <div class="ig-post-actions">
@@ -5794,52 +5889,120 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   
   function renderAdminPortfolioTab() {
     const portfolio = Store.getPortfolio();
+    const pricingRows = Store.getPricingTable ? Store.getPricingTable() : [];
     return `
-      <div class="card" style="border-radius: 18px;">
+      <!-- Portfolio Card Grid -->
+      <div class="card" style="border-radius: 18px; margin-bottom: 1rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
           <div>
-            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">จัดการรูปผลงาน & อัตราค่าบริการ</h3>
-            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">เพิ่ม ลบ หรือแก้ไขรูปผลงานสำหรับให้ลูกค้ากดดูตามราคาและประเภทงาน</p>
+            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;">จัดการรูปผลงาน</h3>
+            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">${portfolio.length} ผลงาน — กดแก้ไข/ลบที่การ์ดได้เลย</p>
           </div>
-          <button type="button" class="btn btn-primary btn-sm" onclick="openAddPortfolioModal()">+ เพิ่มผลงานใหม่</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openAddPortfolioModal()" style="box-shadow: none !important;">+ เพิ่มผลงานใหม่</button>
         </div>
 
-        <div style="overflow-x: auto;">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>รูป 1:1</th>
-                <th>ชื่อผลงาน / บริการ</th>
-                <th>สไตล์งานออกแบบ</th>
-                <th>หมวดหมู่ป้าย (ราคา)</th>
-                <th>ราคามาตรฐาน</th>
-                <th>จัดการ</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${portfolio.map(item => `
-                <tr>
-                  <td>
-                    <img src="${escapeHTML(item.image_url)}" style="width: 50px; height: 50px; border-radius: 10px; object-fit: cover;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';">
-                  </td>
-                  <td><strong>${escapeHTML(item.title || 'ผลงานการออกแบบ')}</strong></td>
-                  <td><span class="badge" style="background:#FFF0F7; color:#9D174D; border:1px solid #FBCFE8; font-weight:700;">${escapeHTML(item.style_category || 'ทั่วไป')}</span></td>
-                  <td><span class="badge badge--pink">${escapeHTML(item.category || 'ป้าย')}</span></td>
-                  <td>฿${Number(item.price || 0).toLocaleString()}</td>
-                  <td>
-                    <div style="display:flex; gap:6px;">
-                      <button type="button" class="btn btn-outline btn-sm" onclick="openEditPortfolioModal('${item.id}')">แก้ไข</button>
-                      <button type="button" class="btn btn-outline btn-sm" onclick="deletePortfolioItemAction('${item.id}')" style="color:#E11D48; border-color:#FECDD3;">ลบ</button>
-                    </div>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+          ${portfolio.length === 0 ? `<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">ยังไม่มีผลงาน กดปุ่มเพิ่มผลงานใหม่</div>` : ''}
+          ${portfolio.map(item => {
+            const thumbImg = Array.isArray(item.images) && item.images.length > 0
+              ? item.images[0]
+              : (item.image_url || '');
+            const imgCount = Array.isArray(item.images) ? item.images.length : (item.image_url ? 1 : 0);
+            const likes = Store.getPortfolioLikes ? Store.getPortfolioLikes(item.id) : 0;
+            const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) : '';
+            return `
+              <div style="background: #FFFBFD; border: 1.5px solid #FFDFE9; border-radius: 14px; overflow: hidden; position: relative;">
+                <div style="position: relative; aspect-ratio: 1; background: #FFF0F5; overflow: hidden;">
+                  <img src="${escapeHTML(thumbImg)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400';">
+                  ${imgCount > 1 ? `<div style="position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 2px 7px; border-radius: 999px;">${imgCount} ภาพ</div>` : ''}
+                </div>
+                <div style="padding: 10px 12px;">
+                  <div style="font-weight: 700; font-size: 0.88rem; color: #71515B; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHTML(item.title || '')}">${escapeHTML(item.title || 'ผลงานการออกแบบ')}</div>
+                  <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px;">
+                    <span class="badge" style="background:#FFF0F7; color:#9D174D; border:1px solid #FBCFE8; font-size: 0.72rem;">${escapeHTML(item.style_category || 'ทั่วไป')}</span>
+                    <span class="badge badge--pink" style="font-size: 0.72rem;">${escapeHTML(item.category || 'ป้าย')}</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; color: #B24368; font-weight: 700;">฿${Number(item.price || 0).toLocaleString()}</span>
+                    <span style="font-size: 0.73rem; color: var(--text-muted);">${dateStr}</span>
+                  </div>
+                  <div style="display: flex; gap: 6px;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openEditPortfolioModal('${item.id}')" style="flex: 1; font-size: 0.8rem; padding: 4px 8px;">แก้ไข</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="deletePortfolioItemAction('${item.id}')" style="color:#E11D48; border-color:#FECDD3; font-size: 0.8rem; padding: 4px 8px;">ลบ</button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
         </div>
+      </div>
+
+      <!-- Pricing Table Editor -->
+      <div class="card" style="border-radius: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.1rem;">ตั้งค่าตารางราคา</h3>
+            <p style="font-size: 0.83rem; color: var(--text-muted); margin: 0;">แสดงใน sidebar แกลเลอรีหน้าลูกค้า</p>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="addPricingRow()" style="border-color: #FFDFE9; color: #71515B;">+ เพิ่มรายการ</button>
+        </div>
+        <div id="pricingRowsContainer">
+          ${pricingRows.map((row, ri) => `
+            <div class="pricing-admin-row" id="pricing-row-${ri}" style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+              <input type="text" value="${escapeHTML(row.label)}" placeholder="ชื่อบริการ" class="form-input" style="flex: 1; font-size: 0.85rem; padding: 6px 10px;" onchange="updatePricingRow(${ri}, 'label', this.value)">
+              <input type="number" value="${Number(row.price)}" placeholder="ราคา" class="form-input" style="width: 90px; font-size: 0.85rem; padding: 6px 10px;" onchange="updatePricingRow(${ri}, 'price', Number(this.value))">
+              <button type="button" onclick="deletePricingRow(${ri})" style="background: none; border: none; color: #E11D48; cursor: pointer; font-size: 1rem; padding: 4px;">x</button>
+            </div>
+          `).join('')}
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" onclick="savePricingTableAdmin()" style="margin-top: 0.75rem; box-shadow: none !important;">บันทึกตารางราคา</button>
       </div>
     `;
   }
+
+  // Pricing table editor helpers
+  let _pricingRowsCache = null;
+  window.addPricingRow = function () {
+    const rows = Store.getPricingTable ? Store.getPricingTable() : [];
+    rows.push({ label: '', price: 0 });
+    const container = document.getElementById('pricingRowsContainer');
+    if (!container) return;
+    const ri = rows.length - 1;
+    const div = document.createElement('div');
+    div.className = 'pricing-admin-row';
+    div.id = `pricing-row-${ri}`;
+    div.style.cssText = 'display: flex; gap: 8px; align-items: center; margin-bottom: 8px;';
+    div.innerHTML = `
+      <input type="text" value="" placeholder="ชื่อบริการ" class="form-input" style="flex: 1; font-size: 0.85rem; padding: 6px 10px;" onchange="updatePricingRow(${ri}, 'label', this.value)">
+      <input type="number" value="0" placeholder="ราคา" class="form-input" style="width: 90px; font-size: 0.85rem; padding: 6px 10px;" onchange="updatePricingRow(${ri}, 'price', Number(this.value))">
+      <button type="button" onclick="deletePricingRow(${ri})" style="background: none; border: none; color: #E11D48; cursor: pointer; font-size: 1rem; padding: 4px;">x</button>
+    `;
+    container.appendChild(div);
+  };
+
+  window.updatePricingRow = function (ri, field, value) {
+    // Just update the DOM value; saved on savePricingTableAdmin
+  };
+
+  window.deletePricingRow = function (ri) {
+    const div = document.getElementById(`pricing-row-${ri}`);
+    if (div) div.remove();
+  };
+
+  window.savePricingTableAdmin = async function () {
+    const rows = [];
+    document.querySelectorAll('.pricing-admin-row').forEach(div => {
+      const inputs = div.querySelectorAll('input');
+      if (inputs.length >= 2) {
+        const label = inputs[0].value.trim();
+        const price = Number(inputs[1].value) || 0;
+        if (label) rows.push({ label, price });
+      }
+    });
+    if (rows.length === 0) return alert('กรุณาเพิ่มอย่างน้อย 1 รายการ');
+    await Store.savePricingTable(rows);
+    alert('บันทึกตารางราคาเรียบร้อยแล้ว');
+  };
 
   window.handleAdminPortStyleChange = function (val) {
     const customInp = $('adminPortCustomStyle');
@@ -5857,11 +6020,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     state.editingPortfolioId = null;
     const modal = $('adminPortfolioModal');
     if (!modal) return;
-    const title = modal.querySelector('h3');
-    if (title) title.textContent = 'เพิ่มรูปผลงานใหม่';
+    const titleEl = modal.querySelector('h3');
+    if (titleEl) titleEl.textContent = 'เพิ่มรูปผลงานใหม่';
     $('adminPortTitle').value = '';
 
-    // Populate styles dynamically
     const styleSelect = $('adminPortStyle');
     if (styleSelect) {
       const styles = Store.getPortfolioStyles ? Store.getPortfolioStyles() : ['สไตล์มินิมอล & คาเฟ่', 'สไตล์การ์ตูน & คาวาอี้', 'สไตล์ลายมือ & ฟอนต์', 'สไตล์ร้านค้า & โมเดิร์น', 'ไฟล์ตกแต่ง & เทมเพลต'];
@@ -5870,17 +6032,16 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       styleSelect.value = styles[0] || 'สไตล์มินิมอล & คาเฟ่';
     }
     const customStyleInp = $('adminPortCustomStyle');
-    if (customStyleInp) {
-      customStyleInp.style.display = 'none';
-      customStyleInp.value = '';
-    }
+    if (customStyleInp) { customStyleInp.style.display = 'none'; customStyleInp.value = ''; }
 
     $('adminPortCategory').value = 'ป้ายเครดิต';
     $('adminPortPrice').value = '129';
     if ($('adminPortIsAgent')) $('adminPortIsAgent').checked = false;
     if ($('adminPortCostPrice')) $('adminPortCostPrice').value = '0';
     if ($('adminPortCostWrap')) $('adminPortCostWrap').style.display = 'none';
-    $('adminPortImage').value = 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=700';
+    // Clear multi-image textarea
+    const imgArea = $('adminPortImages');
+    if (imgArea) imgArea.value = '';
     modal.classList.add('is-active');
   };
 
@@ -5893,8 +6054,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     e.preventDefault();
     const title = ($('adminPortTitle')?.value || '').trim();
     if (!title) return alert('กรุณากรอกชื่อผลงาน');
-    
-    // Style category
+
     let style_category = $('adminPortStyle')?.value || 'สไตล์มินิมอล & คาเฟ่';
     if (style_category === '__custom__') {
       style_category = ($('adminPortCustomStyle')?.value || '').trim();
@@ -5905,8 +6065,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const price = Number($('adminPortPrice').value) || 0;
     const cost_price = Number($('adminPortCostPrice')?.value) || 0;
     const is_agent = $('adminPortIsAgent')?.checked || cost_price > 0;
-    const image = ($('adminPortImage')?.value || '').trim();
-    if (!image) return alert('กรุณากรอกลิงก์รูปภาพ 1:1');
+
+    // Multi-image: read textarea (one URL or base64 per line)
+    const imgArea = $('adminPortImages');
+    const rawLines = imgArea ? imgArea.value.split('\n').map(l => l.trim()).filter(Boolean) : [];
+    if (rawLines.length === 0) return alert('กรุณาใส่ลิงก์รูปภาพอย่างน้อย 1 รูป');
+
+    const images = rawLines;
+    const image_url = images[0]; // first image as cover
 
     const portPayload = {
       title,
@@ -5915,14 +6081,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       price,
       cost_price,
       is_agent,
-      image_url: image
+      image_url,
+      images
     };
     if (state.editingPortfolioId) portPayload.id = state.editingPortfolioId;
     Store.savePortfolioItem(portPayload);
     state.editingPortfolioId = null;
 
     closeAddPortfolioModal();
-    alert('บันทึกผลงานใหม่เรียบร้อยแล้วค่ะ');
+    alert('บันทึกผลงานเรียบร้อยแล้วค่ะ');
     renderCurrentView();
   };
 
@@ -8265,16 +8432,20 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       likesMap = JSON.parse(localStorage.getItem(likesKey) || '{}');
     } catch (e) {}
 
-    const isLiked = !likesMap[workId];
-    likesMap[workId] = isLiked;
+    const wasLiked = !!likesMap[workId];
+    const isNowLiked = !wasLiked;
+    likesMap[workId] = isNowLiked;
     try {
       localStorage.setItem(likesKey, JSON.stringify(likesMap));
     } catch (e) {}
 
+    // Update real like count in Store
+    Store.addPortfolioLike(workId, isNowLiked ? 1 : -1);
+
     const btn = document.getElementById(`like-btn-${workId}`);
     const countEl = document.getElementById(`like-count-${workId}`);
     if (btn) {
-      if (isLiked) {
+      if (isNowLiked) {
         btn.classList.add('is-liked', 'heart-pop-anim');
         setTimeout(() => btn.classList.remove('heart-pop-anim'), 400);
       } else {
@@ -8282,9 +8453,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       }
     }
     if (countEl) {
-      const charCode = (workId && workId.length > 0) ? workId.charCodeAt(workId.length - 1) : 5;
-      const baseLikes = 22 + (charCode % 17);
-      countEl.textContent = `${baseLikes + (isLiked ? 1 : 0)} คน`;
+      const realLikes = Store.getPortfolioLikes(workId);
+      countEl.textContent = `${realLikes} คน`;
     }
   };
 
@@ -8314,18 +8484,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 1.25rem;">
-          สนใจสั่งงานออกแบบชิ้นนี้ หรือต้องการปรับเปลี่ยนสไตล์ โทนสี และข้อความ สามารถทักแชทร้านเพื่อสอบถามคิวและสั่งทำได้ทันทีค่ะ
-        </p>
-
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <a href="${escapeHTML(contactUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%; border-radius: 999px; font-weight: 800; padding: 0.75rem; font-size: 0.95rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: none !important;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>ทักแชท LINE ร้านเพื่อสั่งงาน</span>
+            <span>สนใจสั่งงาน</span>
           </a>
-          <button type="button" class="btn btn-outline" onclick="copyTextToClipboard('สนใจสั่งงานออกแบบ: ${escapeHTML(title).replace(/'/g, "\\'")} (#${escapeHTML(item.id || '')})', this)" style="width: 100%; border-radius: 999px; font-weight: 700; padding: 0.65rem; font-size: 0.88rem; color: #71515B; border-color: #FFDFE9;">
-            คัดลอกชื่องานเพื่อส่งแชท
-          </button>
         </div>
       </div>
     `;
@@ -8336,6 +8499,77 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   window.closeWorkInquiryModal = function () {
     const modal = $('workInquiryModal');
     if (modal) modal.classList.remove('is-active');
+  };
+
+  // Multi-image carousel navigation for IG-style post cards
+  window.switchPostImage = function (postId, targetIdx) {
+    const container = document.getElementById(`gallery-${postId}`);
+    if (!container) return;
+    const slides = container.querySelectorAll('.ig-multi-img-slide');
+    const dots = container.querySelectorAll('.ig-multi-dot');
+    slides.forEach((s, i) => { s.style.display = i === targetIdx ? '' : 'none'; });
+    dots.forEach((d, i) => { d.classList.toggle('active', i === targetIdx); });
+  };
+
+  window.switchPostImageNext = function (postId, total) {
+    const container = document.getElementById(`gallery-${postId}`);
+    if (!container) return;
+    const slides = container.querySelectorAll('.ig-multi-img-slide');
+    let current = 0;
+    slides.forEach((s, i) => { if (s.style.display !== 'none') current = i; });
+    switchPostImage(postId, (current + 1) % total);
+  };
+
+  window.switchPostImagePrev = function (postId, total) {
+    const container = document.getElementById(`gallery-${postId}`);
+    if (!container) return;
+    const slides = container.querySelectorAll('.ig-multi-img-slide');
+    let current = 0;
+    slides.forEach((s, i) => { if (s.style.display !== 'none') current = i; });
+    switchPostImage(postId, (current - 1 + total) % total);
+  };
+
+  // Pricing Detail Modal
+  window.openPricingDetailModal = function () {
+    const rows = Store.getPricingTable ? Store.getPricingTable() : [];
+    const s = Store.getSettings();
+    let modal = document.getElementById('pricingDetailModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'pricingDetailModal';
+      modal.className = 'modal-overlay';
+      modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('is-active'); };
+      document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+      <div class="modal-card" style="max-width: 420px; width: 92%; padding: 1.5rem; border-radius: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #FFDFE9; padding-bottom: 0.75rem;">
+          <h3 style="margin: 0; color: #71515B; font-size: 1.1rem; font-weight: 700;">อัตราค่าบริการ</h3>
+          <button type="button" onclick="document.getElementById('pricingDetailModal').classList.remove('is-active')" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color: #B26E86;">x</button>
+        </div>
+        <p style="font-size: 0.83rem; color: var(--text-muted); margin: 0 0 1rem;">ราคาเริ่มต้นต่อชิ้นงาน ไม่รวม revision เพิ่มเติม สอบถามราคางานสั่งทำพิเศษได้ทาง LINE</p>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-bottom: 1rem;">
+          <thead>
+            <tr style="background: #FFF0F5;">
+              <th style="padding: 8px 12px; text-align: left; color: #B26E86; font-weight: 700; border-radius: 8px 0 0 8px;">บริการ / ประเภทงาน</th>
+              <th style="padding: 8px 12px; text-align: right; color: #B26E86; font-weight: 700; border-radius: 0 8px 8px 0;">ราคาเริ่มต้น</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((row, ri) => `
+              <tr style="border-bottom: 1px solid #FFF0F5; ${ri % 2 === 1 ? 'background: #FFFBFD;' : ''}">
+                <td style="padding: 8px 12px; color: #71515B;">${escapeHTML(row.label)}</td>
+                <td style="padding: 8px 12px; text-align: right; color: #B24368; font-weight: 700;">฿${Number(row.price).toLocaleString()}+</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <a href="${escapeHTML(s.lineUrl || s.portfolioContactUrl || '#')}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width: 100%; border-radius: 999px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0.7rem; box-shadow: none !important; font-size: 0.93rem;">
+          <span>สนใจสั่งงาน ทักมาได้เลย</span>
+        </a>
+      </div>
+    `;
+    modal.classList.add('is-active');
   };
 
   window.downloadReceiptImage = async function () {
@@ -9001,15 +9235,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <small style="color: var(--text-muted); font-size: 0.78rem;">สำหรับคำนวณกำไรสุทธิเมื่อมีการสั่งทำงานสไตล์นี้</small>
             </div>
           </div>
+          </div>
           <div class="form-group" style="margin-bottom: 1.25rem;">
-            <label class="form-label" style="font-weight: 700;">ลิงก์ภาพผลงาน 1:1 จัตุรัส (URL) <span style="color:var(--danger)">*</span></label>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <input type="text" id="adminPortImage" class="form-input" placeholder="https://... หรือเลือกรูปจากเครื่อง" required style="flex: 1;">
-              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
-                เลือกรูป
-                <input type="file" accept="image/*" style="display: none;" onchange="handlePortfolioImageUpload(event)">
-              </label>
-            </div>
+            <label class="form-label" style="font-weight: 700;">รูปภาพผลงาน <span style="color:var(--danger)">*</span></label>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0 0 6px;">วางลิงก์ URL ภาพ 1 บรรทัดต่อ 1 รูป (เพิ่มได้ไม่จำกัด) รูปแรกจะเป็นหน้าปก</p>
+            <textarea id="adminPortImages" class="form-input" rows="4" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg" style="resize: vertical; font-size: 0.82rem; font-family: monospace;"></textarea>
+            <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin-top: 6px; font-size: 11px; display: inline-block;">
+              เลือกรูปจากเครื่อง (เพิ่มต่อท้าย)
+              <input type="file" accept="image/*" multiple style="display: none;" onchange="handlePortfolioMultiImageUpload(event)">
+            </label>
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
             <button type="button" class="btn btn-outline" onclick="closeAddPortfolioModal()">ยกเลิก</button>
@@ -9627,13 +9861,34 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     renderCurrentView();
   };
 
+  // Multi-image upload: appends base64 data URLs to textarea (one per line)
+  window.handlePortfolioMultiImageUpload = function (e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const area = document.getElementById('adminPortImages');
+    if (!area) return;
+    let pending = files.length;
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        const current = area.value.trim();
+        area.value = current ? current + '\n' + evt.target.result : evt.target.result;
+        pending--;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Keep old single-file handler for backward compat
   window.handlePortfolioImageUpload = function (e) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function (evt) {
+      const area = document.getElementById('adminPortImages');
       const input = document.getElementById('adminPortImage');
-      if (input) input.value = evt.target.result;
+      if (area) { const cur = area.value.trim(); area.value = cur ? cur + '\n' + evt.target.result : evt.target.result; }
+      else if (input) input.value = evt.target.result;
     };
     reader.readAsDataURL(file);
   };
@@ -9834,8 +10089,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     state.editingPortfolioId = id;
     const modal = $('adminPortfolioModal');
     if (!modal) return;
-    const title = modal.querySelector('h3');
-    if (title) title.textContent = 'แก้ไขรูปผลงาน & อัตราค่าบริการ';
+    const titleEl = modal.querySelector('h3');
+    if (titleEl) titleEl.textContent = 'แก้ไขรูปผลงาน';
     $('adminPortTitle').value = item.title || '';
 
     const styleSelect = $('adminPortStyle');
@@ -9860,7 +10115,16 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if ($('adminPortIsAgent')) $('adminPortIsAgent').checked = !!item.is_agent;
     if ($('adminPortCostPrice')) $('adminPortCostPrice').value = item.cost_price || 0;
     if ($('adminPortCostWrap')) $('adminPortCostWrap').style.display = item.is_agent ? 'block' : 'none';
-    $('adminPortImage').value = item.image_url || '';
+
+    // Populate images textarea: use images array if available, else image_url
+    const imgArea = $('adminPortImages');
+    if (imgArea) {
+      if (Array.isArray(item.images) && item.images.length > 0) {
+        imgArea.value = item.images.join('\n');
+      } else {
+        imgArea.value = item.image_url || '';
+      }
+    }
     modal.classList.add('is-active');
   };
 
