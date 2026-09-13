@@ -8,8 +8,8 @@
 // ผู้ดูแลระบบสามารถใส่ Project URL และ Anon Key ของ Supabase ที่นี่
 // ============================================================
 const SUPABASE_CONFIG = {
-  url: 'https://YOUR_PROJECT_ID.supabase.co',
-  anonKey: 'YOUR_ANON_KEY'
+  url: 'https://vmtmmtfjhujdijbiwawa.supabase.co',
+  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtdG1tdGZqaHVqZGlqYml3YXdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTIyMjMsImV4cCI6MjEwNDg2ODIyM30.26oysoMBoUzxd98gkInd4zXv7hkya4cTdAkw87G_Esk'
 };
 
 const Store = (function () {
