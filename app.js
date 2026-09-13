@@ -2638,6 +2638,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
  portfolioStyleFilter: 'ALL',
  portfolioPriceFilter: 'ALL',
  portfolioAccordions: { gallerySettings: false, portfolioItems: true, pricingTable: false },
+ queueAccordions: { queueSettings: false, queueList: true },
  activeStoryIndex: 0,
  lightboxImage: null,
  searchPointsQuery: '',
@@ -4821,7 +4822,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem;">
                   <thead>
                     <tr style="background: #FFF0F5;">
-                      <th style="padding: 5px 8px; text-align: left; color: #B26E86; font-weight: 700; border-radius: 6px 0 0 6px;">บริการ</th>
+                      <th style="padding: 5px 8px; text-align: left; color: #B26E86; font-weight: 700; border-radius: 6px 0 0 6px;">ประเภทงาน</th>
                       <th style="padding: 5px 8px; text-align: right; color: #B26E86; font-weight: 700; border-radius: 0 6px 6px 0; white-space: nowrap;">ราคา</th>
                     </tr>
                   </thead>
@@ -4901,7 +4902,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                         </div>
                       </div>
                       <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                        <span class="ig-post-price-badge">฿${itemPrice.toLocaleString()}</span>
                         <span class="ig-post-category-badge">${escapeHTML(item.style_category || item.category || 'งานออกแบบ')}</span>
                       </div>
                     </div>
@@ -6511,7 +6511,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   // ============================================================
   function renderAdminQueuesTab() {
     const queues = Store.getAllQueueItems(); // Get all including hidden
+    const s = Store.getSettings() || {};
     const qSettings = Store.getQueuePageSettings();
+    const queuePage = qSettings;
+    const queueStatus = s.queueStatus || {};
     const statusNames = qSettings.statusNames || {
       waiting: 'รอคิว',
       progress: 'กำลังดำเนินการ',
@@ -6522,22 +6525,128 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       cancel: 'ยกเลิก'
     };
 
+    if (!state.queueAccordions) {
+      state.queueAccordions = { queueSettings: false, queueList: true };
+    }
+    const isSettingsOpen = !!state.queueAccordions.queueSettings;
+    const isListOpen = !!state.queueAccordions.queueList;
+
     return `
-      <div class="card" style="border-radius: 20px; margin-bottom: 2rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
-          <div>
-            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.3rem;">จัดการคิวงาน & ตารางชีวิต (Queue & Calendar)</h3>
-            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">
-              ดูภาพรวมคิวงาน วางแผนงานประจำวัน และบันทึกตารางชีวิตส่วนตัวได้ในที่เดียว
-            </p>
+      <!-- 1. Queue Page & Shop Board Settings Card -->
+      <div class="card" style="border-radius: 18px; margin-bottom: 1.25rem; border: 1.5px solid #FFDFE9; background: #FFFBFD; overflow: hidden; padding: 0;">
+        <div id="queue-accordion-header-queueSettings" onclick="toggleQueueAccordion('queueSettings')" style="display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.25rem; cursor: pointer; background: #FFF7F9; border-bottom: ${isSettingsOpen ? '1px solid #FFDFE9' : 'none'}; user-select: none; transition: background 0.2s;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: #FFE4EE; color: #B26E86; font-size: 0.95rem; font-weight: 800;">1</span>
+            <div>
+              <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.15rem; font-weight: 700;">ตั้งค่าหน้าเช็กคิวงาน &amp; บอร์ดสถานะร้าน</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">จัดการหัวข้อ คำบรรยาย ข้อความแจ้งเตือน โน้ตสถานะคิว ป้าย Badge และมาสคอตปลายหลอด</p>
+            </div>
           </div>
-          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <div style="display: inline-flex; background: #FFF0F5; padding: 3px; border-radius: 12px; border: 1.5px solid #FFDFE9;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); saveQueueSettingsAdmin();" style="box-shadow: none !important; font-size: 0.8rem; padding: 5px 12px;">
+              บันทึกการตั้งค่า
+            </button>
+            <span id="queue-accordion-badge-queueSettings" class="badge" style="background: ${isSettingsOpen ? '#FFE4EE' : '#FFF0F5'}; color: #B26E86; font-size: 0.78rem; font-weight: 700; border: 1px solid #FFDFE9; padding: 4px 10px; border-radius: 999px;">
+              ${isSettingsOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย'}
+            </span>
+            <span id="queue-accordion-arrow-queueSettings" style="display: inline-block; transition: transform 0.25s ease; transform: ${isSettingsOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; color: #B26E86; font-weight: 700; font-size: 0.85rem;">
+              ▼
+            </span>
+          </div>
+        </div>
+
+        <div id="queue-accordion-body-queueSettings" style="display: ${isSettingsOpen ? 'block' : 'none'}; padding: 1.25rem;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">หัวข้อหลักบนหน้าเช็กคิว (Hero Title)</label>
+              <input type="text" id="adminQpHeroTitle" class="form-input" value="${escapeHTML(queuePage.heroTitle || 'เช็กคิวงาน')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">คำบรรยายหัวเว็บ (Hero Subtitle)</label>
+              <input type="text" id="adminQpHeroSubtitle" class="form-input" value="${escapeHTML(queuePage.heroSubtitle || 'ดูสถานะคิวงานของร้านแบบเรียลไทม์')}">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label" style="font-weight: 700;">ข้อความแถบแจ้งเตือนคิวงาน (Notice Banner Text)</label>
+            <input type="text" id="adminQpNoticeText" class="form-input" value="${escapeHTML(queuePage.noticeText || 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ')}">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label" style="font-weight: 700;">ข้อความบนกระดาษโน้ตสถานะคิวงาน (Shop Queue Board)</label>
+            <textarea id="adminNotebookNotice" class="form-textarea" rows="3" placeholder="พิมพ์ข้อความสถานะร้าน เวลาทำการ หรือแจ้งเตือนตามต้องการ...">${escapeHTML(s.notebookNotice || 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}</textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ป้ายข้อความมุมขวาบนการ์ด (Badge Text)</label>
+              <input type="text" id="adminQueueBadgeText" class="form-input" value="${escapeHTML(s.queueBadgeText || (queueStatus && queueStatus.queueText) || 'ว่างพร้อมรับ 3 คิว')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ลิงก์ปุ่ม สอบถาม | จองคิว (Booking URL)</label>
+              <input type="text" id="adminQueueBookingUrl" class="form-input" placeholder="https://line.me/ti/p/~... หรือ #queue" value="${escapeHTML(s.queueBookingUrl || s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}">
+            </div>
+          </div>
+
+          <!-- Mascot Stages at Progress Tip -->
+          <div style="background: #FFFFFF; border-radius: 16px; padding: 1.25rem; border: 1.5px solid var(--border); margin-bottom: 1.25rem;">
+            <div style="margin-bottom: 1rem;">
+              <h4 style="margin: 0 0 4px; font-size: 0.98rem; color: #9D174D; font-weight: 800;">
+                มาสคอตปลายหลอดคิวงานตามเปอร์เซ็นต์ (Mascot Stages at Tip)
+              </h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
+                เปลี่ยนรูปมาสคอตปลายหลอดความคืบหน้าตามเปอร์เซ็นต์ (0%, 25%, 50%, 75%, 100%)
+              </p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+              ${[
+                { key: 'pct0', label: '0% (รอเริ่ม)', def: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg' },
+                { key: 'pct25', label: '25% (เริ่มแบบ)', def: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg' },
+                { key: 'pct50', label: '50% (ครึ่งทาง)', def: 'https://api.iconify.design/fluent-emoji-flat:bear.svg' },
+                { key: 'pct75', label: '75% (ใกล้เสร็จ)', def: 'https://api.iconify.design/fluent-emoji-flat:panda.svg' },
+                { key: 'pct100', label: '100% (เสร็จแล้ว)', def: 'https://api.iconify.design/fluent-emoji-flat:party-popper.svg' }
+              ].map(st => {
+                const curVal = (queuePage.mascotStages && queuePage.mascotStages[st.key]) ? queuePage.mascotStages[st.key] : st.def;
+                return `
+                  <div style="background: var(--surface-alt); border: 1px solid var(--border); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                    <div style="width: 42px; height: 42px; border-radius: 50%; background: #fff; border: 1.5px solid #F472B6; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; overflow: hidden;">
+                      <img id="admin_prev_mascot_${st.key}" src="${escapeHTML(curVal)}" style="width: 28px; height: 28px; object-fit: contain;">
+                    </div>
+                    <span style="font-size: 0.78rem; font-weight: 800; color: #9D174D; margin-bottom: 6px;">${st.label}</span>
+                    <input type="text" id="admin_q_mascot_${st.key}" class="form-input" style="font-size: 11px; padding: 4px 6px; margin-bottom: 6px;" value="${escapeHTML(curVal)}" placeholder="URL" oninput="const p=$('admin_prev_mascot_${st.key}'); if(p) p.src=this.value;">
+                    <label class="btn btn-outline btn-sm" style="cursor: pointer; font-size: 10px; padding: 2px 8px; width: 100%;">
+                      เลือกรูป
+                      <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'admin_q_mascot_${st.key}', 'admin_prev_mascot_${st.key}')">
+                    </label>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-primary btn-sm" onclick="saveQueueSettingsAdmin()" style="box-shadow: none !important;">
+            บันทึกการตั้งค่าหน้าเช็กคิวงาน
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Queue List & Calendar Management Card -->
+      <div class="card" style="border-radius: 18px; margin-bottom: 1.25rem; border: 1.5px solid #FFDFE9; background: #FFFBFD; overflow: hidden; padding: 0;">
+        <div id="queue-accordion-header-queueList" onclick="toggleQueueAccordion('queueList')" style="display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.25rem; cursor: pointer; background: #FFF7F9; border-bottom: ${isListOpen ? '1px solid #FFDFE9' : 'none'}; user-select: none; transition: background 0.2s;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: #FFE4EE; color: #B26E86; font-size: 0.95rem; font-weight: 800;">2</span>
+            <div>
+              <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.15rem; font-weight: 700;">จัดการรายการคิวงาน &amp; ตารางชีวิต</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">${queues.length} รายการ — ดูภาพรวมคิวงาน วางแผนงานประจำวัน และปฏิทิน</p>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="display: inline-flex; background: #FFF0F5; padding: 3px; border-radius: 12px; border: 1.5px solid #FFDFE9;" onclick="event.stopPropagation();">
               <button 
                 type="button" 
                 class="btn btn-sm" 
                 onclick="switchAdminQueueView('table')"
-                style="padding: 5px 14px; font-size: 12px; border-radius: 9px; font-weight: 700; ${state.adminQueueView !== 'calendar' ? 'background: #FFFFFF; color: #71515B; box-shadow: 0 2px 6px rgba(113,81,91,0.08);' : 'background: transparent; color: #A0AEC0; border: none;'}"
+                style="padding: 4px 12px; font-size: 11px; border-radius: 9px; font-weight: 700; ${state.adminQueueView !== 'calendar' ? 'background: #FFFFFF; color: #71515B; box-shadow: 0 2px 6px rgba(113,81,91,0.08);' : 'background: transparent; color: #A0AEC0; border: none;'}"
               >
                 ตารางรายการ
               </button>
@@ -6545,142 +6654,219 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 type="button" 
                 class="btn btn-sm" 
                 onclick="switchAdminQueueView('calendar')"
-                style="padding: 5px 14px; font-size: 12px; border-radius: 9px; font-weight: 700; ${state.adminQueueView === 'calendar' ? 'background: #FFFFFF; color: #71515B; box-shadow: 0 2px 6px rgba(113,81,91,0.08);' : 'background: transparent; color: #A0AEC0; border: none;'}"
+                style="padding: 4px 12px; font-size: 11px; border-radius: 9px; font-weight: 700; ${state.adminQueueView === 'calendar' ? 'background: #FFFFFF; color: #71515B; box-shadow: 0 2px 6px rgba(113,81,91,0.08);' : 'background: transparent; color: #A0AEC0; border: none;'}"
               >
                 ปฏิทินตารางงาน
               </button>
             </div>
-            <button type="button" class="btn btn-primary" onclick="openAddQueueModal()" style="font-weight: 700; border-radius: 14px; padding: 0.65rem 1.4rem;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openAddQueueModal();" style="box-shadow: none !important; font-size: 0.8rem; padding: 5px 12px;">
               + เพิ่มคิวงานใหม่
             </button>
+            <span id="queue-accordion-badge-queueList" class="badge" style="background: ${isListOpen ? '#FFE4EE' : '#FFF0F5'}; color: #B26E86; font-size: 0.78rem; font-weight: 700; border: 1px solid #FFDFE9; padding: 4px 10px; border-radius: 999px;">
+              ${isListOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย'}
+            </span>
+            <span id="queue-accordion-arrow-queueList" style="display: inline-block; transition: transform 0.25s ease; transform: ${isListOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; color: #B26E86; font-weight: 700; font-size: 0.85rem;">
+              ▼
+            </span>
           </div>
         </div>
 
-        ${state.adminQueueView === 'calendar' ? renderAdminQueueCalendarView(queues) : `
-        <div style="overflow-x: auto;">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th style="width: 50px; text-align: center;">ลำดับ</th>
-                <th>เลขคิว</th>
-                <th>ชื่องาน / ประเภท</th>
-                <th>ลูกค้า / ช่องทางติดต่อ</th>
-                <th style="text-align: center; width: 80px;">พินคิว</th>
-                <th style="text-align: center; width: 150px;">สถานะงาน (คลิกเปลี่ยน)</th>
-                <th style="text-align: center; width: 90px;">ความคืบหน้า</th>
-                <th style="text-align: center; width: 80px;">แสดงผล</th>
-                <th style="text-align: center; width: 85px;">จัดเรียง</th>
-                <th style="text-align: center; width: 130px;">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${queues.length > 0 ? queues.map((q, idx) => {
-                const statusKey = (q.status || 'waiting').toLowerCase();
-                const statusLabel = statusNames[statusKey] || statusKey;
-                const progressPct = Math.min(100, Math.max(0, Number(q.progress) || 0));
+        <div id="queue-accordion-body-queueList" style="display: ${isListOpen ? 'block' : 'none'}; padding: 1.25rem;">
+          ${state.adminQueueView === 'calendar' ? renderAdminQueueCalendarView(queues) : `
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center;">ลำดับ</th>
+                  <th>เลขคิว</th>
+                  <th>ชื่องาน / ประเภท</th>
+                  <th>ลูกค้า / ช่องทางติดต่อ</th>
+                  <th style="text-align: center; width: 80px;">พินคิว</th>
+                  <th style="text-align: center; width: 150px;">สถานะงาน (คลิกเปลี่ยน)</th>
+                  <th style="text-align: center; width: 90px;">ความคืบหน้า</th>
+                  <th style="text-align: center; width: 80px;">แสดงผล</th>
+                  <th style="text-align: center; width: 85px;">จัดเรียง</th>
+                  <th style="text-align: center; width: 130px;">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${queues.length > 0 ? queues.map((q, idx) => {
+                  const statusKey = (q.status || 'waiting').toLowerCase();
+                  const statusLabel = statusNames[statusKey] || statusKey;
+                  const progressPct = Math.min(100, Math.max(0, Number(q.progress) || 0));
 
-                return `
+                  return `
+                    <tr>
+                      <td style="text-align: center; font-weight: 700; color: #71515B;">
+                        ${idx + 1}
+                      </td>
+                      <td>
+                        <span class="queue-pill-num" style="font-size: 1.05rem; padding: 2px 10px;">
+                          ${escapeHTML(q.queue_number || 'Q-')}
+                        </span>
+                      </td>
+                      <td>
+                        <strong>${escapeHTML(q.job_name || 'งานออกแบบ')}</strong>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                          ${escapeHTML(q.job_type || 'ออกแบบป้าย')} | ${escapeHTML(q.queue_date || 'วันนี้')}
+                        </div>
+                      </td>
+                      <td>
+                        <div style="font-weight: 600; color: var(--text);">${escapeHTML(q.customer_name || '-')}</div>
+                        <div style="font-size: 11px; color: #71515B; margin-top: 1px;">
+                          ${escapeHTML(q.contact || q.line_id || q.phone || '-')}
+                        </div>
+                      </td>
+                      <td style="text-align: center;">
+                        <button 
+                          type="button" 
+                          class="btn btn-sm" 
+                          onclick="toggleQueuePinAdminAction('${q.id}')"
+                          title="${q.is_pinned ? 'ปลดพินคิวนี้' : 'พินคิวนี้ไว้บน Today\'s Queue'}"
+                          style="padding: 3px 8px; font-size: 11px; border-radius: 8px; font-weight: 700; ${q.is_pinned ? 'background: #FFF0F5; color: #E05A88; border: 1.5px solid #FBCFE8;' : 'background: #FFFFFF; color: #71515B; border: 1px solid #E2E8F0;'}"
+                        >
+                          ${q.is_pinned ? 'พินแล้ว' : 'พินคิว'}
+                        </button>
+                      </td>
+                      <td style="text-align: center;">
+                        <button 
+                          type="button" 
+                          class="btn btn-sm" 
+                          onclick="cycleQueueStageAdminAction('${q.id}')"
+                          title="คลิกเพื่อเลื่อนสถานะและเปอร์เซ็นต์ (0% รอคิว -> 25% รับบรีฟ -> 50% กำลังทำ -> 75% กำลังเช็ค -> 100% ส่งงานเรียบร้อย)"
+                          style="background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B; font-weight: 700; padding: 4px 10px; border-radius: 999px; cursor: pointer; white-space: nowrap; font-size: 11px;"
+                        >
+                          ${escapeHTML(getStageLabelByProgress(progressPct))} (${progressPct}%)
+                        </button>
+                      </td>
+                      <td style="text-align: center;">
+                        <span class="badge" style="font-size: 11px; padding: 2px 8px; background: #FFF0F5; color: #71515B; font-weight: 700;">
+                          ${progressPct}%
+                        </span>
+                      </td>
+                      <td style="text-align: center;">
+                        <button 
+                          type="button" 
+                          class="btn btn-sm" 
+                          onclick="toggleQueueVisibilityAdminAction('${q.id}')"
+                          style="padding: 2px 6px; font-size: 11px; border: 1px solid var(--border); ${q.is_visible !== false ? 'color: #059669; background: #ECFDF5;' : 'color: #9CA3AF; background: #F3F4F6;'}"
+                        >
+                          ${q.is_visible !== false ? 'แสดง' : 'ซ่อน'}
+                        </button>
+                      </td>
+                      <td style="text-align: center;">
+                        <div style="display: inline-flex; gap: 4px;">
+                          <button 
+                            type="button" 
+                            class="btn btn-outline btn-sm" 
+                            onclick="moveQueueAdminAction('${q.id}', 'up')" 
+                            ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''}
+                            style="padding: 2px 7px; font-size: 12px;"
+                            title="เลื่อนขึ้น"
+                          >↑</button>
+                          <button 
+                            type="button" 
+                            class="btn btn-outline btn-sm" 
+                            onclick="moveQueueAdminAction('${q.id}', 'down')" 
+                            ${idx === queues.length - 1 ? 'disabled style="opacity:0.3;"' : ''}
+                            style="padding: 2px 7px; font-size: 12px;"
+                            title="เลื่อนลง"
+                          >↓</button>
+                        </div>
+                      </td>
+                      <td style="text-align: center;">
+                        <div style="display: inline-flex; gap: 4px;">
+                          <button type="button" class="btn btn-outline btn-sm" onclick="openEditQueueModal('${q.id}')" style="padding: 3px 8px; font-size: 11px;">แก้ไข</button>
+                          <button type="button" class="btn btn-danger btn-sm" onclick="deleteQueueAdminAction('${q.id}')" style="padding: 3px 8px; font-size: 11px;">ลบ</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('') : `
                   <tr>
-                    <td style="text-align: center; font-weight: 700; color: #71515B;">
-                      ${idx + 1}
-                    </td>
-                    <td>
-                      <span class="queue-pill-num" style="font-size: 1.05rem; padding: 2px 10px;">
-                        ${escapeHTML(q.queue_number || 'Q-')}
-                      </span>
-                    </td>
-                    <td>
-                      <strong>${escapeHTML(q.job_name || 'งานออกแบบ')}</strong>
-                      <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
-                        ${escapeHTML(q.job_type || 'ออกแบบป้าย')} | ${escapeHTML(q.queue_date || 'วันนี้')}
-                      </div>
-                    </td>
-                    <td>
-                      <div style="font-weight: 600; color: var(--text);">${escapeHTML(q.customer_name || '-')}</div>
-                      <div style="font-size: 11px; color: #71515B; margin-top: 1px;">
-                        ${escapeHTML(q.contact || q.line_id || q.phone || '-')}
-                      </div>
-                    </td>
-                    <td style="text-align: center;">
-                      <button 
-                        type="button" 
-                        class="btn btn-sm" 
-                        onclick="toggleQueuePinAdminAction('${q.id}')"
-                        title="${q.is_pinned ? 'ปลดพินคิวนี้' : 'พินคิวนี้ไว้บน Today\'s Queue'}"
-                        style="padding: 3px 8px; font-size: 11px; border-radius: 8px; font-weight: 700; ${q.is_pinned ? 'background: #FFF0F5; color: #E05A88; border: 1.5px solid #FBCFE8;' : 'background: #FFFFFF; color: #71515B; border: 1px solid #E2E8F0;'}"
-                      >
-                        ${q.is_pinned ? 'พินแล้ว' : 'พินคิว'}
-                      </button>
-                    </td>
-                    <td style="text-align: center;">
-                      <button 
-                        type="button" 
-                        class="btn btn-sm" 
-                        onclick="cycleQueueStageAdminAction('${q.id}')"
-                        title="คลิกเพื่อเลื่อนสถานะและเปอร์เซ็นต์ (0% รอคิว -> 25% รับบรีฟ -> 50% กำลังทำ -> 75% กำลังเช็ค -> 100% ส่งงานเรียบร้อย)"
-                        style="background: #FFFFFF; border: 1.5px solid #FFDFE9; color: #71515B; font-weight: 700; padding: 4px 10px; border-radius: 999px; cursor: pointer; white-space: nowrap; font-size: 11px;"
-                      >
-                        ${escapeHTML(getStageLabelByProgress(progressPct))} (${progressPct}%)
-                      </button>
-                    </td>
-                    <td style="text-align: center;">
-                      <div class="queue-progress-track" style="margin: 0 auto; height: 8px; width: 65px; border-radius: 999px; background: #FFF5F8; border: 1px solid #FFDFE9; overflow: hidden;">
-                        <div style="width: ${progressPct}%; height: 100%; background: #FF9EBB; border-radius: 999px;"></div>
-                      </div>
-                      <div style="font-size: 10px; font-weight: 700; color: #71515B; margin-top: 2px;">${progressPct}%</div>
-                    </td>
-                    <td style="text-align: center;">
-                      <button 
-                        type="button" 
-                        class="btn btn-sm" 
-                        onclick="toggleQueueVisibilityAdminAction('${q.id}')"
-                        style="padding: 3px 8px; font-size: 11px; border-radius: 8px; font-weight: 700; ${q.is_visible !== false ? 'background: #FFF0F5; color: #E05A88; border: 1.5px solid #FBCFE8;' : 'background: #F4F4F5; color: #71717A; border: 1px solid #E4E4E7;'}"
-                      >
-                        ${q.is_visible !== false ? 'เปิดแสดง' : 'ซ่อนอยู่'}
-                      </button>
-                    </td>
-                    <td style="text-align: center;">
-                      <div style="display: inline-flex; gap: 4px;">
-                        <button 
-                          type="button" 
-                          class="btn btn-outline btn-sm" 
-                          onclick="moveQueueAdminAction('${q.id}', 'up')" 
-                          ${idx === 0 ? 'disabled style="opacity:0.3;"' : ''}
-                          style="padding: 2px 7px; font-size: 12px;"
-                          title="เลื่อนขึ้น"
-                        >↑</button>
-                        <button 
-                          type="button" 
-                          class="btn btn-outline btn-sm" 
-                          onclick="moveQueueAdminAction('${q.id}', 'down')" 
-                          ${idx === queues.length - 1 ? 'disabled style="opacity:0.3;"' : ''}
-                          style="padding: 2px 7px; font-size: 12px;"
-                          title="เลื่อนลง"
-                        >↓</button>
-                      </div>
-                    </td>
-                    <td style="text-align: center;">
-                      <div style="display: inline-flex; gap: 4px;">
-                        <button type="button" class="btn btn-outline btn-sm" onclick="openEditQueueModal('${q.id}')" style="padding: 3px 8px; font-size: 11px;">แก้ไข</button>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteQueueAdminAction('${q.id}')" style="padding: 3px 8px; font-size: 11px;">ลบ</button>
-                      </div>
+                    <td colspan="10" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                      ยังไม่มีคิวงานในระบบ กดปุ่ม "+ เพิ่มคิวงานใหม่" เพื่อเริ่มต้นได้เลยค่ะ
                     </td>
                   </tr>
-                `;
-              }).join('') : `
-                <tr>
-                  <td colspan="9" style="text-align: center; padding: 3rem; color: var(--text-muted);">
-                    ยังไม่มีคิวงานในระบบ กดปุ่ม "+ เพิ่มคิวงานใหม่" เพื่อเริ่มต้นได้เลยค่ะ
-                  </td>
-                </tr>
-              `}
-            </tbody>
-          </table>
+                `}
+              </tbody>
+            </table>
+          </div>
+          `}
         </div>
-        `}
       </div>
     `;
   }
+
+  // Queue Accordion Toggle
+  window.toggleQueueAccordion = function (key) {
+    if (!state.queueAccordions) {
+      state.queueAccordions = { queueSettings: false, queueList: true };
+    }
+    state.queueAccordions[key] = !state.queueAccordions[key];
+    const isOpen = state.queueAccordions[key];
+    const body = document.getElementById('queue-accordion-body-' + key);
+    const arrow = document.getElementById('queue-accordion-arrow-' + key);
+    const badge = document.getElementById('queue-accordion-badge-' + key);
+    const header = document.getElementById('queue-accordion-header-' + key);
+    if (body) body.style.display = isOpen ? 'block' : 'none';
+    if (arrow) arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    if (badge) {
+      badge.textContent = isOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย';
+      badge.style.background = isOpen ? '#FFE4EE' : '#FFF0F5';
+    }
+    if (header) {
+      header.style.borderBottom = isOpen ? '1px solid #FFDFE9' : 'none';
+    }
+  };
+
+  window.saveQueueSettingsAdmin = async function () {
+    const heroTitle = ($('adminQpHeroTitle')?.value || '').trim();
+    const heroSubtitle = ($('adminQpHeroSubtitle')?.value || '').trim();
+    const noticeText = ($('adminQpNoticeText')?.value || '').trim();
+    const notebookNotice = ($('adminNotebookNotice')?.value || '').trim();
+    const queueBadgeText = ($('adminQueueBadgeText')?.value || '').trim();
+    const queueBookingUrl = ($('adminQueueBookingUrl')?.value || '').trim();
+
+    const mascotStages = {
+      pct0: ($('admin_q_mascot_pct0')?.value || '').trim() || 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg',
+      pct25: ($('admin_q_mascot_pct25')?.value || '').trim() || 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg',
+      pct50: ($('admin_q_mascot_pct50')?.value || '').trim() || 'https://api.iconify.design/fluent-emoji-flat:bear.svg',
+      pct75: ($('admin_q_mascot_pct75')?.value || '').trim() || 'https://api.iconify.design/fluent-emoji-flat:panda.svg',
+      pct100: ($('admin_q_mascot_pct100')?.value || '').trim() || 'https://api.iconify.design/fluent-emoji-flat:party-popper.svg'
+    };
+
+    const currentSettings = Store.getSettings() || {};
+    const curQp = currentSettings.queuePage || {};
+    const newQueuePage = Object.assign({}, curQp, {
+      heroTitle: heroTitle || curQp.heroTitle || 'เช็กคิวงาน',
+      heroSubtitle: heroSubtitle || curQp.heroSubtitle || 'ดูสถานะคิวงานของร้านแบบเรียลไทม์',
+      noticeText: noticeText,
+      mascotStages: mascotStages
+    });
+
+    const updatePayload = {
+      queuePage: newQueuePage,
+      notebookNotice: notebookNotice,
+      queueBadgeText: queueBadgeText,
+      queueBookingUrl: queueBookingUrl,
+      queueStatus: {
+        isAvailable: true,
+        queueText: queueBadgeText || 'ว่างพร้อมรับ 3 คิว',
+        chatHours: '',
+        deliveryInfo: ''
+      }
+    };
+
+    const result = await Store.saveSettings(updatePayload);
+    const isCloud = !!getSupabase();
+    if (isCloud && result?.cloudRes?.success === false) {
+      alert('บันทึกในเครื่องแล้ว แต่การเชื่อมต่อไปยัง Supabase มีปัญหา: ' + (result.cloudRes.error || ''));
+    } else {
+      alert('บันทึกการตั้งค่าหน้าเช็กคิวงานเรียบร้อยแล้วค่ะ ' + (isCloud ? '(บันทึกลงระบบคลาวด์ Supabase แล้ว)' : ''));
+    }
+    renderCurrentView();
+  };
 
   // Admin Queue Action Handlers
   
@@ -7157,83 +7343,16 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 5. กระดาษโน้ตสถานะคิวงาน & แจ้งเตือนร้าน (Shop Queue Board) -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">กระดาษโน้ตสถานะคิวงาน & แจ้งเตือนร้าน (Shop Queue Board)</h3>
-          <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label" style="font-weight: 700;">ข้อความบนกระดาษโน้ตสถานะคิวงาน (พิมพ์ข้อความอะไรก็ได้ที่ต้องการแสดง)</label>
-            <textarea id="cfg_notebookNotice" class="form-textarea" rows="4" placeholder="พิมพ์ข้อความสถานะร้าน เวลาทำการ หรือแจ้งเตือนตามต้องการ...">${escapeHTML(s.notebookNotice || 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป')}</textarea>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">ป้ายข้อความมุมขวาบนการ์ด (Badge)</label>
-              <input type="text" id="cfg_queueBadgeText" class="form-input" value="${escapeHTML(s.queueBadgeText || (queueStatus && queueStatus.queueText) || 'ว่างพร้อมรับ 3 คิว')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">ลิงก์ปุ่ม สอบถาม | จองคิว (เช่น ลิงก์ LINE, IG, FB หรือ #queue)</label>
-              <input type="text" id="cfg_queueBookingUrl" class="form-input" placeholder="https://line.me/ti/p/~... หรือ #queue" value="${escapeHTML(s.queueBookingUrl || s.lineUrl || 'https://line.me/ti/p/~bncgraphmate')}">
-            </div>
-          </div>
-        </div>
-
-        <!-- 6. Queue Page Settings (หน้าเช็กคิวงาน ปรับแต่งข้อความทุกจุด) -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ตั้งค่าหน้าเช็กคิวงาน (Queue Page Settings)</h3>
-          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-            ปรับแต่งข้อความ ป้ายกำกับ คำค้นหา และการเปิด/ปิดองค์ประกอบต่างๆ บนหน้าเช็กคิวสาธารณะได้ 100% โดยไม่ต้องแก้โค้ด
-          </p>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" style="margin-bottom: 1rem;">
-            <div class="form-group">
-              <label class="form-label">หัวข้อหลักบนกระดาษโน้ต (Hero Title)</label>
-              <input type="text" id="cfg_qp_heroTitle" class="form-input" value="${escapeHTML(queuePage.heroTitle || 'เช็กคิวงาน')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">คำบรรยายหัวเว็บ (Hero Subtitle)</label>
-              <input type="text" id="cfg_qp_heroSubtitle" class="form-input" value="${escapeHTML(queuePage.heroSubtitle || 'ดูสถานะคิวงานของร้านแบบเรียลไทม์')}">
-            </div>
-          </div>
-
-          <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">ข้อความแถบแจ้งเตือนคิวงาน (Notice Banner Text)</label>
-            <input type="text" id="cfg_qp_noticeText" class="form-input" value="${escapeHTML(queuePage.noticeText || 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ')}">
-          </div>
-
-
-          <!-- Queue Mascot Stages at Progress Tip (0%, 25%, 50%, 75%, 100%) -->
-          <div style="background: #FFFFFF; border-radius: 16px; padding: 1.25rem; border: 1.5px solid var(--border); margin-top: 1.25rem;">
-            <div style="margin-bottom: 1rem;">
-              <h4 style="margin: 0 0 4px; font-size: 1rem; color: #9D174D; font-weight: 800;">
-                มาสคอตปลายหลอดคิวงานตามเปอร์เซ็นต์ (Mascot Stages at Tip)
-              </h4>
-              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0;">
-                ตั้งค่ารูปภาพมาสคอตที่ปลายหลอดความคืบหน้า ทั้งบนโพสอิทและแถบยาวมน โดยเปลี่ยนรูปตามเปอร์เซ็นต์ (0%, 25%, 50%, 75%, 100%)
+        <!-- 5. กระดาษโน้ต & หน้าเช็กคิวงาน (ย้ายไปแท็บจัดการคิวงานแล้ว) -->
+        <div class="card" style="margin-bottom: 1.5rem; background: #FFF7F9; border: 1.5px dashed #FFDFE9; border-radius: 16px; padding: 1.25rem 1.5rem;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: #FFE4EE; color: #B26E86; font-size: 1.1rem; font-weight: 800; flex-shrink: 0;">i</span>
+            <div>
+              <h4 style="margin: 0; color: #B26E86; font-size: 1.05rem; font-weight: 700;">ตั้งค่าหน้าเช็กคิวงาน &amp; บอร์ดสถานะร้าน</h4>
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                การตั้งค่าข้อความบนหน้าเช็กคิวงาน, โน้ตสถานะคิว, ป้าย Badge และมาสคอตปลายหลอดคิว ถูกย้ายไปรวมอยู่ที่แท็บ
+                <a href="javascript:void(0)" onclick="switchAdminTab('queues')" style="color: var(--primary); text-decoration: underline; font-weight: 700;">จัดการคิวงาน</a> แล้วค่ะ เพื่อความสะดวกในการจัดการทั้งหมดในที่เดียว
               </p>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-              ${[
-                { key: 'pct0', label: '0% (รอเริ่ม)', def: 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg' },
-                { key: 'pct25', label: '25% (เริ่มแบบ)', def: 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg' },
-                { key: 'pct50', label: '50% (ครึ่งทาง)', def: 'https://api.iconify.design/fluent-emoji-flat:bear.svg' },
-                { key: 'pct75', label: '75% (ใกล้เสร็จ)', def: 'https://api.iconify.design/fluent-emoji-flat:panda.svg' },
-                { key: 'pct100', label: '100% (เสร็จแล้ว)', def: 'https://api.iconify.design/fluent-emoji-flat:party-popper.svg' }
-              ].map(st => {
-                const curVal = (queuePage.mascotStages && queuePage.mascotStages[st.key]) ? queuePage.mascotStages[st.key] : st.def;
-                return `
-                  <div style="background: var(--surface-alt); border: 1px solid var(--border); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; text-align: center;">
-                    <div style="width: 42px; height: 42px; border-radius: 50%; background: #fff; border: 1.5px solid #F472B6; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; overflow: hidden;">
-                      <img id="prev_mascot_${st.key}" src="${escapeHTML(curVal)}" style="width: 28px; height: 28px; object-fit: contain;">
-                    </div>
-                    <span style="font-size: 0.78rem; font-weight: 800; color: #9D174D; margin-bottom: 6px;">${st.label}</span>
-                    <input type="text" id="cfg_q_mascot_${st.key}" class="form-input" style="font-size: 11px; padding: 4px 6px; margin-bottom: 6px;" value="${escapeHTML(curVal)}" placeholder="URL" oninput="const p=$('prev_mascot_${st.key}'); if(p) p.src=this.value;">
-                    <label class="btn btn-outline btn-sm" style="cursor: pointer; font-size: 10px; padding: 2px 8px; width: 100%;">
-                      เลือกรูป
-                      <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_q_mascot_${st.key}', 'prev_mascot_${st.key}')">
-                    </label>
-                  </div>
-                `;
-              }).join('')}
             </div>
           </div>
         </div>
@@ -7746,6 +7865,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
     try {
       const currentSettings = Store.getSettings() || {};
+      const s = currentSettings;
+      const headings = currentSettings.headings || {};
       const getVal = (id, fallback = '') => {
         const el = $(id);
         if (!el) return fallback;
@@ -7759,33 +7880,33 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
       const curQp = currentSettings.queuePage || {};
       const updated = {
-        shopName: getVal('cfg_shopName', 'BNC GraphMate Studio'),
-        tagline: getVal('cfg_tagline', 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
-        coverImage: formatDriveImageUrl(getVal('cfg_coverImage', '')),
-        profileImage: formatDriveImageUrl(getVal('cfg_profileImage', '')),
-        shopBio: getVal('cfg_shopBio', ''),
-        lineUrl: getVal('cfg_lineUrl', ''),
-        contactPhone: getVal('cfg_contactPhone', ''),
-        instagramUrl: getVal('cfg_instagramUrl', ''),
-        facebookUrl: getVal('cfg_facebookUrl', ''),
-        footerBrand: getVal('cfg_footerBrand', 'BNC GraphMate Studio'),
-        footerCopy: getVal('cfg_footerCopy', 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล'),
-        footerCopyright: getVal('cfg_footerCopyright', '© 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.'),
-        portfolioContactUrl: getVal('cfg_portfolioContactUrl', ''),
-        notebookNotice: getVal('cfg_notebookNotice', 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'),
-        queueBadgeText: getVal('cfg_queueBadgeText', 'ว่างพร้อมรับ 3 คิว'),
-        queueBookingUrl: getVal('cfg_queueBookingUrl', 'https://line.me/ti/p/~bncgraphmate'),
-        queueStatus: {
+        shopName: getVal('cfg_shopName', s.shopName || 'BNC GraphMate Studio'),
+        tagline: getVal('cfg_tagline', s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
+        coverImage: formatDriveImageUrl(getVal('cfg_coverImage', s.coverImage || '')),
+        profileImage: formatDriveImageUrl(getVal('cfg_profileImage', s.profileImage || '')),
+        shopBio: getVal('cfg_shopBio', s.shopBio || ''),
+        lineUrl: getVal('cfg_lineUrl', s.lineUrl || ''),
+        contactPhone: getVal('cfg_contactPhone', s.contactPhone || ''),
+        instagramUrl: getVal('cfg_instagramUrl', s.instagramUrl || ''),
+        facebookUrl: getVal('cfg_facebookUrl', s.facebookUrl || ''),
+        footerBrand: getVal('cfg_footerBrand', s.footerBrand || 'BNC GraphMate Studio'),
+        footerCopy: getVal('cfg_footerCopy', s.footerCopy || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล'),
+        footerCopyright: getVal('cfg_footerCopyright', s.footerCopyright || '© 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.'),
+        portfolioContactUrl: getVal('cfg_portfolioContactUrl', s.portfolioContactUrl || ''),
+        notebookNotice: getVal('cfg_notebookNotice', s.notebookNotice || 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'),
+        queueBadgeText: getVal('cfg_queueBadgeText', s.queueBadgeText || 'ว่างพร้อมรับ 3 คิว'),
+        queueBookingUrl: getVal('cfg_queueBookingUrl', s.queueBookingUrl || 'https://line.me/ti/p/~bncgraphmate'),
+        queueStatus: s.queueStatus || {
           isAvailable: true,
-          queueText: getVal('cfg_queueBadgeText', 'ว่างพร้อมรับ 3 คิว'),
+          queueText: getVal('cfg_queueBadgeText', s.queueBadgeText || 'ว่างพร้อมรับ 3 คิว'),
           chatHours: '',
           deliveryInfo: ''
         },
         queuePage: Object.assign({}, curQp, {
-          heroTitle: getVal('cfg_qp_heroTitle', 'เช็กคิวงาน'),
-          heroSubtitle: getVal('cfg_qp_heroSubtitle', 'ดูสถานะคิวงานของร้านแบบเรียลไทม์'),
-          noticeText: getVal('cfg_qp_noticeText', 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ'),
-          mascotStages: {
+          heroTitle: getVal('cfg_qp_heroTitle', curQp.heroTitle || 'เช็กคิวงาน'),
+          heroSubtitle: getVal('cfg_qp_heroSubtitle', curQp.heroSubtitle || 'ดูสถานะคิวงานของร้านแบบเรียลไทม์'),
+          noticeText: getVal('cfg_qp_noticeText', curQp.noticeText !== undefined ? curQp.noticeText : 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ'),
+          mascotStages: curQp.mascotStages || {
             pct0: getVal('cfg_q_mascot_pct0', 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg'),
             pct25: getVal('cfg_q_mascot_pct25', 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg'),
             pct50: getVal('cfg_q_mascot_pct50', 'https://api.iconify.design/fluent-emoji-flat:bear.svg'),
@@ -7793,27 +7914,27 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             pct100: getVal('cfg_q_mascot_pct100', 'https://api.iconify.design/fluent-emoji-flat:party-popper.svg')
           }
         }),
-        headings: {
-          fontsTitle: getVal('cfg_fontsTitle', 'ฟอนต์ทั้งหมด'),
-          fontsDesc: getVal('cfg_fontsDesc', 'ฟอนต์ลิขสิทธิ์แท้ ใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์'),
-          prodsTitle: getVal('cfg_prodsTitle', 'สินค้าสำเร็จรูป'),
-          prodsDesc: getVal('cfg_prodsDesc', 'ไฟล์กราฟิก ป้ายสำเร็จ เทมเพลตพร้อมใช้งาน'),
-          groupsTitle: getVal('cfg_groupsTitle', 'เข้ากลุ่ม LINE VIP'),
-          groupsDesc: getVal('cfg_groupsDesc', 'รวมกลุ่ม VIP อัปเดตงานต่อเนื่อง โหลดได้ไม่อั้นตลอดชีพ'),
+        headings: Object.assign({}, headings, {
+          fontsTitle: getVal('cfg_fontsTitle', headings.fontsTitle || 'ฟอนต์ทั้งหมด'),
+          fontsDesc: getVal('cfg_fontsDesc', headings.fontsDesc || 'ฟอนต์ลิขสิทธิ์แท้ ใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์'),
+          prodsTitle: getVal('cfg_prodsTitle', headings.prodsTitle || 'สินค้าสำเร็จรูป'),
+          prodsDesc: getVal('cfg_prodsDesc', headings.prodsDesc || 'ไฟล์กราฟิก ป้ายสำเร็จ เทมเพลตพร้อมใช้งาน'),
+          groupsTitle: getVal('cfg_groupsTitle', headings.groupsTitle || 'เข้ากลุ่ม LINE VIP'),
+          groupsDesc: getVal('cfg_groupsDesc', headings.groupsDesc || 'รวมกลุ่ม VIP อัปเดตงานต่อเนื่อง โหลดได้ไม่อั้นตลอดชีพ'),
           portTitle: getVal('cfg_portTitle', headings.portTitle || 'My Gallery'),
-          portDesc: getVal('cfg_portDesc', 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน'),
-          reviewsTitle: getVal('cfg_reviewsTitle', 'รีวิวจากลูกค้า'),
-          reviewsDesc: getVal('cfg_reviewsDesc', 'ความประทับใจจริงจากลูกค้าที่ใช้บริการ BNC GraphMate'),
-          ordersTitle: getVal('cfg_ordersTitle', 'ประวัติคำสั่งซื้อ'),
-          ordersDesc: getVal('cfg_ordersDesc', 'ติดตามสถานะคำสั่งซื้อ ตรวจสอบสลิป และรับไฟล์งาน')
-        },
-        categories: {
-          fonts: getVal('cfg_catFonts', 'ลายมือ, หัวป้าย, ตัวพิมพ์, น่ารัก'),
-          products: getVal('cfg_catProducts', 'ป้ายสำเร็จ, ไฟล์ตกแต่ง, การ์ตูน, องค์ประกอบ, เทมเพลต'),
-          groups: getVal('cfg_catGroups', 'VIP ตลอดชีพ, รวมงานกราฟิก, การ์ตูน & คาแรกเตอร์, ป้ายร้าน & เมนู'),
+          portDesc: getVal('cfg_portDesc', headings.portDesc || 'ตัวอย่างผลงานป้ายและกราฟิกที่ผ่านมาของทางร้าน'),
+          reviewsTitle: getVal('cfg_reviewsTitle', headings.reviewsTitle || 'รีวิวจากลูกค้า'),
+          reviewsDesc: getVal('cfg_reviewsDesc', headings.reviewsDesc || 'ความประทับใจจริงจากลูกค้าที่ใช้บริการ BNC GraphMate'),
+          ordersTitle: getVal('cfg_ordersTitle', headings.ordersTitle || 'ประวัติคำสั่งซื้อ'),
+          ordersDesc: getVal('cfg_ordersDesc', headings.ordersDesc || 'ติดตามสถานะคำสั่งซื้อ ตรวจสอบสลิป และรับไฟล์งาน')
+        }),
+        categories: Object.assign({}, s.categories || {}, {
+          fonts: getVal('cfg_catFonts', Array.isArray(s.categories?.fonts) ? s.categories.fonts.join(', ') : (s.categories?.fonts || 'ลายมือ, หัวป้าย, ตัวพิมพ์, น่ารัก')),
+          products: getVal('cfg_catProducts', Array.isArray(s.categories?.products) ? s.categories.products.join(', ') : (s.categories?.products || 'ป้ายสำเร็จ, ไฟล์ตกแต่ง, การ์ตูน, องค์ประกอบ, เทมเพลต')),
+          groups: getVal('cfg_catGroups', Array.isArray(s.categories?.groups) ? s.categories.groups.join(', ') : (s.categories?.groups || 'VIP ตลอดชีพ, รวมงานกราฟิก, การ์ตูน & คาแรกเตอร์, ป้ายร้าน & เมนู')),
           portfolio: getVal('cfg_catPortfolio', Array.isArray(s.categories?.portfolio) ? s.categories.portfolio.join(', ') : (s.categories?.portfolio || 'ป้ายเครดิต, ป้ายแอพพรี, ป้ายเติมเกม, ป้ายเปิดร้าน, ป้ายโปรโมชั่น, งานป้ายสั่งทำพิเศษ')),
           portfolioStyles: getVal('cfg_catPortfolioStyles', Array.isArray(s.categories?.portfolioStyles) ? s.categories.portfolioStyles.join(', ') : (s.categories?.portfolioStyles || 'สไตล์มินิมอล & คาเฟ่, สไตล์การ์ตูน & คาวาอี้, สไตล์ลายมือ & ฟอนต์, สไตล์ร้านค้า & โมเดิร์น, ไฟล์ตกแต่ง & เทมเพลต'))
-        },
+        }),
         mascotSettings: {
           enabled: getChecked('cfg_mascotEnabled', true),
           mascot1: {
@@ -8833,11 +8954,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <h3 style="margin: 0; color: #71515B; font-size: 1.1rem; font-weight: 700;">อัตราค่าบริการ</h3>
           <button type="button" onclick="document.getElementById('pricingDetailModal').classList.remove('is-active')" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color: #B26E86;">x</button>
         </div>
-        <p style="font-size: 0.83rem; color: var(--text-muted); margin: 0 0 1rem;">ราคาเริ่มต้นต่อชิ้นงาน ไม่รวม revision เพิ่มเติม สอบถามราคางานสั่งทำพิเศษได้ทาง LINE</p>
         <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-bottom: 1rem;">
           <thead>
             <tr style="background: #FFF0F5;">
-              <th style="padding: 8px 12px; text-align: left; color: #B26E86; font-weight: 700; border-radius: 8px 0 0 8px;">บริการ / ประเภทงาน</th>
+              <th style="padding: 8px 12px; text-align: left; color: #B26E86; font-weight: 700; border-radius: 8px 0 0 8px;">ประเภทงาน</th>
               <th style="padding: 8px 12px; text-align: right; color: #B26E86; font-weight: 700; border-radius: 0 8px 8px 0;">ราคาเริ่มต้น</th>
             </tr>
           </thead>
