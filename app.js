@@ -136,10 +136,18 @@ const Store = (function () {
     },
     stampSettings: {
       cardTitle: 'บัตรสะสมแต้ม BNC GraphMate',
-      cardSubtitle: 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที',
-      rewardText: 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ',
-      rulesText: 'ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊มหัวใจ 1 ดวงทันที\nสะสมครบ 10 ดวง เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี\nติดต่อแลกรางวัลได้ทาง LINE Official ของร้าน',
-      mascotIcon: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100'
+      cardSubtitle: 'สะสมตราปั๊มครบตามจำนวน รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที',
+      maxStamps: 10,
+      rewardText: 'สะสมครบตามจำนวนแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ',
+      rulesText: 'ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊ม 1 ดวงทันที\nสะสมครบกำหนด เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี\nติดต่อแลกรางวัลได้ทาง LINE Official ของร้าน',
+      mascotIcon: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100',
+      stampIconUrl: '',
+      rewards: [
+        { id: 'rw-1', title: 'ชุดฟอนต์ลายมือน่ารัก 1 ชุด', image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400', points: '10 แต้ม' },
+        { id: 'rw-2', title: 'ส่วนลดงานออกแบบป้าย 100฿', image: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400', points: '10 แต้ม' },
+        { id: 'rw-3', title: 'ฟรี! ป้ายเปิด-ปิดร้าน สไตล์มินิมอล', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=400', points: '10 แต้ม' },
+        { id: 'rw-4', title: 'แพ็กสติกเกอร์ตกแต่งป้าย 1 เซ็ต', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400', points: '10 แต้ม' }
+      ]
     },
     categories: {
       fonts: 'ลายมือ, หัวป้าย, ตัวพิมพ์, น่ารัก',
@@ -1727,6 +1735,12 @@ const Store = (function () {
  callCloud('SAVE_CUSTOMER', { customer: cust });
  return cust;
  },
+ deleteCustomer: function (id) {
+ const data = loadLocal();
+ data.customers = (data.customers || []).filter(c => c.id !== id);
+ saveLocal(data);
+ callCloud('DELETE_CUSTOMER', { id: id });
+ },
 
  // Groups
  getGroups: function () {
@@ -2639,6 +2653,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
  portfolioPriceFilter: 'ALL',
  portfolioAccordions: { gallerySettings: false, portfolioItems: true, pricingTable: false },
  queueAccordions: { queueSettings: false, queueList: true },
+    stampAccordions: { stampSettings: false, customerList: true },
  activeStoryIndex: 0,
  lightboxImage: null,
  searchPointsQuery: '',
@@ -5040,6 +5055,22 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     renderCurrentView();
   };
 
+  function formatCustomerContacts(cust) {
+    if (!cust) return '-';
+    if (Array.isArray(cust.contacts) && cust.contacts.length > 0) {
+      const valid = cust.contacts.filter(c => c && (c.value || '').trim());
+      if (valid.length > 0) {
+        return valid.map(c => `${c.type || 'ติดต่อ'}: ${c.value}`).join(' | ');
+      }
+    }
+    const parts = [];
+    if (cust.line_id) parts.push(`LINE: ${cust.line_id}`);
+    if (cust.phone) parts.push(`เบอร์โทร: ${cust.phone}`);
+    if (cust.facebook) parts.push(`FB: ${cust.facebook}`);
+    if (cust.instagram) parts.push(`IG: ${cust.instagram}`);
+    return parts.length > 0 ? parts.join(' | ') : '-';
+  }
+
   function renderPointsView(container) {
     const s = Store.getSettings();
     const stampCfg = (Store.getStampSettings ? Store.getStampSettings() : (s && s.stampSettings)) || {};
@@ -5054,21 +5085,25 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
 
     const currentStamps = targetCustomer ? (Number(targetCustomer.heart_stamps) || 0) : 0;
-    const maxStamps = 10;
+    const maxStamps = Math.max(1, Number(stampCfg.maxStamps) || 10);
     const isCompleted = currentStamps >= maxStamps;
 
     container.innerHTML = `
       <section style="padding: 2.5rem 0 4rem;">
-        <div class="container" style="max-width: 800px;">
+        <div class="container" style="max-width: 820px;">
           
-          <div class="section-header">
-            <span class="section-tag">Loyalty Stamp Card</span>
-            <h2 class="section-title">${escapeHTML(stampCfg.cardTitle || 'บัตรสะสมแต้ม BNC GraphMate')}</h2>
-            <p class="section-desc">${escapeHTML(stampCfg.cardSubtitle || 'สะสมตราปั๊มครบ 10 ช่อง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที')}</p>
+          <!-- Kawaii Washi Note Header (Matching BNC GraphMate Tone) -->
+          <div class="page-washi-header" style="margin-bottom: 2rem;">
+            <div class="washi-tape-strip"></div>
+            <div>
+              <span class="section-tag">Loyalty Stamp Card</span>
+            </div>
+            <h2 class="page-washi-title" style="color: var(--primary-deep); font-weight: 800;">${escapeHTML(stampCfg.cardTitle || 'บัตรสะสมแต้ม BNC GraphMate')}</h2>
+            <p class="page-washi-desc">${escapeHTML(stampCfg.cardSubtitle || 'สะสมตราปั๊มครบตามจำนวน รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที')}</p>
           </div>
 
           <!-- Customer Search Input -->
-          <div class="card" style="margin-bottom: 2rem; padding: 1.25rem 1.5rem; border-radius: 18px;">
+          <div class="card" style="margin-bottom: 2rem; padding: 1.25rem 1.5rem; border-radius: 18px; border: 1.5px solid #FFDFE9;">
             <label style="font-weight: 700; font-size: 0.92rem; color: var(--text); display: block; margin-bottom: 0.5rem;">
               ค้นหาบัตรสะสมแต้มของคุณ
             </label>
@@ -5079,7 +5114,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               </button>
             </form>
             <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.4rem; display: block;">
-              *กรอกชื่อที่แจ้งไว้กับทางร้านตอนสั่งซื้อเพื่อดูจำนวนดวงหัวใจที่สะสมได้
+              *กรอกชื่อหรือช่องทางการติดต่อที่แจ้งไว้กับทางร้านตอนสั่งซื้อเพื่อดูจำนวนแต้มที่สะสมได้
             </small>
           </div>
 
@@ -5097,28 +5132,28 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
 
             <!-- GoodNotes Paper Body (Ample padding, No horizontal lines clashing) -->
-            <div class="goodnotes-paper" style="padding: 26px 28px 26px 72px;">
+            <div class="goodnotes-paper">
               
               <!-- Card Header Info -->
               <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; border-bottom: 1.5px dashed #F8DBE7; padding-bottom: 14px;">
                 <div>
                   <h3 style="margin: 0 0 4px; font-size: 1.25rem; color: var(--primary-deep); font-weight: 800;">
-                    ${targetCustomer ? `บัตรสะสมแต้ม: ${escapeHTML(targetCustomer.name)}` : 'บัตรสะสมแต้ม BNC GraphMate'}
+                    ${targetCustomer ? `บัตรสะสมแต้ม: ${escapeHTML(targetCustomer.name)}` : escapeHTML(stampCfg.cardTitle || 'บัตรสะสมแต้ม BNC GraphMate')}
                   </h3>
                   <div style="font-size: 0.85rem; color: var(--text-muted);">
-                    ${targetCustomer ? `LINE ID: ${escapeHTML(targetCustomer.line_id || '-')} | เบอร์โทร: ${escapeHTML(targetCustomer.phone || '-')}` : 'กรุณากรอกชื่อเพื่อตรวจสอบแต้มสะสม'}
+                    ${targetCustomer ? `ช่องทางการติดต่อ: ${escapeHTML(formatCustomerContacts(targetCustomer))}` : 'กรุณากรอกชื่อเพื่อตรวจสอบแต้มสะสม'}
                   </div>
                 </div>
                 <div style="text-align: right;">
-                  <span class="badge ${isCompleted ? 'badge--success' : 'badge--pink'}" style="font-size: 12px;">
-                    ${isCompleted ? 'สะสมครบ 10 ดวงแล้ว' : `สะสมแล้ว ${currentStamps} ดวง`}
+                  <span class="badge ${isCompleted ? 'badge--success' : 'badge--pink'}" style="font-size: 12px; font-weight: 700;">
+                    ${isCompleted ? `สะสมครบ ${maxStamps} แต้มแล้ว` : `สะสมแล้ว ${currentStamps}/${maxStamps} แต้ม`}
                   </span>
                 </div>
               </div>
 
-              <!-- 10-Stamp Grid (2 Rows x 5 Columns, Classic Postage Stamp with Perforated Scalloped Teeth) -->
+              <!-- Stamp Grid (Dynamic Rows x Columns, Classic Postage Stamp with Perforated Scalloped Teeth) -->
               <div class="stamp-grid-10">
-                ${Array.from({ length: 10 }).map((_, idx) => {
+                ${Array.from({ length: maxStamps }).map((_, idx) => {
                   const num = idx + 1;
                   const isStamped = num <= currentStamps;
                   const customStampImg = stampCfg.stampIconUrl || stampCfg.mascotIcon;
@@ -5128,15 +5163,21 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     </svg>
                   `;
 
+                  // Authentic, natural hand-stamped tilt angles and slight jitter
+                  const stampTilts = [-8, 7, -5, 9, -6.5, 8, -8.5, 6, -5.5, 7.5, -7, 8.5, -6, 7];
+                  const tilt = stampTilts[idx % stampTilts.length];
+                  const offX = (((idx * 7) % 7) - 3);
+                  const offY = (((idx * 11) % 7) - 3);
+
                   if (isStamped) {
                     return `
-                      <div class="stamp-slot is-stamped" style="animation: stampBouncePop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: ${idx * 160}ms;" title="ดวงที่ ${num}: ปั๊มแล้ว">
+                      <div class="stamp-slot is-stamped" style="transform: rotate(${tilt}deg) translate(${offX}px, ${offY}px); animation: stampBouncePop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both; animation-delay: ${idx * 120}ms;" title="แต้มที่ ${num}: ปั๊มแล้ว">
                         ${stampSvgFrame}
                         <div class="stamp-slot-inner">
                           ${customStampImg ? `
-                            <img src="${escapeHTML(formatDriveImageUrl(customStampImg))}" alt="Stamp" class="stamp-slot-art-img" onerror="this.outerHTML='<svg class=\\'stamp-note-icon\\' viewBox=\\'0 0 24 24\\' width=\\'30\\' height=\\'30\\' fill=\\'none\\' stroke=\\'%23FF6B97\\' stroke-width=\\'2.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M9 18V5l12-2v13\\'/><circle cx=\\'6\\' cy=\\'18\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/><circle cx=\\'18\\' cy=\\'16\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/></svg>';">
+                            <img src="${escapeHTML(formatDriveImageUrl(customStampImg))}" alt="Stamp" class="stamp-slot-art-img" onerror="this.outerHTML='<svg class=\\'stamp-note-icon\\' viewBox=\\'0 0 24 24\\' width=\\'36\\' height=\\'36\\' fill=\\'none\\' stroke=\\'%23FF6B97\\' stroke-width=\\'2.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M9 18V5l12-2v13\\'/><circle cx=\\'6\\' cy=\\'18\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/><circle cx=\\'18\\' cy=\\'16\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/></svg>';">
                           ` : `
-                            <svg class="stamp-note-icon" viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="#FF6B97" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="stamp-note-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#FF6B97" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                               <path d="M9 18V5l12-2v13" stroke="#71515B" stroke-width="2"/>
                               <circle cx="6" cy="18" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
                               <circle cx="18" cy="16" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
@@ -5147,7 +5188,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     `;
                   } else {
                     return `
-                      <div class="stamp-slot is-empty" title="ดวงที่ ${num}: ยังไม่ได้ปั๊ม">
+                      <div class="stamp-slot is-empty" title="แต้มที่ ${num}: ยังไม่ได้ปั๊ม">
                         ${stampSvgFrame}
                         <div class="stamp-slot-inner">
                           <span class="stamp-slot-num">${num}</span>
@@ -5161,7 +5202,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <!-- Card Bottom Rules with Cute Music Note Bullet -->
               <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1.5px dashed #FFDFE9; font-size: 0.86rem; color: var(--text); line-height: 1.9;">
                 ${(stampCfg.rulesText || `ทุกออเดอร์งานป้าย ฟอนต์ หรือสินค้าสำเร็จ รับตราปั๊ม 1 ดวงทันที
-สะสมครบ 10 ดวง เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี
+สะสมครบกำหนด เลือกรับฟอนต์ลายมือน่ารักฟรี 1 ชุด หรือสิทธิ์รับงานออกแบบฟรี
 ติดต่อแลกรางวัลได้ทาง LINE Official ของร้าน`)
                   .split('\n')
                   .filter(l => l.trim())
@@ -5176,9 +5217,59 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
           </div>
 
+          <!-- Flowing Reward Showcase (ตัวอย่างของรางวัลสะสมแต้ม) -->
+          ${(() => {
+            const rawRewards = (Array.isArray(stampCfg.rewards) && stampCfg.rewards.length > 0)
+              ? stampCfg.rewards
+              : [
+                  { id: 'rw-1', title: 'ชุดฟอนต์ลายมือน่ารัก 1 ชุด', image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400', points: `${maxStamps} แต้ม` },
+                  { id: 'rw-2', title: 'ส่วนลดงานออกแบบป้าย 100฿', image: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400', points: `${maxStamps} แต้ม` },
+                  { id: 'rw-3', title: 'ฟรี! ป้ายเปิด-ปิดร้าน สไตล์มินิมอล', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=400', points: `${maxStamps} แต้ม` },
+                  { id: 'rw-4', title: 'แพ็กสติกเกอร์ตกแต่งป้าย 1 เซ็ต', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400', points: `${maxStamps} แต้ม` }
+                ];
+            
+            let loopList = [...rawRewards];
+            while (loopList.length < 8) {
+              loopList = loopList.concat(rawRewards);
+            }
+
+            const renderRewardCard = r => `
+              <div class="stamp-reward-card" title="${escapeHTML(r.title)}">
+                <div class="stamp-reward-img-box">
+                  <img src="${escapeHTML(formatDriveImageUrl(r.image) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="stamp-reward-img" alt="Reward" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
+                </div>
+                <span class="stamp-reward-points-badge">${escapeHTML(r.points || `${maxStamps} แต้ม`)}</span>
+                <div class="stamp-reward-title">${escapeHTML(r.title)}</div>
+              </div>
+            `;
+
+            return `
+              <div style="margin-top: 2.25rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding: 0 4px; flex-wrap: wrap; gap: 6px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; background: #FFE4EE; color: #B24368; font-size: 0.85rem; font-weight: 700;">★</span>
+                    <h4 style="margin: 0; font-size: 1.08rem; color: var(--primary-deep); font-weight: 700;">ตัวอย่างของรางวัลสะสมแต้ม</h4>
+                  </div>
+                  <span style="font-size: 0.82rem; color: var(--text-muted);">${escapeHTML(stampCfg.rewardText || `สะสมครบ ${maxStamps} แต้ม แลกรับของขวัญได้ทันที`)}</span>
+                </div>
+                <div class="stamp-reward-marquee-container">
+                  <div class="stamp-reward-marquee-track">
+                    <div class="stamp-reward-marquee-group">
+                      ${loopList.map(renderRewardCard).join('')}
+                    </div>
+                    <div class="stamp-reward-marquee-group" aria-hidden="true">
+                      ${loopList.map(renderRewardCard).join('')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          })()}
+
         </div>
       </section>
     `;
+
 
     // Play sweet sequential musical sound effect for each stamped heart
     if (currentStamps > 0 && typeof playCuteStampPopSound === 'function') {
@@ -6393,66 +6484,379 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
   function renderAdminStampsTab() {
     const customers = Store.getCustomers();
+    const stampCfg = Store.getStampSettings() || {};
+    const maxStamps = Math.max(1, Number(stampCfg.maxStamps) || 10);
+    const rewards = Array.isArray(stampCfg.rewards) ? stampCfg.rewards : [];
+
+    if (!state.stampAccordions) {
+      state.stampAccordions = { stampSettings: false, customerList: true };
+    }
+    const isSettingsOpen = !!state.stampAccordions.stampSettings;
+    const isListOpen = !!state.stampAccordions.customerList;
+
     return `
-      <div class="card" style="border-radius: 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
-          <div>
-            <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.2rem;"> จัดการบัตรสะสมแต้มหัวใจ (Stamp Loyalty Card)</h3>
-            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">กดเพิ่มหรือลดจำนวนดวงหัวใจให้ลูกค้าแต่ละคนได้ทันที หรือพิมพ์จำนวนดวงที่ต้องการ</p>
+      <!-- 1. Stamp Card & Rewards Settings Card -->
+      <div class="card" style="border-radius: 18px; margin-bottom: 1.25rem; border: 1.5px solid #FFDFE9; background: #FFFBFD; overflow: hidden; padding: 0;">
+        <div id="stamp-accordion-header-stampSettings" onclick="toggleStampAccordion('stampSettings')" style="display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.25rem; cursor: pointer; background: #FFF7F9; border-bottom: ${isSettingsOpen ? '1px solid #FFDFE9' : 'none'}; user-select: none; transition: background 0.2s;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: #FFE4EE; color: #B26E86; font-size: 0.95rem; font-weight: 800;">1</span>
+            <div>
+              <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.15rem; font-weight: 700;">ตั้งค่าบัตรสะสมแต้ม &amp; กติกา &amp; ของรางวัล</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">กำหนดหัวข้อ จำนวนแต้ม ตราปั๊มแสตมป์ กติกา และรายการของรางวัลไหลใต้บัตร</p>
+            </div>
           </div>
-          <div>
-            <button type="button" class="btn btn-outline btn-sm" onclick="openAddNewCustomerModal()">+ เพิ่มลูกค้าใหม่</button>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); saveStampSettingsAdmin();" style="box-shadow: none !important; font-size: 0.8rem; padding: 5px 12px;">
+              บันทึกการตั้งค่า
+            </button>
+            <span id="stamp-accordion-badge-stampSettings" class="badge" style="background: ${isSettingsOpen ? '#FFE4EE' : '#FFF0F5'}; color: #B26E86; font-size: 0.78rem; font-weight: 700; border: 1px solid #FFDFE9; padding: 4px 10px; border-radius: 999px;">
+              ${isSettingsOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย'}
+            </span>
+            <span id="stamp-accordion-arrow-stampSettings" style="display: inline-block; transition: transform 0.25s ease; transform: ${isSettingsOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; color: #B26E86; font-weight: 700; font-size: 0.85rem;">
+              ▼
+            </span>
           </div>
         </div>
 
-        <div style="overflow-x: auto;">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>ลูกค้า</th>
-                <th>LINE ID</th>
-                <th>เบอร์โทร</th>
-                <th style="text-align: center;">จำนวนดวงหัวใจ (10 ดวง)</th>
-                <th style="text-align: center;">เพิ่ม / ลด ดวง</th>
-                <th>จัดการ</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${customers.map(c => {
-                const stamps = Number(c.heart_stamps) || 0;
-                return `
+        <div id="stamp-accordion-body-stampSettings" style="display: ${isSettingsOpen ? 'block' : 'none'}; padding: 1.25rem;">
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ชื่อบัตรสะสมแต้ม (Card Title)</label>
+              <input type="text" id="adminStampTitle" class="form-input" value="${escapeHTML(stampCfg.cardTitle || 'บัตรสะสมแต้ม BNC GraphMate')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">คำบรรยายหัวการ์ด (Card Subtitle)</label>
+              <input type="text" id="adminStampSubtitle" class="form-input" value="${escapeHTML(stampCfg.cardSubtitle || 'สะสมตราปั๊มครบตามจำนวน รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที')}">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700; color: #9D174D;">จำนวนแต้มสะสมต่อ 1 ใบ (Max Stamps)</label>
+              <input type="number" id="adminStampMaxStamps" class="form-input" min="1" max="99" value="${maxStamps}" placeholder="เช่น 10 (สามารถเพิ่มได้เอง)">
+              <small style="color: var(--text-muted); font-size: 0.8rem;">*สามารถกำหนดแต้มได้ตามต้องการ เช่น 5, 8, 10, 12, 15 หรือ 20 แต้ม</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight: 700;">ข้อความเมื่อสะสมครบกำหนด</label>
+              <input type="text" id="adminStampRewardText" class="form-input" value="${escapeHTML(stampCfg.rewardText || 'สะสมครบตามจำนวนแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ')}">
+            </div>
+          </div>
+
+          <!-- Stamp Icon & Live Preview Row -->
+          <div style="background: #FFF0F5; border: 1.5px solid #FFDFE9; border-radius: 16px; padding: 16px; margin-bottom: 1.25rem;">
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+              <div style="flex: 1; min-width: 260px;">
+                <label class="form-label" style="font-weight: 700; color: var(--primary-deep); margin-bottom: 0.4rem;">
+                  รูปภาพตราปั๊มแสตมป์ (Stamp Icon Artwork)
+                </label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <input type="text" id="adminStampIconUrl" class="form-input" placeholder="ใส่ลิงก์รูปภาพ หรือเลือกไฟล์ PNG..." value="${escapeHTML(stampCfg.stampIconUrl || '')}" oninput="adminUpdateStampPreview()" style="flex: 1; font-size: 0.88rem;">
+                  <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 0.82rem; padding: 6px 12px;">
+                    เลือกรูป PNG
+                    <input type="file" accept="image/png,image/webp,image/jpeg,image/svg+xml" style="display: none;" onchange="handleStampIconUpload(event)">
+                  </label>
+                </div>
+                <small style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; display: block;">
+                  *หากเว้นว่าง ระบบจะใช้สัญลักษณ์ตราประทับหัวใจพาสเทลน่ารักอัตโนมัติ
+                </small>
+              </div>
+
+              <!-- Live Preview Box -->
+              <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                <span style="font-size: 0.78rem; font-weight: 700; color: #B26E86; margin-bottom: 6px;">ตัวอย่างตราปั๊มเมื่อแปะจริง</span>
+                <div id="adminStampPreviewBox" style="width: 72px; height: 72px; position: relative; display: flex; align-items: center; justify-content: center; transform: rotate(-6deg); filter: drop-shadow(0 4px 8px rgba(178,67,104,0.18));">
+                  <svg class="postage-stamp-svg-border" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <path d="M 0 0 L 2.94 0 A 4.2 4.2 0 0 0 11.34 0 L 14.29 0 L 17.23 0 A 4.2 4.2 0 0 0 25.63 0 L 28.57 0 L 31.51 0 A 4.2 4.2 0 0 0 39.91 0 L 42.86 0 L 45.80 0 A 4.2 4.2 0 0 0 54.20 0 L 57.14 0 L 60.09 0 A 4.2 4.2 0 0 0 68.49 0 L 71.43 0 L 74.37 0 A 4.2 4.2 0 0 0 82.77 0 L 85.71 0 L 88.66 0 A 4.2 4.2 0 0 0 97.06 0 L 100.00 0 L 100 2.94 A 4.2 4.2 0 0 0 100 11.34 L 100 14.29 L 100 17.23 A 4.2 4.2 0 0 0 100 25.63 L 100 28.57 L 100 31.51 A 4.2 4.2 0 0 0 100 39.91 L 100 42.86 L 100 45.80 A 4.2 4.2 0 0 0 100 54.20 L 100 57.14 L 100 60.09 A 4.2 4.2 0 0 0 100 68.49 L 100 71.43 L 100 74.37 A 4.2 4.2 0 0 0 100 82.77 L 100 85.71 L 100 88.66 A 4.2 4.2 0 0 0 100 97.06 L 100 100.00 L 97.06 100 A 4.2 4.2 0 0 0 88.66 100 L 85.71 100 L 82.77 100 A 4.2 4.2 0 0 0 74.37 100 L 71.43 100 L 68.49 100 A 4.2 4.2 0 0 0 60.09 100 L 57.14 100 L 54.20 100 A 4.2 4.2 0 0 0 45.80 100 L 42.86 100 L 39.91 100 A 4.2 4.2 0 0 0 31.51 100 L 28.57 100 L 25.63 100 A 4.2 4.2 0 0 0 17.23 100 L 14.29 100 L 11.34 100 A 4.2 4.2 0 0 0 2.94 100 L 0.00 100 L 0 97.06 A 4.2 4.2 0 0 0 0 88.66 L 0 85.71 L 0 82.77 A 4.2 4.2 0 0 0 0 74.37 L 0 71.43 L 0 68.49 A 4.2 4.2 0 0 0 0 60.09 L 0 57.14 L 0 54.20 A 4.2 4.2 0 0 0 0 45.80 L 0 42.86 L 0 39.91 A 4.2 4.2 0 0 0 0 31.51 L 0 28.57 L 0 25.63 A 4.2 4.2 0 0 0 0 17.23 L 0 14.29 L 0 11.34 A 4.2 4.2 0 0 0 0 2.94 L 0 0.00 Z" fill="#FFFFFF" stroke="#FBCFE8" stroke-width="0.8" />
+                  </svg>
+                  <div class="stamp-slot-inner" style="width: 84%; height: 84%;">
+                    ${stampCfg.stampIconUrl ? `
+                      <img id="adminStampPreviewImg" src="${escapeHTML(formatDriveImageUrl(stampCfg.stampIconUrl))}" alt="Stamp" style="width:90%; height:90%; object-fit:contain;">
+                    ` : `
+                      <svg class="stamp-note-icon" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#FF6B97" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13" stroke="#71515B" stroke-width="2"/>
+                        <circle cx="6" cy="18" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
+                        <circle cx="18" cy="16" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
+                      </svg>
+                    `}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-weight: 700;">กติกาการสะสมแต้มด้านล่างบัตร</label>
+            <textarea id="adminStampRules" class="form-textarea" rows="3" placeholder="พิมพ์กติกาการสะสมแต้ม เช่น ทุกออเดอร์รับ 1 ดวง...">${escapeHTML(stampCfg.rulesText || '')}</textarea>
+          </div>
+
+          <!-- Reward Showcase Manager -->
+          <div style="background: #FFFFFF; border: 1.5px solid #FFDFE9; border-radius: 16px; padding: 16px; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h4 style="margin: 0; color: var(--primary-deep); font-size: 1rem; font-weight: 700;">
+                  จัดการตัวอย่างของรางวัล (Reward Showcase Flow)
+                </h4>
+                <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted);">
+                  รูปภาพในกรอบขาวพร้อมข้อความ เรียงไหลใต้การ์ดสะสมแต้ม
+                </p>
+              </div>
+            </div>
+
+            <!-- List of existing rewards -->
+            <div id="adminRewardShowcaseList" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1.25rem;">
+              ${rewards.map((rw, idx) => `
+                <div style="background: #FFF7FA; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 10px; width: 140px; display: flex; flex-direction: column; align-items: center; position: relative;">
+                  <button type="button" onclick="deleteRewardShowcaseItem(${idx})" style="position: absolute; top: -6px; right: -6px; background: #e11d48; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="ลบรางวัลนี้">✕</button>
+                  <img src="${escapeHTML(formatDriveImageUrl(rw.image) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200')}" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; border: 1px solid #FFDFE9;" onerror="this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200';">
+                  <span style="font-size: 0.72rem; font-weight: 700; color: #B24368; background: #FFE4EE; padding: 1px 8px; border-radius: 999px; margin-top: 6px;">${escapeHTML(rw.points || `${maxStamps} แต้ม`)}</span>
+                  <div style="font-size: 0.8rem; font-weight: 700; color: var(--text); margin-top: 4px; text-align: center; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapeHTML(rw.title)}</div>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- Form to add new reward -->
+            <div style="background: #FFF7F9; border: 1px dashed #FFDFE9; border-radius: 12px; padding: 12px;">
+              <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary-deep); display: block; margin-bottom: 8px;">+ เพิ่มตัวอย่างของรางวัลใหม่</span>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-bottom: 8px;">
+                <input type="text" id="adminNewRewardTitle" class="form-input" style="font-size: 0.85rem;" placeholder="ชื่อของรางวัล (เช่น ชุดฟอนต์ 1 ชุด)">
+                <input type="text" id="adminNewRewardPoints" class="form-input" style="font-size: 0.85rem;" placeholder="แต้มที่ใช้ (เช่น 10 แต้ม)" value="${maxStamps} แต้ม">
+                <div style="display: flex; gap: 6px;">
+                  <input type="text" id="adminNewRewardImage" class="form-input" style="font-size: 0.85rem; flex: 1;" placeholder="ลิงก์รูปภาพรางวัล 1:1">
+                  <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 0.8rem; padding: 4px 8px;">
+                    เลือกรูป
+                    <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'adminNewRewardImage')">
+                  </label>
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="addRewardShowcaseItem()" style="font-weight: 700; font-size: 0.82rem; border-color: #FFB7CE; color: #B24368;">
+                + เพิ่มเข้าแถบรางวัล
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Save Button -->
+          <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+            <button type="button" class="btn btn-primary" onclick="saveStampSettingsAdmin()" style="font-weight: 800; padding: 0.65rem 1.8rem;">
+              บันทึกการตั้งค่าบัตรสะสมแต้ม
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 2. Customer List & Stamp Adjustments Card -->
+      <div class="card" style="border-radius: 18px; border: 1.5px solid #FFDFE9; background: #FFFBFD; overflow: hidden; padding: 0;">
+        <div id="stamp-accordion-header-customerList" onclick="toggleStampAccordion('customerList')" style="display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.25rem; cursor: pointer; background: #FFF7F9; border-bottom: ${isListOpen ? '1px solid #FFDFE9' : 'none'}; user-select: none; transition: background 0.2s;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: #FFE4EE; color: #B26E86; font-size: 0.95rem; font-weight: 800;">2</span>
+            <div>
+              <h3 style="margin: 0; color: var(--primary-deep); font-size: 1.15rem; font-weight: 700;">จัดการรายการบัตรสะสมแต้ม &amp; ลูกค้า</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin: 2px 0 0 0;">ดูรายชื่อ เพิ่มลดแต้ม รีเซ็ตบัตรใหม่ หรือเปิดบัตรสะสมแต้มให้ลูกค้า</p>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openAddNewCustomerModal();" style="box-shadow: none !important; font-size: 0.8rem; padding: 5px 12px;">
+              + เพิ่มลูกค้า &amp; เปิดบัตร
+            </button>
+            <span id="stamp-accordion-badge-customerList" class="badge" style="background: ${isListOpen ? '#FFE4EE' : '#FFF0F5'}; color: #B26E86; font-size: 0.78rem; font-weight: 700; border: 1px solid #FFDFE9; padding: 4px 10px; border-radius: 999px;">
+              ${isListOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย'}
+            </span>
+            <span id="stamp-accordion-arrow-customerList" style="display: inline-block; transition: transform 0.25s ease; transform: ${isListOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; color: #B26E86; font-weight: 700; font-size: 0.85rem;">
+              ▼
+            </span>
+          </div>
+        </div>
+
+        <div id="stamp-accordion-body-customerList" style="display: ${isListOpen ? 'block' : 'none'}; padding: 1.25rem;">
+          
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ลูกค้า</th>
+                  <th>ช่องทางการติดต่อ</th>
+                  <th style="text-align: center;">จำนวนแต้ม</th>
+                  <th style="text-align: center;">เพิ่ม / ลด แต้ม</th>
+                  <th>จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${customers.length === 0 ? `
                   <tr>
-                    <td>
-                      <strong>${escapeHTML(c.name)}</strong>
-                      <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(c.member_code || '')}</div>
-                    </td>
-                    <td>${escapeHTML(c.line_id || '-')}</td>
-                    <td>${escapeHTML(c.phone || '-')}</td>
-                    <td style="text-align: center;">
-                      <div style="display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 1.1rem; color: #e11d48;">
-                        <span></span>
-                        <span>${stamps} / 10</span>
-                      </div>
-                    </td>
-                    <td style="text-align: center;">
-                      <div class="admin-stamp-control">
-                        <button type="button" class="admin-stamp-btn" onclick="adjustCustomerStamp('${c.id}', -1)" title="ลด 1 ดวง">-1</button>
-                        <input type="number" value="${stamps}" min="0" max="99" style="width: 48px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-weight: 700; padding: 2px;" onchange="setCustomerStampDirect('${c.id}', this.value)">
-                        <button type="button" class="admin-stamp-btn" onclick="adjustCustomerStamp('${c.id}', 1)" title="ปั๊มเพิ่ม 1 ดวง" style="background: var(--primary-600); color: #fff;">+1</button>
-                      </div>
-                    </td>
-                    <td>
-                      <button type="button" class="btn btn-outline btn-sm" onclick="resetCustomerStampCard('${c.id}')" title="รีเซ็ตเริ่มใบใหม่">ใบใหม่</button>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                      ยังไม่มีข้อมูลลูกค้าในระบบ กดปุ่ม "+ เพิ่มลูกค้า & เปิดบัตร" เพื่อเริ่มต้นได้เลยค่ะ
                     </td>
                   </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
+                ` : customers.map(c => {
+                  const stamps = Number(c.heart_stamps) || 0;
+                  // Format contacts as pills
+                  let contactHtml = '';
+                  if (Array.isArray(c.contacts) && c.contacts.length > 0) {
+                    contactHtml = c.contacts.filter(ct => ct && ct.value).map(ct => `
+                      <span class="contact-pill"><small>${escapeHTML(ct.type)}:</small> ${escapeHTML(ct.value)}</span>
+                    `).join(' ');
+                  } else {
+                    const fallbackParts = [];
+                    if (c.line_id) fallbackParts.push(`<span class="contact-pill"><small>LINE:</small> ${escapeHTML(c.line_id)}</span>`);
+                    if (c.phone) fallbackParts.push(`<span class="contact-pill"><small>เบอร์โทร:</small> ${escapeHTML(c.phone)}</span>`);
+                    contactHtml = fallbackParts.length > 0 ? fallbackParts.join(' ') : '<span style="color:var(--text-muted);">-</span>';
+                  }
+
+                  return `
+                    <tr>
+                      <td>
+                        <strong>${escapeHTML(c.name)}</strong>
+                        <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(c.member_code || '')}</div>
+                      </td>
+                      <td>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 260px;">
+                          ${contactHtml}
+                        </div>
+                      </td>
+                      <td style="text-align: center;">
+                        <div style="display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; color: var(--text-secondary);">
+                          <span>${stamps} / ${maxStamps}</span>
+                        </div>
+                      </td>
+                      <td style="text-align: center;">
+                        <div class="admin-stamp-control">
+                          <button type="button" class="admin-stamp-btn" onclick="adjustCustomerStamp('${c.id}', -1)" title="ลด 1 แต้ม">-1</button>
+                          <input type="number" value="${stamps}" min="0" max="99" style="width: 48px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-weight: 700; padding: 2px;" onchange="setCustomerStampDirect('${c.id}', this.value)">
+                          <button type="button" class="admin-stamp-btn" onclick="adjustCustomerStamp('${c.id}', 1)" title="ปั๊มเพิ่ม 1 แต้ม" style="background: var(--primary-600); color: #fff;">+1</button>
+                        </div>
+                      </td>
+                      <td>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                          <button type="button" class="btn btn-outline btn-sm" onclick="resetCustomerStampCard('${c.id}')" title="รีเซ็ตเริ่มใบใหม่">ใบใหม่</button>
+                          <button type="button" class="btn btn-outline btn-sm" onclick="deleteCustomerAdmin('${c.id}')" style="color: #dc2626; border-color: #fca5a5; padding: 2px 7px; font-size: 11px;" title="ลบลูกค้า">✕</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
     `;
   }
+
+  // Stamp Accordion Toggle
+  window.toggleStampAccordion = function (key) {
+    if (!state.stampAccordions) {
+      state.stampAccordions = { stampSettings: false, customerList: true };
+    }
+    state.stampAccordions[key] = !state.stampAccordions[key];
+    const isOpen = state.stampAccordions[key];
+    const body = document.getElementById('stamp-accordion-body-' + key);
+    const arrow = document.getElementById('stamp-accordion-arrow-' + key);
+    const badge = document.getElementById('stamp-accordion-badge-' + key);
+    const header = document.getElementById('stamp-accordion-header-' + key);
+    if (body) body.style.display = isOpen ? 'block' : 'none';
+    if (arrow) arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    if (badge) {
+      badge.textContent = isOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย';
+      badge.style.background = isOpen ? '#FFE4EE' : '#FFF0F5';
+    }
+    if (header) {
+      header.style.borderBottom = isOpen ? '1px solid #FFDFE9' : 'none';
+    }
+  };
+
+  // Stamp Live Preview Updater
+  window.adminUpdateStampPreview = function () {
+    const box = $('adminStampPreviewBox');
+    const input = $('adminStampIconUrl');
+    if (!box || !input) return;
+    const url = input.value.trim();
+    const inner = box.querySelector('.stamp-slot-inner');
+    if (!inner) return;
+    if (url) {
+      inner.innerHTML = `<img id="adminStampPreviewImg" src="${escapeHTML(formatDriveImageUrl(url))}" alt="Stamp" style="width:90%; height:90%; object-fit:contain;" onerror="this.outerHTML='<span style=\\'font-size:10px; color:#e11d48;\\'>รูปไม่ติด</span>';">`;
+    } else {
+      inner.innerHTML = `
+        <svg class="stamp-note-icon" viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#FF6B97" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18V5l12-2v13" stroke="#71515B" stroke-width="2"/>
+          <circle cx="6" cy="18" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
+          <circle cx="18" cy="16" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
+        </svg>
+      `;
+    }
+  };
+
+  window.handleStampIconUpload = function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const url = evt.target.result;
+      const input = $('adminStampIconUrl');
+      if (input) input.value = url;
+      adminUpdateStampPreview();
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Reward Showcase Items
+  window.addRewardShowcaseItem = function () {
+    const title = ($('adminNewRewardTitle')?.value || '').trim();
+    const points = ($('adminNewRewardPoints')?.value || '').trim();
+    const image = ($('adminNewRewardImage')?.value || '').trim();
+    if (!title) return alert('กรุณากรอกชื่อของรางวัล');
+    if (!image) return alert('กรุณาระบุลิงก์หรือเลือกรูปภาพของรางวัล');
+
+    const cfg = Store.getStampSettings() || {};
+    const rewards = Array.isArray(cfg.rewards) ? [...cfg.rewards] : [];
+    rewards.push({
+      id: 'rw-' + Date.now(),
+      title: title,
+      points: points || `${cfg.maxStamps || 10} แต้ม`,
+      image: image
+    });
+    cfg.rewards = rewards;
+    Store.saveSettings({ stampSettings: cfg });
+    renderCurrentView();
+  };
+
+  window.deleteRewardShowcaseItem = function (idx) {
+    if (!confirm('ต้องการลบตัวอย่างรางวัลนี้ใช่หรือไม่?')) return;
+    const cfg = Store.getStampSettings() || {};
+    const rewards = Array.isArray(cfg.rewards) ? [...cfg.rewards] : [];
+    rewards.splice(idx, 1);
+    cfg.rewards = rewards;
+    Store.saveSettings({ stampSettings: cfg });
+    renderCurrentView();
+  };
+
+  window.saveStampSettingsAdmin = async function () {
+    const cardTitle = ($('adminStampTitle')?.value || '').trim();
+    const cardSubtitle = ($('adminStampSubtitle')?.value || '').trim();
+    const maxStamps = Math.max(1, Number($('adminStampMaxStamps')?.value) || 10);
+    const rewardText = ($('adminStampRewardText')?.value || '').trim();
+    const stampIconUrl = ($('adminStampIconUrl')?.value || '').trim();
+    const rulesText = ($('adminStampRules')?.value || '').trim();
+
+    const curCfg = Store.getStampSettings() || {};
+    const updated = Object.assign({}, curCfg, {
+      cardTitle: cardTitle || 'บัตรสะสมแต้ม BNC GraphMate',
+      cardSubtitle: cardSubtitle || 'สะสมตราปั๊มครบตามจำนวน รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที',
+      maxStamps: maxStamps,
+      rewardText: rewardText || 'สะสมครบตามจำนวนแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ',
+      stampIconUrl: stampIconUrl,
+      rulesText: rulesText
+    });
+
+    const res = await Store.saveSettings({ stampSettings: updated });
+    if (res && res.cloudRes && res.cloudRes.error) {
+      alert('บันทึกข้อมูลในเครื่องเรียบร้อยแล้ว แต่พบข้อผิดพลาดบน Supabase: ' + res.cloudRes.error);
+    } else {
+      alert('บันทึกการตั้งค่าบัตรสะสมแต้มขึ้น Supabase Cloud เรียบร้อยแล้วค่ะ!');
+    }
+    renderCurrentView();
+  };
 
   window.adjustCustomerStamp = function (custId, delta) {
     Store.addCustomerStamp(custId, delta);
@@ -6465,18 +6869,58 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   };
 
   window.resetCustomerStampCard = function (custId) {
-    if (!confirm('ต้องการรีเซ็ตบัตรสะสมแต้มของลูกค้ารายนี้เพื่อเริ่มใบใหม่ (0 ดวง) ใช่หรือไม่?')) return;
+    if (!confirm('ต้องการรีเซ็ตบัตรสะสมแต้มของลูกค้ารายนี้เพื่อเริ่มใบใหม่ (0 แต้ม) ใช่หรือไม่?')) return;
     Store.setCustomerStamps(custId, 0);
     renderCurrentView();
+  };
+
+  window.deleteCustomerAdmin = function (custId) {
+    if (!confirm('ต้องการลบข้อมูลลูกค้ารายนี้ใช่หรือไม่?')) return;
+    Store.deleteCustomer(custId);
+    renderCurrentView();
+  };
+
+  window.addCustContactRow = function (type = 'LINE', val = '') {
+    const list = $('adminCust_contacts_list');
+    if (!list) return;
+    const row = document.createElement('div');
+    row.className = 'admin-cust-contact-row';
+    row.style = 'display: flex; gap: 8px; align-items: center;';
+    row.innerHTML = `
+      <select class="form-select cust-contact-type" style="width: 120px; font-size: 0.85rem; padding: 6px 10px;">
+        <option value="LINE" ${type === 'LINE' ? 'selected' : ''}>LINE</option>
+        <option value="เบอร์โทร" ${type === 'เบอร์โทร' ? 'selected' : ''}>เบอร์โทร</option>
+        <option value="Facebook" ${type === 'Facebook' ? 'selected' : ''}>Facebook</option>
+        <option value="Instagram" ${type === 'Instagram' ? 'selected' : ''}>Instagram</option>
+        <option value="TikTok" ${type === 'TikTok' ? 'selected' : ''}>TikTok</option>
+        <option value="อื่นๆ" ${type === 'อื่นๆ' ? 'selected' : ''}>อื่นๆ</option>
+      </select>
+      <input type="text" class="form-input cust-contact-val" placeholder="เช่น @lineid หรือ 08x-xxx-xxxx" value="${escapeHTML(val)}" style="flex: 1; font-size: 0.85rem; padding: 6px 12px;">
+      <button type="button" class="btn btn-outline btn-sm" onclick="removeCustContactRow(this)" style="color: #dc2626; border-color: #fca5a5; padding: 3px 8px; font-size: 11px;" title="ลบช่องทางนี้">✕</button>
+    `;
+    list.appendChild(row);
+  };
+
+  window.removeCustContactRow = function (btn) {
+    const row = btn.closest('.admin-cust-contact-row');
+    if (row) row.remove();
   };
 
   window.openAddNewCustomerModal = function () {
     const modal = $('adminCustomerModal');
     if (!modal) return;
-    $('adminCust_name').value = '';
-    $('adminCust_lineId').value = '';
-    $('adminCust_phone').value = '';
-    $('adminCust_stamps').value = '1';
+    const nameEl = $('adminCust_name');
+    if (nameEl) nameEl.value = '';
+    const stampsEl = $('adminCust_stamps');
+    if (stampsEl) stampsEl.value = '1';
+
+    // Clear and populate default contacts rows
+    const list = $('adminCust_contacts_list');
+    if (list) {
+      list.innerHTML = '';
+      addCustContactRow('LINE', '');
+      addCustContactRow('เบอร์โทร', '');
+    }
     modal.classList.add('is-active');
   };
 
@@ -6489,14 +6933,30 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     e.preventDefault();
     const name = ($('adminCust_name')?.value || '').trim();
     if (!name) return alert('กรุณากรอกชื่อลูกค้า');
-    const lineId = ($('adminCust_lineId')?.value || '').trim();
-    const phone = ($('adminCust_phone')?.value || '').trim();
-    const stamps = Math.min(10, Math.max(0, Number($('adminCust_stamps')?.value) || 0));
+
+    // Extract dynamic contact channels
+    const contactRows = document.querySelectorAll('#adminCust_contacts_list .admin-cust-contact-row');
+    const contacts = [];
+    let lineId = '';
+    let phone = '';
+
+    contactRows.forEach(row => {
+      const type = (row.querySelector('.cust-contact-type')?.value || 'LINE').trim();
+      const val = (row.querySelector('.cust-contact-val')?.value || '').trim();
+      if (val) {
+        contacts.push({ type, value: val });
+        if (type.toUpperCase() === 'LINE' && !lineId) lineId = val;
+        if ((type === 'เบอร์โทร' || type.toLowerCase() === 'phone') && !phone) phone = val;
+      }
+    });
+
+    const stamps = Math.max(0, Number($('adminCust_stamps')?.value) || 0);
 
     Store.saveCustomer({
       name,
+      contacts: contacts,
       line_id: lineId,
-      phone,
+      phone: phone,
       heart_stamps: stamps
     });
 
@@ -7501,39 +7961,23 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <small style="display: block; margin-top: 0.85rem; color: var(--text-muted); font-size: 0.8rem;">แนะนำใช้ภาพ PNG โปร่งใส (Transparent PNG) หรือภาพ GIF แบบพื้นหลังใส เพื่อให้น้องลอยได้อย่างน่ารักและไม่มีกรอบขาวกวนใจค่ะ</small>
         </div>
 
-        <!-- 9. Stamp Card Configuration -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ตั้งค่าบัตรสะสมแต้มปั๊มหัวใจ 10 ดวง</h3>
-          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">สามารถปรับแต่งข้อความ กติกา และรูปมาสคอตบนหลอดโปรเกรสได้ทุกจุด</p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="form-group">
-              <label class="form-label">ชื่อบัตรสะสมแต้ม</label>
-              <input type="text" id="cfg_stampTitle" class="form-input" value="${escapeHTML(Store.getStampSettings().cardTitle || 'บัตรสะสมแต้ม BNC GraphMate')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">คำบรรยายหัวการ์ด</label>
-              <input type="text" id="cfg_stampSubtitle" class="form-input" value="${escapeHTML(Store.getStampSettings().cardSubtitle || 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ข้อความเมื่อสะสมครบ 10 ดวง</label>
-              <input type="text" id="cfg_stampRewardText" class="form-input" value="${escapeHTML(Store.getStampSettings().rewardText || 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">รูปตราปั๊ม PNG มาสคอต (หากใส่จะใช้รูปนี้แทนรูปหัวใจ)</label>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <input type="text" id="cfg_stampIconUrl" class="form-input" placeholder="https://.../mascot.png หรือเลือกไฟล์ขวามือ" value="${escapeHTML(Store.getStampSettings().stampIconUrl || '')}" style="flex: 1;">
-                <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
-                  เลือกรูป PNG
-                  <input type="file" accept="image/png,image/webp,image/jpeg" style="display: none;" onchange="handleStampIconUpload(event)">
-                </label>
+        <!-- 9. Stamp Card Configuration Notice (Moved to Stamps Management Tab) -->
+        <div class="card" style="margin-bottom: 1.5rem; background: #FFF7F9; border: 1.5px dashed #FFDFE9; border-radius: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="font-size: 1.5rem; background: #FFE4EE; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #B24368; flex-shrink: 0; font-weight: 800;">★</span>
+              <div>
+                <h4 style="margin: 0 0 3px; color: var(--primary-deep); font-weight: 700; font-size: 1.02rem;">
+                  การตั้งค่าบัตรสะสมแต้ม &amp; ตัวอย่างของรางวัล
+                </h4>
+                <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted); line-height: 1.4;">
+                  การตั้งค่าบัตรสะสมแต้มทั้งหมด รวมถึงจำนวนแต้มสูงสุด รูปตราปั๊มแสตมป์ กติกา และตัวอย่างของรางวัลไหล ถูกย้ายไปรวมไว้ในหน้า <strong>"จัดการบัตรสะสมแต้ม"</strong> เพื่อให้จัดการและบันทึกได้ในที่เดียวค่ะ
+                </p>
               </div>
-              <small style="color: var(--text-muted); font-size: 11px;">*แนะนำไฟล์ .PNG พื้นหลังโปร่งใสสำหรับปั๊มลงบนการ์ด</small>
             </div>
-            
-          </div>
-          <div class="form-group" style="margin-top: 1rem;">
-            <label class="form-label">กติกาการสะสมแต้มด้านล่างบัตร</label>
-            <textarea id="cfg_stampRules" class="form-textarea" rows="3">${escapeHTML(Store.getStampSettings().rulesText || '')}</textarea>
+            <button type="button" class="btn btn-outline" onclick="switchAdminTab('stamps')" style="border-color: #FFB7CE; color: #B24368; font-weight: 700; border-radius: 999px; padding: 0.5rem 1.25rem; font-size: 0.88rem;">
+              ไปที่หน้าจัดการบัตรสะสมแต้ม →
+            </button>
           </div>
         </div>
 
@@ -7953,13 +8397,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             quote: getVal('cfg_mascot3_quote', 'เหมียววว~ จับได้ด้วย!')
           }
         },
-        stampSettings: {
-          cardTitle: getVal('cfg_stampTitle', 'บัตรสะสมแต้ม BNC GraphMate'),
-          cardSubtitle: getVal('cfg_stampSubtitle', 'สะสมตราปั๊มหัวใจครบ 10 ดวง รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี'),
-          rewardText: getVal('cfg_stampRewardText', 'สะสมครบ 10 ดวงแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ'),
-          stampIconUrl: getVal('cfg_stampIconUrl', ''),
-          rulesText: getVal('cfg_stampRules', '')
-        }
+        stampSettings: Object.assign({}, s.stampSettings || {}, {
+          cardTitle: getVal('cfg_stampTitle', s.stampSettings?.cardTitle || 'บัตรสะสมแต้ม BNC GraphMate'),
+          cardSubtitle: getVal('cfg_stampSubtitle', s.stampSettings?.stampSubtitle || 'สะสมตราปั๊มครบตามจำนวน รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที'),
+          maxStamps: Number(getVal('cfg_stampMaxStamps', s.stampSettings?.maxStamps || 10)) || 10,
+          rewardText: getVal('cfg_stampRewardText', s.stampSettings?.rewardText || 'สะสมครบตามจำนวนแล้ว ทักแชท LINE เพื่อแลกรับของขวัญฟรีได้เลยค่ะ'),
+          stampIconUrl: getVal('cfg_stampIconUrl', s.stampSettings?.stampIconUrl || ''),
+          rulesText: getVal('cfg_stampRules', s.stampSettings?.rulesText || '')
+        })
       };
 
       // Extract Dynamic Contact Channels from Admin repeater
@@ -9662,24 +10107,22 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </div>
         <form onsubmit="handleSaveCustomerSubmit(event)">
           <div class="form-group" style="margin-bottom: 0.85rem;">
-            <label class="form-label" style="font-weight: 700;">ชื่อลูกค้า / ชื่อเฟซบุ๊ก / ชื่อไลน์ <span style="color:var(--danger)">*</span></label>
+            <label class="form-label" style="font-weight: 700;">ชื่อลูกค้า <span style="color:var(--danger)">*</span></label>
             <input type="text" id="adminCust_name" class="form-input" placeholder="เช่น ลูกค้ามินนี่ หรือ คุณหวาน" required>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-bottom: 0.85rem;">
-            <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">LINE ID</label>
-              <input type="text" id="adminCust_lineId" class="form-input" placeholder="@lineid">
+          <div class="form-group" style="margin-bottom: 0.85rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <label class="form-label" style="font-weight: 700; margin: 0;">ช่องทางการติดต่อ</label>
+              <button type="button" class="btn btn-outline btn-sm" onclick="addCustContactRow()" style="font-size: 11px; padding: 2px 8px; border-radius: 999px; border-color: #FFB7CE; color: #B24368;">
+                + เพิ่มช่องทางติดต่อ
+              </button>
             </div>
-            <div class="form-group">
-              <label class="form-label" style="font-weight: 700;">เบอร์โทรศัพท์</label>
-              <input type="text" id="adminCust_phone" class="form-input" placeholder="08x-xxx-xxxx">
-            </div>
+            <div id="adminCust_contacts_list" style="display: flex; flex-direction: column; gap: 8px;"></div>
           </div>
           <div class="form-group" style="margin-bottom: 1.25rem;">
-            <label class="form-label" style="font-weight: 700;">จำนวนดวงหัวใจเริ่มต้น (0-10 ดวง)</label>
+            <label class="form-label" style="font-weight: 700;">จำนวนแต้มเริ่มต้น</label>
             <div style="display: flex; align-items: center; gap: 10px;">
-              <input type="number" id="adminCust_stamps" class="form-input" min="0" max="10" value="1" style="width: 100px;">
-              <small style="color: var(--text-muted);">*สะสมครบ 10 ดวง รับสิทธิ์ของขวัญฟรี</small>
+              <input type="number" id="adminCust_stamps" class="form-input" min="0" max="99" value="1" style="width: 100px;">
             </div>
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
