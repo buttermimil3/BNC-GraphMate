@@ -5095,9 +5095,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <!-- Kawaii Washi Note Header (Matching BNC GraphMate Tone) -->
           <div class="page-washi-header" style="margin-bottom: 2rem;">
             <div class="washi-tape-strip"></div>
-            <div>
-              <span class="section-tag">Loyalty Stamp Card</span>
-            </div>
             <h2 class="page-washi-title" style="color: var(--primary-deep); font-weight: 800;">${escapeHTML(stampCfg.cardTitle || 'บัตรสะสมแต้ม BNC GraphMate')}</h2>
             <p class="page-washi-desc">${escapeHTML(stampCfg.cardSubtitle || 'สะสมตราปั๊มครบตามจำนวน รับสิทธิ์ดาวน์โหลดฟอนต์ฟรี หรือของขวัญพิเศษจากทางร้านทันที')}</p>
           </div>
@@ -5163,9 +5160,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     </svg>
                   `;
 
-                  // Authentic, natural hand-stamped tilt angles and slight jitter
-                  const stampTilts = [-8, 7, -5, 9, -6.5, 8, -8.5, 6, -5.5, 7.5, -7, 8.5, -6, 7];
-                  const tilt = stampTilts[idx % stampTilts.length];
+                  // Authentic, natural hand-stamped tilt angles and slight jitter for empty and stamped slots
+                  const slotTilts = [-5.5, 4.5, -3.5, 5, -4, 4.5, -5, 3.5, -4.5, 5.5, -3.5, 4.5, -5.5, 4];
+                  const stampedTilts = [-9, 8, -6.5, 10, -7.5, 9, -9.5, 7.5, -8, 9.5, -7, 8.5, -9, 8];
+                  const tilt = isStamped ? stampedTilts[idx % stampedTilts.length] : slotTilts[idx % slotTilts.length];
                   const offX = (((idx * 7) % 7) - 3);
                   const offY = (((idx * 11) % 7) - 3);
 
@@ -5175,9 +5173,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                         ${stampSvgFrame}
                         <div class="stamp-slot-inner">
                           ${customStampImg ? `
-                            <img src="${escapeHTML(formatDriveImageUrl(customStampImg))}" alt="Stamp" class="stamp-slot-art-img" onerror="this.outerHTML='<svg class=\\'stamp-note-icon\\' viewBox=\\'0 0 24 24\\' width=\\'36\\' height=\\'36\\' fill=\\'none\\' stroke=\\'%23FF6B97\\' stroke-width=\\'2.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M9 18V5l12-2v13\\'/><circle cx=\\'6\\' cy=\\'18\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/><circle cx=\\'18\\' cy=\\'16\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/></svg>';">
+                            <img src="${escapeHTML(formatDriveImageUrl(customStampImg))}" alt="Stamp" class="stamp-slot-art-img" onerror="this.outerHTML='<svg class=\\'stamp-note-icon\\' viewBox=\\'0 0 24 24\\' width=\\'42\\' height=\\'42\\' fill=\\'none\\' stroke=\\'%23FF6B97\\' stroke-width=\\'2.5\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M9 18V5l12-2v13\\'/><circle cx=\\'6\\' cy=\\'18\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/><circle cx=\\'18\\' cy=\\'16\\' r=\\'3.2\\' fill=\\'%23FFB7CE\\'/></svg>';">
                           ` : `
-                            <svg class="stamp-note-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#FF6B97" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <svg class="stamp-note-icon" viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="#FF6B97" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                               <path d="M9 18V5l12-2v13" stroke="#71515B" stroke-width="2"/>
                               <circle cx="6" cy="18" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
                               <circle cx="18" cy="16" r="3.2" fill="#FFB7CE" stroke="#71515B" stroke-width="1.5"/>
@@ -5188,7 +5186,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     `;
                   } else {
                     return `
-                      <div class="stamp-slot is-empty" title="แต้มที่ ${num}: ยังไม่ได้ปั๊ม">
+                      <div class="stamp-slot is-empty" style="transform: rotate(${tilt}deg) translate(${offX}px, ${offY}px);" title="แต้มที่ ${num}: ยังไม่ได้ปั๊ม">
                         ${stampSvgFrame}
                         <div class="stamp-slot-inner">
                           <span class="stamp-slot-num">${num}</span>
@@ -5233,13 +5231,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               loopList = loopList.concat(rawRewards);
             }
 
+            // Order: 1. ภาพ (Image), 2. คำ (Title), 3. แต้ม (Badge - White BG, Deep font color)
             const renderRewardCard = r => `
               <div class="stamp-reward-card" title="${escapeHTML(r.title)}">
                 <div class="stamp-reward-img-box">
                   <img src="${escapeHTML(formatDriveImageUrl(r.image) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400')}" class="stamp-reward-img" alt="Reward" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400';">
                 </div>
-                <span class="stamp-reward-points-badge">${escapeHTML(r.points || `${maxStamps} แต้ม`)}</span>
                 <div class="stamp-reward-title">${escapeHTML(r.title)}</div>
+                <span class="stamp-reward-points-badge">${escapeHTML(r.points || `${maxStamps} แต้ม`)}</span>
               </div>
             `;
 
@@ -5247,7 +5246,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div style="margin-top: 2.25rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding: 0 4px; flex-wrap: wrap; gap: 6px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; background: #FFE4EE; color: #B24368; font-size: 0.85rem; font-weight: 700;">★</span>
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; background: #FFE4EE; color: #B24368;">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="#B24368" stroke="#B24368" stroke-width="1.5"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </span>
                     <h4 style="margin: 0; font-size: 1.08rem; color: var(--primary-deep); font-weight: 700;">ตัวอย่างของรางวัลสะสมแต้ม</h4>
                   </div>
                   <span style="font-size: 0.82rem; color: var(--text-muted);">${escapeHTML(stampCfg.rewardText || `สะสมครบ ${maxStamps} แต้ม แลกรับของขวัญได้ทันที`)}</span>
@@ -6609,8 +6610,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <div style="background: #FFF7FA; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 10px; width: 140px; display: flex; flex-direction: column; align-items: center; position: relative;">
                   <button type="button" onclick="deleteRewardShowcaseItem(${idx})" style="position: absolute; top: -6px; right: -6px; background: #e11d48; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="ลบรางวัลนี้">✕</button>
                   <img src="${escapeHTML(formatDriveImageUrl(rw.image) || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200')}" style="width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; border: 1px solid #FFDFE9;" onerror="this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200';">
-                  <span style="font-size: 0.72rem; font-weight: 700; color: #B24368; background: #FFE4EE; padding: 1px 8px; border-radius: 999px; margin-top: 6px;">${escapeHTML(rw.points || `${maxStamps} แต้ม`)}</span>
-                  <div style="font-size: 0.8rem; font-weight: 700; color: var(--text); margin-top: 4px; text-align: center; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapeHTML(rw.title)}</div>
+                  <div style="font-size: 0.8rem; font-weight: 700; color: var(--text); margin-top: 6px; text-align: center; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${escapeHTML(rw.title)}</div>
+                  <span style="font-size: 0.72rem; font-weight: 700; color: var(--primary-deep); background: #FFFFFF; border: 1px solid #FFDFE9; padding: 2px 10px; border-radius: 999px; margin-top: 5px; box-shadow: 0 2px 4px rgba(251,113,133,0.06);">${escapeHTML(rw.points || `${maxStamps} แต้ม`)}</span>
                 </div>
               `).join('')}
             </div>
