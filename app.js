@@ -8,8 +8,8 @@
 // ผู้ดูแลระบบสามารถใส่ Project URL และ Anon Key ของ Supabase ที่นี่
 // ============================================================
 const SUPABASE_CONFIG = {
-  url: 'https://vmtmmtfjhujdijbiwawa.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtdG1tdGZqaHVqZGlqYml3YXdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTIyMjMsImV4cCI6MjEwNDg2ODIyM30.26oysoMBoUzxd98gkInd4zXv7hkya4cTdAkw87G_Esk'
+  url: 'https://YOUR_PROJECT_ID.supabase.co',
+  anonKey: 'YOUR_ANON_KEY'
 };
 
 const Store = (function () {
@@ -2428,7 +2428,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
  view: 'home', // 'home' | 'fonts' | 'products' | 'groups' | 'portfolio' | 'points' | 'reviews' | 'orders' | 'admin'
  adminTab: 'dashboard', // 'dashboard' | 'orders' | 'slips' | 'products' | 'fonts' | 'groups' | 'settings'
  isAdmin: (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('bnc_admin_auth') === 'true'),
-    adminPinBuffer: '',
+    adminUser: (typeof localStorage !== 'undefined' && localStorage.getItem('bnc_tenant_session')) ? JSON.parse(localStorage.getItem('bnc_tenant_session')) : null,
     groupsFilter: 'ALL',
     lightboxIndex: 0,
     lightboxList: [],
@@ -2637,8 +2637,31 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       if (Store.initRealtimeSync) {
         Store.initRealtimeSync();
       }
+
+      // Auto-restore Supabase Auth session for Tenant / Admin
+      if (Store.getSupabase) {
+        const sb = Store.getSupabase();
+        if (sb && sb.auth) {
+          sb.auth.getSession().then(({ data }) => {
+            if (data && data.session && data.session.user) {
+              const u = data.session.user;
+              state.isAdmin = true;
+              state.adminUser = {
+                id: u.id,
+                email: u.email,
+                shop_name: u.user_metadata?.shop_name || 'BNC GraphMate Studio',
+                tenant_id: u.user_metadata?.tenant_id || u.id,
+                role: u.user_metadata?.role || 'admin'
+              };
+              if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('bnc_admin_auth', 'true');
+              if (typeof localStorage !== 'undefined') localStorage.setItem('bnc_tenant_session', JSON.stringify(state.adminUser));
+              renderNavbar();
+            }
+          }).catch(() => {});
+        }
+      }
     }
- }
+  }
 
  // ── Router Setup (Hash Navigation) ───────────────────────────
  
@@ -4758,73 +4781,79 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   function renderAdminView(container) {
  const s = Store.getSettings();
 
- // Check if Admin PIN is unlocked (Cute Calculator Keypad like BNC HayMate)
- if (!state.isAdmin) {
- container.innerHTML = `
- <section style="min-height: 75vh; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
- <div class="card calc-pin-card" style="box-shadow: var(--shadow-lg); border-color: var(--border);">
- <div class="calc-lock-icon">
- <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
- <circle cx="12" cy="7" r="4.2"/>
- <path d="M4 20c0-3.8 3.6-5.8 8-5.8s8 2 8 5.8"/>
- </svg>
- </div>
- <h3 class="calc-pin-title">Store Passcode</h3>
- <p class="calc-pin-sub">กรอกรหัสผ่าน 6 หลักเพื่อเข้าจัดการหลังบ้าน</p>
- 
- <!-- Cute Calculator Screen -->
- <div class="calc-screen">
- <div class="calc-dots" id="adminPinDots">
- <span class="calc-dot"></span>
- <span class="calc-dot"></span>
- <span class="calc-dot"></span>
- <span class="calc-dot"></span>
- <span class="calc-dot"></span>
- <span class="calc-dot"></span>
- </div>
- </div>
+  // Check if Admin is Authenticated
+  if (!state.isAdmin) {
+    container.innerHTML = `
+      <section style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+        <div class="card" style="box-shadow: var(--shadow-lg); border-color: var(--border); max-width: 420px; width: 100%; padding: 2.25rem 1.75rem; border-radius: 24px; background: var(--card);">
+          
+          <div style="text-align: center; margin-bottom: 1.75rem;">
+            <div style="width: 58px; height: 58px; border-radius: 18px; background: var(--primary-light); color: var(--primary-deep); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.85rem; border: 1.5px solid var(--border); box-shadow: var(--shadow-sm);">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <h2 style="font-size: 1.4rem; font-weight: 800; margin: 0 0 0.35rem; color: var(--text); font-family: var(--font-heading);">
+              เข้าสู่ระบบหลังบ้าน
+            </h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+              กรอกอีเมลและรหัสผ่านเพื่อเข้าสู่ระบบจัดการร้านค้า
+            </p>
+          </div>
 
- <!-- Cute Round Keypad -->
- <div class="calc-keypad">
- <button type="button" class="calc-key" onclick="pressAdminPinKey('1')">1</button>
- <button type="button" class="calc-key" onclick="pressAdminPinKey('2')">2</button>
- <button type="button" class="calc-key" onclick="pressAdminPinKey('3')">3</button>
- <button type="button" class="calc-key" onclick="pressAdminPinKey('4')">4</button>
- <button type="button" class="calc-key" onclick="pressAdminPinKey('5')">5</button>
- <button type="button" class="calc-key" onclick="pressAdminPinKey('6')">6</button>
- <button type="button" class="calc-key" onclick="pressAdminPinKey('7')">7</button>
- <button type="button" class="calc-key" onclick="pressAdminPinKey('8')">8</button>
- <button type="button" class="calc-key" onclick="pressAdminPinKey('9')">9</button>
- <button type="button" class="calc-key calc-key-action" onclick="pressAdminPinKey('clear')">C</button>
- <button type="button" class="calc-key" onclick="pressAdminPinKey('0')">0</button>
- <button type="button" class="calc-key calc-key-del" onclick="pressAdminPinKey('del')">⌫</button>
- </div>
+          <form onsubmit="handleAdminLogin(event)">
+            <div class="form-group" style="margin-bottom: 1.1rem;">
+              <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">อีเมลผู้ดูแลร้าน (Email)</label>
+              <input type="email" id="authEmail" class="form-input" placeholder="admin@bnc.com" required autocomplete="email">
+            </div>
 
- <div style="margin-top: 18px; font-size: 11.5px; color: var(--text-muted);">
- รหัสผ่านเริ่มต้น: <strong>123456</strong>
- </div>
- </div>
- </section>
- `;
- state.adminPinBuffer = '';
- return;
- }
+            <div class="form-group" style="margin-bottom: 1.35rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label class="form-label" style="margin: 0; font-weight: 600; font-size: 0.85rem;">รหัสผ่าน (Password)</label>
+                <span style="font-size: 0.78rem; color: var(--primary); cursor: pointer; font-weight: 600;" onclick="togglePasswordVisibility('authPassword')">👁️ ดูรหัส</span>
+              </div>
+              <input type="password" id="authPassword" class="form-input" placeholder="••••••••" required minlength="6" autocomplete="current-password">
+            </div>
 
- // Admin Authenticated -> Render Dashboard & Tabs
- container.innerHTML = `
- <section style="padding: 2rem 0 4rem;">
- <div class="container">
- 
- <!-- Admin Header Bar -->
- <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
- <div>
- <span class="badge badge--pink" style="margin-bottom: 0.35rem;">Admin Studio</span>
- <h1 style="font-size: 1.5rem; margin: 0;">ระบบจัดการร้านค้า BNC Admin</h1>
- </div>
- <div style="display: flex; gap: 0.5rem;">
- <button type="button" class="btn btn-outline btn-sm" onclick="syncCloudManual()">🔄 รีเฟรช Cloud</button>
- <button type="button" class="btn btn-outline btn-sm" onclick="handleAdminLogout()">ออกจากระบบ</button>
- </div>
+            <div id="authErrorMessage" style="display: none; padding: 0.65rem 0.85rem; border-radius: 10px; background: #fee2e2; color: #b91c1c; font-size: 0.82rem; margin-bottom: 1rem; border: 1px solid #fca5a5;"></div>
+
+            <button type="submit" id="authSubmitBtn" class="btn btn-primary" style="width: 100%; border-radius: 14px; font-weight: 700; padding: 0.85rem; font-size: 0.95rem; box-shadow: var(--shadow-sm);">
+              🔓 เข้าสู่ระบบ
+            </button>
+          </form>
+
+          <div style="margin-top: 1.5rem; text-align: center; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+            💡 บัญชีทดสอบเริ่มต้น: <code>admin@bnc.com</code> / รหัสผ่าน: <code>123456</code>
+          </div>
+
+        </div>
+      </section>
+    `;
+    return;
+  }
+
+  // Admin Authenticated -> Render Dashboard & Tabs
+  container.innerHTML = `
+  <section style="padding: 2rem 0 4rem;">
+  <div class="container">
+  
+  <!-- Admin Header Bar -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+  <span class="badge badge--pink" style="margin-bottom: 0.35rem;">
+    Admin Studio
+  </span>
+  <h1 style="font-size: 1.5rem; margin: 0;">ระบบจัดการร้านค้า</h1>
+  <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">
+    ผู้ดูแล: <strong>${state.adminUser?.email || 'admin@bnc.com'}</strong>
+  </div>
+  </div>
+  <div style="display: flex; gap: 0.5rem; align-items: center;">
+  <button type="button" class="btn btn-outline btn-sm" onclick="syncCloudManual()">🔄 รีเฟรช Cloud</button>
+  <button type="button" class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="handleAdminLogout()">ออกจากระบบ</button>
+  </div>
+  </div></div>
  </div>
 
  <!-- Admin Tabs -->
@@ -6972,68 +7001,109 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
   };
 
-  // Admin Calculator PIN Keypad Actions
-  window.pressAdminPinKey = function (key) {
-    state.adminPinBuffer = state.adminPinBuffer || '';
-    const dotsContainer = $('adminPinDots');
-    const dots = dotsContainer ? dotsContainer.querySelectorAll('.calc-dot') : [];
+  // ============================================================
+  // Admin Authentication Actions
+  // ============================================================
+  window.togglePasswordVisibility = function (inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    input.type = input.type === 'password' ? 'text' : 'password';
+  };
 
-    function updateDots() {
-      dots.forEach((dot, idx) => {
-        if (idx < state.adminPinBuffer.length) {
-          dot.classList.add('filled');
-        } else {
-          dot.classList.remove('filled');
+  window.handleAdminLogin = async function (e) {
+    if (e) e.preventDefault();
+    const email = ($('authEmail')?.value || '').trim();
+    const password = ($('authPassword')?.value || '').trim();
+    const btn = $('authSubmitBtn');
+    const errBox = $('authErrorMessage');
+
+    if (errBox) errBox.style.display = 'none';
+
+    if (!email || !password) {
+      if (errBox) {
+        errBox.textContent = 'กรุณากรอกอีเมลและรหัสผ่านให้ครบถ้วนนะคะ';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '⏳ กำลังตรวจสอบสิทธิ์...';
+    }
+
+    const sb = Store.getSupabase();
+    let loginSuccess = false;
+    let loggedUser = null;
+
+    // 1. Supabase Auth SignIn
+    if (sb && sb.auth) {
+      try {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (!error && data && data.user) {
+          loginSuccess = true;
+          loggedUser = {
+            id: data.user.id,
+            email: data.user.email,
+            shop_name: data.user.user_metadata?.shop_name || 'BNC GraphMate Studio',
+            tenant_id: data.user.user_metadata?.tenant_id || data.user.id,
+            role: data.user.user_metadata?.role || 'admin'
+          };
         }
-      });
+      } catch (sbErr) {
+        console.warn('Supabase auth login attempt info:', sbErr);
+      }
     }
 
-    if (key === 'clear') {
-      state.adminPinBuffer = '';
-      updateDots();
-      return;
-    }
-
-    if (key === 'del') {
-      state.adminPinBuffer = state.adminPinBuffer.slice(0, -1);
-      updateDots();
-      return;
-    }
-
-    if (state.adminPinBuffer.length < 6) {
-      state.adminPinBuffer += key;
-      updateDots();
-    }
-
-    if (state.adminPinBuffer.length === 6) {
+    // 2. Dev / Master Account Fallback
+    if (!loginSuccess) {
       const s = Store.getSettings();
-      const correctPin = s.adminPin || '123456';
+      const currentPin = s.adminPin || '123456';
+      if (password === currentPin || password === '123456' || (email === 'admin@bnc.com' && (password === '123456' || password === currentPin))) {
+        loginSuccess = true;
+        loggedUser = {
+          id: 'tenant-master',
+          email: email || 'admin@bnc.com',
+          shop_name: s.shopName || 'BNC GraphMate Studio',
+          tenant_id: 'master-tenant',
+          role: 'owner'
+        };
+      }
+    }
 
-      if (state.adminPinBuffer === correctPin || state.adminPinBuffer === '123456') {
-        state.isAdmin = true;
-        if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('bnc_admin_auth', 'true');
-        state.adminPinBuffer = '';
-        renderNavbar();
-        renderCurrentView();
-      } else {
-        // Shake error animation
-        dots.forEach(d => d.classList.add('error'));
-        setTimeout(() => {
-          state.adminPinBuffer = '';
-          dots.forEach(d => {
-            d.classList.remove('filled');
-            d.classList.remove('error');
-          });
-        }, 450);
+    if (loginSuccess) {
+      state.isAdmin = true;
+      state.adminUser = loggedUser;
+      if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('bnc_admin_auth', 'true');
+      if (typeof localStorage !== 'undefined') localStorage.setItem('bnc_tenant_session', JSON.stringify(loggedUser));
+      renderNavbar();
+      renderCurrentView();
+    } else {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '🔓 เข้าสู่ระบบ';
+      }
+      if (errBox) {
+        errBox.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้งค่ะ';
+        errBox.style.display = 'block';
       }
     }
   };
 
-  window.handleAdminLogout = function () {
+  window.handleAdminLogout = async function () {
+    const sb = Store.getSupabase();
+    if (sb && sb.auth) {
+      try {
+        await sb.auth.signOut();
+      } catch (e) {}
+    }
     state.isAdmin = false;
+    state.adminUser = null;
     if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem('bnc_admin_auth');
+    if (typeof localStorage !== 'undefined') localStorage.removeItem('bnc_tenant_session');
     renderNavbar();
-    window.location.hash = 'home';
+    window.location.hash = 'admin';
+    renderCurrentView();
   };
 
   window.switchAdminTab = function (tab) {
