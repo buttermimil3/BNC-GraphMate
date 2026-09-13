@@ -8,8 +8,8 @@
 // ผู้ดูแลระบบสามารถใส่ Project URL และ Anon Key ของ Supabase ที่นี่
 // ============================================================
 const SUPABASE_CONFIG = {
-  url: 'https://vmtmmtfjhujdijbiwawa.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtdG1tdGZqaHVqZGlqYml3YXdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTIyMjMsImV4cCI6MjEwNDg2ODIyM30.26oysoMBoUzxd98gkInd4zXv7hkya4cTdAkw87G_Esk'
+  url: 'https://YOUR_PROJECT_ID.supabase.co',
+  anonKey: 'YOUR_ANON_KEY'
 };
 
 const Store = (function () {
@@ -2685,9 +2685,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       return;
     }
 
-    // If container exists and already has mascots, do not re-run loops
     if (container) {
-      if (container.children.length > 0) return;
       container.innerHTML = '';
     } else {
       container = document.createElement('div');
@@ -2696,7 +2694,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       document.body.appendChild(container);
     }
 
-    // Cute pastel character PNG stickers (100% transparent PNG, draggable & interactive)
+    // Cute pastel characters (supports GIF, PNG, SVG)
     const m1 = mascotCfg.mascot1 || {};
     const m2 = mascotCfg.mascot2 || {};
     const m3 = mascotCfg.mascot3 || {};
@@ -2711,12 +2709,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           m1.quote || 'หวัดดีฮับ!',
           m1.quote2 || 'ยินดีต้อนรับนะค้า',
           m1.quote3 || 'เย้! BNC น่ารักจัง'
-        ].filter(Boolean),
-        speed: 0.65,
-        xPercent: 18,
-        startY: -120,
-        swaySpeed: 0.02,
-        swayAmp: 25
+        ].filter(Boolean)
       },
       {
         id: 'mascot-2',
@@ -2727,12 +2720,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           m2.quote || 'แวะดูฟอนต์ได้น้า',
           m2.quote2 || 'อย่าทิ้งเค้านะ!',
           m2.quote3 || 'ร้านน่ารักม้ากก'
-        ].filter(Boolean),
-        speed: 0.5,
-        xPercent: 50,
-        startY: -180,
-        swaySpeed: 0.015,
-        swayAmp: 30
+        ].filter(Boolean)
       },
       {
         id: 'mascot-3',
@@ -2743,90 +2731,158 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           m3.quote || 'เหมียววว~ จับได้ด้วย!',
           m3.quote2 || 'ป้ายสวยทุกชิ้นเลย',
           m3.quote3 || 'รัก BNC ที่สุด'
-        ].filter(Boolean),
-        speed: 0.58,
-        xPercent: 82,
-        startY: -100,
-        swaySpeed: 0.018,
-        swayAmp: 22
+        ].filter(Boolean)
       }
     ];
 
-    mascotConfigs.forEach((cfg, idx) => {
-      const el = document.createElement('div');
-      el.id = cfg.id;
-      el.className = 'falling-mascot-item';
-      
-      const img = document.createElement('img');
-      img.src = cfg.png;
-      img.onerror = () => { if (cfg.fallbackPng && img.src !== cfg.fallbackPng) img.src = cfg.fallbackPng; };
-      img.className = 'falling-mascot-img';
-      img.alt = cfg.name;
+    // Exactly 1 floating mascot element on screen
+    let currentIdx = 0;
+    const el = document.createElement('div');
+    el.id = 'singleFloatingMascot';
+    el.className = 'falling-mascot-item';
 
-      el.appendChild(img);
-      container.appendChild(el);
+    const img = document.createElement('img');
+    img.className = 'falling-mascot-img';
+    img.alt = mascotConfigs[0].name;
+    img.src = mascotConfigs[0].png;
+    img.onerror = () => {
+      const cur = mascotConfigs[currentIdx];
+      if (cur && cur.fallbackPng && img.src !== cur.fallbackPng) {
+        img.src = cur.fallbackPng;
+      }
+    };
 
-      // State for falling physics & dragging
-      let posX = (window.innerWidth * (cfg.xPercent / 100)) - 36;
-      let posY = cfg.startY - (idx * 90);
-      let isDragging = false;
-      let startMouseX = 0;
-      let startMouseY = 0;
-      let origPosX = 0;
-      let origPosY = 0;
-      let tick = Math.random() * 100;
-      let bubbleTimeout = null;
-      let quoteIndex = 0;
+    el.appendChild(img);
+    container.appendChild(el);
 
-      // Initial position
+    // Initial position & physics state
+    let posX = Math.max(30, (window.innerWidth * 0.75) - 40);
+    let posY = 120;
+    let isDragging = false;
+    let hasMoved = false;
+    let startMouseX = 0;
+    let startMouseY = 0;
+    let origPosX = 0;
+    let origPosY = 0;
+    let tick = Math.random() * 100;
+    let bubbleTimeout = null;
+    let quoteIndex = 0;
+
+    el.style.left = `${posX}px`;
+    el.style.top = `${posY}px`;
+
+    // Function to update mascot character (cycles Mascot 1 -> Mascot 2 -> Mascot 3 -> Mascot 1)
+    const updateMascotAppearance = () => {
+      const cur = mascotConfigs[currentIdx];
+      img.src = cur.png;
+      img.alt = cur.name;
+      img.onerror = () => {
+        if (cur.fallbackPng && img.src !== cur.fallbackPng) {
+          img.src = cur.fallbackPng;
+        }
+      };
+      // Cute pop animation
+      el.style.transform = 'scale(1.22)';
+      setTimeout(() => {
+        if (!isDragging) el.style.transform = 'scale(1)';
+      }, 180);
+      showSpeechBubble();
+      if (typeof playCuteClickSound === 'function') playCuteClickSound();
+    };
+
+    // Speech bubble popup on tap/click
+    const showSpeechBubble = () => {
+      let bubble = el.querySelector('.mascot-bubble-talk');
+      if (!bubble) {
+        bubble = document.createElement('div');
+        bubble.className = 'mascot-bubble-talk';
+        el.appendChild(bubble);
+      }
+      const cur = mascotConfigs[currentIdx];
+      const availableQuotes = (cur.quotes && cur.quotes.length > 0) ? cur.quotes : ['สวัสดีฮับ!'];
+      const textToShow = availableQuotes[quoteIndex % availableQuotes.length];
+      quoteIndex++;
+      bubble.textContent = textToShow;
+      clearTimeout(bubbleTimeout);
+      bubbleTimeout = setTimeout(() => {
+        if (bubble && bubble.parentNode) bubble.parentNode.removeChild(bubble);
+      }, 2600);
+    };
+
+    // Pointer events for Drag and Hold (Mouse & Touch)
+    const onPointerDown = (e) => {
+      isDragging = true;
+      hasMoved = false;
+      el.style.transition = 'none';
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      startMouseX = clientX;
+      startMouseY = clientY;
+      origPosX = posX;
+      origPosY = posY;
+      e.stopPropagation();
+    };
+
+    const onPointerMove = (e) => {
+      if (!isDragging) return;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const deltaX = clientX - startMouseX;
+      const deltaY = clientY - startMouseY;
+
+      if (Math.abs(deltaX) > 6 || Math.abs(deltaY) > 6) {
+        hasMoved = true;
+      }
+
+      posX = origPosX + deltaX;
+      posY = origPosY + deltaY;
+
+      // Keep within screen bounds
+      const maxW = window.innerWidth - 85;
+      const maxH = window.innerHeight - 85;
+      if (posX < 10) posX = 10;
+      if (posX > maxW) posX = maxW;
+      if (posY < 10) posY = 10;
+      if (posY > maxH) posY = maxH;
+
       el.style.left = `${posX}px`;
       el.style.top = `${posY}px`;
+      if (e.cancelable && e.touches) e.preventDefault();
+    };
 
-      // Speech bubble popup on tap/click (cycles sequentially through quotes)
-      const showSpeechBubble = () => {
-        let bubble = el.querySelector('.mascot-bubble-talk');
-        if (!bubble) {
-          bubble = document.createElement('div');
-          bubble.className = 'mascot-bubble-talk';
-          el.appendChild(bubble);
-        }
-        const availableQuotes = (cfg.quotes && cfg.quotes.length > 0) ? cfg.quotes : ['สวัสดีฮับ!'];
-        const textToShow = availableQuotes[quoteIndex % availableQuotes.length];
-        quoteIndex++;
-        bubble.textContent = textToShow;
-        clearTimeout(bubbleTimeout);
-        bubbleTimeout = setTimeout(() => {
-          if (bubble && bubble.parentNode) bubble.parentNode.removeChild(bubble);
-        }, 2500);
-      };
+    const onPointerUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      el.style.transition = 'transform 0.15s ease';
+      el.style.transform = 'scale(1)';
 
-      // Drag event listeners (Mouse & Touch for mobile)
-      const onPointerDown = (e) => {
-        isDragging = true;
-        el.style.transition = 'none';
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        startMouseX = clientX;
-        startMouseY = clientY;
-        origPosX = posX;
-        origPosY = posY;
-        showSpeechBubble();
-        if (typeof playCuteClickSound === 'function') playCuteClickSound();
-        e.stopPropagation();
-      };
+      // If user tapped/clicked without dragging, cycle to next mascot!
+      if (!hasMoved) {
+        currentIdx = (currentIdx + 1) % mascotConfigs.length;
+        updateMascotAppearance();
+      }
+    };
 
-      const onPointerMove = (e) => {
-        if (!isDragging) return;
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        const deltaX = clientX - startMouseX;
-        const deltaY = clientY - startMouseY;
-        posX = origPosX + deltaX;
-        posY = origPosY + deltaY;
+    el.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
 
-        // Keep inside bounds
-        const maxW = window.innerWidth - 80;
-        const maxH = window.innerHeight - 80;
+    el.addEventListener('touchstart', onPointerDown, { passive: false });
+    window.addEventListener('touchmove', onPointerMove, { passive: false });
+    window.addEventListener('touchend', onPointerUp);
+
+    // Gentle floating animation loop (gentle bobbing up & down, slow descent if near top)
+    function animLoop() {
+      if (!isDragging) {
+        tick += 0.022;
+        // Gentle bobbing up and down + subtle sway
+        const bob = Math.sin(tick) * 0.45;
+        const sway = Math.cos(tick * 0.8) * 0.35;
+        posY += bob;
+        posX += sway;
+
+        const maxW = window.innerWidth - 85;
+        const maxH = window.innerHeight - 85;
         if (posX < 10) posX = 10;
         if (posX > maxW) posX = maxW;
         if (posY < 10) posY = 10;
@@ -2834,44 +2890,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
         el.style.left = `${posX}px`;
         el.style.top = `${posY}px`;
-      };
-
-      const onPointerUp = () => {
-        if (isDragging) {
-          isDragging = false;
-          el.style.transition = 'filter 0.2s ease, transform 0.15s ease';
-        }
-      };
-
-      el.addEventListener('mousedown', onPointerDown);
-      window.addEventListener('mousemove', onPointerMove);
-      window.addEventListener('mouseup', onPointerUp);
-
-      el.addEventListener('touchstart', onPointerDown, { passive: false });
-      window.addEventListener('touchmove', onPointerMove, { passive: false });
-      window.addEventListener('touchend', onPointerUp);
-
-      // Gentle continuous falling animation loop with gentle sway
-      function animLoop() {
-        if (!isDragging) {
-          tick += cfg.swaySpeed;
-          posY += cfg.speed;
-          const sway = Math.sin(tick) * (cfg.swayAmp * 0.08);
-          posX += sway;
-
-          // If fallen below viewport, reset back smoothly to top
-          if (posY > window.innerHeight + 60) {
-            posY = -90;
-            posX = Math.random() * (window.innerWidth - 100) + 20;
-          }
-
-          el.style.left = `${posX}px`;
-          el.style.top = `${posY}px`;
-        }
-        requestAnimationFrame(animLoop);
       }
       requestAnimationFrame(animLoop);
-    });
+    }
+    requestAnimationFrame(animLoop);
   }
   
   function setupRouting() {
@@ -6009,9 +6031,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     return `
       <form id="masterSettingsForm" onsubmit="saveMasterSettings(event)">
         
-        <!-- 1. General & Announcement -->
+        <!-- 1. ข้อมูลร้าน -->
         <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ข้อมูลร้าน & แถบประกาศหัวเว็บ</h3>
+          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ข้อมูลร้าน</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="form-group">
               <label class="form-label">ชื่อร้านค้า</label>
@@ -6022,17 +6044,107 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <input type="text" id="cfg_tagline" class="form-input" value="${escapeHTML(s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล')}">
             </div>
           </div>
-          <div class="form-group" style="margin-top: 1rem;">
-            <label class="form-label">ข้อความประกาศแถบชมพูบนสุด (Announcement Bar)</label>
-            <input type="text" id="cfg_announcement" class="form-input" value="${escapeHTML(s.announcement || '')}" placeholder="เช่น โปรเปิดร้านใหม่! สั่งฟอนต์ 2 แถม 1 ฟรี">
+        </div>
+
+        <!-- 2. ภาพปกร้าน, รูปโปรไฟล์ร้าน และ Bio -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ภาพปกร้าน, รูปโปรไฟล์ร้าน และ Bio</h3>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">ลิงก์ภาพปกร้าน Facebook Cover หรือเลือกรูปจากเครื่อง</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="cfg_coverImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.coverImage || '')}" placeholder="วางลิงก์รูป หรือเลือกรูปจากเครื่อง" oninput="const p=$('cfg_coverImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                เลือกรูป
+                <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_coverImage', 'cfg_coverImage_preview')">
+              </label>
+              <div style="width: 60px; height: 36px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                <img id="cfg_coverImage_preview" src="${escapeHTML(formatDriveImageUrl(s.coverImage) || '')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" onload="this.style.display='block';">
+              </div>
+            </div>
+            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป, ลิงก์ Google Drive และเลือกรูปจากเครื่องได้ทันที</small>
           </div>
-          <div style="margin-top: 0.5rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.9rem;">
-              <input type="checkbox" id="cfg_announcementEnabled" ${s.announcementEnabled ? 'checked' : ''}>
-              <span>เปิดใช้งานแถบประกาศบนสุด</span>
-            </label>
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ขอบชมพูพาสเทล) หรือเลือกรูป</label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="cfg_profileImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.profileImage || '')}" placeholder="วางลิงก์รูป หรือเลือกรูปจากเครื่อง" oninput="const p=$('cfg_profileImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
+                เลือกรูป
+                <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_profileImage', 'cfg_profileImage_preview')">
+              </label>
+              <div style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--primary-600); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                <img id="cfg_profileImage_preview" src="${escapeHTML(formatDriveImageUrl(s.profileImage) || '')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" onload="this.style.display='block';">
+              </div>
+            </div>
+            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป, ลิงก์ Google Drive และเลือกรูปจากเครื่องได้ทันที</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">คำแนะนำร้านค้า (Bio)</label>
+            <textarea id="cfg_shopBio" class="form-textarea" rows="3">${escapeHTML(s.shopBio || '')}</textarea>
           </div>
         </div>
+
+        <!-- 3. ช่องทางติดต่อ & Social Media (Dynamic Channels) -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h3 style="color: var(--primary-deep); margin: 0 0 4px;">ช่องทางติดต่อ & Social Media (Dynamic Channels)</h3>
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">
+                เพิ่ม ลบ หรือแก้ไขช่องทางติดต่อได้ตามใจชอบ (เช่น LINE, Facebook, IG, TikTok, Shopee, Lemon8, โทร ฯลฯ)
+              </p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addNewContactChannelRow()">
+              + เพิ่มช่องทางใหม่
+            </button>
+          </div>
+
+          <div id="adminContactChannelsList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.25rem;">
+            ${Store.getContactChannels().map((ch, idx) => `
+              <div class="admin-channel-row" data-channel-id="${escapeHTML(ch.id || 'cc-' + idx)}" style="background: var(--surface-alt); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 140px;">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ชื่อแพลตฟอร์ม / ปุ่ม</label>
+                  <input type="text" class="form-input channel-platform" value="${escapeHTML(ch.platform || '')}" placeholder="เช่น LINE Official, TikTok, IG">
+                </div>
+                <div style="flex: 1.2; min-width: 160px;">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ข้อความกำกับ / ไอดี</label>
+                  <input type="text" class="form-input channel-value" value="${escapeHTML(ch.value || '')}" placeholder="เช่น @bncgraphmate หรือ 081-xxx">
+                </div>
+                <div style="flex: 1.8; min-width: 200px;">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ลิงก์ URL ปลายทาง (เมื่อคลิก)</label>
+                  <input type="text" class="form-input channel-url" value="${escapeHTML(ch.url || '')}" placeholder="https://... หรือ tel:081xxx">
+                </div>
+                <div style="display: flex; align-items: flex-end; padding-top: 18px;">
+                  <button type="button" class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5; padding: 6px 10px;" onclick="removeContactChannelRow(this)" title="ลบช่องทางนี้">
+                    ลบ
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Legacy direct inputs preserved for compatibility -->
+          <details style="font-size: 0.82rem; color: var(--text-muted); border-top: 1px dashed var(--border); padding-top: 8px;">
+            <summary style="cursor: pointer; font-weight: 600;">ตั้งค่าลิงก์หลักแบบดั้งเดิม (Legacy Direct Fallback)</summary>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-top: 10px;">
+              <div class="form-group">
+                <label class="form-label">ลิงก์ LINE Official</label>
+                <input type="text" id="cfg_lineUrl" class="form-input" value="${escapeHTML(s.lineUrl || '')}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
+                <input type="text" id="cfg_contactPhone" class="form-input" value="${escapeHTML(s.contactPhone || '')}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ลิงก์ Instagram</label>
+                <input type="text" id="cfg_instagramUrl" class="form-input" value="${escapeHTML(s.instagramUrl || '')}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">ลิงก์ Facebook Page</label>
+                <input type="text" id="cfg_facebookUrl" class="form-input" value="${escapeHTML(s.facebookUrl || '')}">
+              </div>
+            </div>
+          </details>
+        </div>
+
 
         <!-- 2. Home 1:1 Banners Manager (Hero Carousel) -->
         <div class="card" style="margin-bottom: 1.5rem;">
@@ -6127,83 +6239,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <input type="text" id="cfg_qp_noticeText" class="form-input" value="${escapeHTML(queuePage.noticeText || 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ')}">
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" style="margin-bottom: 1rem;">
-            <div class="form-group">
-              <label class="form-label">หัวข้อการ์ดค้นหา</label>
-              <input type="text" id="cfg_qp_searchTitle" class="form-input" value="${escapeHTML(queuePage.searchTitle || 'ค้นหาคิวของคุณ')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ข้อความช่องพิมพ์ค้นหา</label>
-              <input type="text" id="cfg_qp_searchPlaceholder" class="form-input" value="${escapeHTML(queuePage.searchPlaceholder || 'กรอกชื่อ, LINE ID, เบอร์โทรศัพท์ หรือเลขคิว...')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ข้อความบนปุ่มค้นหา</label>
-              <input type="text" id="cfg_qp_searchButtonText" class="form-input" value="${escapeHTML(queuePage.searchButtonText || 'ดูคิวของฉัน')}">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" style="margin-bottom: 1rem;">
-            <div class="form-group">
-              <label class="form-label">ป้าย: คิวเดือนนี้</label>
-              <input type="text" id="cfg_qp_monthLabel" class="form-input" value="${escapeHTML(queuePage.monthLabel || queuePage.todayLabel || 'คิวเดือนนี้')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ป้าย: รอคิว</label>
-              <input type="text" id="cfg_qp_waitingLabel" class="form-input" value="${escapeHTML(queuePage.waitingLabel || 'รอคิว')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ป้าย: กำลังทำ</label>
-              <input type="text" id="cfg_qp_workingLabel" class="form-input" value="${escapeHTML(queuePage.workingLabel || 'กำลังทำ')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ป้าย: ความสำเร็จในเดือนนี้</label>
-              <input type="text" id="cfg_qp_completionLabel" class="form-input" value="${escapeHTML(queuePage.completionLabel || queuePage.completedLabel || 'ความสำเร็จในเดือนนี้')}">
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" style="margin-bottom: 1rem;">
-            <div class="form-group">
-              <label class="form-label">หัวข้อรายการคิว (Section Title)</label>
-              <input type="text" id="cfg_qp_sectionTitle" class="form-input" value="${escapeHTML(queuePage.sectionTitle || 'คิวงานของร้าน')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ข้อความเมื่อไม่มีคิว (Empty State)</label>
-              <input type="text" id="cfg_qp_emptyStateText" class="form-input" value="${escapeHTML(queuePage.emptyStateText || 'วันนี้ยังไม่มีคิวงานนะคะ')}">
-            </div>
-          </div>
-
-          <!-- Component Toggles -->
-          <div style="background: #FFF9FA; border-radius: 14px; padding: 1rem; border: 1px solid #FFDFE9; margin-top: 1rem;">
-            <div style="font-weight: 700; color: #9D174D; margin-bottom: 0.5rem; font-size: 0.9rem;">
-              ตัวเลือกการแสดงผลบนหน้าเช็กคิว:
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" style="font-size: 0.88rem;">
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                <input type="checkbox" id="cfg_qp_showSearch" ${queuePage.showSearch !== false ? 'checked' : ''}>
-                <span>แสดงกล่องค้นหาคิว</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                <input type="checkbox" id="cfg_qp_showSummary" ${queuePage.showSummary !== false ? 'checked' : ''}>
-                <span>แสดงป้ายนับสรุปคิว</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                <input type="checkbox" id="cfg_qp_showProgress" ${queuePage.showProgress !== false ? 'checked' : ''}>
-                <span>แสดงหลอดความคืบหน้า</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                <input type="checkbox" id="cfg_qp_showTimeline" ${queuePage.showTimeline !== false ? 'checked' : ''}>
-                <span>แสดงไทม์ไลน์ 5 ขั้นตอน</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                <input type="checkbox" id="cfg_qp_showCustomerName" ${queuePage.showCustomerName !== false ? 'checked' : ''}>
-                <span>แสดงชื่อลูกค้า (เซนเซอร์)</span>
-              </label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                <input type="checkbox" id="cfg_qp_showNote" ${queuePage.showNote !== false ? 'checked' : ''}>
-                <span>แสดงหมายเหตุจากแอดมิน</span>
-              </label>
-            </div>
-          </div>
 
           <!-- Queue Mascot Stages at Progress Tip (0%, 25%, 50%, 75%, 100%) -->
           <div style="background: #FFFFFF; border-radius: 16px; padding: 1.25rem; border: 1.5px solid var(--border); margin-top: 1.25rem;">
@@ -6274,16 +6309,16 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 3.0.2 แก๊งน้องมาสคอตลอยหน้าจอ (Falling & Draggable Mascots) -->
+        <!-- 3.0.2 น้องมาสคอตลอยหน้าจอ (Interactive Floating Mascot) -->
         <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid var(--border);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 8px;">
             <div>
-              <h3 style="color: var(--primary-deep); margin-bottom: 0.25rem;">แก๊งน้องมาสคอตลอยหน้าจอ (Falling & Draggable Mascots)</h3>
-              <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0;">น้องๆ ลอยลงมาจากด้านบนจอช้าๆ ลูกค้าสามารถจับน้องลากเล่นไปมาและคลิกคุยได้</p>
+              <h3 style="color: var(--primary-deep); margin-bottom: 0.25rem;">น้องมาสคอตลอยหน้าจอ (Interactive Floating Mascot)</h3>
+              <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 0;">ลอยน่ารัก 1 ตัวบนหน้าจอ ลูกค้าสามารถคลิกเพื่อเปลี่ยนตัวละครวน 3 ตัว (1 ➔ 2 ➔ 3) และกดค้างลากน้องไปมาได้ (รองรับไฟล์ .GIF ดุ๊กดิ๊ก, .PNG, .SVG)</p>
             </div>
             <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: var(--surface-alt); padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);">
               <input type="checkbox" id="cfg_mascotEnabled" ${(s.mascotSettings?.enabled !== false) ? 'checked' : ''} style="accent-color: var(--primary-600);">
-              <span style="font-weight: 700; font-size: 0.88rem; color: var(--text);">เปิดใช้งานแก๊งมาสคอต</span>
+              <span style="font-weight: 700; font-size: 0.88rem; color: var(--text);">เปิดใช้งานมาสคอต</span>
             </label>
           </div>
 
@@ -6500,177 +6535,57 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 5. Profile, Cover & Bio Settings -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ภาพปกร้าน, รูปโปรไฟล์ร้าน และ Bio</h3>
-          <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">ลิงก์ภาพปกร้าน Facebook Cover หรือเลือกรูปจากเครื่อง</label>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <input type="text" id="cfg_coverImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.coverImage || '')}" placeholder="วางลิงก์รูป หรือเลือกรูปจากเครื่อง" oninput="const p=$('cfg_coverImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
-              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
-                เลือกรูป
-                <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_coverImage', 'cfg_coverImage_preview')">
-              </label>
-              <div style="width: 60px; height: 36px; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                <img id="cfg_coverImage_preview" src="${escapeHTML(formatDriveImageUrl(s.coverImage) || '')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" onload="this.style.display='block';">
-              </div>
-            </div>
-            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป, ลิงก์ Google Drive และเลือกรูปจากเครื่องได้ทันที</small>
-          </div>
-          <div class="form-group" style="margin-bottom: 1rem;">
-            <label class="form-label">ลิงก์ภาพโปรไฟล์ร้าน (Avatar ขอบชมพูพาสเทล) หรือเลือกรูป</label>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <input type="text" id="cfg_profileImage" class="form-input" style="flex: 1;" value="${escapeHTML(s.profileImage || '')}" placeholder="วางลิงก์รูป หรือเลือกรูปจากเครื่อง" oninput="const p=$('cfg_profileImage_preview'); if(p) { p.src=formatDriveImageUrl(this.value); p.style.display='block'; }">
-              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
-                เลือกรูป
-                <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_profileImage', 'cfg_profileImage_preview')">
-              </label>
-              <div style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--primary-600); overflow: hidden; background: var(--surface-alt); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                <img id="cfg_profileImage_preview" src="${escapeHTML(formatDriveImageUrl(s.profileImage) || '')}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none';" onload="this.style.display='block';">
-              </div>
-            </div>
-            <small style="color: var(--text-muted); font-size: 0.78rem;">*รองรับทั้งลิงก์รูปภาพทั่วไป, ลิงก์ Google Drive และเลือกรูปจากเครื่องได้ทันที</small>
-          </div>
-          <div class="form-group">
-            <label class="form-label">คำแนะนำร้านค้า (Bio)</label>
-            <textarea id="cfg_shopBio" class="form-textarea" rows="3">${escapeHTML(s.shopBio || '')}</textarea>
-          </div>
-        </div>
-
-        <!-- 6. Button Labels -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">ข้อความบนปุ่มกด (Button Labels)</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="form-group">
-              <label class="form-label">ปุ่มทักแชท LINE</label>
-              <input type="text" id="cfg_btnLineText" class="form-input" value="${escapeHTML(s.btnLineText || 'ทักแชท LINE ร้าน')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ปุ่มใส่ตะกร้า</label>
-              <input type="text" id="cfg_btnCartText" class="form-input" value="${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ปุ่มสั่งซื้อ</label>
-              <input type="text" id="cfg_btnBuyText" class="form-input" value="${escapeHTML(s.btnBuyText || 'สั่งซื้อเลย')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ปุ่มดูตัวอย่าง</label>
-              <input type="text" id="cfg_btnPreviewText" class="form-input" value="${escapeHTML(s.btnPreviewText || 'ดูตัวอย่าง')}">
-            </div>
-          </div>
-        </div>
-
-        <!-- 7. Social & Dynamic Contact Channels (CRUD Custom Channels) -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+        <!-- บัญชีธนาคาร & คิวอาร์โค้ดรับชำระเงิน (Dynamic Bank Accounts) -->
+        <div class="card" style="margin-bottom: 2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 8px;">
             <div>
-              <h3 style="color: var(--primary-deep); margin: 0 0 4px;">ช่องทางติดต่อ & Social Media (Dynamic Channels)</h3>
+              <h3 style="color: var(--primary-deep); margin: 0 0 4px;">บัญชีธนาคาร & คิวอาร์โค้ดรับชำระเงิน (Dynamic Bank Accounts)</h3>
               <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">
-                เพิ่ม ลบ หรือแก้ไขช่องทางติดต่อได้ตามใจชอบ (เช่น LINE, Facebook, IG, TikTok, Shopee, Lemon8, โทร ฯลฯ)
+                คุณสามารถเพิ่ม ลบ หรือแก้ไขบัญชีธนาคารสำหรับรับชำระเงินได้ไม่จำกัด
               </p>
             </div>
-            <button type="button" class="btn btn-outline btn-sm" onclick="addNewContactChannelRow()">
-              + เพิ่มช่องทางใหม่
+            <button type="button" class="btn btn-outline btn-sm" onclick="addNewBankAccountRow()">
+              + เพิ่มบัญชีธนาคารใหม่
             </button>
           </div>
 
-          <div id="adminContactChannelsList" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.25rem;">
-            ${Store.getContactChannels().map((ch, idx) => `
-              <div class="admin-channel-row" data-channel-id="${escapeHTML(ch.id || 'cc-' + idx)}" style="background: var(--surface-alt); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 140px;">
-                  <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ชื่อแพลตฟอร์ม / ปุ่ม</label>
-                  <input type="text" class="form-input channel-platform" value="${escapeHTML(ch.platform || '')}" placeholder="เช่น LINE Official, TikTok, IG">
-                </div>
-                <div style="flex: 1.2; min-width: 160px;">
-                  <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ข้อความกำกับ / ไอดี</label>
-                  <input type="text" class="form-input channel-value" value="${escapeHTML(ch.value || '')}" placeholder="เช่น @bncgraphmate หรือ 081-xxx">
-                </div>
-                <div style="flex: 1.8; min-width: 200px;">
-                  <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 3px;">ลิงก์ URL ปลายทาง (เมื่อคลิก)</label>
-                  <input type="text" class="form-input channel-url" value="${escapeHTML(ch.url || '')}" placeholder="https://... หรือ tel:081xxx">
-                </div>
-                <div style="display: flex; align-items: flex-end; padding-top: 18px;">
-                  <button type="button" class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5; padding: 6px 10px;" onclick="removeContactChannelRow(this)" title="ลบช่องทางนี้">
-                    ลบ
+          <div id="adminBankAccountsList" style="display: flex; flex-direction: column; gap: 14px;">
+            ${Store.getPaymentAccounts().map((acc, idx) => `
+              <div class="admin-bank-row" data-account-id="${escapeHTML(acc.id || 'acc-' + idx)}" style="background: var(--surface-alt); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                  <span style="font-weight: 700; font-size: 0.88rem; color: var(--primary-deep); background: var(--primary-soft); padding: 2px 10px; border-radius: 999px;">
+                    บัญชีที่ ${idx + 1}
+                  </span>
+                  <button type="button" class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5; padding: 3px 8px; font-size: 11px;" onclick="removeBankAccountRow(this)" title="ลบบัญชีนี้">
+                    ✕ ลบบัญชีนี้
                   </button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ชื่อธนาคาร / ช่องทางชำระเงิน</label>
+                    <input type="text" class="form-input bank-name" value="${escapeHTML(acc.bankName || '')}" placeholder="เช่น ธนาคารกสิกรไทย, ไทยพาณิชย์, PromptPay">
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">เลขที่บัญชี / เบอร์พร้อมเพย์</label>
+                    <input type="text" class="form-input bank-number" value="${escapeHTML(acc.accountNo || '')}" placeholder="เช่น 123-4-56789-0 หรือ 081-xxx">
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ชื่อเจ้าของบัญชี</label>
+                    <input type="text" class="form-input bank-holder" value="${escapeHTML(acc.accountName || '')}" placeholder="เช่น ร้าน บีเอ็นซี กราฟเมท หรือ ชื่อ-นามสกุล">
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ลิงก์ PromptPay QR Code หรือเลือกรูป</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                      <input type="text" class="form-input bank-qr" value="${escapeHTML(acc.qrUrl || '')}" placeholder="https://... หรือเลือกรูป" style="flex: 1; font-size: 0.82rem;">
+                      <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px; padding: 4px 8px;">
+                        เลือกรูป
+                        <input type="file" accept="image/*" style="display: none;" onchange="handleBankQrUpload(event, this)">
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
             `).join('')}
-          </div>
-
-          <!-- Legacy direct inputs preserved for compatibility -->
-          <details style="font-size: 0.82rem; color: var(--text-muted); border-top: 1px dashed var(--border); padding-top: 8px;">
-            <summary style="cursor: pointer; font-weight: 600;">ตั้งค่าลิงก์หลักแบบดั้งเดิม (Legacy Direct Fallback)</summary>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" style="margin-top: 10px;">
-              <div class="form-group">
-                <label class="form-label">ลิงก์ LINE Official</label>
-                <input type="text" id="cfg_lineUrl" class="form-input" value="${escapeHTML(s.lineUrl || '')}">
-              </div>
-              <div class="form-group">
-                <label class="form-label">เบอร์โทรศัพท์ติดต่อ</label>
-                <input type="text" id="cfg_contactPhone" class="form-input" value="${escapeHTML(s.contactPhone || '')}">
-              </div>
-              <div class="form-group">
-                <label class="form-label">ลิงก์ Instagram</label>
-                <input type="text" id="cfg_instagramUrl" class="form-input" value="${escapeHTML(s.instagramUrl || '')}">
-              </div>
-              <div class="form-group">
-                <label class="form-label">ลิงก์ Facebook Page</label>
-                <input type="text" id="cfg_facebookUrl" class="form-input" value="${escapeHTML(s.facebookUrl || '')}">
-              </div>
-            </div>
-          </details>
-        </div>
-
-        <!-- 8. Payment & Bank Accounts -->
-        <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">บัญชีธนาคาร & คิวอาร์โค้ดรับชำระเงิน</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="form-group">
-              <label class="form-label">ชื่อธนาคาร</label>
-              <input type="text" id="cfg_bankName" class="form-input" value="${escapeHTML(s.bankName || '')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">เลขที่บัญชี</label>
-              <input type="text" id="cfg_bankAccount" class="form-input" value="${escapeHTML(s.bankAccount || '')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ชื่อบัญชี</label>
-              <input type="text" id="cfg_bankAccountName" class="form-input" value="${escapeHTML(s.bankAccountName || '')}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">ลิงก์รูป PromptPay QR Code หรือเลือกรูป</label>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <input type="text" id="cfg_promptpayQrUrl" class="form-input" value="${escapeHTML(s.promptpayQrUrl || '')}" placeholder="https://... หรือเลือกรูป" style="flex: 1;">
-                <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px;">
-                  เลือกรูป
-                  <input type="file" accept="image/*" style="display: none;" onchange="handleImageFileInput(event, 'cfg_promptpayQrUrl')">
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 9. รหัสผ่านความปลอดภัยแอดมิน -->
-        <div class="card" style="margin-bottom: 2rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 0.5rem;">🔒 รหัสผ่านความปลอดภัยแอดมิน</h3>
-          <p style="font-size: 0.86rem; color: var(--text-muted); margin-bottom: 1.25rem;">ตั้งรหัสผ่าน PIN 6 หลักสำหรับเข้าสู่ระบบหลังบ้านผ่านเครื่องคิดเลข (ระบบฐานข้อมูลเชื่อมต่อผ่าน Supabase ในโค้ดอัตโนมัติ)</p>
-          <div class="form-group" style="max-width: 360px;">
-            <label class="form-label">รหัสผ่านแอดมิน (PIN 6 หลักสำหรับเครื่องคิดเลข)</label>
-            <input type="password" id="cfg_adminPin" class="form-input" value="${escapeHTML(s.adminPin || '123456')}" maxlength="6" style="letter-spacing: 4px; font-weight: 700;">
-            <small style="color: var(--text-muted);">*รหัสมาตรฐานเริ่มต้น: 123456</small>
-          </div>
-
-          <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border);">
-            <h4 style="color: var(--primary); font-size: 0.95rem; margin-bottom: 0.35rem;">⚡ โอนย้ายข้อมูลข้ามเครื่องด่วน (Phone &lt;-&gt; iPad &lt;-&gt; คอมพิวเตอร์)</h4>
-            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-              คุณสามารถคัดลอกข้อมูลร้าน หรือดาวน์โหลดไฟล์สำรอง (.json) เพื่อนำไปเปิดในเครื่องอื่น หรือเก็บสำรองไว้ได้ตลอดเวลาค่ะ
-            </p>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="exportDataJsonPrompt()">📋 คัดลอกข้อมูลร้านทั้งหมด (ส่งไปอีกเครื่อง)</button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="importDataJsonPrompt()">📥 นำเข้าข้อมูล (จากเครื่องอื่น)</button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="downloadBackupJson()">💾 ดาวน์โหลดไฟล์สำรอง (.json)</button>
-            </div>
           </div>
         </div>
 
@@ -6826,27 +6741,17 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         return el ? el.checked : fallback;
       };
 
+      const curQp = s.queuePage || {};
       const updated = {
         shopName: getVal('cfg_shopName', 'BNC GraphMate Studio'),
         tagline: getVal('cfg_tagline', 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
-        announcement: getVal('cfg_announcement', ''),
-        announcementEnabled: getChecked('cfg_announcementEnabled', false),
         coverImage: getVal('cfg_coverImage', ''),
         profileImage: getVal('cfg_profileImage', ''),
         shopBio: getVal('cfg_shopBio', ''),
-        btnLineText: getVal('cfg_btnLineText', 'ทักแชท LINE ร้าน'),
-        btnCartText: getVal('cfg_btnCartText', 'ใส่ตะกร้า'),
-        btnBuyText: getVal('cfg_btnBuyText', 'สั่งซื้อเลย'),
-        btnPreviewText: getVal('cfg_btnPreviewText', 'ดูตัวอย่าง'),
         lineUrl: getVal('cfg_lineUrl', ''),
         contactPhone: getVal('cfg_contactPhone', ''),
         instagramUrl: getVal('cfg_instagramUrl', ''),
         facebookUrl: getVal('cfg_facebookUrl', ''),
-        bankName: getVal('cfg_bankName', ''),
-        bankAccount: getVal('cfg_bankAccount', ''),
-        bankAccountName: getVal('cfg_bankAccountName', ''),
-        promptpayQrUrl: getVal('cfg_promptpayQrUrl', ''),
-        adminPin: getVal('cfg_adminPin', '123456'),
         notebookNotice: getVal('cfg_notebookNotice', 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'),
         queueBadgeText: getVal('cfg_queueBadgeText', 'ว่างพร้อมรับ 3 คิว'),
         queueBookingUrl: getVal('cfg_queueBookingUrl', 'https://line.me/ti/p/~bncgraphmate'),
@@ -6856,25 +6761,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           chatHours: '',
           deliveryInfo: ''
         },
-        queuePage: {
+        queuePage: Object.assign({}, curQp, {
           heroTitle: getVal('cfg_qp_heroTitle', 'เช็กคิวงาน'),
           heroSubtitle: getVal('cfg_qp_heroSubtitle', 'ดูสถานะคิวงานของร้านแบบเรียลไทม์'),
           noticeText: getVal('cfg_qp_noticeText', 'คิวงานอัปเดตสถานะการออกแบบตลอดทั้งวัน สามารถค้นหาด้วยเลขคิว ชื่อ หรือเบอร์โทรได้เลยนะคะ'),
-          searchTitle: getVal('cfg_qp_searchTitle', 'ค้นหาคิวของคุณ'),
-          searchPlaceholder: getVal('cfg_qp_searchPlaceholder', 'กรอกชื่อ, LINE ID, เบอร์โทรศัพท์ หรือเลขคิว...'),
-          searchButtonText: getVal('cfg_qp_searchButtonText', 'ดูคิวของฉัน'),
-          monthLabel: getVal('cfg_qp_monthLabel', 'คิวเดือนนี้'),
-          waitingLabel: getVal('cfg_qp_waitingLabel', 'รอคิว'),
-          workingLabel: getVal('cfg_qp_workingLabel', 'กำลังทำ'),
-          completionLabel: getVal('cfg_qp_completionLabel', 'ความสำเร็จในเดือนนี้'),
-          sectionTitle: getVal('cfg_qp_sectionTitle', 'คิวงานของร้าน'),
-          emptyStateText: getVal('cfg_qp_emptyStateText', 'วันนี้ยังไม่มีคิวงานนะคะ'),
-          showSearch: getChecked('cfg_qp_showSearch', true),
-          showSummary: getChecked('cfg_qp_showSummary', true),
-          showProgress: getChecked('cfg_qp_showProgress', true),
-          showTimeline: getChecked('cfg_qp_showTimeline', true),
-          showCustomerName: getChecked('cfg_qp_showCustomerName', true),
-          showNote: getChecked('cfg_qp_showNote', true),
           mascotStages: {
             pct0: getVal('cfg_q_mascot_pct0', 'https://api.iconify.design/fluent-emoji-flat:cat-face.svg'),
             pct25: getVal('cfg_q_mascot_pct25', 'https://api.iconify.design/fluent-emoji-flat:rabbit.svg'),
@@ -6882,7 +6772,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             pct75: getVal('cfg_q_mascot_pct75', 'https://api.iconify.design/fluent-emoji-flat:panda.svg'),
             pct100: getVal('cfg_q_mascot_pct100', 'https://api.iconify.design/fluent-emoji-flat:party-popper.svg')
           }
-        },
+        }),
         headings: {
           fontsTitle: getVal('cfg_fontsTitle', 'ฟอนต์ทั้งหมด'),
           fontsDesc: getVal('cfg_fontsDesc', 'ฟอนต์ลิขสิทธิ์แท้ ใช้งานได้ทั้งส่วนตัวและเชิงพาณิชย์'),
@@ -6952,6 +6842,35 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         }
       }
 
+      // Extract Dynamic Bank Accounts from Admin repeater
+      const bankRows = document.querySelectorAll('#adminBankAccountsList .admin-bank-row');
+      if (bankRows && bankRows.length > 0) {
+        const accounts = [];
+        bankRows.forEach((row, bIdx) => {
+          const bankName = (row.querySelector('.bank-name')?.value || '').trim();
+          const accountNo = (row.querySelector('.bank-number')?.value || '').trim();
+          const accountName = (row.querySelector('.bank-holder')?.value || '').trim();
+          const qrUrl = (row.querySelector('.bank-qr')?.value || '').trim();
+          if (bankName || accountNo || accountName || qrUrl) {
+            accounts.push({
+              id: row.dataset.accountId || ('acc-' + (bIdx + 1)),
+              bankName: bankName || 'บัญชีธนาคาร',
+              accountNo: accountNo || '',
+              accountName: accountName || '',
+              qrUrl: qrUrl || ''
+            });
+          }
+        });
+        if (accounts.length > 0) {
+          updated.paymentAccounts = accounts;
+          // Synchronize legacy top-level bank fields for fallback
+          updated.bankName = accounts[0].bankName;
+          updated.bankAccount = accounts[0].accountNo;
+          updated.bankAccountName = accounts[0].accountName;
+          updated.promptpayQrUrl = accounts[0].qrUrl;
+        }
+      }
+
       Store.saveSettings(updated);
       alert('บันทึกการตั้งค่าทั้งหมดเรียบร้อยแล้วค่ะ!');
       setupFloatingMascot();
@@ -6960,6 +6879,73 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
     }
+  };
+
+  // Dynamic Bank Accounts Repeater Handlers
+  window.addNewBankAccountRow = function () {
+    const list = $('adminBankAccountsList');
+    if (!list) return;
+    const newId = 'acc-' + Date.now();
+    const count = list.querySelectorAll('.admin-bank-row').length + 1;
+    const div = document.createElement('div');
+    div.className = 'admin-bank-row';
+    div.dataset.accountId = newId;
+    div.style = 'background: var(--surface-alt); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px; position: relative; animation: fadeIn 0.25s ease;';
+    div.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <span style="font-weight: 700; font-size: 0.88rem; color: var(--primary-deep); background: var(--primary-soft); padding: 2px 10px; border-radius: 999px;">
+          บัญชีที่ ${count}
+        </span>
+        <button type="button" class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5; padding: 3px 8px; font-size: 11px;" onclick="removeBankAccountRow(this)" title="ลบบัญชีนี้">
+          ✕ ลบบัญชีนี้
+        </button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ชื่อธนาคาร / ช่องทางชำระเงิน</label>
+          <input type="text" class="form-input bank-name" value="" placeholder="เช่น ธนาคารกสิกรไทย, ไทยพาณิชย์, PromptPay">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">เลขที่บัญชี / เบอร์พร้อมเพย์</label>
+          <input type="text" class="form-input bank-number" value="" placeholder="เช่น 123-4-56789-0 หรือ 081-xxx">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ชื่อเจ้าของบัญชี</label>
+          <input type="text" class="form-input bank-holder" value="" placeholder="เช่น ร้าน บีเอ็นซี กราฟเมท หรือ ชื่อ-นามสกุล">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-size: 0.82rem; font-weight: 600;">ลิงก์ PromptPay QR Code หรือเลือกรูป</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" class="form-input bank-qr" value="" placeholder="https://... หรือเลือกรูป" style="flex: 1; font-size: 0.82rem;">
+            <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 11px; padding: 4px 8px;">
+              เลือกรูป
+              <input type="file" accept="image/*" style="display: none;" onchange="handleBankQrUpload(event, this)">
+            </label>
+          </div>
+        </div>
+      </div>
+    `;
+    list.appendChild(div);
+  };
+
+  window.removeBankAccountRow = function (btn) {
+    const row = btn.closest('.admin-bank-row');
+    if (!row) return;
+    if (confirm('ต้องการลบบัญชีธนาคารนี้ใช่หรือไม่?')) {
+      row.remove();
+    }
+  };
+
+  window.handleBankQrUpload = function (event, labelEl) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const row = labelEl.closest('.admin-bank-row');
+      const input = row ? row.querySelector('.bank-qr') : null;
+      if (input) input.value = e.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   // Dynamic Contact Channels Repeater Handlers
