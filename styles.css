@@ -543,6 +543,78 @@ input[type="radio"]:focus-visible {
   text-align: center;
 }
 
+/* Contact Us Section: Circular Icon Buttons */
+.fb-contact-block {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0.25rem;
+}
+
+.fb-contact-title {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #8D6672; /* Warm dusty cocoa-pink */
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fb-contact-icons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Circular White Button with Dusty Pink Icon (วงกลมพื้นขาว ไอคอนสีชมพูตุ่นๆ) */
+.fb-contact-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid #FFDFE9;
+  box-shadow: 0 2px 8px rgba(113, 81, 91, 0.07);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #B26E86; /* Dusty Muted Pink (ชมพูตุ่นๆ) */
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-decoration: none;
+  position: relative;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.fb-contact-btn:hover {
+  transform: translateY(-3px) scale(1.08);
+  border-color: #FABBCF;
+  background: #FFF7F9;
+  color: #994D68;
+  box-shadow: 0 6px 16px rgba(178, 110, 134, 0.22);
+}
+
+.fb-contact-btn:active {
+  transform: scale(0.95);
+}
+
+.fb-contact-btn svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.fb-contact-btn:hover svg {
+  transform: scale(1.05);
+}
+
+/* Backward compatibility for any remaining fb-actions-row */
 .fb-actions-row {
   display: flex;
   gap: 0.65rem;
@@ -592,6 +664,14 @@ input[type="radio"]:focus-visible {
   .fb-bio-text {
     text-align: left;
     margin: 0 0 1.25rem;
+  }
+
+  .fb-contact-block {
+    justify-content: flex-start;
+  }
+
+  .fb-contact-icons {
+    justify-content: flex-start;
   }
 
   .fb-actions-row {

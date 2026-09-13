@@ -3213,6 +3213,54 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
   };
 
+  function getContactChannelIcon(platform, url) {
+    const p = (platform || '').toLowerCase();
+    const u = (url || '').toLowerCase();
+
+    // LINE
+    if (p.includes('line') || p.includes('ไลน์') || u.includes('line.me')) {
+      return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.477.254l2.508 3.407V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>`;
+    }
+    // Facebook
+    if (p.includes('facebook') || p.includes('fb') || p.includes('เฟส') || u.includes('facebook.com') || u.includes('fb.me')) {
+      return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`;
+    }
+    // Instagram
+    if (p.includes('instagram') || p.includes('ig') || p.includes('ไอจี') || u.includes('instagram.com')) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`;
+    }
+    // Phone / Tel
+    if (p.includes('tel') || p.includes('phone') || p.includes('โทร') || p.includes('เบอร์') || p.includes('call') || u.startsWith('tel:')) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`;
+    }
+    // TikTok
+    if (p.includes('tiktok') || p.includes('ติ๊กตอก') || u.includes('tiktok.com')) {
+      return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>`;
+    }
+    // Twitter / X
+    if (p.includes('twitter') || p === 'x' || p.includes('ทวิต') || u.includes('twitter.com') || u.includes('x.com')) {
+      return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
+    }
+    // YouTube
+    if (p.includes('youtube') || p.includes('yt') || p.includes('ยูทูป') || u.includes('youtube.com')) {
+      return `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`;
+    }
+    // Shopee / Lazada / Shop
+    if (p.includes('shopee') || p.includes('lazada') || p.includes('shop') || p.includes('store') || p.includes('ร้าน') || p.includes('ช้อป') || u.includes('shopee') || u.includes('lazada')) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>`;
+    }
+    // Email / Mail
+    if (p.includes('mail') || p.includes('เมล') || p.includes('email') || u.startsWith('mailto:')) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`;
+    }
+    // Website / Web / Link
+    if (p.includes('web') || p.includes('site') || p.includes('link') || p.includes('เว็บ')) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path></svg>`;
+    }
+    // Default chat bubble with dots
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><circle cx="9" cy="10" r="1"></circle><circle cx="12" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle></svg>`;
+  }
+
   function renderHomeView(container) {
     const s = Store.getSettings();
     const stats = s.stats || {};
@@ -3253,17 +3301,24 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <!-- Bio -->
               <p class="fb-bio-text">${escapeHTML(s.shopBio || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกพร้อมใช้ ตอบแชทไว ส่งงานเร็ว ไฟล์คมชัด 300 DPI ใช้งานเชิงพาณิชย์ได้')}</p>
 
-              <!-- Action Buttons (Dynamic Contact Channels) -->
-              <div class="fb-actions-row">
-                ${Store.getContactChannels().map((ch, idx) => {
-                  const btnClass = idx === 0 ? 'btn btn-primary btn-sm' : (idx === 1 ? 'btn btn-secondary btn-sm' : 'btn btn-outline btn-sm');
-                  const isTel = (ch.url || '').startsWith('tel:');
-                  return `
-                    <a href="${escapeHTML(ch.url || '#')}" ${isTel ? '' : 'target="_blank"'} class="${btnClass}">
-                      ${escapeHTML(ch.platform || 'ติดต่อ')}${ch.value ? `: ${escapeHTML(ch.value)}` : ''}
-                    </a>
-                  `;
-                }).join('')}
+              <!-- Contact us: Circular Icon Buttons (White Background, Dusty Pink Icons) -->
+              <div class="fb-contact-block">
+                <span class="fb-contact-title">Contact us</span>
+                <div class="fb-contact-icons">
+                  ${Store.getContactChannels().map(ch => {
+                    const isTel = (ch.url || '').startsWith('tel:');
+                    const isMail = (ch.url || '').startsWith('mailto:');
+                    const target = (isTel || isMail) ? '' : 'target="_blank" rel="noopener noreferrer"';
+                    const iconSvg = getContactChannelIcon(ch.platform, ch.url);
+                    const label = ch.platform || 'ติดต่อ';
+                    const val = ch.value ? ` (${ch.value})` : '';
+                    return `
+                      <a href="${escapeHTML(ch.url || '#')}" ${target} class="fb-contact-btn" title="${escapeHTML(label + val)}" aria-label="${escapeHTML(label)}">
+                        ${iconSvg}
+                      </a>
+                    `;
+                  }).join('')}
+                </div>
               </div>
             </div>
           </div>
