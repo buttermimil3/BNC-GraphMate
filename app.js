@@ -4058,8 +4058,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
           </div>
 
-          <!-- Fonts Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Fonts Grid (Responsive 2 Columns in Mobile Portrait) -->
+          <div class="font-gallery-grid">
             ${filtered.length > 0 ? filtered.map(f => renderFontCard(f, s)).join('') : `
               <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
                 <h4>ไม่พบฟอนต์ที่ค้นหา</h4>
@@ -9093,20 +9093,20 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       : (state.fontTester.text || f.preview_text || 'ร้านป้ายบีเอ็นซี ฟอนต์ลายมือน่ารัก 1234');
 
     return `
-      <div class="card font-item-card" data-card-font-id="${f.id}" style="display: flex; flex-direction: column; border-radius: var(--radius-lg); padding: 1.25rem; background: #FFFFFF; border: 1.5px solid ${isCompared ? '#FFB7CE' : '#FFDFE9'}; box-shadow: 0 4px 14px rgba(113,81,91,0.05);">
+      <div class="card font-item-card" data-card-font-id="${f.id}" style="border-color: ${isCompared ? '#FFB7CE' : '#FFDFE9'};">
         <!-- 1:1 Square Font Poster with White Border Inset Margin -->
-        <div style="position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-alt); cursor: pointer; margin-bottom: 0.85rem; border: 1px solid #FFDFE9;" onclick="openLightbox('${escapeHTML(fontImg)}')" title="คลิกเพื่อดูรูปป้ายฟอนต์ขนาดใหญ่">
+        <div class="font-poster-wrap" style="position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-alt); cursor: pointer; margin-bottom: 0.85rem; border: 1px solid #FFDFE9;" onclick="openLightbox('${escapeHTML(fontImg)}')" title="คลิกเพื่อดูรูปป้ายฟอนต์ขนาดใหญ่">
           <img src="${escapeHTML(fontImg)}" alt="${escapeHTML(f.name)}" style="width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block;" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';">
-          <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 6px;">
+          <div style="position: absolute; top: 8px; left: 8px; display: flex; gap: 4px;">
             <span class="badge badge--pink">${escapeHTML(f.category || 'ลายมือ')}</span>
           </div>
-          <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 6px;">
+          <div style="position: absolute; top: 8px; right: 8px; display: flex; gap: 4px;">
             <span class="badge ${f.delivery_type === 'GOOGLE_DRIVE' ? 'badge--success' : 'badge--info'}">${f.delivery_type === 'GOOGLE_DRIVE' ? 'ส่งอัตโนมัติ' : 'แอดมินส่ง'}</span>
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; gap: 8px;">
-          <h3 style="font-size: 1.15rem; margin: 0; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(f.name)}</h3>
+        <div class="font-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; gap: 6px;">
+          <h3 class="font-card-title" style="font-size: 1.15rem; margin: 0; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(f.name)}</h3>
           
           <!-- Favorite Heart Button (No Aura, Clean Pastel) -->
           <button type="button" class="font-heart-btn ${isFav ? 'is-favorited' : ''}" onclick="toggleFontFavorite('${f.id}')" title="${isFav ? 'ยกเลิกบันทึกฟอนต์ที่ชอบ' : 'บันทึกเป็นฟอนต์ที่ชอบ'}">
@@ -9115,8 +9115,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </div>
 
         <!-- Controls for weight above live preview box -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">ลองพิมพ์ทดสอบคำ:</span>
+        <div class="font-weight-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 4px;">
+          <span class="font-weight-label" style="font-size: 11px; font-weight: 700; color: var(--text-muted); white-space: nowrap;">ลองพิมพ์:</span>
           <div class="font-weight-pill-group">
             <button type="button" class="font-weight-pill ${cardWeight === '300' ? 'active' : ''}" data-weight="300" onclick="setCardFontWeight('${f.id}', '300')">บาง</button>
             <button type="button" class="font-weight-pill ${cardWeight === '400' ? 'active' : ''}" data-weight="400" onclick="setCardFontWeight('${f.id}', '400')">ปกติ</button>
@@ -9125,27 +9125,32 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         </div>
 
         <!-- Live Font Preview Area with Direct In-Card Typing (ลองพิมพ์คำเองได้) -->
-        <div class="font-preview-area" style="padding: 0.75rem 0.95rem; min-height: 56px; border-radius: 14px; border: 1.5px solid #FFDFE9; background: #FFFDFE; margin-bottom: 0.85rem; display: flex; align-items: center;">
-          <input type="text" class="font-preview-editable-input font-card-input font-weight-${cardWeight}" data-font-id="${f.id}" data-weight="${cardWeight}" value="${escapeHTML(cardText)}" placeholder="คลิกเพื่อพิมพ์ทดสอบคำ..." oninput="handleCardFontTextInput('${f.id}', this.value)" style="font-family: ${getFontFamily(f)} !important; font-weight: ${cardWeight};">
+        <div class="font-preview-area" style="padding: 0.65rem 0.85rem; min-height: 52px; border-radius: 14px; border: 1.5px solid #FFDFE9; background: #FFFDFE; margin-bottom: 0.75rem; display: flex; align-items: center;">
+          <input type="text" class="font-preview-editable-input font-card-input font-weight-${cardWeight}" data-font-id="${f.id}" data-weight="${cardWeight}" value="${escapeHTML(cardText)}" placeholder="พิมพ์ทดสอบคำ..." oninput="handleCardFontTextInput('${f.id}', this.value)" style="font-family: ${getFontFamily(f)} !important; font-weight: ${cardWeight};">
         </div>
 
-        ${f.description ? `<p style="font-size: 0.86rem; color: var(--text-muted); margin: 0 0 0.85rem; line-height: 1.4;">${escapeHTML(f.description)}</p>` : ''}
+        ${f.description ? `<p class="font-card-desc" style="font-size: 0.86rem; color: var(--text-muted); margin: 0 0 0.75rem; line-height: 1.4;">${escapeHTML(f.description)}</p>` : ''}
 
-        <!-- Clean Footer: Price on top row, Action buttons below with zero text overflow -->
-        <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: auto; padding-top: 0.85rem; border-top: 1px solid var(--border-light);">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 0.82rem; color: var(--text-muted);">ราคาฟอนต์</span>
-            <div class="product-price" style="font-size: 1.35rem; color: #71515B;">฿${Number(f.price || 0).toLocaleString()}</div>
+        <!-- Responsive Card Footer: Mobile places 'เทียบ' next to price, Cart & Buy below -->
+        <div class="font-card-footer" style="display: flex; flex-direction: column; gap: 0.55rem; margin-top: auto; padding-top: 0.75rem; border-top: 1px solid var(--border-light);">
+          <div class="font-card-price-row" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span class="font-card-price-label" style="font-size: 0.78rem; color: var(--text-muted); display: block;">ราคาฟอนต์</span>
+              <div class="product-price font-card-price-val" style="font-size: 1.28rem; color: #71515B; font-weight: 800; line-height: 1.1;">฿${Number(f.price || 0).toLocaleString()}</div>
+            </div>
+            <button type="button" class="btn ${isCompared ? 'btn-primary' : 'btn-outline'} btn-sm font-btn-compare font-btn-compare-top" onclick="toggleCompareSelection('${f.id}')" title="เลือกเพื่อเปรียบเทียบในสมุด">
+              ${isCompared ? 'เทียบอยู่' : 'เทียบ'}
+            </button>
           </div>
-          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-            <button type="button" class="btn ${isCompared ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="toggleCompareSelection('${f.id}')" title="เลือกเพื่อนำไปเปรียบเทียบในสมุด GoodNotes" style="flex: 1; min-width: 58px; padding: 6px 4px; font-size: 12px; white-space: nowrap; text-align: center;">
+          <div class="font-card-actions" style="display: flex; gap: 0.4rem;">
+            <button type="button" class="btn ${isCompared ? 'btn-primary' : 'btn-outline'} btn-sm font-btn-compare font-btn-compare-bottom" onclick="toggleCompareSelection('${f.id}')" title="เลือกเพื่อนำไปเปรียบเทียบในสมุด GoodNotes" style="flex: 1; min-width: 58px; padding: 6px 4px; font-size: 12px; white-space: nowrap; text-align: center;">
               ${isCompared ? 'เลือกแล้ว' : 'เทียบ'}
             </button>
-            <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${f.id}', 'FONT')" style="flex: 1.2; min-width: 80px; padding: 6px 8px; font-size: 12px; white-space: nowrap; text-align: center;">
+            <button type="button" class="btn btn-outline btn-sm font-btn-cart" onclick="addToCartItem('${f.id}', 'FONT')" style="flex: 1.2; min-width: 0; padding: 6px 6px; font-size: 12px; white-space: nowrap; text-align: center;">
               ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
             </button>
-            <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${f.id}', 'FONT')" style="flex: 1.4; min-width: 90px; padding: 6px 10px; font-size: 12px; white-space: nowrap; text-align: center;">
-              ${escapeHTML(s.btnBuyText || 'สั่งซื้อเลย')}
+            <button type="button" class="btn btn-primary btn-sm font-btn-buy" onclick="buyNowItem('${f.id}', 'FONT')" style="flex: 1.4; min-width: 0; padding: 6px 8px; font-size: 12px; white-space: nowrap; text-align: center;">
+              ${escapeHTML(s.btnBuyText || 'สั่งซื้อ')}
             </button>
           </div>
         </div>
