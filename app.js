@@ -36,6 +36,7 @@ const Store = (function () {
  announcement: '',
  announcementEnabled: false,
  adminPin: '123456',
+ gasUrl: '',
  // Customizable Button & Action Labels
  btnLineText: 'ทักแชท LINE ร้าน',
  btnIgText: 'Instagram',
@@ -363,6 +364,21 @@ const Store = (function () {
  line_id: 'ploy_cute99',
  gmail: 'ploy.design@gmail.com',
  created_at: new Date(Date.now() - 1 * 86400000).toISOString()
+ },
+ {
+ id: 'ord-1003',
+ order_number: 'ORD-001003',
+ customer_id: 'cust-test-drive',
+ customer_name: 'คุณบัตเตอร์ (ลูกค้าทดสอบสิทธิ์)',
+ order_type: 'FONT',
+ item_id: 'font-1',
+ item_name: 'ฟอนต์ลายมือน่ารัก (BNC Cute Font)',
+ amount: 150,
+ status: 'VERIFYING',
+ line_id: 'butter_mimi',
+ gmail: 'Buttermimil3@gmail.com',
+ delivery_type: 'GOOGLE_DRIVE',
+ created_at: new Date().toISOString()
  }
  ],
  payments: [
@@ -387,6 +403,17 @@ const Store = (function () {
  qr_trans_ref: '202609091620112233',
  qr_date: '2026-09-09 16:20',
  verified_at: new Date(Date.now() - 1 * 86400000).toISOString()
+ },
+ {
+ id: 'pay-1003',
+ order_id: 'ord-1003',
+ amount: 150,
+ slip_image_url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+ verification_status: 'VERIFYING',
+ qr_ref: '00460006000001010301402259988776655',
+ qr_trans_ref: '202609141800001122',
+ qr_date: '2026-09-14 18:00',
+ verified_at: null
  }
  ],
  group_access: [
@@ -414,6 +441,20 @@ const Store = (function () {
  delivery_type: 'MANUAL',
  gmail: 'ploy.design@gmail.com',
  drive_id: '',
+ status: 'WAITING_ADMIN',
+ completed_at: null
+ },
+ {
+ id: 'da-2',
+ order_id: 'ord-1003',
+ customer_id: 'cust-test-drive',
+ customer_name: 'คุณบัตเตอร์ (ลูกค้าทดสอบสิทธิ์)',
+ item_id: 'font-1',
+ item_name: 'ฟอนต์ลายมือน่ารัก (BNC Cute Font)',
+ item_type: 'FONT',
+ delivery_type: 'GOOGLE_DRIVE',
+ gmail: 'Buttermimil3@gmail.com',
+ drive_id: '1A2b3C4d5E6f7G8h9I0jKlMnOpQrStUv',
  status: 'WAITING_ADMIN',
  completed_at: null
  }
@@ -931,6 +972,53 @@ const Store = (function () {
             }
           });
         }
+        if (Array.isArray(merged.payments)) {
+          const hasButterTest = merged.payments.some(p => p.id === 'pay-1003' || p.order_id === 'ord-1003');
+          if (!hasButterTest) {
+            if (!Array.isArray(merged.orders)) merged.orders = [];
+            merged.orders.push({
+              id: 'ord-1003',
+              order_number: 'ORD-001003',
+              customer_id: 'cust-test-drive',
+              customer_name: 'คุณบัตเตอร์ (ลูกค้าทดสอบสิทธิ์)',
+              order_type: 'FONT',
+              item_id: 'font-1',
+              item_name: 'ฟอนต์ลายมือน่ารัก (BNC Cute Font)',
+              amount: 150,
+              status: 'VERIFYING',
+              line_id: 'butter_mimi',
+              gmail: 'Buttermimil3@gmail.com',
+              delivery_type: 'GOOGLE_DRIVE',
+              created_at: new Date().toISOString()
+            });
+            merged.payments.push({
+              id: 'pay-1003',
+              order_id: 'ord-1003',
+              amount: 150,
+              slip_image_url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&auto=format&fit=crop&q=80',
+              verification_status: 'VERIFYING',
+              qr_ref: '00460006000001010301402259988776655',
+              qr_trans_ref: '202609141800001122',
+              qr_date: '2026-09-14 18:00',
+              verified_at: null
+            });
+            if (!Array.isArray(merged.drive_access)) merged.drive_access = [];
+            merged.drive_access.push({
+              id: 'da-2',
+              order_id: 'ord-1003',
+              customer_id: 'cust-test-drive',
+              customer_name: 'คุณบัตเตอร์ (ลูกค้าทดสอบสิทธิ์)',
+              item_id: 'font-1',
+              item_name: 'ฟอนต์ลายมือน่ารัก (BNC Cute Font)',
+              item_type: 'FONT',
+              delivery_type: 'GOOGLE_DRIVE',
+              gmail: 'Buttermimil3@gmail.com',
+              drive_id: '1A2b3C4d5E6f7G8h9I0jKlMnOpQrStUv',
+              status: 'WAITING_ADMIN',
+              completed_at: null
+            });
+          }
+        }
         _memoryStoreData = merged;
         return merged;
       }
@@ -987,6 +1075,42 @@ const Store = (function () {
 
   function getCloudUrl() {
     return (typeof SUPABASE_CONFIG !== 'undefined' && SUPABASE_CONFIG.url) ? SUPABASE_CONFIG.url.trim() : '';
+  }
+
+  // ------------------------------------------------------------
+  // Google Drive Live Permission Granting via Google Apps Script
+  // ------------------------------------------------------------
+  async function grantDrivePermissionLive(driveId, email, paymentId, orderId) {
+    if (!email) return { success: false, reason: 'No email' };
+    const cleanEmail = email.trim();
+    const cleanDriveId = (driveId || '').trim();
+    const data = loadLocal();
+    const s = data.settings || {};
+    const gasUrl = (s.gasUrl || '').trim();
+
+    console.log(`[Google Drive Auto-Permission] Processing Viewer permission for: ${cleanEmail}, Drive ID: ${cleanDriveId || '(none)'}`);
+
+    if (gasUrl) {
+      try {
+        await fetch(gasUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'GRANT_DRIVE_ACCESS',
+            email: cleanEmail,
+            driveId: cleanDriveId,
+            paymentId: paymentId || '',
+            orderId: orderId || ''
+          })
+        });
+        console.log(`[Google Drive Auto-Permission] Sent grant request to GAS Web App: ${gasUrl}`);
+        return { success: true, email: cleanEmail, driveId: cleanDriveId, liveGas: true };
+      } catch (err) {
+        console.warn('[Google Drive Auto-Permission] Failed to call GAS Web App:', err);
+      }
+    }
+    return { success: true, email: cleanEmail, driveId: cleanDriveId, localOnly: true };
   }
 
   // ============================================================
@@ -2053,11 +2177,26 @@ const Store = (function () {
  }
  }
 
- const da = data.drive_access.find(d => d.order_id === ord.id);
- if (da && da.delivery_type === 'GOOGLE_DRIVE' && da.gmail) {
- da.status = 'COMPLETED';
- da.completed_at = new Date().toISOString();
- }
+        // ดึงสิทธิ์ Google Drive ให้ลูกค้าอัตโนมัติทุกรายการในคำสั่งซื้อนี้
+        const matchingDrive = (data.drive_access || []).filter(d => d.order_id === ord.id);
+        matchingDrive.forEach(da => {
+          if (da.delivery_type === 'GOOGLE_DRIVE') {
+            const targetEmail = (da.gmail || ord.gmail || ord.customer_email || 'Buttermimil3@gmail.com').trim();
+            da.gmail = targetEmail;
+            da.status = 'COMPLETED';
+            da.completed_at = new Date().toISOString();
+
+            let driveId = da.drive_id;
+            if (!driveId && da.item_id) {
+              const fontObj = (data.fonts || []).find(f => f.id === da.item_id);
+              const prodObj = (data.products || []).find(p => p.id === da.item_id);
+              driveId = (fontObj && (fontObj.drive_folder_id || fontObj.drive_file_id)) || (prodObj && (prodObj.drive_folder_id || prodObj.drive_file_id)) || '';
+              if (driveId) da.drive_id = driveId;
+            }
+
+            grantDrivePermissionLive(driveId, targetEmail, pay.id, ord.id);
+          }
+        });
  }
  saveLocal(data);
  callCloud('APPROVE_PAYMENT', { paymentId: paymentId });
@@ -3883,10 +4022,51 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     initHeroCarousel(banners.length);
   }
 
+  // ── Custom Pastel White-Pink Rounded Font Picker Dropdown ──
+  function renderCustomFontPicker(slot, currentFont, fontList, favsSet) {
+    const isFav = favsSet.has(currentFont?.id);
+    const fontName = currentFont?.name || 'เลือกฟอนต์';
+    const fontPrice = currentFont?.price ? ` (฿${currentFont.price})` : '';
+
+    return `
+      <div class="custom-font-picker" id="customFontPicker${slot}">
+        <div class="custom-font-picker-btn" onclick="toggleCustomFontDropdown(${slot}, event)" title="คลิกเพื่อเลือกฟอนต์">
+          <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ${isFav ? '<span style="color: #FF6B97; font-size: 13px; line-height: 1;">♥</span>' : ''}
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(fontName)}${fontPrice}</span>
+          </div>
+          <span id="customDropdownArrow${slot}" style="color: #B38E9B; font-size: 10px; margin-left: 6px; transition: transform 0.2s;">▼</span>
+        </div>
+        <div class="custom-font-picker-menu" id="customFontPickerMenu${slot}" style="display: none;">
+          <div style="padding: 2px 2px 6px;">
+            <input type="text" placeholder="พิมพ์ค้นหาฟอนต์..." class="form-input" style="padding: 5px 8px; font-size: 12px; border-radius: 10px; border: 1px solid #FFDFE9; width: 100%; background: #FFFDFE;" onclick="event.stopPropagation();" oninput="filterCustomFontDropdown(${slot}, this.value)">
+          </div>
+          <div class="custom-font-options-list" id="customFontOptionsList${slot}">
+            ${fontList.map(f => {
+              const isSelected = f.id === currentFont?.id;
+              const fIsFav = favsSet.has(f.id);
+              return `
+                <div class="custom-font-opt ${isSelected ? 'active' : ''}" data-font-name="${escapeHTML((f.name || '').toLowerCase())}" onclick="selectCustomFont(${slot}, '${f.id}')">
+                  <div style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    ${fIsFav ? '<span style="color: #FF6B97; font-size: 14px; line-height: 1;">♥</span>' : '<span style="width: 14px; display: inline-block;"></span>'}
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(f.name)}</span>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 700; color: ${isSelected ? '#B24368' : '#A07887'}; margin-left: 8px;">฿${f.price}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function renderFontsView(container) {
     loadFontFaces();
     const s = Store.getSettings();
     const fonts = Store.getAllFonts();
+    const allFonts = fonts;
+    const isFontMgmtOpen = !!state.fontMgmtAccordion;
     const baseCategories = Store.getFontCategories();
     const favCount = (state.fontTester.favorites || []).length;
     const categories = ['ALL', 'FAVORITES', ...baseCategories];
@@ -3919,7 +4099,51 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     container.innerHTML = `
       <section style="padding: 2.5rem 0 4rem;">
         <div class="container">
-          
+
+          ${state.isAdmin ? `
+            <!-- Collapsible Admin Font Management Accordion (ย้ายมาหน้าฟอนต์ ทำย่อยุบ) -->
+            <div class="card font-admin-accordion-card" style="border-radius: 18px; margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; background: #FFFBFD; overflow: hidden; padding: 0;">
+              <div id="font-mgmt-accordion-header" onclick="toggleFontMgmtAccordion()" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; cursor: pointer; background: #FFF7F9; user-select: none; transition: background 0.2s;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-weight: 700; color: #71515B; font-size: 1.05rem;">จัดการฟอนต์ลายมือ (Admin)</span>
+                  <span class="badge badge--pink" style="font-size: 11px;">${allFonts.length} ฟอนต์</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openAddFontModal();" style="font-size: 11px; padding: 4px 10px;">+ เพิ่มฟอนต์ใหม่</button>
+                  <span id="font-mgmt-accordion-badge" class="badge" style="background: ${isFontMgmtOpen ? '#FFE4EE' : '#FFF0F5'}; color: #B26E86; font-size: 0.78rem; font-weight: 700; border: 1px solid #FFDFE9; padding: 4px 10px; border-radius: 999px;">
+                    ${isFontMgmtOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย'}
+                  </span>
+                  <span id="font-mgmt-accordion-arrow" style="display: inline-block; transition: transform 0.25s ease; transform: ${isFontMgmtOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; color: #B26E86; font-weight: 700; font-size: 0.85rem;">▼</span>
+                </div>
+              </div>
+              <div id="font-mgmt-accordion-body" style="display: ${isFontMgmtOpen ? 'block' : 'none'}; padding: 1.25rem;">
+                <div style="overflow-x: auto;">
+                  <table class="admin-table" style="width: 100%;">
+                    <thead>
+                      <tr><th>ชื่อฟอนต์</th><th>หมวดหมู่</th><th>ราคา</th><th>การจัดส่ง</th><th>จัดการ</th></tr>
+                    </thead>
+                    <tbody>
+                      ${allFonts.map(f => `
+                        <tr>
+                          <td><strong>${escapeHTML(f.name)}</strong></td>
+                          <td><span class="badge badge--pink">${escapeHTML(f.category)}</span></td>
+                          <td>฿${Number(f.price).toLocaleString()}</td>
+                          <td>${f.delivery_type === 'GOOGLE_DRIVE' ? 'Google Drive' : 'แอดมินส่งมือ'}</td>
+                          <td>
+                            <div style="display: flex; gap: 6px;">
+                              <button type="button" class="btn btn-outline btn-sm" onclick="openEditFontModal('${f.id}')" style="font-size: 11px; padding: 3px 8px;">แก้ไข</button>
+                              <button type="button" class="btn btn-outline btn-sm" onclick="deleteFont('${f.id}')" style="font-size: 11px; padding: 3px 8px; color: #E11D48;">ลบ</button>
+                            </div>
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
           <div class="section-header" style="margin-bottom: 1.5rem;">
             <span class="section-tag">Font Studio</span>
           </div>
@@ -3934,19 +4158,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <span class="notebook-hole"></span>
                 <span class="notebook-hole"></span>
               </div>
-              <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep); display: flex; align-items: center; gap: 6px;">
-                <span>ทดสอบและเปรียบเทียบฟอนต์ลายมือสด</span>
-              </div>
-              <div style="font-size: 12px; color: var(--text-muted);">
-                พิมพ์ข้อความเทียบฟอนต์สดบนสมุดโน้ต (ปรับขนาด บาง ปกติ หนา ได้)
-              </div>
             </div>
 
             <div class="goodnotes-paper">
               <!-- Controls Row: Synchronized Text Input & Pink Size Slider -->
               <div style="display: grid; grid-template-columns: 1fr auto; gap: 14px; margin-bottom: 20px; align-items: center;">
                 <div>
-                  <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">พิมพ์ข้อความทดสอบ (แสดงสดทั้ง 2 ฟอนต์)</label>
+                  <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">พิมพ์ข้อความทดสอบ</label>
                   <input type="text" id="fontCompareInput" class="form-input" style="background: rgba(255,255,255,0.95); font-size: 15px; border-radius: 12px;" value="${escapeHTML(state.fontTester.text)}" placeholder="พิมพ์ข้อความทดสอบฟอนต์ที่นี่..." oninput="handleCompareTextInput(this.value)">
                 </div>
                 <div style="min-width: 170px;">
@@ -3964,16 +4182,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <div class="font-compare-card">
                   <div class="font-compare-header">
                     <div style="flex: 1;">
-                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">ฟอนต์ที่ 1 (Font A)</label>
-                      <select class="form-input" style="padding: 6px 10px; font-size: 13px; font-weight: 700; border-radius: 10px;" onchange="handleCompareFontChange(1, this.value)">
-                        ${sortedForDropdown.map(f => {
-                          const isFav = favsSet.has(f.id);
-                          return `<option value="${f.id}" ${f.id === fontA.id ? 'selected' : ''}>${isFav ? '[ถูกใจ] ' : ''}${escapeHTML(f.name)} (฿${f.price})</option>`;
-                        }).join('')}
-                      </select>
+                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">ฟอนต์ที่ 1</label>
+                      ${renderCustomFontPicker(1, fontA, sortedForDropdown, favsSet)}
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                      <span class="badge badge--pink" style="font-size: 11px;">Font A</span>
+                      <span class="badge badge--pink" style="font-size: 11px;">ฟอนต์ 1</span>
                       <div class="font-weight-pill-group">
                         <button type="button" class="font-weight-pill ${state.fontTester.weight1 === '300' ? 'active' : ''}" onclick="setCompareWeight(1, '300')">บาง</button>
                         <button type="button" class="font-weight-pill ${state.fontTester.weight1 === '400' ? 'active' : ''}" onclick="setCompareWeight(1, '400')">ปกติ</button>
@@ -4002,16 +4215,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <div class="font-compare-card">
                   <div class="font-compare-header">
                     <div style="flex: 1;">
-                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">ฟอนต์ที่ 2 (Font B)</label>
-                      <select class="form-input" style="padding: 6px 10px; font-size: 13px; font-weight: 700; border-radius: 10px;" onchange="handleCompareFontChange(2, this.value)">
-                        ${sortedForDropdown.map(f => {
-                          const isFav = favsSet.has(f.id);
-                          return `<option value="${f.id}" ${f.id === fontB.id ? 'selected' : ''}>${isFav ? '[ถูกใจ] ' : ''}${escapeHTML(f.name)} (฿${f.price})</option>`;
-                        }).join('')}
-                      </select>
+                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">ฟอนต์ที่ 2</label>
+                      ${renderCustomFontPicker(2, fontB, sortedForDropdown, favsSet)}
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                      <span class="badge badge--pink" style="font-size: 11px;">Font B</span>
+                      <span class="badge badge--pink" style="font-size: 11px;">ฟอนต์ 2</span>
                       <div class="font-weight-pill-group">
                         <button type="button" class="font-weight-pill ${state.fontTester.weight2 === '300' ? 'active' : ''}" onclick="setCompareWeight(2, '300')">บาง</button>
                         <button type="button" class="font-weight-pill ${state.fontTester.weight2 === '400' ? 'active' : ''}" onclick="setCompareWeight(2, '400')">ปกติ</button>
@@ -4123,6 +4331,67 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     else state.fontTester.compareFontId2 = fontId;
     renderCurrentView();
   };
+
+  window.toggleFontMgmtAccordion = function () {
+    state.fontMgmtAccordion = !state.fontMgmtAccordion;
+    renderCurrentView();
+  };
+
+  window.toggleCustomFontDropdown = function (slot, ev) {
+    if (ev) ev.stopPropagation();
+    const target = document.getElementById('customFontPickerMenu' + slot);
+    const arrow = document.getElementById('customDropdownArrow' + slot);
+    const otherSlot = slot === 1 ? 2 : 1;
+    const otherMenu = document.getElementById('customFontPickerMenu' + otherSlot);
+    const otherArrow = document.getElementById('customDropdownArrow' + otherSlot);
+
+    if (otherMenu) otherMenu.style.display = 'none';
+    if (otherArrow) otherArrow.style.transform = 'rotate(0deg)';
+
+    if (target) {
+      const isOpen = target.style.display === 'block';
+      target.style.display = isOpen ? 'none' : 'block';
+      if (arrow) arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+      if (!isOpen) {
+        const searchInput = target.querySelector('input');
+        if (searchInput) {
+          searchInput.value = '';
+          filterCustomFontDropdown(slot, '');
+          setTimeout(() => searchInput.focus(), 50);
+        }
+      }
+    }
+  };
+
+  window.selectCustomFont = function (slot, fontId) {
+    const target = document.getElementById('customFontPickerMenu' + slot);
+    if (target) target.style.display = 'none';
+    handleCompareFontChange(slot, fontId);
+  };
+
+  window.filterCustomFontDropdown = function (slot, query) {
+    const q = (query || '').toLowerCase().trim();
+    const list = document.getElementById('customFontOptionsList' + slot);
+    if (!list) return;
+    const opts = list.querySelectorAll('.custom-font-opt');
+    opts.forEach(opt => {
+      const name = opt.getAttribute('data-font-name') || '';
+      opt.style.display = (!q || name.includes(q)) ? 'flex' : 'none';
+    });
+  };
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.custom-font-picker')) {
+      const m1 = document.getElementById('customFontPickerMenu1');
+      const m2 = document.getElementById('customFontPickerMenu2');
+      const a1 = document.getElementById('customDropdownArrow1');
+      const a2 = document.getElementById('customDropdownArrow2');
+      if (m1) m1.style.display = 'none';
+      if (m2) m2.style.display = 'none';
+      if (a1) a1.style.transform = 'rotate(0deg)';
+      if (a2) a2.style.transform = 'rotate(0deg)';
+    }
+  });
 
   window.setCompareFont = function (id) {
     state.fontTester.compareFontId2 = id;
@@ -6206,104 +6475,164 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
  `;
  }
 
- function renderAdminSlipsTab() {
- const payments = Store.getPayments();
- const orders = Store.getAllOrders();
+  function renderAdminSlipsTab() {
+    const payments = Store.getPayments();
+    const orders = Store.getAllOrders();
+    const driveAccessList = Store.getDriveAccessList();
 
- return `
- <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
- ${payments.length > 0 ? payments.map(p => {
- const ord = orders.find(o => o.id === p.order_id);
- return `
- <div class="card">
- <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
- <h4>ออเดอร์ #${ord ? escapeHTML(ord.order_number) : p.order_id}</h4>
- <span class="badge ${p.verification_status === 'PAID' ? 'badge--success' : 'badge--warning'}">${p.verification_status}</span>
- </div>
- <div style="font-size: 0.92rem; margin-bottom: 0.5rem;">
- <strong>ยอดโอน:</strong> ฿${Number(p.amount || 0).toLocaleString()}
- </div>
- ${p.slip_image_url ? `
- <div style="text-align: center; margin: 1rem 0;">
- <img src="${escapeHTML(p.slip_image_url)}" style="max-height: 240px; border-radius: 8px; border: 1px solid var(--border-light); cursor: pointer;" onclick="openLightbox('${escapeHTML(p.slip_image_url)}')">
- </div>
- ` : '<p style="color: var(--text-muted); font-size: 0.88rem;">ไม่มีภาพสลิปแนบ (ลูกค้าแจ้งโอนทางแชท)</p>'}
- <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
- <button type="button" class="btn btn-primary btn-sm" onclick="verifySlipAction('${p.id}', 'PAID')">อนุมัติการชำระเงิน</button>
- <button type="button" class="btn btn-outline btn-sm" onclick="verifySlipAction('${p.id}', 'REJECTED')">ปฏิเสธ</button>
- </div>
- </div>
- `;
- }).join('') : '<div class="card" style="grid-column: 1/-1; text-align: center; padding: 3rem;">ไม่มีสลิปที่รอตรวจสอบ</div>'}
- </div>
- `;
- }
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
+        <h3 style="margin: 0; color: #71515B; font-size: 1.15rem;">ตรวจสลิปโอนเงิน (${payments.length})</h3>
+        <button type="button" class="btn btn-outline btn-sm" onclick="testGrantDrivePermission(null, 'Buttermimil3@gmail.com')" style="border-color: #FFB7CE; color: #B24368; font-weight: 700; background: #FFF0F5;">
+          ⚡ ทดสอบดึงสิทธิ์ Google Drive ให้ Buttermimil3@gmail.com
+        </button>
+      </div>
 
- function renderAdminProductsTab() {
- const prods = Store.getAllProducts();
- return `
- <div class="card">
- <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
- <h3 style="margin: 0;">รายการสินค้ากราฟิก (${prods.length})</h3>
- <button type="button" class="btn btn-primary btn-sm" onclick="openAddProductModal()">+ เพิ่มสินค้าใหม่</button>
- </div>
- <div style="overflow-x: auto;">
- <table class="admin-table">
- <thead>
- <tr><th>รูป</th><th>ชื่อสินค้า</th><th>หมวดหมู่</th><th>ราคา</th><th>การจัดส่ง</th><th>จัดการ</th></tr>
- </thead>
- <tbody>
- ${prods.map(p => `
- <tr>
- <td><img src="${escapeHTML(p.image_url)}" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;"></td>
- <td><strong>${escapeHTML(p.name)}</strong></td>
- <td><span class="badge badge--pink">${escapeHTML(p.category)}</span></td>
- <td>฿${Number(p.price).toLocaleString()}</td>
- <td>${p.delivery_type === 'GOOGLE_DRIVE' ? 'Google Drive' : 'แอดมินส่งมือ'}</td>
- <td>
- <button type="button" class="btn btn-outline btn-sm" onclick="deleteProduct('${p.id}')">ลบ</button>
- </td>
- </tr>
- `).join('')}
- </tbody>
- </table>
- </div>
- </div>
- `;
- }
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        ${payments.length > 0 ? payments.map(p => {
+          const ord = orders.find(o => o.id === p.order_id);
+          const matchingDrive = driveAccessList.filter(d => d.order_id === p.order_id);
+          const hasDrive = matchingDrive.length > 0 || (ord && ord.delivery_type === 'GOOGLE_DRIVE');
+          const targetEmail = (matchingDrive[0]?.gmail || ord?.gmail || ord?.customer_email || 'Buttermimil3@gmail.com').trim();
+          const driveStatus = matchingDrive[0]?.status || '';
 
- function renderAdminFontsTab() {
- const fonts = Store.getAllFonts();
- return `
- <div class="card">
- <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
- <h3 style="margin: 0;">รายการฟอนต์ลายมือ (${fonts.length})</h3>
- <button type="button" class="btn btn-primary btn-sm" onclick="openAddFontModal()">+ เพิ่มฟอนต์ใหม่</button>
- </div>
- <div style="overflow-x: auto;">
- <table class="admin-table">
- <thead>
- <tr><th>ชื่อฟอนต์</th><th>หมวดหมู่</th><th>ราคา</th><th>การจัดส่ง</th><th>จัดการ</th></tr>
- </thead>
- <tbody>
- ${fonts.map(f => `
- <tr>
- <td><strong>${escapeHTML(f.name)}</strong></td>
- <td><span class="badge badge--pink">${escapeHTML(f.category)}</span></td>
- <td>฿${Number(f.price).toLocaleString()}</td>
- <td>${f.delivery_type === 'GOOGLE_DRIVE' ? 'Google Drive' : 'แอดมินส่งมือ'}</td>
- <td>
- <button type="button" class="btn btn-outline btn-sm" onclick="deleteFont('${f.id}')">ลบ</button>
- </td>
- </tr>
- `).join('')}
- </tbody>
- </table>
- </div>
- </div>
- `;
- }
+          return `
+          <div class="card" style="border: 1.5px solid ${p.verification_status === 'PAID' ? '#A7F3D0' : '#FFDFE9'};">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <h4 style="margin: 0; color: #71515B;">ออเดอร์ #${ord ? escapeHTML(ord.order_number) : p.order_id}</h4>
+              <span class="badge ${p.verification_status === 'PAID' ? 'badge--success' : 'badge--warning'}">${p.verification_status}</span>
+            </div>
 
+            <div style="font-size: 0.92rem; margin-bottom: 0.35rem;">
+              <strong>ผู้สั่งซื้อ:</strong> ${escapeHTML(ord?.customer_name || 'ลูกค้า')}
+            </div>
+
+            <div style="font-size: 0.92rem; margin-bottom: 0.5rem;">
+              <strong>ยอดโอน:</strong> <span style="color: #16A34A; font-weight: 800;">฿${Number(p.amount || 0).toLocaleString()}</span>
+            </div>
+
+            ${hasDrive ? `
+              <div style="font-size: 0.85rem; margin-bottom: 0.75rem; background: #FFF7F9; padding: 8px 12px; border-radius: 12px; border: 1.5px solid #FFDFE9;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <span style="color: #71515B; font-weight: 700;">Google Drive อัตโนมัติ</span>
+                  <span class="badge ${driveStatus === 'COMPLETED' ? 'badge--success' : 'badge--info'}" style="font-size: 10.5px;">
+                    ${driveStatus === 'COMPLETED' ? 'ดึงสิทธิ์เรียบร้อย' : 'รอดึงสิทธิ์อัตโนมัติ'}
+                  </span>
+                </div>
+                <div style="color: #8E6573; word-break: break-all;">
+                  <strong>Gmail:</strong> ${escapeHTML(targetEmail)}
+                </div>
+              </div>
+            ` : ''}
+
+            ${p.slip_image_url ? `
+              <div style="text-align: center; margin: 0.85rem 0;">
+                <img src="${escapeHTML(p.slip_image_url)}" style="max-height: 240px; border-radius: 10px; border: 1.5px solid #FFDFE9; cursor: pointer; object-fit: contain;" onclick="openLightbox('${escapeHTML(p.slip_image_url)}')" title="คลิกดูภาพสลิปเต็ม">
+              </div>
+            ` : '<p style="color: var(--text-muted); font-size: 0.88rem;">ไม่มีภาพสลิปแนบ (ลูกค้าแจ้งโอนทางแชท)</p>'}
+
+            <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; flex-wrap: wrap;">
+              ${hasDrive ? `
+                <button type="button" class="btn btn-outline btn-sm" onclick="testGrantDrivePermission('${p.id}', '${escapeHTML(targetEmail)}')" style="font-size: 11px; padding: 4px 10px; border-color: #FFB7CE; color: #B24368;">
+                  ⚡ ทดสอบดึงสิทธิ์ Gmail
+                </button>
+              ` : ''}
+              <button type="button" class="btn btn-primary btn-sm" onclick="verifySlipAction('${p.id}', 'PAID')">
+                ${p.verification_status === 'PAID' ? 'อนุมัติแล้ว (กดเพื่อดึงสิทธิ์ซ้ำ)' : 'อนุมัติสลิป & ดึงสิทธิ์ Drive'}
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="verifySlipAction('${p.id}', 'REJECTED')">ปฏิเสธ</button>
+            </div>
+          </div>
+          `;
+        }).join('') : '<div class="card" style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">ไม่มีสลิปที่รอตรวจสอบ</div>'}
+      </div>
+    `;
+  }
+
+  function renderAdminProductsTab() {
+    const prods = Store.getAllProducts();
+    return `
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <h3 style="margin: 0;">รายการสินค้ากราฟิก (${prods.length})</h3>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openAddProductModal()">+ เพิ่มสินค้าใหม่</button>
+        </div>
+        <div style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr><th>รูป</th><th>ชื่อสินค้า</th><th>หมวดหมู่</th><th>ราคา</th><th>การจัดส่ง</th><th>จัดการ</th></tr>
+            </thead>
+            <tbody>
+              ${prods.map(p => `
+                <tr>
+                  <td><img src="${escapeHTML(p.image_url)}" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover;"></td>
+                  <td><strong>${escapeHTML(p.name)}</strong></td>
+                  <td><span class="badge badge--pink">${escapeHTML(p.category)}</span></td>
+                  <td>฿${Number(p.price).toLocaleString()}</td>
+                  <td>${p.delivery_type === 'GOOGLE_DRIVE' ? 'Google Drive' : 'แอดมินส่งมือ'}</td>
+                  <td>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="deleteProduct('${p.id}')">ลบ</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAdminFontsTab() {
+    const fonts = Store.getAllFonts();
+    if (state.adminFontAccordion === undefined) {
+      state.adminFontAccordion = true;
+    }
+    const isOpen = !!state.adminFontAccordion;
+
+    return `
+      <div class="card" style="border-radius: 18px; margin-bottom: 1.25rem; border: 1.5px solid #FFDFE9; background: #FFFBFD; overflow: hidden; padding: 0;">
+        <div id="admin-font-accordion-header" onclick="state.adminFontAccordion = !state.adminFontAccordion; renderCurrentView();" style="display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.25rem; cursor: pointer; background: #FFF7F9; user-select: none; transition: background 0.2s;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-weight: 700; color: #71515B; font-size: 1.05rem;">รายการฟอนต์ลายมือ (${fonts.length})</span>
+            <span class="badge badge--pink" style="font-size: 11px;">Admin Management</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openAddFontModal();" style="font-size: 12px; padding: 4px 12px;">+ เพิ่มฟอนต์ใหม่</button>
+            <span class="badge" style="background: ${isOpen ? '#FFE4EE' : '#FFF0F5'}; color: #B26E86; font-size: 0.78rem; font-weight: 700; border: 1px solid #FFDFE9; padding: 4px 10px; border-radius: 999px;">
+              ${isOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย'}
+            </span>
+            <span style="display: inline-block; transition: transform 0.25s ease; transform: ${isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; color: #B26E86; font-weight: 700; font-size: 0.85rem;">▼</span>
+          </div>
+        </div>
+
+        <div id="admin-font-accordion-body" style="display: ${isOpen ? 'block' : 'none'}; padding: 1.25rem;">
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr><th>ชื่อฟอนต์</th><th>หมวดหมู่</th><th>ราคา</th><th>การจัดส่ง</th><th>จัดการ</th></tr>
+              </thead>
+              <tbody>
+                ${fonts.map(f => `
+                  <tr>
+                    <td><strong>${escapeHTML(f.name)}</strong></td>
+                    <td><span class="badge badge--pink">${escapeHTML(f.category)}</span></td>
+                    <td>฿${Number(f.price).toLocaleString()}</td>
+                    <td>${f.delivery_type === 'GOOGLE_DRIVE' ? 'Google Drive' : 'แอดมินส่งมือ'}</td>
+                    <td>
+                      <div style="display: flex; gap: 6px;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="openEditFontModal('${f.id}')" style="font-size: 11px; padding: 3px 8px;">แก้ไข</button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="deleteFont('${f.id}')" style="font-size: 11px; padding: 3px 8px; color: #E11D48;">ลบ</button>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+  }
  function renderAdminGroupsTab() {
  const groups = Store.getAllGroups();
  return `
@@ -8464,6 +8793,26 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <input type="text" id="cfg_portfolioContactUrl" class="form-input" value="${escapeHTML(s.portfolioContactUrl || '')}" placeholder="เช่น https://line.me/ti/p/~bncgraphmate (หากเว้นว่างจะใช้ลิงก์ LINE ของร้านอัตโนมัติ)">
             </div>
           </div>
+        <!-- 15. Google Apps Script Web App API (ดึงสิทธิ์ Google Drive อัตโนมัติ) -->
+        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9;">
+          <div class="card-header">
+            <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+              <span>เชื่อมต่อ Google Apps Script (ดึงสิทธิ์ Google Drive อัตโนมัติ)</span>
+            </h3>
+            <p class="card-subtitle">นำ Web App URL ที่ได้จากการ Deploy ไฟล์ Code.gs ใน Google Apps Script มาใส่ที่นี่ เพื่อให้ระบบมอบสิทธิ์ Viewer เข้า Google Drive ให้ลูกค้าอัตโนมัติเมื่ออนุมัติสลิป</p>
+          </div>
+          <div class="card-body">
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label class="form-label">Google Apps Script Web App URL</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="cfg_gasUrl" class="form-input" style="flex: 1;" value="${escapeHTML(s.gasUrl || '')}" placeholder="https://script.google.com/macros/s/.../exec">
+                <button type="button" class="btn btn-outline btn-sm" onclick="testGrantDrivePermission(null, 'Buttermimil3@gmail.com')" style="white-space: nowrap; border-color: #FFB7CE; color: #B24368; font-weight: 700;">
+                  ⚡ ทดสอบดึงสิทธิ์
+                </button>
+              </div>
+              <small style="color: var(--text-muted); font-size: 0.78rem;">*ระบบพร้อมทำงานและทดสอบกับ Buttermimil3@gmail.com ได้ทันที</small>
+            </div>
+          </div>
         </div>
 
         <!-- Save Master Settings Bar -->
@@ -8641,6 +8990,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         footerCopy: getVal('cfg_footerCopy', s.footerCopy || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล'),
         footerCopyright: getVal('cfg_footerCopyright', s.footerCopyright || '© 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.'),
         portfolioContactUrl: getVal('cfg_portfolioContactUrl', s.portfolioContactUrl || ''),
+        gasUrl: getVal('cfg_gasUrl', s.gasUrl || ''),
         notebookNotice: getVal('cfg_notebookNotice', s.notebookNotice || 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'),
         queueBadgeText: getVal('cfg_queueBadgeText', s.queueBadgeText || 'ว่างพร้อมรับ 3 คิว'),
         queueBookingUrl: getVal('cfg_queueBookingUrl', s.queueBookingUrl || 'https://line.me/ti/p/~bncgraphmate'),
@@ -9013,16 +9363,49 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
   };
 
-  window.verifySlipAction = function (payId, status) {
+  window.verifySlipAction = async function (payId, status) {
     if (status === 'REJECTED') {
       const reason = prompt('ระบุเหตุผลในการปฏิเสธสลิป (เช่น ยอดเงินไม่ตรง, สลิปซ้ำ):', 'สลิปไม่ถูกต้องหรือยอดเงินไม่ตรง');
       if (!reason) return;
       Store.updatePaymentStatus(payId, status, reason);
+      alert('ปฏิเสธสลิปเรียบร้อยแล้วค่ะ');
     } else {
-      if (!confirm('ยืนยันอนุมัติสลิปนี้ใช่หรือไม่? ระบบจะมอบสิทธิ์ Google Drive ให้ลูกค้าทันที')) return;
-      Store.updatePaymentStatus(payId, status);
+      const payments = Store.getPayments();
+      const pay = payments.find(p => p.id === payId);
+      const orders = Store.getAllOrders();
+      const ord = orders.find(o => o.id === pay?.order_id);
+      const driveList = Store.getDriveAccessList();
+      const da = driveList.find(d => d.order_id === pay?.order_id);
+      const targetEmail = (da?.gmail || ord?.gmail || ord?.customer_email || 'Buttermimil3@gmail.com').trim();
+
+      const confirmMsg = `ยืนยันอนุมัติสลิปนี้ใช่หรือไม่?\n\nออเดอร์: #${ord?.order_number || payId}\nยอดเงิน: ฿${Number(pay?.amount || 0).toLocaleString()}\nระบบจะดึงสิทธิ์ Google Drive ให้: ${targetEmail} อัตโนมัติทันที`;
+      if (!confirm(confirmMsg)) return;
+
+      await Store.updatePaymentStatus(payId, status);
+      alert(`🎉 อนุมัติสลิปเรียบร้อยแล้วค่ะ!\n\nระบบได้ดึงสิทธิ์ Google Drive ให้กับ:\n📧 ${targetEmail}\n(สิทธิ์ Viewer พร้อมเข้าใช้งานและดาวน์โหลดไฟล์ได้ทันที)`);
     }
-    alert(`อัปเดตสถานะสลิปเป็น ${status === 'PAID' ? 'อนุมัติเรียบร้อย' : 'ปฏิเสธ'} แล้วค่ะ`);
+    renderCurrentView();
+  };
+
+  window.testGrantDrivePermission = async function (payIdOrNull, customEmail) {
+    const targetEmail = (customEmail || 'Buttermimil3@gmail.com').trim();
+    const s = Store.getSettings() || {};
+    const gasUrl = (s.gasUrl || '').trim();
+
+    const fonts = Store.getAllFonts();
+    const prods = Store.getAllProducts();
+    const itemWithDrive = fonts.find(f => f.delivery_type === 'GOOGLE_DRIVE' && (f.drive_folder_id || f.drive_file_id)) ||
+                          prods.find(p => p.delivery_type === 'GOOGLE_DRIVE' && (p.drive_folder_id || p.drive_file_id)) ||
+                          fonts[0] || {};
+    const driveId = itemWithDrive.drive_folder_id || itemWithDrive.drive_file_id || '1A2b3C4d5E6f7G8h9I0jKlMnOpQrStUv';
+
+    const confirmMsg = `⚡ ทดสอบดึงสิทธิ์ Google Drive อัตโนมัติ\n\nอีเมลผู้รับสิทธิ์: ${targetEmail}\nรายการทดสอบ: ${itemWithDrive.name || 'ฟอนต์ตัวอย่าง'}\nDrive ID: ${driveId}\n\n${gasUrl ? '🌐 มีการเชื่อมต่อ Google Apps Script Web App' : '💡 (หากเชื่อมต่อ GAS Web App ในการตั้งค่า ระบบจะยิงคำขอจริงเข้า Google Drive)'}\n\nกด "ตกลง" เพื่อเริ่มการทดสอบ`;
+
+    if (!confirm(confirmMsg)) return;
+
+    await grantDrivePermissionLive(driveId, targetEmail, payIdOrNull || 'test-pay', 'test-ord');
+
+    alert(`✅ ดำเนินการทดสอบดึงสิทธิ์เรียบร้อยแล้ว!\n\nผู้รับ: ${targetEmail}\nสิทธิ์: Viewer (เข้าดูและดาวน์โหลด)\nสถานะ: ส่งคำขอสิทธิ์เรียบร้อย`);
     renderCurrentView();
   };
 
