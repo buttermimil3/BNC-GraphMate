@@ -12,6 +12,16 @@ const SUPABASE_CONFIG = {
   anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtdG1tdGZqaHVqZGlqYml3YXdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyOTIyMjMsImV4cCI6MjEwNDg2ODIyM30.26oysoMBoUzxd98gkInd4zXv7hkya4cTdAkw87G_Esk'
 };
 
+// ============================================================
+// GOOGLE APPS SCRIPT / GOOGLE DRIVE API CONFIGURATION
+// วาง Web App URL (ที่ลงท้ายด้วย /exec) ที่ได้จาก Google Apps Script ที่นี่
+// เพื่อให้ระบบดึงสิทธิ์ Google Drive ให้ลูกค้าอัตโนมัติทันทีที่อนุมัติสลิป
+// ============================================================
+const GAS_CONFIG = {
+  url: 'https://script.google.com/macros/s/AKfycbwmXjU9s9U78CzcxLS9-HKvFMlvOCv7OMdgyLQkN-gVSpLWj2H9nr9mwBlsKMNHHm5m/exec'
+};
+
+
 const Store = (function () {
  const STORAGE_KEY = 'BNC_GRAPHMATE_DATA_V1';
 
@@ -1086,7 +1096,7 @@ const Store = (function () {
     const cleanDriveId = (driveId || '').trim();
     const data = loadLocal();
     const s = data.settings || {};
-    const gasUrl = (s.gasUrl || '').trim();
+    const gasUrl = (typeof GAS_CONFIG !== 'undefined' && GAS_CONFIG.url) ? GAS_CONFIG.url.trim() : (s.gasUrl || '').trim();
 
     console.log(`[Google Drive Auto-Permission] Processing Viewer permission for: ${cleanEmail}, Drive ID: ${cleanDriveId || '(none)'}`);
 
@@ -8793,26 +8803,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <input type="text" id="cfg_portfolioContactUrl" class="form-input" value="${escapeHTML(s.portfolioContactUrl || '')}" placeholder="เช่น https://line.me/ti/p/~bncgraphmate (หากเว้นว่างจะใช้ลิงก์ LINE ของร้านอัตโนมัติ)">
             </div>
           </div>
-        <!-- 15. Google Apps Script Web App API (ดึงสิทธิ์ Google Drive อัตโนมัติ) -->
-        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9;">
-          <div class="card-header">
-            <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-              <span>เชื่อมต่อ Google Apps Script (ดึงสิทธิ์ Google Drive อัตโนมัติ)</span>
-            </h3>
-            <p class="card-subtitle">นำ Web App URL ที่ได้จากการ Deploy ไฟล์ Code.gs ใน Google Apps Script มาใส่ที่นี่ เพื่อให้ระบบมอบสิทธิ์ Viewer เข้า Google Drive ให้ลูกค้าอัตโนมัติเมื่ออนุมัติสลิป</p>
-          </div>
-          <div class="card-body">
-            <div class="form-group" style="margin-bottom: 10px;">
-              <label class="form-label">Google Apps Script Web App URL</label>
-              <div style="display: flex; gap: 8px;">
-                <input type="text" id="cfg_gasUrl" class="form-input" style="flex: 1;" value="${escapeHTML(s.gasUrl || '')}" placeholder="https://script.google.com/macros/s/.../exec">
-                <button type="button" class="btn btn-outline btn-sm" onclick="testGrantDrivePermission(null, 'Buttermimil3@gmail.com')" style="white-space: nowrap; border-color: #FFB7CE; color: #B24368; font-weight: 700;">
-                  ⚡ ทดสอบดึงสิทธิ์
-                </button>
-              </div>
-              <small style="color: var(--text-muted); font-size: 0.78rem;">*ระบบพร้อมทำงานและทดสอบกับ Buttermimil3@gmail.com ได้ทันที</small>
-            </div>
-          </div>
         </div>
 
         <!-- Save Master Settings Bar -->
@@ -8990,7 +8980,6 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         footerCopy: getVal('cfg_footerCopy', s.footerCopy || 'สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล'),
         footerCopyright: getVal('cfg_footerCopyright', s.footerCopyright || '© 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.'),
         portfolioContactUrl: getVal('cfg_portfolioContactUrl', s.portfolioContactUrl || ''),
-        gasUrl: getVal('cfg_gasUrl', s.gasUrl || ''),
         notebookNotice: getVal('cfg_notebookNotice', s.notebookNotice || 'สถานะคิวงานออกแบบ: ว่างพร้อมรับ 3 คิว\nเวลาตอบแชท: 09:00 - 23:00 น. (ตอบไว)\nความเร็วการส่งมอบ: ดึงสิทธิ์ Google Drive อัตโนมัติหลังแอดมินตรวจสลิป'),
         queueBadgeText: getVal('cfg_queueBadgeText', s.queueBadgeText || 'ว่างพร้อมรับ 3 คิว'),
         queueBookingUrl: getVal('cfg_queueBookingUrl', s.queueBookingUrl || 'https://line.me/ti/p/~bncgraphmate'),
@@ -9390,7 +9379,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   window.testGrantDrivePermission = async function (payIdOrNull, customEmail) {
     const targetEmail = (customEmail || 'Buttermimil3@gmail.com').trim();
     const s = Store.getSettings() || {};
-    const gasUrl = (s.gasUrl || '').trim();
+    const gasUrl = (typeof GAS_CONFIG !== 'undefined' && GAS_CONFIG.url) ? GAS_CONFIG.url.trim() : (s.gasUrl || '').trim();
 
     const fonts = Store.getAllFonts();
     const prods = Store.getAllProducts();
@@ -9399,7 +9388,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                           fonts[0] || {};
     const driveId = itemWithDrive.drive_folder_id || itemWithDrive.drive_file_id || '1A2b3C4d5E6f7G8h9I0jKlMnOpQrStUv';
 
-    const confirmMsg = `⚡ ทดสอบดึงสิทธิ์ Google Drive อัตโนมัติ\n\nอีเมลผู้รับสิทธิ์: ${targetEmail}\nรายการทดสอบ: ${itemWithDrive.name || 'ฟอนต์ตัวอย่าง'}\nDrive ID: ${driveId}\n\n${gasUrl ? '🌐 มีการเชื่อมต่อ Google Apps Script Web App' : '💡 (หากเชื่อมต่อ GAS Web App ในการตั้งค่า ระบบจะยิงคำขอจริงเข้า Google Drive)'}\n\nกด "ตกลง" เพื่อเริ่มการทดสอบ`;
+    const confirmMsg = `⚡ ทดสอบดึงสิทธิ์ Google Drive อัตโนมัติ\n\nอีเมลผู้รับสิทธิ์: ${targetEmail}\nรายการทดสอบ: ${itemWithDrive.name || 'ฟอนต์ตัวอย่าง'}\nDrive ID: ${driveId}\n\n${gasUrl ? '🌐 มีการเชื่อมต่อ Google Apps Script Web App ในโค้ด (GAS_CONFIG)' : '💡 (วาง Web App URL ที่ GAS_CONFIG ด้านบนสุดของไฟล์ app.js เพื่อยิงคำขอจริงเข้า Google Drive)'}\n\nกด "ตกลง" เพื่อเริ่มการทดสอบ`;
 
     if (!confirm(confirmMsg)) return;
 
