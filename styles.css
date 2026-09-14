@@ -2862,6 +2862,142 @@ input[type="range"] {
   }
 }
 
+/* ── Clean Pastel Font Customizer & Card Controls ── */
+.font-preview-area {
+  position: relative;
+  transition: border-color 0.2s ease;
+}
+.font-preview-area:focus-within {
+  border-color: #FFB7CE !important;
+}
+
+.font-preview-editable-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.font-weight-pill-group {
+  display: inline-flex;
+  background: #FFF0F5;
+  border: 1px solid #FFDFE9;
+  border-radius: 999px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.font-weight-pill {
+  border: none;
+  background: transparent;
+  color: #71515B;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.font-weight-pill:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.font-weight-pill.active {
+  background: #FFFFFF;
+  color: #B24368;
+  border: 1px solid #FFDFE9;
+  box-shadow: 0 1px 3px rgba(113, 81, 91, 0.06);
+}
+
+/* Heart Favorite & Compare Selection Button */
+.font-heart-btn {
+  background: #FFF5F8;
+  border: 1px solid #FFDFE9;
+  color: #B24368;
+  border-radius: 10px;
+  padding: 6px 9px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.font-heart-btn:hover {
+  background: #FFE4EE;
+  border-color: #FFB7CE;
+}
+
+.font-heart-btn.is-favorited {
+  background: #FFE4EE;
+  border-color: #FFB7CE;
+  color: #FF4D7E;
+}
+
+/* Sticky Bottom Compare & Favorite Tray */
+.font-compare-tray {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 920px;
+  width: calc(100% - 32px);
+  background: #FFFFFF;
+  border: 1.5px solid #FFDFE9;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(113, 81, 91, 0.10);
+  padding: 10px 14px;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.font-compare-tray-items {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.font-compare-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFF7FA;
+  border: 1px solid #FFDFE9;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #71515B;
+}
+
+.font-compare-chip-remove {
+  background: transparent;
+  border: none;
+  color: #B26E86;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.font-compare-chip-remove:hover {
+  color: #E11D48;
+}
+
 /* Admin Quick Stamp Control */
 .admin-stamp-control {
   display: inline-flex;

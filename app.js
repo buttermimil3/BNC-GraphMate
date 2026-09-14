@@ -743,7 +743,7 @@ const Store = (function () {
 
   function getFontFamily(font) {
     if (!font) return "'Prompt', sans-serif";
-    const customUrl = font.font_file_url || font.file_url;
+    const customUrl = font.font_file_url_regular || font.font_file_url_light || font.font_file_url_bold || font.font_file_url || font.file_url;
     if (customUrl && String(customUrl).trim()) {
       return "'Font-" + font.id + "', " + getFallbackFont(font);
     }
@@ -2637,13 +2637,18 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     groupsFilter: 'ALL',
     lightboxIndex: 0,
     lightboxList: [],
- fontTester: {
- text: 'ร้านป้ายบีเอ็นซี ฟอนต์ลายมือน่ารัก 1234',
- size: 38,
- category: 'ALL',
- search: '',
- compare: []
- },
+    fontTester: {
+      text: 'ร้านป้ายบีเอ็นซี ฟอนต์ลายมือน่ารัก 1234',
+      size: 38,
+      category: 'ALL',
+      search: '',
+      compare: [],
+      favorites: (typeof localStorage !== 'undefined' && localStorage.getItem('BNC_FONT_FAVORITES')) ? JSON.parse(localStorage.getItem('BNC_FONT_FAVORITES')) : [],
+      cardWeights: {}, // { [fontId]: 300 | 400 | 700 }
+      cardTexts: {}, // { [fontId]: 'custom text' }
+      weight1: '400',
+      weight2: '400'
+    },
  prodFilter: {
  category: 'ALL',
  search: ''
@@ -2788,28 +2793,46 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const fonts = Store.getAllFonts ? Store.getAllFonts() : [];
     let css = '';
     fonts.forEach(f => {
-      const rawUrl = f.font_file_url || f.file_url;
-      if (rawUrl && rawUrl.trim()) {
-        const fontUrl = formatDriveFontUrl(rawUrl);
+      const regularUrl = f.font_file_url_regular || f.font_file_url || f.file_url;
+      const lightUrl = f.font_file_url_light || '';
+      const boldUrl = f.font_file_url_bold || '';
+
+      const weights = [
+        { url: regularUrl, weight: '400' },
+        { url: lightUrl, weight: '300' },
+        { url: boldUrl, weight: '700' }
+      ];
+
+      // Fallback: If only regular exists, register it for 300 and 700 as well so all weight toggles work
+      if (regularUrl && !lightUrl) weights.push({ url: regularUrl, weight: '300' });
+      if (regularUrl && !boldUrl) weights.push({ url: regularUrl, weight: '700' });
+
+      weights.forEach(w => {
+        if (!w.url || !String(w.url).trim()) return;
+        const fontUrl = formatDriveFontUrl(w.url);
         let formatStr = '';
-        if (fontUrl.startsWith('data:font/ttf') || fontUrl.startsWith('data:application/x-font-ttf') || fontUrl.endsWith('.ttf')) {
+        const lower = fontUrl.toLowerCase();
+        if (lower.startsWith('data:font/ttf') || lower.startsWith('data:application/x-font-ttf') || lower.includes('.ttf')) {
           formatStr = " format('truetype')";
-        } else if (fontUrl.startsWith('data:font/otf') || fontUrl.startsWith('data:application/x-font-opentype') || fontUrl.endsWith('.otf')) {
+        } else if (lower.startsWith('data:font/otf') || lower.startsWith('data:application/x-font-opentype') || lower.includes('.otf')) {
           formatStr = " format('opentype')";
-        } else if (fontUrl.startsWith('data:font/woff2') || fontUrl.endsWith('.woff2')) {
+        } else if (lower.startsWith('data:font/woff2') || lower.includes('.woff2')) {
           formatStr = " format('woff2')";
-        } else if (fontUrl.startsWith('data:font/woff') || fontUrl.endsWith('.woff')) {
+        } else if (lower.startsWith('data:font/woff') || lower.includes('.woff')) {
           formatStr = " format('woff')";
         }
         css += `
           @font-face {
             font-family: 'Font-${f.id}';
+            font-weight: ${w.weight};
+            font-style: normal;
             src: url('${fontUrl}')${formatStr};
             font-display: swap;
           }
         `;
-      }
+      });
     });
+
     let styleEl = document.getElementById('dynamic-font-faces');
     if (!styleEl) {
       styleEl = document.createElement('style');
@@ -3723,17 +3746,34 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     loadFontFaces();
     const s = Store.getSettings();
     const fonts = Store.getAllFonts();
-    const categories = ['ALL', ...Store.getFontCategories()];
+    const baseCategories = Store.getFontCategories();
+    const favCount = (state.fontTester.favorites || []).length;
+    const categories = ['ALL', 'FAVORITES', ...baseCategories];
 
     // Filter
     const filtered = fonts.filter(f => {
-      const matchCat = state.fontTester.category === 'ALL' || f.category === state.fontTester.category;
+      let matchCat = true;
+      if (state.fontTester.category === 'FAVORITES') {
+        matchCat = (state.fontTester.favorites || []).includes(f.id);
+      } else if (state.fontTester.category !== 'ALL') {
+        matchCat = f.category === state.fontTester.category;
+      }
       const matchSearch = !state.fontTester.search || f.name.toLowerCase().includes(state.fontTester.search.toLowerCase());
       return matchCat && matchSearch;
     });
 
     const fontA = fonts.find(f => f.id === state.fontTester.compareFontId1) || fonts[0] || {};
     const fontB = fonts.find(f => f.id === state.fontTester.compareFontId2) || fonts[1] || fonts[0] || {};
+
+    // Sort options: Favorites first in dropdown
+    const favsSet = new Set(state.fontTester.favorites || []);
+    const sortedForDropdown = [...fonts].sort((a, b) => {
+      const aFav = favsSet.has(a.id) ? 1 : 0;
+      const bFav = favsSet.has(b.id) ? 1 : 0;
+      return bFav - aFav;
+    });
+
+    const selectedCompareFonts = (state.fontTester.compare || []).map(id => fonts.find(x => x.id === id)).filter(Boolean);
 
     container.innerHTML = `
       <section style="padding: 2.5rem 0 4rem;">
@@ -3757,7 +3797,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <span>ทดสอบและเปรียบเทียบฟอนต์ลายมือสด</span>
               </div>
               <div style="font-size: 12px; color: var(--text-muted);">
-                พิมพ์ข้อความเทียบฟอนต์สดบนสมุดโน้ต
+                พิมพ์ข้อความเทียบฟอนต์สดบนสมุดโน้ต (ปรับขนาด บาง ปกติ หนา ได้)
               </div>
             </div>
 
@@ -3783,15 +3823,25 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <div class="font-compare-card">
                   <div class="font-compare-header">
                     <div style="flex: 1;">
-                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block;">ฟอนต์ที่ 1 (Font A)</label>
+                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">ฟอนต์ที่ 1 (Font A)</label>
                       <select class="form-input" style="padding: 6px 10px; font-size: 13px; font-weight: 700; border-radius: 10px;" onchange="handleCompareFontChange(1, this.value)">
-                        ${fonts.map(f => `<option value="${f.id}" ${f.id === fontA.id ? 'selected' : ''}>${escapeHTML(f.name)} (฿${f.price})</option>`).join('')}
+                        ${sortedForDropdown.map(f => {
+                          const isFav = favsSet.has(f.id);
+                          return `<option value="${f.id}" ${f.id === fontA.id ? 'selected' : ''}>${isFav ? '[ถูกใจ] ' : ''}${escapeHTML(f.name)} (฿${f.price})</option>`;
+                        }).join('')}
                       </select>
                     </div>
-                    <span class="badge badge--pink" style="font-size: 11px; height: fit-content;">Font A</span>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                      <span class="badge badge--pink" style="font-size: 11px;">Font A</span>
+                      <div class="font-weight-pill-group">
+                        <button type="button" class="font-weight-pill ${state.fontTester.weight1 === '300' ? 'active' : ''}" onclick="setCompareWeight(1, '300')">บาง</button>
+                        <button type="button" class="font-weight-pill ${state.fontTester.weight1 === '400' ? 'active' : ''}" onclick="setCompareWeight(1, '400')">ปกติ</button>
+                        <button type="button" class="font-weight-pill ${state.fontTester.weight1 === '700' ? 'active' : ''}" onclick="setCompareWeight(1, '700')">หนา</button>
+                      </div>
+                    </div>
                   </div>
 
-                  <div class="font-compare-text-display font-display-a" data-font-id="${fontA?.id || ''}" style="font-size: ${state.fontTester.size}px; font-family: ${getFontFamily(fontA)};">
+                  <div class="font-compare-text-display font-display-a" data-font-id="${fontA?.id || ''}" style="font-size: ${state.fontTester.size}px; font-family: ${getFontFamily(fontA)}; font-weight: ${state.fontTester.weight1 || '400'};">
                     ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
                   </div>
 
@@ -3811,15 +3861,25 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <div class="font-compare-card">
                   <div class="font-compare-header">
                     <div style="flex: 1;">
-                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block;">ฟอนต์ที่ 2 (Font B)</label>
+                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">ฟอนต์ที่ 2 (Font B)</label>
                       <select class="form-input" style="padding: 6px 10px; font-size: 13px; font-weight: 700; border-radius: 10px;" onchange="handleCompareFontChange(2, this.value)">
-                        ${fonts.map(f => `<option value="${f.id}" ${f.id === fontB.id ? 'selected' : ''}>${escapeHTML(f.name)} (฿${f.price})</option>`).join('')}
+                        ${sortedForDropdown.map(f => {
+                          const isFav = favsSet.has(f.id);
+                          return `<option value="${f.id}" ${f.id === fontB.id ? 'selected' : ''}>${isFav ? '[ถูกใจ] ' : ''}${escapeHTML(f.name)} (฿${f.price})</option>`;
+                        }).join('')}
                       </select>
                     </div>
-                    <span class="badge badge--pink" style="font-size: 11px; height: fit-content;">Font B</span>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                      <span class="badge badge--pink" style="font-size: 11px;">Font B</span>
+                      <div class="font-weight-pill-group">
+                        <button type="button" class="font-weight-pill ${state.fontTester.weight2 === '300' ? 'active' : ''}" onclick="setCompareWeight(2, '300')">บาง</button>
+                        <button type="button" class="font-weight-pill ${state.fontTester.weight2 === '400' ? 'active' : ''}" onclick="setCompareWeight(2, '400')">ปกติ</button>
+                        <button type="button" class="font-weight-pill ${state.fontTester.weight2 === '700' ? 'active' : ''}" onclick="setCompareWeight(2, '700')">หนา</button>
+                      </div>
+                    </div>
                   </div>
 
-                  <div class="font-compare-text-display font-display-b" data-font-id="${fontB?.id || ''}" style="font-size: ${state.fontTester.size}px; font-family: ${getFontFamily(fontB)};">
+                  <div class="font-compare-text-display font-display-b" data-font-id="${fontB?.id || ''}" style="font-size: ${state.fontTester.size}px; font-family: ${getFontFamily(fontB)}; font-weight: ${state.fontTester.weight2 || '400'};">
                     ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
                   </div>
 
@@ -3841,11 +3901,16 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <!-- Category Filters & Search -->
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              ${categories.map(c => `
-                <button type="button" class="btn ${state.fontTester.category === c ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="filterFontCat('${c}')">
-                  ${c === 'ALL' ? 'ทั้งหมด' : c}
-                </button>
-              `).join('')}
+              ${categories.map(c => {
+                let label = c;
+                if (c === 'ALL') label = 'ทั้งหมด';
+                else if (c === 'FAVORITES') label = `ฟอนต์ที่ชอบ (${favCount})`;
+                return `
+                  <button type="button" class="btn ${state.fontTester.category === c ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="filterFontCat('${c}')">
+                    ${label}
+                  </button>
+                `;
+              }).join('')}
             </div>
             <div style="min-width: 240px;">
               <input type="text" class="form-input" placeholder="ค้นหาชื่อฟอนต์..." value="${escapeHTML(state.fontTester.search)}" oninput="handleFontSearch(this.value)" style="padding: 0.45rem 0.85rem; font-size: 0.9rem;">
@@ -3857,10 +3922,33 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             ${filtered.length > 0 ? filtered.map(f => renderFontCard(f, s)).join('') : `
               <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
                 <h4>ไม่พบฟอนต์ที่ค้นหา</h4>
-                <p>ลองเปลี่ยนคำค้นหาหรือเลือกหมวดหมู่อื่นดูนะคะ</p>
+                <p>${state.fontTester.category === 'FAVORITES' ? 'ยังไม่มีฟอนต์ที่บันทึกไว้ กดปุ่มรูปหัวใจบนการ์ดฟอนต์เพื่อบันทึกนะคะ' : 'ลองเปลี่ยนคำค้นหาหรือเลือกหมวดหมู่อื่นดูนะคะ'}</p>
               </div>
             `}
           </div>
+
+          <!-- Sticky Bottom Compare Tray when 1 or more fonts are selected for compare -->
+          ${selectedCompareFonts.length > 0 ? `
+            <div class="font-compare-tray">
+              <div class="font-compare-tray-items">
+                <span style="font-size: 12px; font-weight: 800; color: var(--primary-deep); margin-right: 4px;">ฟอนต์ที่เลือกเทียบ (${selectedCompareFonts.length}):</span>
+                ${selectedCompareFonts.map(cf => `
+                  <span class="font-compare-chip">
+                    ${escapeHTML(cf.name)}
+                    <button type="button" class="font-compare-chip-remove" onclick="removeCompareFont('${cf.id}')" title="ลบออก">✕</button>
+                  </span>
+                `).join('')}
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" class="btn btn-primary btn-sm" onclick="applyCompareFromTray()" style="padding: 5px 12px; font-size: 12px; font-weight: 700;">
+                  เทียบในสมุด GoodNotes
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="clearCompareTray()" style="padding: 5px 8px; font-size: 12px;">
+                  ล้าง
+                </button>
+              </div>
+            </div>
+          ` : ''}
 
         </div>
       </section>
@@ -3869,7 +3957,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
   window.handleCompareTextInput = function (val) {
     state.fontTester.text = val;
-    document.querySelectorAll('.font-compare-text-display, .font-preview-text').forEach(el => {
+    document.querySelectorAll('.font-compare-text-display').forEach(el => {
       el.textContent = val || 'ร้านป้ายบีเอ็นซี น่ารักสดใส';
     });
   };
@@ -3883,6 +3971,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     });
   };
 
+  window.setCompareWeight = function (slot, weight) {
+    if (slot === 1) state.fontTester.weight1 = weight;
+    else state.fontTester.weight2 = weight;
+    renderCurrentView();
+  };
+
   window.handleCompareFontChange = function (slot, fontId) {
     if (slot === 1) state.fontTester.compareFontId1 = fontId;
     else state.fontTester.compareFontId2 = fontId;
@@ -3894,6 +3988,70 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     renderCurrentView();
     const el = document.querySelector('.notebook-paper-container');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  window.toggleFontFavorite = function (fontId) {
+    let favs = state.fontTester.favorites || [];
+    if (favs.includes(fontId)) {
+      favs = favs.filter(id => id !== fontId);
+    } else {
+      favs.push(fontId);
+    }
+    state.fontTester.favorites = favs;
+    try {
+      localStorage.setItem('BNC_FONT_FAVORITES', JSON.stringify(favs));
+    } catch (e) {}
+    renderCurrentView();
+  };
+
+  window.toggleCompareSelection = function (fontId) {
+    let cmp = state.fontTester.compare || [];
+    if (cmp.includes(fontId)) {
+      cmp = cmp.filter(id => id !== fontId);
+    } else {
+      cmp.push(fontId);
+    }
+    state.fontTester.compare = cmp;
+    renderCurrentView();
+  };
+
+  window.removeCompareFont = function (fontId) {
+    let cmp = state.fontTester.compare || [];
+    state.fontTester.compare = cmp.filter(id => id !== fontId);
+    renderCurrentView();
+  };
+
+  window.clearCompareTray = function () {
+    state.fontTester.compare = [];
+    renderCurrentView();
+  };
+
+  window.applyCompareFromTray = function () {
+    const cmp = state.fontTester.compare || [];
+    if (cmp.length >= 1) state.fontTester.compareFontId1 = cmp[0];
+    if (cmp.length >= 2) state.fontTester.compareFontId2 = cmp[1];
+    renderCurrentView();
+    const el = document.querySelector('.notebook-paper-container');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  window.handleCardFontTextInput = function (fontId, val) {
+    state.fontTester.cardTexts = state.fontTester.cardTexts || {};
+    state.fontTester.cardTexts[fontId] = val;
+  };
+
+  window.setCardFontWeight = function (fontId, weight) {
+    state.fontTester.cardWeights = state.fontTester.cardWeights || {};
+    state.fontTester.cardWeights[fontId] = weight;
+    const inputEl = document.querySelector(`.font-card-input[data-font-id="${fontId}"]`);
+    if (inputEl) inputEl.style.fontWeight = weight;
+    const cardEl = document.querySelector(`.font-item-card[data-card-font-id="${fontId}"]`);
+    if (cardEl) {
+      cardEl.querySelectorAll('.font-weight-pill').forEach(btn => {
+        if (btn.getAttribute('data-weight') === String(weight)) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    }
   };
 
   window.filterFontCat = function (cat) {
@@ -8782,28 +8940,48 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
   function renderFontCard(f, s) {
     const fontImg = formatDriveImageUrl(f.preview_image || f.preview_image_url || f.image_url || 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600');
+    const isFav = (state.fontTester.favorites || []).includes(f.id);
+    const isCompared = (state.fontTester.compare || []).includes(f.id);
+    const cardWeight = (state.fontTester.cardWeights && state.fontTester.cardWeights[f.id]) || '400';
+    const cardText = (state.fontTester.cardTexts && state.fontTester.cardTexts[f.id] !== undefined)
+      ? state.fontTester.cardTexts[f.id]
+      : (state.fontTester.text || f.preview_text || 'ร้านป้ายบีเอ็นซี ฟอนต์ลายมือน่ารัก 1234');
+
     return `
-      <div class="card font-item-card" style="display: flex; flex-direction: column; border-radius: var(--radius-lg); padding: 1.25rem; background: #FFFFFF; border: 1.5px solid #FFDFE9; box-shadow: 0 4px 14px rgba(113,81,91,0.05);">
+      <div class="card font-item-card" data-card-font-id="${f.id}" style="display: flex; flex-direction: column; border-radius: var(--radius-lg); padding: 1.25rem; background: #FFFFFF; border: 1.5px solid ${isCompared ? '#FFB7CE' : '#FFDFE9'}; box-shadow: 0 4px 14px rgba(113,81,91,0.05);">
         <!-- 1:1 Square Font Poster with White Border Inset Margin -->
         <div style="position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: var(--radius-md); overflow: hidden; background: var(--surface-alt); cursor: pointer; margin-bottom: 0.85rem; border: 1px solid #FFDFE9;" onclick="openLightbox('${escapeHTML(fontImg)}')" title="คลิกเพื่อดูรูปป้ายฟอนต์ขนาดใหญ่">
           <img src="${escapeHTML(fontImg)}" alt="${escapeHTML(f.name)}" style="width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block;" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';">
           <div style="position: absolute; top: 10px; left: 10px; display: flex; gap: 6px;">
             <span class="badge badge--pink">${escapeHTML(f.category || 'ลายมือ')}</span>
           </div>
-          <div style="position: absolute; top: 10px; right: 10px;">
+          <div style="position: absolute; top: 10px; right: 10px; display: flex; gap: 6px;">
             <span class="badge ${f.delivery_type === 'GOOGLE_DRIVE' ? 'badge--success' : 'badge--info'}">${f.delivery_type === 'GOOGLE_DRIVE' ? 'ส่งอัตโนมัติ' : 'แอดมินส่ง'}</span>
           </div>
         </div>
 
-        <div style="margin-bottom: 0.5rem;">
-          <h3 style="font-size: 1.15rem; margin: 0; font-weight: 700; color: var(--text);">${escapeHTML(f.name)}</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; gap: 8px;">
+          <h3 style="font-size: 1.15rem; margin: 0; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(f.name)}</h3>
+          
+          <!-- Favorite Heart Button (No Aura, Clean Pastel) -->
+          <button type="button" class="font-heart-btn ${isFav ? 'is-favorited' : ''}" onclick="toggleFontFavorite('${f.id}')" title="${isFav ? 'ยกเลิกบันทึกฟอนต์ที่ชอบ' : 'บันทึกเป็นฟอนต์ที่ชอบ'}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="${isFav ? '#FF4D7E' : 'none'}" stroke="${isFav ? '#FF4D7E' : '#B24368'}" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </button>
         </div>
 
-        <!-- Live Font Preview Area with Proper Inset Margin -->
-        <div class="font-preview-area" style="padding: 1rem 1.15rem; min-height: 56px; border-radius: 14px; border: 1.5px solid #FFDFE9; background: #FFFDFE; margin-bottom: 0.85rem;">
-          <div class="font-preview-text" data-font-id="${f.id}" style="font-size: 20px; font-weight: 500; word-break: break-word; line-height: 1.4; color: var(--text); font-family: ${getFontFamily(f)};">
-            ${escapeHTML(state.fontTester.text || f.preview_text || 'ร้านป้ายบีเอ็นซี ฟอนต์ลายมือน่ารัก 1234')}
+        <!-- Controls for weight above live preview box -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">ลองพิมพ์ทดสอบคำ:</span>
+          <div class="font-weight-pill-group">
+            <button type="button" class="font-weight-pill ${cardWeight === '300' ? 'active' : ''}" data-weight="300" onclick="setCardFontWeight('${f.id}', '300')">บาง</button>
+            <button type="button" class="font-weight-pill ${cardWeight === '400' ? 'active' : ''}" data-weight="400" onclick="setCardFontWeight('${f.id}', '400')">ปกติ</button>
+            <button type="button" class="font-weight-pill ${cardWeight === '700' ? 'active' : ''}" data-weight="700" onclick="setCardFontWeight('${f.id}', '700')">หนา</button>
           </div>
+        </div>
+
+        <!-- Live Font Preview Area with Direct In-Card Typing (ลองพิมพ์คำเองได้) -->
+        <div class="font-preview-area" style="padding: 0.75rem 0.95rem; min-height: 56px; border-radius: 14px; border: 1.5px solid #FFDFE9; background: #FFFDFE; margin-bottom: 0.85rem; display: flex; align-items: center;">
+          <input type="text" class="font-preview-editable-input font-card-input" data-font-id="${f.id}" value="${escapeHTML(cardText)}" placeholder="คลิกเพื่อพิมพ์ทดสอบคำ..." oninput="handleCardFontTextInput('${f.id}', this.value)" style="font-family: ${getFontFamily(f)}; font-weight: ${cardWeight};">
         </div>
 
         ${f.description ? `<p style="font-size: 0.86rem; color: var(--text-muted); margin: 0 0 0.85rem; line-height: 1.4;">${escapeHTML(f.description)}</p>` : ''}
@@ -8815,7 +8993,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <div class="product-price" style="font-size: 1.35rem; color: #71515B;">฿${Number(f.price || 0).toLocaleString()}</div>
           </div>
           <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
-            <button type="button" class="btn btn-outline btn-sm" onclick="setCompareFont('${f.id}')" title="นำฟอนต์นี้ไปเทียบในสมุด GoodNotes" style="flex: 1; min-width: 52px; padding: 6px 4px; font-size: 12px; white-space: nowrap; text-align: center;">เทียบ</button>
+            <button type="button" class="btn ${isCompared ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="toggleCompareSelection('${f.id}')" title="เลือกเพื่อนำไปเปรียบเทียบในสมุด GoodNotes" style="flex: 1; min-width: 58px; padding: 6px 4px; font-size: 12px; white-space: nowrap; text-align: center;">
+              ${isCompared ? 'เลือกแล้ว' : 'เทียบ'}
+            </button>
             <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${f.id}', 'FONT')" style="flex: 1.2; min-width: 80px; padding: 6px 8px; font-size: 12px; white-space: nowrap; text-align: center;">
               ${escapeHTML(s.btnCartText || 'ใส่ตะกร้า')}
             </button>
@@ -9908,13 +10088,46 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               </label>
             </div>
           </div>
-          <div class="form-group" style="margin-bottom: 0.85rem; background: #FFF1F5; padding: 12px; border-radius: 14px; border: 1.5px dashed var(--border);">
-            <label class="form-label" style="font-weight: 700; color: var(--primary-deep);">อัปโหลดไฟล์ฟอนต์จริงจากเครื่อง (.otf / .ttf / .woff)</label>
-            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
-              <input type="file" id="adminFontFileInput" accept=".otf,.ttf,.woff,.woff2" class="form-input" style="padding: 6px 10px; background: #ffffff;" onchange="handleFontFileUpload(event)">
+          <!-- 3-Weight Font Files Section (Regular, Light, Bold) -->
+          <div class="form-group" style="margin-bottom: 0.85rem; background: #FFF1F5; padding: 14px; border-radius: 14px; border: 1.5px dashed var(--border);">
+            <label class="form-label" style="font-weight: 700; color: var(--primary-deep); margin-bottom: 4px;">อัปโหลดไฟล์ฟอนต์จริง (.otf / .ttf / .woff)</label>
+            <small style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 10px;">*รองรับทั้ง 3 ขนาด (บาง, ปกติ, หนา) หรือจะอัปโหลดเฉพาะขนาดปกติไฟล์เดียวก็ได้ค่ะ</small>
+
+            <!-- 1. Regular Font File (Main) -->
+            <div style="background: #FFFFFF; border: 1px solid #FFDFE9; border-radius: 10px; padding: 10px; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 12px; font-weight: 700; color: var(--text);">1. ขนาดปกติ (Regular - ไฟล์หลัก)</span>
+                <span id="adminFontFileStatus_regular" style="font-size: 11px; color: var(--primary-deep); font-weight: 600;"></span>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+                <input type="file" id="adminFontFileInput_regular" accept=".otf,.ttf,.woff,.woff2" class="form-input" style="padding: 5px 8px; background: #FFFDFE; font-size: 12px;" onchange="handleMultiFontFileUpload(event, 'regular')">
+              </div>
+              <input type="text" id="adminFontFileUrl_regular" class="form-input" placeholder="หรือวางลิงก์ฟอนต์ https://.../regular.ttf" style="font-size: 12px; padding: 4px 8px;">
             </div>
-            <input type="text" id="adminFontFileUrl" class="form-input" placeholder="หรือวางลิงก์ฟอนต์ https://.../font.ttf">
-            <small id="adminFontFileStatus" style="color: var(--primary-deep); font-weight: 600; font-size: 11px; display: block; margin-top: 4px;">*เลือกไฟล์ฟอนต์จากคอมพิวเตอร์ของคุณ ระบบจะโหลดฟอนต์เข้าสู่หน้าเว็บให้อัตโนมัติ</small>
+
+            <!-- 2. Light Font File -->
+            <div style="background: #FFFFFF; border: 1px solid #FFDFE9; border-radius: 10px; padding: 10px; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 12px; font-weight: 700; color: var(--text);">2. ขนาดบาง (Light / Thin - ไม่บังคับ)</span>
+                <span id="adminFontFileStatus_light" style="font-size: 11px; color: var(--primary-deep); font-weight: 600;"></span>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+                <input type="file" id="adminFontFileInput_light" accept=".otf,.ttf,.woff,.woff2" class="form-input" style="padding: 5px 8px; background: #FFFDFE; font-size: 12px;" onchange="handleMultiFontFileUpload(event, 'light')">
+              </div>
+              <input type="text" id="adminFontFileUrl_light" class="form-input" placeholder="หรือวางลิงก์ฟอนต์ https://.../light.ttf" style="font-size: 12px; padding: 4px 8px;">
+            </div>
+
+            <!-- 3. Bold Font File -->
+            <div style="background: #FFFFFF; border: 1px solid #FFDFE9; border-radius: 10px; padding: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 12px; font-weight: 700; color: var(--text);">3. ขนาดหนา (Bold - ไม่บังคับ)</span>
+                <span id="adminFontFileStatus_bold" style="font-size: 11px; color: var(--primary-deep); font-weight: 600;"></span>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+                <input type="file" id="adminFontFileInput_bold" accept=".otf,.ttf,.woff,.woff2" class="form-input" style="padding: 5px 8px; background: #FFFDFE; font-size: 12px;" onchange="handleMultiFontFileUpload(event, 'bold')">
+              </div>
+              <input type="text" id="adminFontFileUrl_bold" class="form-input" placeholder="หรือวางลิงก์ฟอนต์ https://.../bold.ttf" style="font-size: 12px; padding: 4px 8px;">
+            </div>
           </div>
           <div class="form-group" style="margin-bottom: 0.85rem;">
             <label class="form-label" style="font-weight: 700;">ข้อความตัวอย่างเริ่มต้น</label>
@@ -10511,11 +10724,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   };
 
   
-  window.handleFontFileUpload = function(e) {
+  window.handleMultiFontFileUpload = function(e, weightKey) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    const status = document.getElementById('adminFontFileStatus');
-    if (status) status.textContent = 'กำลังอ่านไฟล์ ' + file.name + '...';
+    const status = document.getElementById('adminFontFileStatus_' + weightKey);
+    if (status) status.textContent = 'กำลังอ่าน ' + file.name + '...';
     const reader = new FileReader();
     reader.onload = function(evt) {
       let dataUrl = evt.target.result;
@@ -10529,14 +10742,18 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       } else if (lowerName.endsWith('.woff')) {
         dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, 'data:font/woff;base64,');
       }
-      const input = document.getElementById('adminFontFileUrl');
+      const input = document.getElementById('adminFontFileUrl_' + weightKey);
       if (input) input.value = dataUrl;
-      if (status) status.textContent = 'เลือกไฟล์สำเร็จ: ' + file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+      if (status) status.textContent = 'สำเร็จ: ' + file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
     };
     reader.onerror = function() {
-      if (status) status.textContent = 'เกิดข้อผิดพลาดในการอ่านไฟล์ฟอนต์';
+      if (status) status.textContent = 'เกิดข้อผิดพลาดในการอ่านไฟล์';
     };
     reader.readAsDataURL(file);
+  };
+
+  window.handleFontFileUpload = function(e) {
+    window.handleMultiFontFileUpload(e, 'regular');
   };
 
   window.handleFontImageUpload = function(e) {
@@ -10569,9 +10786,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (title) title.textContent = 'เพิ่มฟอนต์ลายมือใหม่';
     $('adminFontName').value = '';
     $('adminFontImage').value = 'https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?w=600';
-    $('adminFontFileUrl').value = '';
-    if ($('adminFontFileInput')) $('adminFontFileInput').value = '';
-    if ($('adminFontFileStatus')) $('adminFontFileStatus').textContent = '';
+    if ($('adminFontFileUrl_regular')) $('adminFontFileUrl_regular').value = '';
+    if ($('adminFontFileUrl_light')) $('adminFontFileUrl_light').value = '';
+    if ($('adminFontFileUrl_bold')) $('adminFontFileUrl_bold').value = '';
+    if ($('adminFontFileInput_regular')) $('adminFontFileInput_regular').value = '';
+    if ($('adminFontFileInput_light')) $('adminFontFileInput_light').value = '';
+    if ($('adminFontFileInput_bold')) $('adminFontFileInput_bold').value = '';
+    if ($('adminFontFileStatus_regular')) $('adminFontFileStatus_regular').textContent = '';
+    if ($('adminFontFileStatus_light')) $('adminFontFileStatus_light').textContent = '';
+    if ($('adminFontFileStatus_bold')) $('adminFontFileStatus_bold').textContent = '';
     $('adminFontPreviewText').value = 'ร้านป้ายบีเอ็นซี น่ารักสดใส 1234';
     $('adminFontCategory').value = 'ลายมือ';
     $('adminFontPrice').value = '190';
@@ -10580,7 +10803,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if ($('adminFontCostWrap')) $('adminFontCostWrap').style.display = 'none';
     $('adminFontDelivery').value = 'GOOGLE_DRIVE';
     $('adminFontDriveLink').value = '';
-    $('adminFontWhatYouGet').value = 'ไฟล์ .OTF / .TTF ครบชุด\nสิทธิ์ใช้งานเชิงพาณิชย์';
+    $('adminFontWhatYouGet').value = 'ไฟล์ .OTF / .TTF ครบชุด (บาง/ปกติ/หนา)\nสิทธิ์ใช้งานเชิงพาณิชย์';
     modal.classList.add('is-active');
   };
 
@@ -10594,7 +10817,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const name = $('adminFontName').value.trim();
     if (!name) return alert('กรุณากรอกชื่อฟอนต์');
     const image = $('adminFontImage').value.trim();
-    const fontFileUrl = $('adminFontFileUrl').value.trim();
+    const fontRegular = ($('adminFontFileUrl_regular')?.value || '').trim();
+    const fontLight = ($('adminFontFileUrl_light')?.value || '').trim();
+    const fontBold = ($('adminFontFileUrl_bold')?.value || '').trim();
     const previewText = $('adminFontPreviewText').value.trim() || 'ร้านป้ายบีเอ็นซี';
     const category = $('adminFontCategory').value.trim() || 'ลายมือ';
     const price = Number($('adminFontPrice').value) || 0;
@@ -10608,7 +10833,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       name,
       preview_image: image,
       preview_image_url: image,
-      font_file_url: fontFileUrl,
+      font_file_url: fontRegular, // Backward compatibility
+      font_file_url_regular: fontRegular,
+      font_file_url_light: fontLight,
+      font_file_url_bold: fontBold,
       preview_text: previewText,
       category,
       price,
@@ -10940,9 +11168,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (title) title.textContent = 'แก้ไขฟอนต์ลายมือ';
     $('adminFontName').value = f.name || '';
     $('adminFontImage').value = f.preview_image || f.preview_image_url || f.image_url || '';
-    $('adminFontFileUrl').value = f.font_file_url || f.file_url || '';
-    if ($('adminFontFileInput')) $('adminFontFileInput').value = '';
-    if ($('adminFontFileStatus')) $('adminFontFileStatus').textContent = f.font_file_url ? 'มีไฟล์ฟอนต์เดิมอยู่แล้ว (เลือกใหม่ได้)' : '';
+    if ($('adminFontFileUrl_regular')) $('adminFontFileUrl_regular').value = f.font_file_url_regular || f.font_file_url || f.file_url || '';
+    if ($('adminFontFileUrl_light')) $('adminFontFileUrl_light').value = f.font_file_url_light || '';
+    if ($('adminFontFileUrl_bold')) $('adminFontFileUrl_bold').value = f.font_file_url_bold || '';
+    if ($('adminFontFileInput_regular')) $('adminFontFileInput_regular').value = '';
+    if ($('adminFontFileInput_light')) $('adminFontFileInput_light').value = '';
+    if ($('adminFontFileInput_bold')) $('adminFontFileInput_bold').value = '';
+    if ($('adminFontFileStatus_regular')) $('adminFontFileStatus_regular').textContent = (f.font_file_url_regular || f.font_file_url) ? 'มีไฟล์เดิมอยู่แล้ว' : '';
+    if ($('adminFontFileStatus_light')) $('adminFontFileStatus_light').textContent = f.font_file_url_light ? 'มีไฟล์เดิมอยู่แล้ว' : '';
+    if ($('adminFontFileStatus_bold')) $('adminFontFileStatus_bold').textContent = f.font_file_url_bold ? 'มีไฟล์เดิมอยู่แล้ว' : '';
     $('adminFontPreviewText').value = f.preview_text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส 1234';
     $('adminFontCategory').value = f.category || 'ลายมือ';
     $('adminFontPrice').value = f.price || 0;
@@ -10951,7 +11185,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if ($('adminFontCostWrap')) $('adminFontCostWrap').style.display = f.is_agent ? 'block' : 'none';
     $('adminFontDelivery').value = f.delivery_type || 'GOOGLE_DRIVE';
     $('adminFontDriveLink').value = f.drive_folder_id || f.drive_file_id || '';
-    $('adminFontWhatYouGet').value = f.what_you_get || 'ไฟล์ .OTF / .TTF ครบชุด\nสิทธิ์ใช้งานเชิงพาณิชย์';
+    $('adminFontWhatYouGet').value = f.what_you_get || 'ไฟล์ .OTF / .TTF ครบชุด (บาง/ปกติ/หนา)\nสิทธิ์ใช้งานเชิงพาณิชย์';
     modal.classList.add('is-active');
   };
 
