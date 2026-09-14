@@ -1663,6 +1663,8 @@ input[type="range"] {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
+  font-synthesis: weight style !important;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ============================================================
@@ -2871,17 +2873,53 @@ input[type="range"] {
   border-color: #FFB7CE !important;
 }
 
-.font-preview-editable-input {
+.font-preview-editable-input,
+.font-card-input {
   width: 100%;
   border: none;
   background: transparent;
   outline: none;
-  padding: 0;
+  padding: 4px 2px;
   margin: 0;
-  font-size: 20px;
-  line-height: 1.4;
+  font-size: 21px;
+  min-height: 48px;
+  line-height: 44px;
   color: var(--text);
   word-break: break-word;
+  font-synthesis: weight style !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Explicit weight visual styling - Works on all custom & system fonts without aura/glow */
+.font-preview-editable-input.font-weight-700,
+.font-card-input.font-weight-700,
+.font-compare-text-display.font-weight-700,
+[data-weight="700"].font-card-input,
+[data-weight="700"].font-compare-text-display {
+  font-weight: 700 !important;
+  -webkit-text-stroke: 0.35px currentColor !important;
+  text-shadow: 0 0 0.5px currentColor !important;
+}
+
+.font-preview-editable-input.font-weight-300,
+.font-card-input.font-weight-300,
+.font-compare-text-display.font-weight-300,
+[data-weight="300"].font-card-input,
+[data-weight="300"].font-compare-text-display {
+  font-weight: 300 !important;
+  -webkit-text-stroke: 0 !important;
+  letter-spacing: 0.2px !important;
+  opacity: 0.92 !important;
+}
+
+.font-preview-editable-input.font-weight-400,
+.font-card-input.font-weight-400,
+.font-compare-text-display.font-weight-400,
+[data-weight="400"].font-card-input,
+[data-weight="400"].font-compare-text-display {
+  font-weight: 400 !important;
+  -webkit-text-stroke: 0 !important;
+  opacity: 1 !important;
 }
 
 .font-weight-pill-group {

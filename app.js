@@ -687,10 +687,12 @@ const Store = (function () {
   }
 
   // แปลงลิงก์ Google Drive สำหรับไฟล์ฟอนต์ให้ดาวน์โหลดแบบ Direct Stream สำหรับ @font-face
+  // แปลงลิงก์ Google Drive สำหรับไฟล์ฟอนต์ให้ดาวน์โหลดแบบ Direct Stream สำหรับ @font-face
   function formatDriveFontUrl(url) {
     if (!url || typeof url !== 'string') return '';
     const trimmed = url.trim();
     if (trimmed.startsWith('data:')) return trimmed;
+    if (trimmed === '__IDB_STORED__') return '';
     if (!trimmed.includes('drive.google.com') && !trimmed.includes('docs.google.com') && !trimmed.includes('googleusercontent.com')) {
       return trimmed;
     }
@@ -708,6 +710,24 @@ const Store = (function () {
       }
     } catch (e) {}
     return trimmed;
+  }
+
+  // ตรวจสอบว่าฟอนต์มีไฟล์จริงที่สมบูรณ์หรือไม่ (ป้องกันกรณีไฟล์เสียหรือถูกตัดเหลือ 100 ตัวอักษร)
+  function hasValidFontFile(font) {
+    if (!font) return false;
+    let url = font.font_file_url_regular || font.font_file_url_light || font.font_file_url_bold || font.font_file_url || font.file_url;
+    if (!url || typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    if (trimmed === '__IDB_STORED__') return false;
+    if (trimmed.startsWith('{')) {
+      try {
+        const p = JSON.parse(trimmed);
+        url = p.regular || p.light || p.bold || '';
+      } catch (e) {}
+    }
+    const clean = String(url).trim();
+    if (clean.startsWith('data:') && clean.length < 300) return false; // Truncated/corrupted data URL
+    return clean.length > 10;
   }
 
   // ค้นหาฟอนต์ลายมือภาษาไทยที่ตรงกับหมวดหมู่หรือชื่อฟอนต์
@@ -743,8 +763,7 @@ const Store = (function () {
 
   function getFontFamily(font) {
     if (!font) return "'Prompt', sans-serif";
-    const customUrl = font.font_file_url_regular || font.font_file_url_light || font.font_file_url_bold || font.font_file_url || font.file_url;
-    if (customUrl && String(customUrl).trim()) {
+    if (hasValidFontFile(font)) {
       return "'Font-" + font.id + "', " + getFallbackFont(font);
     }
     return getFallbackFont(font);
@@ -801,12 +820,36 @@ const Store = (function () {
 
   let _memoryStoreData = null;
 
-  // Hydrate from IndexedDB on startup (loads full GIF animations and images)
+  // Hydrate from IndexedDB on startup (loads full font files, GIF animations and images)
   if (typeof window !== 'undefined' && window.indexedDB) {
     idbLoadStore().then(idbData => {
       if (idbData && idbData.settings) {
-        _memoryStoreData = idbData;
+        if (_memoryStoreData && Array.isArray(_memoryStoreData.fonts) && Array.isArray(idbData.fonts)) {
+          _memoryStoreData.fonts.forEach(memFont => {
+            const idbFont = idbData.fonts.find(f => f && f.id === memFont.id);
+            if (idbFont) {
+              if (!memFont.font_file_url_regular || memFont.font_file_url_regular === '__IDB_STORED__' || memFont.font_file_url_regular.length < 200) {
+                memFont.font_file_url_regular = idbFont.font_file_url_regular || idbFont.font_file_url || '';
+              }
+              if (!memFont.font_file_url || memFont.font_file_url === '__IDB_STORED__' || memFont.font_file_url.length < 200) {
+                memFont.font_file_url = idbFont.font_file_url || idbFont.font_file_url_regular || '';
+              }
+              if (!memFont.font_file_url_light || memFont.font_file_url_light === '__IDB_STORED__') {
+                memFont.font_file_url_light = idbFont.font_file_url_light || '';
+              }
+              if (!memFont.font_file_url_bold || memFont.font_file_url_bold === '__IDB_STORED__') {
+                memFont.font_file_url_bold = idbFont.font_file_url_bold || '';
+              }
+            }
+          });
+        } else {
+          _memoryStoreData = idbData;
+        }
         if (typeof setupFloatingMascot === 'function') setupFloatingMascot();
+        if (typeof loadFontFaces === 'function') loadFontFaces();
+        if (typeof state !== 'undefined' && state.currentView === 'fonts' && typeof renderCurrentView === 'function') {
+          renderCurrentView();
+        }
       }
     }).catch(() => {});
   }
@@ -901,16 +944,16 @@ const Store = (function () {
 
   function saveLocal(data) {
     _memoryStoreData = data;
-    // Always persist full data (including large GIF animations) to IndexedDB
+    // Always persist full data (including large font files & GIF animations) to IndexedDB
     idbSaveStore(data);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
-      console.warn('LocalStorage save failed (likely quota exceeded for large images), falling back to slim cache:', e);
+      console.warn('LocalStorage save failed (likely quota exceeded for large fonts/images), preserving in IndexedDB and slim cache:', e);
       try {
         const slim = JSON.parse(JSON.stringify(data, (key, value) => {
           if (typeof value === 'string' && value.startsWith('data:') && value.length > 50000) {
-            return value.slice(0, 100);
+            return '__IDB_STORED__';
           }
           return value;
         }));
@@ -1037,17 +1080,29 @@ const Store = (function () {
         case 'SAVE_FONT': {
           const font = payload.item || payload.font;
           if (!font) return null;
+          let fontFileBundle = font.font_file_url_regular || font.font_file_url || font.file_url || '';
+          if (font.font_file_url_light || font.font_file_url_bold) {
+            try {
+              fontFileBundle = JSON.stringify({
+                regular: font.font_file_url_regular || font.font_file_url || font.file_url || '',
+                light: font.font_file_url_light || '',
+                bold: font.font_file_url_bold || ''
+              });
+            } catch (e) {}
+          }
           const row = {
             id: String(font.id),
             name: font.name || '',
             category: font.category || '',
             description: font.description || '',
             price: Number(font.price) || 0,
+            cost_price: Number(font.cost_price) || 0,
+            is_agent: !!font.is_agent,
             preview_text: font.preview_text || '',
             preview_image: font.preview_image || font.preview_image_url || font.image_url || '',
             preview_image_url: font.preview_image_url || font.preview_image || font.image_url || '',
             image_url: font.image_url || font.preview_image_url || font.preview_image || '',
-            font_file_url: font.font_file_url || font.file_url || '',
+            font_file_url: fontFileBundle,
             delivery_type: font.delivery_type || 'MANUAL',
             drive_folder_id: font.drive_folder_id || '',
             drive_file_id: font.drive_file_id || '',
@@ -1541,7 +1596,33 @@ const Store = (function () {
 
       // Arrays
       if (Array.isArray(resProducts.data) && resProducts.data.length > 0) merged.products = resProducts.data;
-      if (Array.isArray(resFonts.data) && resFonts.data.length > 0) merged.fonts = resFonts.data;
+      if (Array.isArray(resFonts.data) && resFonts.data.length > 0) {
+        const incomingIds = new Set(resFonts.data.map(x => x && x.id).filter(Boolean));
+        const localOnly = Array.isArray(local.fonts) ? local.fonts.filter(x => x && x.id && !incomingIds.has(x.id)) : [];
+        merged.fonts = [
+          ...localOnly,
+          ...resFonts.data.map(cloudItem => {
+            const localItem = (local.fonts || []).find(f => f && f.id === cloudItem.id);
+            let regular = localItem?.font_file_url_regular || cloudItem.font_file_url_regular || cloudItem.font_file_url || localItem?.font_file_url || '';
+            let light = localItem?.font_file_url_light || cloudItem.font_file_url_light || '';
+            let bold = localItem?.font_file_url_bold || cloudItem.font_file_url_bold || '';
+            
+            if (cloudItem.font_file_url && typeof cloudItem.font_file_url === 'string' && cloudItem.font_file_url.trim().startsWith('{')) {
+              try {
+                const parsed = JSON.parse(cloudItem.font_file_url);
+                if (parsed.regular) regular = parsed.regular;
+                if (parsed.light) light = parsed.light;
+                if (parsed.bold) bold = parsed.bold;
+              } catch (e) {}
+            }
+            return Object.assign({}, localItem || {}, cloudItem, {
+              font_file_url_regular: regular,
+              font_file_url_light: light,
+              font_file_url_bold: bold
+            });
+          })
+        ];
+      }
       if (Array.isArray(resGroups.data) && resGroups.data.length > 0) merged.groups = resGroups.data;
       if (Array.isArray(resPortfolio.data) && resPortfolio.data.length > 0) {
         merged.portfolio = resPortfolio.data.map(cloudItem => {
@@ -2593,6 +2674,9 @@ const Store = (function () {
 })();
 
 window.Store = Store;
+window.formatDriveFontUrl = Store.formatDriveFontUrl;
+window.getFallbackFont = Store.getFallbackFont;
+window.getFontFamily = Store.getFontFamily;
 
 
 // Helper: Get Queue Mascot Image based on percentage
@@ -2789,13 +2873,28 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
   }, true);
 
+  const _loadedFontCache = new Set();
+
   function loadFontFaces() {
     const fonts = Store.getAllFonts ? Store.getAllFonts() : [];
     let css = '';
+
     fonts.forEach(f => {
-      const regularUrl = f.font_file_url_regular || f.font_file_url || f.file_url;
-      const lightUrl = f.font_file_url_light || '';
-      const boldUrl = f.font_file_url_bold || '';
+      if (!f || !f.id) return;
+
+      let regularUrl = f.font_file_url_regular || f.font_file_url || f.file_url || '';
+      let lightUrl = f.font_file_url_light || '';
+      let boldUrl = f.font_file_url_bold || '';
+
+      // Unpack JSON bundle if present
+      if (typeof regularUrl === 'string' && regularUrl.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(regularUrl);
+          if (parsed.regular) regularUrl = parsed.regular;
+          if (parsed.light) lightUrl = parsed.light;
+          if (parsed.bold) boldUrl = parsed.bold;
+        } catch (e) {}
+      }
 
       const weights = [
         { url: regularUrl, weight: '400' },
@@ -2803,33 +2902,75 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         { url: boldUrl, weight: '700' }
       ];
 
-      // Fallback: If only regular exists, register it for 300 and 700 as well so all weight toggles work
+      // Fallback: If only regular exists, register it for 300 and 700 as well
       if (regularUrl && !lightUrl) weights.push({ url: regularUrl, weight: '300' });
       if (regularUrl && !boldUrl) weights.push({ url: regularUrl, weight: '700' });
 
       weights.forEach(w => {
-        if (!w.url || !String(w.url).trim()) return;
-        const fontUrl = formatDriveFontUrl(w.url);
-        let formatStr = '';
-        const lower = fontUrl.toLowerCase();
-        if (lower.startsWith('data:font/ttf') || lower.startsWith('data:application/x-font-ttf') || lower.includes('.ttf')) {
-          formatStr = " format('truetype')";
-        } else if (lower.startsWith('data:font/otf') || lower.startsWith('data:application/x-font-opentype') || lower.includes('.otf')) {
-          formatStr = " format('opentype')";
-        } else if (lower.startsWith('data:font/woff2') || lower.includes('.woff2')) {
-          formatStr = " format('woff2')";
-        } else if (lower.startsWith('data:font/woff') || lower.includes('.woff')) {
-          formatStr = " format('woff')";
+        if (!w.url || typeof w.url !== 'string') return;
+        const trimmed = w.url.trim();
+        if (trimmed === '__IDB_STORED__' || (trimmed.startsWith('data:') && trimmed.length < 200)) return;
+
+        const fontUrl = formatDriveFontUrl(trimmed);
+        if (!fontUrl) return;
+
+        const familyName = 'Font-' + f.id;
+        const cacheKey = `${familyName}_${w.weight}_${fontUrl.slice(0, 50)}`;
+
+        // Build CSS @font-face src rule
+        // Note: For Data URLs, omit format() hint so the browser detects TrueType/OpenType binary automatically without false rejection
+        let srcRule = '';
+        if (fontUrl.startsWith('data:')) {
+          srcRule = `url("${fontUrl}")`;
+        } else {
+          const lower = fontUrl.toLowerCase();
+          if (lower.includes('.woff2')) {
+            srcRule = `url("${fontUrl}") format("woff2")`;
+          } else if (lower.includes('.woff')) {
+            srcRule = `url("${fontUrl}") format("woff")`;
+          } else if (lower.includes('.ttf')) {
+            srcRule = `url("${fontUrl}") format("truetype")`;
+          } else if (lower.includes('.otf')) {
+            srcRule = `url("${fontUrl}") format("opentype"), url("${fontUrl}") format("truetype")`;
+          } else {
+            srcRule = `url("${fontUrl}")`;
+          }
         }
+
         css += `
           @font-face {
-            font-family: 'Font-${f.id}';
+            font-family: '${familyName}';
             font-weight: ${w.weight};
             font-style: normal;
-            src: url('${fontUrl}')${formatStr};
+            src: ${srcRule};
             font-display: swap;
           }
         `;
+
+        // Programmatic FontFace API loading for instant browser engine repaint
+        if (typeof FontFace !== 'undefined' && typeof document !== 'undefined' && document.fonts && !_loadedFontCache.has(cacheKey)) {
+          _loadedFontCache.add(cacheKey);
+          try {
+            const face = new FontFace(familyName, `url(${fontUrl})`, {
+              weight: String(w.weight),
+              style: 'normal',
+              display: 'swap'
+            });
+            face.load().then(loadedFace => {
+              document.fonts.add(loadedFace);
+              // Trigger instant visual repaint on inputs and preview displays
+              document.querySelectorAll(`[data-font-id="${f.id}"]`).forEach(el => {
+                if (el.classList.contains('font-card-input') || el.classList.contains('font-compare-text-display')) {
+                  el.style.fontFamily = `'${familyName}', ${getFallbackFont(f)}`;
+                }
+              });
+            }).catch(err => {
+              console.warn(`[FontLoader] FontFace load error for ${f.name} (${w.weight}):`, err);
+            });
+          } catch (e) {
+            console.warn('[FontLoader] FontFace init error:', e);
+          }
+        }
       });
     });
 
@@ -3841,7 +3982,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     </div>
                   </div>
 
-                  <div class="font-compare-text-display font-display-a" data-font-id="${fontA?.id || ''}" style="font-size: ${state.fontTester.size}px; font-family: ${getFontFamily(fontA)}; font-weight: ${state.fontTester.weight1 || '400'};">
+                  <div class="font-compare-text-display font-display-a font-weight-${state.fontTester.weight1 || '400'}" data-font-id="${fontA?.id || ''}" data-weight="${state.fontTester.weight1 || '400'}" style="font-size: ${state.fontTester.size}px; font-family: ${getFontFamily(fontA)} !important; font-weight: ${state.fontTester.weight1 || '400'};">
                     ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
                   </div>
 
@@ -3879,7 +4020,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     </div>
                   </div>
 
-                  <div class="font-compare-text-display font-display-b" data-font-id="${fontB?.id || ''}" style="font-size: ${state.fontTester.size}px; font-family: ${getFontFamily(fontB)}; font-weight: ${state.fontTester.weight2 || '400'};">
+                  <div class="font-compare-text-display font-display-b font-weight-${state.fontTester.weight2 || '400'}" data-font-id="${fontB?.id || ''}" data-weight="${state.fontTester.weight2 || '400'}" style="font-size: ${state.fontTester.size}px; font-family: ${getFontFamily(fontB)} !important; font-weight: ${state.fontTester.weight2 || '400'};">
                     ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
                   </div>
 
@@ -4044,7 +4185,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     state.fontTester.cardWeights = state.fontTester.cardWeights || {};
     state.fontTester.cardWeights[fontId] = weight;
     const inputEl = document.querySelector(`.font-card-input[data-font-id="${fontId}"]`);
-    if (inputEl) inputEl.style.fontWeight = weight;
+    if (inputEl) {
+      inputEl.style.fontWeight = weight;
+      inputEl.setAttribute('data-weight', weight);
+      inputEl.className = inputEl.className.replace(/\bfont-weight-\d+\b/g, '').trim() + ' font-weight-' + weight;
+    }
     const cardEl = document.querySelector(`.font-item-card[data-card-font-id="${fontId}"]`);
     if (cardEl) {
       cardEl.querySelectorAll('.font-weight-pill').forEach(btn => {
@@ -8981,7 +9126,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
         <!-- Live Font Preview Area with Direct In-Card Typing (ลองพิมพ์คำเองได้) -->
         <div class="font-preview-area" style="padding: 0.75rem 0.95rem; min-height: 56px; border-radius: 14px; border: 1.5px solid #FFDFE9; background: #FFFDFE; margin-bottom: 0.85rem; display: flex; align-items: center;">
-          <input type="text" class="font-preview-editable-input font-card-input" data-font-id="${f.id}" value="${escapeHTML(cardText)}" placeholder="คลิกเพื่อพิมพ์ทดสอบคำ..." oninput="handleCardFontTextInput('${f.id}', this.value)" style="font-family: ${getFontFamily(f)}; font-weight: ${cardWeight};">
+          <input type="text" class="font-preview-editable-input font-card-input font-weight-${cardWeight}" data-font-id="${f.id}" data-weight="${cardWeight}" value="${escapeHTML(cardText)}" placeholder="คลิกเพื่อพิมพ์ทดสอบคำ..." oninput="handleCardFontTextInput('${f.id}', this.value)" style="font-family: ${getFontFamily(f)} !important; font-weight: ${cardWeight};">
         </div>
 
         ${f.description ? `<p style="font-size: 0.86rem; color: var(--text-muted); margin: 0 0 0.85rem; line-height: 1.4;">${escapeHTML(f.description)}</p>` : ''}
@@ -10728,23 +10873,37 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const status = document.getElementById('adminFontFileStatus_' + weightKey);
-    if (status) status.textContent = 'กำลังอ่าน ' + file.name + '...';
+    if (status) status.textContent = 'กำลังอ่านไฟล์ ' + file.name + '...';
+    
+    const lowerName = file.name.toLowerCase();
+    let mimeType = 'font/ttf';
+    if (lowerName.endsWith('.otf')) mimeType = 'font/otf';
+    else if (lowerName.endsWith('.woff2')) mimeType = 'font/woff2';
+    else if (lowerName.endsWith('.woff')) mimeType = 'font/woff';
+
     const reader = new FileReader();
     reader.onload = function(evt) {
       let dataUrl = evt.target.result;
-      const lowerName = file.name.toLowerCase();
-      if (lowerName.endsWith('.ttf')) {
-        dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, 'data:font/ttf;base64,');
-      } else if (lowerName.endsWith('.otf')) {
-        dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, 'data:font/otf;base64,');
-      } else if (lowerName.endsWith('.woff2')) {
-        dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, 'data:font/woff2;base64,');
-      } else if (lowerName.endsWith('.woff')) {
-        dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, 'data:font/woff;base64,');
-      }
+      dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, `data:${mimeType};base64,`);
+
       const input = document.getElementById('adminFontFileUrl_' + weightKey);
       if (input) input.value = dataUrl;
-      if (status) status.textContent = 'สำเร็จ: ' + file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+      const sizeKB = Math.round(file.size / 1024);
+      if (status) status.textContent = `สำเร็จ: ${file.name} (${sizeKB} KB)`;
+
+      // Test decoding immediately with FontFace API
+      if (typeof FontFace !== 'undefined' && typeof document !== 'undefined' && document.fonts) {
+        try {
+          const testFamily = `TestFont-${weightKey}-${Date.now()}`;
+          const face = new FontFace(testFamily, `url(${dataUrl})`);
+          face.load().then(loaded => {
+            document.fonts.add(loaded);
+            if (status) status.textContent = `สำเร็จ: ${file.name} (${sizeKB} KB) - ฟอนต์พร้อมใช้งาน`;
+          }).catch(err => {
+            console.warn('[FontVerify] Font file parse issue:', err);
+          });
+        } catch (e) {}
+      }
     };
     reader.onerror = function() {
       if (status) status.textContent = 'เกิดข้อผิดพลาดในการอ่านไฟล์';
@@ -11168,15 +11327,26 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (title) title.textContent = 'แก้ไขฟอนต์ลายมือ';
     $('adminFontName').value = f.name || '';
     $('adminFontImage').value = f.preview_image || f.preview_image_url || f.image_url || '';
-    if ($('adminFontFileUrl_regular')) $('adminFontFileUrl_regular').value = f.font_file_url_regular || f.font_file_url || f.file_url || '';
-    if ($('adminFontFileUrl_light')) $('adminFontFileUrl_light').value = f.font_file_url_light || '';
-    if ($('adminFontFileUrl_bold')) $('adminFontFileUrl_bold').value = f.font_file_url_bold || '';
+    let regVal = f.font_file_url_regular || f.font_file_url || f.file_url || '';
+    let litVal = f.font_file_url_light || '';
+    let bldVal = f.font_file_url_bold || '';
+    if (typeof regVal === 'string' && regVal.trim().startsWith('{')) {
+      try {
+        const p = JSON.parse(regVal);
+        if (p.regular) regVal = p.regular;
+        if (p.light) litVal = p.light;
+        if (p.bold) bldVal = p.bold;
+      } catch (e) {}
+    }
+    if ($('adminFontFileUrl_regular')) $('adminFontFileUrl_regular').value = (regVal === '__IDB_STORED__') ? '' : regVal;
+    if ($('adminFontFileUrl_light')) $('adminFontFileUrl_light').value = (litVal === '__IDB_STORED__') ? '' : litVal;
+    if ($('adminFontFileUrl_bold')) $('adminFontFileUrl_bold').value = (bldVal === '__IDB_STORED__') ? '' : bldVal;
     if ($('adminFontFileInput_regular')) $('adminFontFileInput_regular').value = '';
     if ($('adminFontFileInput_light')) $('adminFontFileInput_light').value = '';
     if ($('adminFontFileInput_bold')) $('adminFontFileInput_bold').value = '';
-    if ($('adminFontFileStatus_regular')) $('adminFontFileStatus_regular').textContent = (f.font_file_url_regular || f.font_file_url) ? 'มีไฟล์เดิมอยู่แล้ว' : '';
-    if ($('adminFontFileStatus_light')) $('adminFontFileStatus_light').textContent = f.font_file_url_light ? 'มีไฟล์เดิมอยู่แล้ว' : '';
-    if ($('adminFontFileStatus_bold')) $('adminFontFileStatus_bold').textContent = f.font_file_url_bold ? 'มีไฟล์เดิมอยู่แล้ว' : '';
+    if ($('adminFontFileStatus_regular')) $('adminFontFileStatus_regular').textContent = (regVal && regVal !== '__IDB_STORED__') ? 'มีไฟล์เดิมอยู่แล้ว' : 'ยังไม่มีไฟล์';
+    if ($('adminFontFileStatus_light')) $('adminFontFileStatus_light').textContent = (litVal && litVal !== '__IDB_STORED__') ? 'มีไฟล์เดิมอยู่แล้ว' : 'ใช้ไฟล์ปกติแทน';
+    if ($('adminFontFileStatus_bold')) $('adminFontFileStatus_bold').textContent = (bldVal && bldVal !== '__IDB_STORED__') ? 'มีไฟล์เดิมอยู่แล้ว' : 'ใช้ไฟล์ปกติแทน';
     $('adminFontPreviewText').value = f.preview_text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส 1234';
     $('adminFontCategory').value = f.category || 'ลายมือ';
     $('adminFontPrice').value = f.price || 0;
