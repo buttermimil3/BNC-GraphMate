@@ -48,6 +48,7 @@ const Store = (function () {
  adminPin: '123456',
  isShopOpen: true,
  coverScreenText: 'Welcome',
+ coverWallpaper: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&auto=format&fit=crop&q=80',
  gasUrl: '',
  // Customizable Button & Action Labels
  btnLineText: 'ทักแชท LINE ร้าน',
@@ -3540,6 +3541,39 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
   ];
 
+  const COVER_WALLPAPER_PRESETS = [
+    {
+      id: 'cwp-1',
+      name: 'Sweet Hearts',
+      url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=600&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'cwp-2',
+      name: 'Baby Pink Clouds',
+      url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'cwp-3',
+      name: 'Lavender Starlight',
+      url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=600&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'cwp-4',
+      name: 'Strawberry Milk Gradient',
+      url: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=600&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'cwp-5',
+      name: 'Minimal Cream Boutique',
+      url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'cwp-6',
+      name: 'Deep Rose AMOLED',
+      url: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600&auto=format&fit=crop&q=80'
+    }
+  ];
+
   // ── Spinning Vinyl Record Music Player System ─────────────
   const DEFAULT_MUSIC_TRACKS = [
     {
@@ -3751,6 +3785,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     initSpringboardSwipe();
     updateIosClock();
     updateFlipCoverScreen();
+    updateFlipCoverWallpaper();
+    initFlipCoverTilt();
     setInterval(() => {
       updateIosClock();
       updateFlipCoverClock();
@@ -3805,6 +3841,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   function updateFlipCoverScreen() {
     try {
       updateFlipCoverClock();
+      updateFlipCoverWallpaper();
       const s = Store.getSettings() || {};
       const coverText = s.coverScreenText || 'Welcome';
       const textDisplay = $('flipCoverTextDisplay');
@@ -3838,6 +3875,163 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       renderPhoneStickers();
     }, 360);
   };
+
+  function updateFlipCoverWallpaper() {
+    try {
+      const s = Store.getSettings() || {};
+      const saved = localStorage.getItem('BNC_COVER_WALLPAPER') || s.coverWallpaper || COVER_WALLPAPER_PRESETS[0].url;
+      const el = $('flipCoverWallpaper');
+      if (el) {
+        el.style.backgroundImage = `url("${saved}")`;
+      }
+      const adminEl = $('adminMiniCoverScreen');
+      if (adminEl) {
+        adminEl.style.backgroundImage = `url("${saved}")`;
+        adminEl.style.backgroundSize = 'cover';
+        adminEl.style.backgroundPosition = 'center';
+      }
+    } catch (e) {
+      console.warn('updateFlipCoverWallpaper error:', e);
+    }
+  }
+
+  function setCoverWallpaper(url, save = true) {
+    const el = $('flipCoverWallpaper');
+    if (el) {
+      el.style.backgroundImage = `url("${url}")`;
+    }
+    const adminEl = $('adminMiniCoverScreen');
+    if (adminEl) {
+      adminEl.style.backgroundImage = `url("${url}")`;
+      adminEl.style.backgroundSize = 'cover';
+      adminEl.style.backgroundPosition = 'center';
+    }
+    if (save) {
+      localStorage.setItem('BNC_COVER_WALLPAPER', url);
+      const s = Store.getSettings() || {};
+      s.coverWallpaper = url;
+      Store.saveSettings(s);
+    }
+  }
+
+  window.openCoverWallpaperModal = function () {
+    if (!state.isAdmin) {
+      openAdminPinCalculator();
+      return;
+    }
+    const grid = $('coverWallpaperPresetGrid');
+    if (grid) {
+      const s = Store.getSettings() || {};
+      const current = localStorage.getItem('BNC_COVER_WALLPAPER') || s.coverWallpaper || COVER_WALLPAPER_PRESETS[0].url;
+      grid.innerHTML = COVER_WALLPAPER_PRESETS.map(p => `
+        <div 
+          class="wallpaper-preset-thumb ${current === p.url ? 'active' : ''}" 
+          style="background-image: url('${p.url}')"
+          onclick="selectCoverWallpaper('${p.url}')"
+          title="${p.name}"
+        ></div>
+      `).join('');
+    }
+    const modal = $('coverWallpaperModal');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  window.closeCoverWallpaperModal = function () {
+    const modal = $('coverWallpaperModal');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.selectCoverWallpaper = function (url) {
+    setCoverWallpaper(url, true);
+    openCoverWallpaperModal();
+  };
+
+  window.handleCoverWallpaperFileUpload = function (event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      setCoverWallpaper(e.target.result, true);
+      alert('เปลี่ยนรูปพื้นหลังหน้าจอนอกสำเร็จแล้วค่ะ');
+      closeCoverWallpaperModal();
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.applyCoverWallpaperUrl = function () {
+    const input = $('coverWallpaperUrlInput');
+    if (!input) return;
+    const url = input.value.trim();
+    if (!url) return;
+    setCoverWallpaper(url, true);
+    input.value = '';
+    alert('บันทึกรูปพื้นหลังจากลิงก์เรียบร้อยแล้วค่ะ');
+    closeCoverWallpaperModal();
+  };
+
+  window.resetDefaultCoverWallpaper = function () {
+    setCoverWallpaper(COVER_WALLPAPER_PRESETS[0].url, true);
+    openCoverWallpaperModal();
+  };
+
+  function initFlipCoverTilt() {
+    const screen = $('flipCoverScreen') || $('flipFoldedView');
+    const mascot = $('flipCoverMascot');
+    if (!screen || !mascot) return;
+
+    let targetX = 0;
+    let targetY = 0;
+    let targetRotate = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let currentRotate = 0;
+    let animId = null;
+
+    function renderTilt() {
+      currentX += (targetX - currentX) * 0.12;
+      currentY += (targetY - currentY) * 0.12;
+      currentRotate += (targetRotate - currentRotate) * 0.12;
+      mascot.style.transform = `translate(${currentX.toFixed(2)}px, ${currentY.toFixed(2)}px) rotate(${currentRotate.toFixed(2)}deg)`;
+      if (Math.abs(targetX - currentX) > 0.05 || Math.abs(targetY - currentY) > 0.05 || Math.abs(targetRotate - currentRotate) > 0.05) {
+        animId = requestAnimationFrame(renderTilt);
+      } else {
+        animId = null;
+      }
+    }
+
+    function queueRender() {
+      if (!animId) animId = requestAnimationFrame(renderTilt);
+    }
+
+    screen.addEventListener('mousemove', (e) => {
+      const rect = screen.getBoundingClientRect();
+      const normX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      const normY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+      targetX = normX * 28;
+      targetY = normY * 20;
+      targetRotate = normX * 16;
+      queueRender();
+    });
+
+    screen.addEventListener('mouseleave', () => {
+      targetX = 0;
+      targetY = 0;
+      targetRotate = 0;
+      queueRender();
+    });
+
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', (e) => {
+        if (e.gamma === null || e.beta === null) return;
+        const clampedGamma = Math.max(-45, Math.min(45, e.gamma));
+        const clampedBeta = Math.max(-30, Math.min(60, e.beta));
+        targetX = (clampedGamma / 45) * 32;
+        targetY = ((clampedBeta - 25) / 45) * 24;
+        targetRotate = (clampedGamma / 45) * 20;
+        queueRender();
+      }, { passive: true });
+    }
+  }
 
   function updateHomeWelcomeCard() {
     try {
@@ -9351,6 +9545,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <input type="text" id="cfg_coverScreenText" class="form-input" value="${escapeHTML(s.coverScreenText || 'Welcome')}" placeholder="เช่น Welcome หรือ ยินดีต้อนรับสู่ BNC GraphMate">
               <small style="color: var(--text-muted); font-size: 0.78rem;">*ข้อความนี้จะแสดงบนหน้าจอเล็กด้านนอกของโทรศัพท์พับได้ (เช่น Welcome, ยินดีต้อนรับค่ะ)</small>
             </div>
+            <div class="form-group sm:col-span-2">
+              <label class="form-label">วอลเปเปอร์หน้าจอนอก (Cover Screen Wallpaper)</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="cfg_coverWallpaper" class="form-input" style="flex: 1;" value="${escapeHTML(s.coverWallpaper || '')}" placeholder="วางลิงก์รูปภาพ หรือเลือกจากพรีเซ็ต">
+                <button type="button" class="btn btn-outline btn-sm" onclick="openCoverWallpaperModal()" style="white-space: nowrap; font-size: 11px;">เลือกพรีเซ็ต</button>
+              </div>
+              <small style="color: var(--text-muted); font-size: 0.78rem;">*ภาพพื้นหลังของหน้าจอเล็กด้านนอก</small>
+            </div>
           </div>
         </div>
 
@@ -9905,6 +10107,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   function renderAdminScreenTab() {
     const s = Store.getSettings() || {};
     const currentWp = phoneState.wallpaper || (localStorage.getItem('BNC_PHONE_WALLPAPER') || WALLPAPER_PRESETS[0].url);
+    const currentCoverWp = localStorage.getItem('BNC_COVER_WALLPAPER') || s.coverWallpaper || COVER_WALLPAPER_PRESETS[0].url;
     const savedIcons = (() => {
       try {
         const raw = localStorage.getItem('BNC_CUSTOM_APP_ICONS');
@@ -9977,7 +10180,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                   <div class="mini-cam-lens"></div>
                   <div class="mini-cam-lens"></div>
                 </div>
-                <div class="mini-flip-cover-screen">
+                <div class="mini-flip-cover-screen" id="adminMiniCoverScreen" style="background-image: url('${escapeHTML(currentCoverWp)}'); background-size: cover; background-position: center;">
                   <div>
                     <div class="mini-cover-clock" id="adminMiniCoverClock">12:00</div>
                     <div class="mini-cover-date" id="adminMiniCoverDate">วันเสาร์, 3 ต.ค.</div>
@@ -10013,6 +10216,31 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             </div>
             <small style="color: var(--text-muted); font-size: 0.78rem;">
               *แก้ไขข้อความที่แสดงบนหน้าจอเล็กด้านนอกของโทรศัพท์พับได้ (เช่น Welcome, BNC Studio ยินดีต้อนรับค่ะ)
+            </small>
+          </div>
+
+          <!-- Cover Screen Wallpaper Editor (วอลเปเปอร์หน้าจอนอก) -->
+          <div style="background: #FFF7F9; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 12px 14px; margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-weight: 700; color: #71515B; margin-bottom: 4px; display: block;">
+              วอลเปเปอร์หน้าจอนอก (Cover Screen Wallpaper)
+            </label>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <div style="width: 56px; height: 56px; border-radius: 12px; border: 1.5px solid #FFB7CE; background-image: url('${escapeHTML(currentCoverWp)}'); background-size: cover; background-position: center; flex-shrink: 0;" title="วอลเปเปอร์หน้าจอนอกปัจจุบัน"></div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; flex: 1;">
+                <button type="button" class="btn btn-primary btn-sm" onclick="openCoverWallpaperModal()" style="border-radius: 10px; font-weight: 700;">
+                  เลือกจาก 6 พรีเซ็ต
+                </button>
+                <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 0.8rem; padding: 6px 12px; border-radius: 10px; border-color: #FFB7CE; color: #B24368;">
+                  อัปโหลดรูป
+                  <input type="file" accept="image/*" style="display: none;" onchange="handleCoverWallpaperFileUpload(event)">
+                </label>
+                <button type="button" class="btn btn-outline btn-sm" onclick="resetDefaultCoverWallpaper()" style="border-radius: 10px; font-size: 0.78rem; color: #888;">
+                  รีเซ็ตภาพเริ่มต้น
+                </button>
+              </div>
+            </div>
+            <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">
+              *ปรับเปลี่ยนรูปภาพพื้นหลังที่แสดงบนหน้าจอเล็กด้านนอกของโทรศัพท์พับได้
             </small>
           </div>
 
@@ -10439,6 +10667,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       const updated = {
         isShopOpen: $('cfg_isShopOpen') ? $('cfg_isShopOpen').value === 'true' : (s.isShopOpen !== false),
         coverScreenText: getVal('cfg_coverScreenText', s.coverScreenText || 'Welcome'),
+        coverWallpaper: getVal('cfg_coverWallpaper', s.coverWallpaper || COVER_WALLPAPER_PRESETS[0].url),
         adminPin: getVal('cfg_adminPin', s.adminPin || '123456'),
         shopName: getVal('cfg_shopName', s.shopName || 'BNC GraphMate Studio'),
         tagline: getVal('cfg_tagline', s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
