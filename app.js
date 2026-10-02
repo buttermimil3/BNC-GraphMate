@@ -47,6 +47,7 @@ const Store = (function () {
  announcementEnabled: false,
  adminPin: '123456',
  isShopOpen: true,
+ coverScreenText: 'Welcome',
  gasUrl: '',
  // Customizable Button & Action Labels
  btnLineText: 'ทักแชท LINE ร้าน',
@@ -3749,7 +3750,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     initWallpaper();
     initSpringboardSwipe();
     updateIosClock();
-    setInterval(updateIosClock, 1000);
+    updateFlipCoverScreen();
+    setInterval(() => {
+      updateIosClock();
+      updateFlipCoverClock();
+    }, 1000);
     updateQueueBadge();
     updateHomeWelcomeCard();
     initPhoneStickers();
@@ -3765,6 +3770,74 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const minutes = String(now.getMinutes()).padStart(2, '0');
     clockEl.textContent = `${hours}:${minutes}`;
   }
+
+  function updateFlipCoverClock() {
+    try {
+      const clockEl = $('flipCoverClock');
+      const dateEl = $('flipCoverDate');
+      const smallClockEl = $('coverTimeSmall');
+      const miniClockEl = $('adminMiniCoverClock');
+      const miniDateEl = $('adminMiniCoverDate');
+
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const timeStr = `${hours}:${minutes}`;
+
+      if (clockEl) clockEl.textContent = timeStr;
+      if (smallClockEl) smallClockEl.textContent = timeStr;
+      if (miniClockEl) miniClockEl.textContent = timeStr;
+
+      const days = ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'];
+      const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      const dayName = days[now.getDay()];
+      const dayNum = now.getDate();
+      const monthName = months[now.getMonth()];
+      const dateStr = `วัน${dayName}, ${dayNum} ${monthName}`;
+
+      if (dateEl) dateEl.textContent = dateStr;
+      if (miniDateEl) miniDateEl.textContent = `${dayNum} ${monthName}`;
+    } catch (e) {
+      console.warn('updateFlipCoverClock error:', e);
+    }
+  }
+
+  function updateFlipCoverScreen() {
+    try {
+      updateFlipCoverClock();
+      const s = Store.getSettings() || {};
+      const coverText = s.coverScreenText || 'Welcome';
+      const textDisplay = $('flipCoverTextDisplay');
+      if (textDisplay) textDisplay.textContent = coverText;
+      const miniTextDisplay = $('adminMiniCoverText');
+      if (miniTextDisplay) miniTextDisplay.textContent = coverText;
+    } catch (e) {
+      console.warn('updateFlipCoverScreen error:', e);
+    }
+  }
+
+  window.unfoldPhone = function () {
+    const container = $('flipPhoneContainer');
+    if (!container) return;
+    container.classList.add('is-unfolding');
+    setTimeout(() => {
+      container.classList.remove('is-folded', 'is-unfolding');
+      container.classList.add('is-unfolded');
+      window.dispatchEvent(new Event('resize'));
+    }, 360);
+  };
+
+  window.foldPhone = function () {
+    const container = $('flipPhoneContainer');
+    if (!container) return;
+    container.classList.add('is-folding');
+    setTimeout(() => {
+      container.classList.remove('is-unfolded', 'is-folding');
+      container.classList.add('is-folded');
+      updateFlipCoverScreen();
+      renderPhoneStickers();
+    }, 360);
+  };
 
   function updateHomeWelcomeCard() {
     try {
@@ -3915,28 +3988,32 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
   function renderPhoneStickers() {
     const layer = $('phoneStickerLayer');
-    if (!layer) return;
-    layer.innerHTML = '';
-    layer.classList.toggle('is-editing', isStickerEditingMode);
+    const coverLayer = $('flipCoverStickerLayer');
 
-    phoneStickers.forEach((stk) => {
-      const item = document.createElement('div');
-      item.className = 'phone-sticker-item';
-      item.dataset.id = stk.id;
-      item.style.left = `${stk.x}%`;
-      item.style.top = `${stk.y}%`;
-      item.style.width = `${stk.size || 46}px`;
-      item.style.height = `${stk.size || 46}px`;
+    [layer, coverLayer].forEach((tgtLayer) => {
+      if (!tgtLayer) return;
+      tgtLayer.innerHTML = '';
+      tgtLayer.classList.toggle('is-editing', isStickerEditingMode);
 
-      item.innerHTML = `
-        <img src="${escapeHTML(stk.src)}" alt="sticker" draggable="false">
-        <button type="button" class="sticker-del-btn" onclick="event.stopPropagation(); deleteSticker('${stk.id}')" title="ลบสติกเกอร์">✕</button>
-      `;
+      phoneStickers.forEach((stk) => {
+        const item = document.createElement('div');
+        item.className = 'phone-sticker-item';
+        item.dataset.id = stk.id;
+        item.style.left = `${stk.x}%`;
+        item.style.top = `${stk.y}%`;
+        item.style.width = `${stk.size || 46}px`;
+        item.style.height = `${stk.size || 46}px`;
 
-      if (isStickerEditingMode) {
-        attachStickerDragHandler(item, stk);
-      }
-      layer.appendChild(item);
+        item.innerHTML = `
+          <img src="${escapeHTML(stk.src)}" alt="sticker" draggable="false">
+          <button type="button" class="sticker-del-btn" onclick="event.stopPropagation(); deleteSticker('${stk.id}')" title="ลบสติกเกอร์">✕</button>
+        `;
+
+        if (isStickerEditingMode) {
+          attachStickerDragHandler(item, stk, tgtLayer);
+        }
+        tgtLayer.appendChild(item);
+      });
     });
 
     const countLabel = $('stickerCountLabel');
@@ -4026,6 +4103,31 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     });
   }
   window.renderAdminMiniPhoneStickers = renderAdminMiniPhoneStickers;
+
+  let adminFlipPreviewMode = 'folded';
+
+  window.setAdminFlipPreviewMode = function(mode) {
+    adminFlipPreviewMode = mode;
+    renderCurrentView();
+    setTimeout(renderAdminMiniPhoneStickers, 50);
+  };
+
+  window.handleCoverScreenTextInput = function(val) {
+    const textDisplay = $('flipCoverTextDisplay');
+    if (textDisplay) textDisplay.textContent = val || 'Welcome';
+    const miniTextDisplay = $('adminMiniCoverText');
+    if (miniTextDisplay) miniTextDisplay.textContent = val || 'Welcome';
+    const settingsInput = $('cfg_coverScreenText');
+    if (settingsInput && settingsInput !== document.activeElement) settingsInput.value = val;
+  };
+
+  window.saveQuickCoverScreenText = async function() {
+    const input = $('cfg_coverScreenText_quick');
+    const val = input ? input.value.trim() : 'Welcome';
+    await Store.saveSettings({ coverScreenText: val });
+    updateFlipCoverScreen();
+    alert('บันทึกข้อความหน้าจอนอกเรียบร้อยแล้วค่ะ!');
+  };
 
   window.openStickerModal = function () {
     if (!state.isAdmin) {
@@ -9244,6 +9346,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <label class="form-label">สโลแกน / Tagline</label>
               <input type="text" id="cfg_tagline" class="form-input" value="${escapeHTML(s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล')}">
             </div>
+            <div class="form-group sm:col-span-2">
+              <label class="form-label">ข้อความบนหน้าจอนอกโทรศัพท์พับได้ (Cover Screen Text)</label>
+              <input type="text" id="cfg_coverScreenText" class="form-input" value="${escapeHTML(s.coverScreenText || 'Welcome')}" placeholder="เช่น Welcome หรือ ยินดีต้อนรับสู่ BNC GraphMate">
+              <small style="color: var(--text-muted); font-size: 0.78rem;">*ข้อความนี้จะแสดงบนหน้าจอเล็กด้านนอกของโทรศัพท์พับได้ (เช่น Welcome, ยินดีต้อนรับค่ะ)</small>
+            </div>
           </div>
         </div>
 
@@ -9841,24 +9948,72 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 1. Interactive Phone Mockup Preview & Drag Stickers -->
+        <!-- 1. Interactive Samsung Flip Mockup Preview & Drag Stickers -->
         <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
-          <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
-            <span>พรีวิวตัวเครื่องไอโฟน & ลากวางสติกเกอร์ตกแต่งขอบเครื่อง</span>
-          </h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 8px;">
+            <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px;">
+              <span>พรีวิวโทรศัพท์พับได้ (Galaxy Z Flip) & ลากวางสติกเกอร์</span>
+            </h3>
+            <!-- View Switcher: Folded Cover vs Unfolded Main Screen -->
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn ${adminFlipPreviewMode === 'folded' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="setAdminFlipPreviewMode('folded')" style="border-radius: 999px; font-size: 11px; padding: 4px 12px; font-weight: 700;">
+                แบบพับ (Cover Screen)
+              </button>
+              <button type="button" class="btn ${adminFlipPreviewMode !== 'folded' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="setAdminFlipPreviewMode('unfolded')" style="border-radius: 999px; font-size: 11px; padding: 4px 12px; font-weight: 700;">
+                แบบกางออก (Main Screen)
+              </button>
+            </div>
+          </div>
           <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
-            สติกเกอร์ตกแต่งจะติดอยู่บนตัวเครื่องและขอบจอสีขาว (รอบปุ่มโฮม, ลำโพง, และด้านข้าง) สามารถคลิกค้างแล้วลากย้ายตำแหน่งบนเครื่องจำลองด้านล่างนี้ได้แบบเรียลไทม์เลยค่ะ
+            แสดงตัวอย่างโทรศัพท์พับได้แบบเรียลไทม์ สามารถสลับดูหน้าจอนอก (Cover Screen) และหน้าจอหลักด้านใน พร้อมลากวางสติกเกอร์ตกแต่งตัวเครื่องได้ตามใจชอบค่ะ
           </p>
 
           <div class="admin-phone-preview-stage">
-            <div class="mini-phone-frame" id="adminMiniPhoneFrame">
-              <div class="mini-phone-speaker"></div>
-              <div class="mini-phone-camera"></div>
-              <div class="mini-phone-sensor"></div>
-              <div class="mini-phone-screen" id="adminMiniPhoneScreen" style="background-image: url('${escapeHTML(currentWp)}');"></div>
-              <div class="mini-phone-home-btn"></div>
-              <div class="mini-sticker-layer" id="adminMiniStickerLayer"></div>
+            ${adminFlipPreviewMode === 'folded' ? `
+              <!-- Folded Clamshell Preview -->
+              <div class="mini-flip-folded" id="adminMiniFlipFolded">
+                <div class="mini-flip-hinge"></div>
+                <div class="mini-flip-dual-cam">
+                  <div class="mini-cam-lens"></div>
+                  <div class="mini-cam-lens"></div>
+                </div>
+                <div class="mini-flip-cover-screen">
+                  <div>
+                    <div class="mini-cover-clock" id="adminMiniCoverClock">12:00</div>
+                    <div class="mini-cover-date" id="adminMiniCoverDate">วันเสาร์, 3 ต.ค.</div>
+                  </div>
+                  <div class="mini-cover-text" id="adminMiniCoverText">
+                    ${escapeHTML(s.coverScreenText || 'Welcome')}
+                  </div>
+                </div>
+                <div class="mini-sticker-layer" id="adminMiniStickerLayer"></div>
+              </div>
+            ` : `
+              <!-- Unfolded Main Screen Preview -->
+              <div class="mini-phone-frame" id="adminMiniPhoneFrame">
+                <div class="mini-phone-speaker" style="display:none;"></div>
+                <div class="mini-phone-camera" style="left:50%; transform:translateX(-50%); top:10px;"></div>
+                <div class="mini-phone-screen" id="adminMiniPhoneScreen" style="background-image: url('${escapeHTML(currentWp)}');"></div>
+                <div class="mini-phone-home-btn"></div>
+                <div class="mini-sticker-layer" id="adminMiniStickerLayer"></div>
+              </div>
+            `}
+          </div>
+
+          <!-- Cover Screen Text Editor (หน้าจอเล็กด้านนอก) -->
+          <div style="background: #FFF7F9; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 12px 14px; margin-bottom: 1.25rem;">
+            <label class="form-label" style="font-weight: 700; color: #71515B; margin-bottom: 4px; display: block;">
+              ข้อความบนหน้าจอนอก (Cover Screen Text)
+            </label>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="text" id="cfg_coverScreenText_quick" class="form-input" style="flex: 1;" value="${escapeHTML(s.coverScreenText || 'Welcome')}" placeholder="เช่น Welcome หรือ ยินดีต้อนรับค่ะ" oninput="handleCoverScreenTextInput(this.value)">
+              <button type="button" class="btn btn-primary btn-sm" onclick="saveQuickCoverScreenText()" style="white-space: nowrap; padding: 7px 16px; font-weight: 700;">
+                บันทึกข้อความ
+              </button>
             </div>
+            <small style="color: var(--text-muted); font-size: 0.78rem;">
+              *แก้ไขข้อความที่แสดงบนหน้าจอเล็กด้านนอกของโทรศัพท์พับได้ (เช่น Welcome, BNC Studio ยินดีต้อนรับค่ะ)
+            </small>
           </div>
 
           <div style="background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
@@ -10283,6 +10438,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       const curQp = currentSettings.queuePage || {};
       const updated = {
         isShopOpen: $('cfg_isShopOpen') ? $('cfg_isShopOpen').value === 'true' : (s.isShopOpen !== false),
+        coverScreenText: getVal('cfg_coverScreenText', s.coverScreenText || 'Welcome'),
         adminPin: getVal('cfg_adminPin', s.adminPin || '123456'),
         shopName: getVal('cfg_shopName', s.shopName || 'BNC GraphMate Studio'),
         tagline: getVal('cfg_tagline', s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
@@ -10438,6 +10594,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       updateFooterDisplay();
       renderNavbar();
       updateHomeWelcomeCard();
+      updateFlipCoverScreen();
       renderCurrentView();
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);

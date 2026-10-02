@@ -17,29 +17,91 @@
 </head>
 <body>
   
-  <!-- iPhone 5s Desktop Stage Wrapper -->
-  <div class="iphone-stage">
+  <!-- Samsung Galaxy Z Flip Foldable Phone Desktop Stage -->
+  <div class="iphone-stage flip-stage" id="phoneStage">
     
-    <!-- iPhone 5s Device Frame (White & Silver Edition) -->
-    <div class="iphone-5s">
-      <!-- Hardware Side Buttons & Antennas -->
-      <div class="iphone-btn-power" title="Power Button"></div>
-      <div class="iphone-switch-silent" title="Mute Switch"></div>
-      <div class="iphone-btn-vol-up" title="Volume Up"></div>
-      <div class="iphone-btn-vol-down" title="Volume Down"></div>
+    <div class="flip-phone-container is-folded" id="flipPhoneContainer">
 
-      <!-- Phone Decorative Sticker & Photo Layer (Draggable over Phone White Bezel & Body) -->
-      <div class="phone-sticker-layer" id="phoneStickerLayer"></div>
+      <!-- 1. FOLDED CLAMSHELL VIEW (หน้าจอเล็กด้านนอก สไตล์ Samsung Galaxy Z Flip) -->
+      <div class="flip-folded-device" id="flipFoldedView" onclick="unfoldPhone()" title="คลิกที่โทรศัพท์เพื่อกางเปิดหน้าจอ">
+        <!-- Hinge Bar with Samsung Logo -->
+        <div class="flip-hinge-bar">
+          <div class="flip-hinge-text">SAMSUNG</div>
+        </div>
 
-      <!-- Top Bezel (White Glass Front) -->
-      <div class="iphone-top-bezel">
-        <div class="iphone-sensor"></div>
-        <div class="iphone-speaker"></div>
-        <div class="iphone-camera"></div>
+        <!-- Upper Half Clamshell Casing (Outer Cover) -->
+        <div class="flip-folded-body">
+          <!-- Outer Phone Stickers (for folded state) -->
+          <div class="phone-sticker-layer flip-cover-sticker-layer" id="flipCoverStickerLayer"></div>
+
+          <!-- Dual Camera Module & Flash Cutout -->
+          <div class="flip-dual-camera">
+            <div class="flip-camera-lens"><div class="lens-glare"></div></div>
+            <div class="flip-camera-lens"><div class="lens-glare"></div></div>
+            <div class="flip-camera-flash"></div>
+          </div>
+
+          <!-- Mini Cover Screen (หน้าจอเล็กด้านนอก) -->
+          <div class="flip-cover-screen" id="flipCoverScreen">
+            <div class="cover-screen-bar">
+              <span class="cover-time-small" id="coverTimeSmall">12:00</span>
+              <div class="cover-bar-icons">
+                <span class="cover-signal-text">5G</span>
+                <span class="cover-battery-pill"><span class="cover-battery-fill"></span></span>
+              </div>
+            </div>
+
+            <div class="cover-clock-display">
+              <div class="cover-clock-time" id="flipCoverClock">12:00</div>
+              <div class="cover-clock-date" id="flipCoverDate">วันเสาร์, 3 ต.ค.</div>
+            </div>
+
+            <!-- Customizable Text Display (เช่น Welcome หรือข้อความที่แอดมินตั้งค่า) -->
+            <div class="cover-custom-text-box">
+              <div class="cover-custom-text-bubble">
+                <span class="cover-custom-text" id="flipCoverTextDisplay">Welcome</span>
+              </div>
+            </div>
+
+            <!-- Tap to unfold animated cue -->
+            <div class="cover-tap-unfold-pill">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="7 11 12 6 17 11"/><polyline points="7 18 12 13 17 18"/></svg>
+              <span>แตะตัวเครื่องเพื่อกางจอ</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- iPhone Screen (Retina Display Container) -->
-      <div class="iphone-screen" id="iphoneScreen">
+      <!-- 2. UNFOLDED PHONE VIEW (หน้าจอหลักด้านในเมื่อกางออก) -->
+      <div class="flip-unfolded-device" id="flipUnfoldedView">
+        <!-- Floating Fold Button to fold back anytime -->
+        <button type="button" class="flip-fold-back-btn" onclick="foldPhone()" title="พับเก็บโทรศัพท์">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="7 13 12 18 17 13"/><polyline points="7 6 12 11 17 6"/></svg>
+          <span>พับจอ</span>
+        </button>
+
+        <!-- Galaxy Z Flip Device Frame (Inner Screen Body) -->
+        <div class="iphone-5s flip-main-frame">
+          <!-- Hardware Side Buttons & Antennas -->
+          <div class="iphone-btn-power" title="Power Button"></div>
+          <div class="iphone-switch-silent" title="Mute Switch"></div>
+          <div class="iphone-btn-vol-up" title="Volume Up"></div>
+          <div class="iphone-btn-vol-down" title="Volume Down"></div>
+
+          <!-- Phone Decorative Sticker Layer -->
+          <div class="phone-sticker-layer" id="phoneStickerLayer"></div>
+
+          <!-- Top Bezel (Flip Edition with Punch-hole Camera) -->
+          <div class="iphone-top-bezel flip-inner-top-bezel">
+            <div class="flip-punch-camera"></div>
+            <div class="iphone-speaker flip-earpiece"></div>
+          </div>
+
+          <!-- Center Folding Screen Crease Indicator (Subtle Glare) -->
+          <div class="flip-screen-crease"></div>
+
+          <!-- iPhone Screen (Retina Display Container) -->
+          <div class="iphone-screen" id="iphoneScreen">
         <!-- iOS Status Bar -->
         <div class="ios-status-bar" id="iosStatusBar">
           <div class="status-left">
@@ -403,8 +465,10 @@
         </button>
       </div>
     </div>
+  </div> <!-- /flip-unfolded-device -->
 
-  </div>
+</div> <!-- /flip-phone-container -->
+</div> <!-- /iphone-stage flip-stage -->
 
   <!-- Custom Wallpaper Picker Modal -->
   <div id="wallpaperModal" class="modal-overlay wallpaper-modal-overlay" style="display:none;" onclick="if(event.target===this)closeWallpaperModal()">

@@ -4763,24 +4763,431 @@ select option {
 }
 
 /* ============================================================
-   IPHONE 5S WHITE & SILVER DEVICE FRAME & SPRINGBOARD STYLES
+   SAMSUNG GALAXY Z FLIP FOLDABLE PHONE & SPRINGBOARD STYLES
    ============================================================ */
 
 /* ── Outer Desktop Stage ───────────────────────────────────── */
-.iphone-stage {
+.iphone-stage,
+.flip-stage {
   min-height: 100vh;
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 12px 8px;
+  padding: 18px 8px;
   background: radial-gradient(circle at 50% 30%, #FFF7FA 0%, #FDEBF2 50%, #F3DDE5 100%);
   background-attachment: fixed;
   box-sizing: border-box;
   overflow-x: hidden;
+  perspective: 1200px;
 }
 
-/* ── iPhone 5s White & Silver Body ─────────────────────────── */
+/* ── Flip Phone Container ──────────────────────────────────── */
+.flip-phone-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+}
+
+/* Folded vs Unfolded State Visibility */
+.flip-phone-container.is-folded .flip-unfolded-device {
+  display: none !important;
+}
+
+.flip-phone-container.is-folded .flip-folded-device {
+  display: flex !important;
+  animation: flipBounceIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.flip-phone-container.is-unfolded .flip-folded-device {
+  display: none !important;
+}
+
+.flip-phone-container.is-unfolded .flip-unfolded-device {
+  display: block !important;
+  animation: flipUnfoldIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.flip-phone-container.is-unfolding {
+  animation: flipOpeningHinge 0.38s ease-in forwards;
+}
+
+.flip-phone-container.is-folding {
+  animation: flipClosingHinge 0.38s ease-in forwards;
+}
+
+@keyframes flipBounceIn {
+  from { opacity: 0; transform: scale(0.92) translateY(16px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes flipUnfoldIn {
+  from { opacity: 0; transform: perspective(1000px) rotateX(25deg) scale(0.94); }
+  to { opacity: 1; transform: perspective(1000px) rotateX(0deg) scale(1); }
+}
+
+@keyframes flipOpeningHinge {
+  0% { transform: perspective(1000px) scale(1); opacity: 1; }
+  50% { transform: perspective(1000px) rotateX(35deg) scale(0.95); opacity: 0.8; }
+  100% { transform: perspective(1000px) rotateX(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes flipClosingHinge {
+  0% { transform: perspective(1000px) scale(1); opacity: 1; }
+  50% { transform: perspective(1000px) rotateX(-35deg) scale(0.95); opacity: 0.8; }
+  100% { transform: perspective(1000px) rotateX(0deg) scale(1); opacity: 1; }
+}
+
+/* ── FOLDED CLAMSHELL DEVICE (Samsung Galaxy Z Flip Mode) ──── */
+.flip-folded-device {
+  position: relative;
+  width: 340px;
+  height: 350px;
+  max-width: 94vw;
+  background: linear-gradient(155deg, #FFF0F5 0%, #FFE5EE 45%, #FFD4E3 100%);
+  border: 3.5px solid #FFCAD8;
+  border-radius: 40px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  user-select: none;
+  cursor: pointer;
+  box-shadow: 
+    0 22px 55px -10px rgba(180, 80, 115, 0.32),
+    0 8px 20px rgba(0, 0, 0, 0.08),
+    0 0 0 1.5px #FFFFFF,
+    inset 0 2px 5px rgba(255, 255, 255, 0.95),
+    inset 0 -3px 6px rgba(210, 110, 140, 0.18);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease;
+  z-index: 20;
+}
+
+.flip-folded-device:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 
+    0 28px 65px -8px rgba(180, 80, 115, 0.38),
+    0 12px 28px rgba(0, 0, 0, 0.12),
+    0 0 0 2px #FFFFFF,
+    inset 0 2px 5px rgba(255, 255, 255, 0.95);
+}
+
+.flip-folded-device:active {
+  transform: scale(0.99);
+}
+
+/* Hinge Bar at Top of Folded Clamshell */
+.flip-hinge-bar {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 145px;
+  height: 10px;
+  background: linear-gradient(90deg, #EAA2B8 0%, #FFF0F5 45%, #EAA2B8 100%);
+  border-radius: 6px 6px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  border: 1px solid #FFCCD9;
+  border-bottom: none;
+}
+
+.flip-hinge-text {
+  font-family: 'Prompt', -apple-system, sans-serif;
+  font-size: 8px;
+  font-weight: 800;
+  color: #8C475D;
+  letter-spacing: 2.5px;
+  opacity: 0.85;
+}
+
+/* Folded Clamshell Outer Body */
+.flip-folded-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dual Camera Module (Z Flip Style) */
+.flip-dual-camera {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #1C1518;
+  padding: 4px 8px;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 1.5px rgba(255,255,255,0.25);
+  border: 1px solid #38242D;
+  z-index: 15;
+}
+
+.flip-camera-lens {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #4C3742 0%, #170E13 80%);
+  border: 1.5px solid #FFCAD8;
+  position: relative;
+  box-shadow: inset 0 0 5px #000;
+}
+
+.lens-glare {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.75);
+}
+
+.flip-camera-flash {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #FFF4B8 0%, #E8BE48 100%);
+  border: 1px solid #FFD875;
+}
+
+/* ── Mini Cover Screen (AMOLED Display on Outer Body) ──────── */
+.flip-cover-screen {
+  position: absolute;
+  top: 60px;
+  left: 18px;
+  right: 18px;
+  bottom: 20px;
+  background: #150F13;
+  border-radius: 28px;
+  border: 2px solid #3D2631;
+  box-shadow: 
+    inset 0 0 16px rgba(0,0,0,0.9),
+    0 4px 14px rgba(113, 81, 91, 0.12),
+    0 0 0 1px rgba(255, 183, 206, 0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px 16px;
+  overflow: hidden;
+  color: #FFFFFF;
+  z-index: 10;
+}
+
+.cover-screen-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #B5A4AC;
+}
+
+.cover-time-small {
+  color: #E2D5DC;
+}
+
+.cover-bar-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cover-signal-text {
+  font-size: 10px;
+  font-weight: 800;
+  color: #FFB7CE;
+}
+
+.cover-battery-pill {
+  width: 18px;
+  height: 9px;
+  border: 1.5px solid #E2D5DC;
+  border-radius: 3px;
+  padding: 1px;
+  display: inline-block;
+  position: relative;
+}
+
+.cover-battery-pill::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 2px;
+  width: 1.5px;
+  height: 3px;
+  background: #E2D5DC;
+  border-radius: 0 1px 1px 0;
+}
+
+.cover-battery-fill {
+  display: block;
+  width: 80%;
+  height: 100%;
+  background: #22C55E;
+  border-radius: 1px;
+}
+
+/* Cover Screen Clock Widget */
+.cover-clock-display {
+  margin: 4px 0 2px;
+}
+
+.cover-clock-time {
+  font-family: 'Prompt', sans-serif;
+  font-size: 38px;
+  font-weight: 800;
+  line-height: 1;
+  color: #FFFFFF;
+  letter-spacing: -0.5px;
+}
+
+.cover-clock-date {
+  font-size: 13px;
+  color: #FFB7CE;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+/* Customizable Text Banner (เช่น Welcome) */
+.cover-custom-text-box {
+  margin: 6px 0;
+}
+
+.cover-custom-text-bubble {
+  background: rgba(255, 183, 206, 0.16);
+  border: 1.5px solid rgba(255, 183, 206, 0.38);
+  border-radius: 14px;
+  padding: 8px 12px;
+  backdrop-filter: blur(4px);
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+.cover-custom-text {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #FFE5EE;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 3px rgba(255, 107, 151, 0.4);
+}
+
+/* Tap to Unfold Animated Cue */
+.cover-tap-unfold-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #FF6B97 0%, #FF8FB1 100%);
+  color: #FFFFFF;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 999px;
+  box-shadow: 0 2px 10px rgba(255, 107, 151, 0.45);
+  animation: pulseUnfold 2s infinite ease-in-out;
+}
+
+@keyframes pulseUnfold {
+  0%, 100% { transform: translateY(0); box-shadow: 0 2px 10px rgba(255, 107, 151, 0.45); }
+  50% { transform: translateY(-2px); box-shadow: 0 5px 16px rgba(255, 107, 151, 0.7); }
+}
+
+/* Outer Cover Sticker Layer */
+.flip-cover-sticker-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 40px;
+  pointer-events: none;
+  z-index: 25;
+}
+
+/* ── UNFOLDED FULL PHONE VIEW (Samsung Galaxy Z Flip Main Screen) ── */
+.flip-unfolded-device {
+  position: relative;
+}
+
+/* Floating Fold Back Button */
+.flip-fold-back-btn {
+  position: absolute;
+  top: -14px;
+  right: 18px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FFFFFF;
+  color: #B24368;
+  border: 1.5px solid #FFCAD8;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(113, 81, 91, 0.18);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.flip-fold-back-btn:hover {
+  background: #FFF0F5;
+  color: #9E2651;
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 6px 16px rgba(113, 81, 91, 0.24);
+}
+
+.flip-fold-back-btn:active {
+  transform: scale(0.97);
+}
+
+/* Top Bezel Flip Edition (Punch Hole Camera) */
+.flip-inner-top-bezel {
+  height: 52px !important;
+  background: #FFFFFF;
+}
+
+.flip-punch-camera {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #1C1518;
+  border: 1.2px solid #5A404C;
+  box-shadow: inset 0 0 3px #000;
+  margin: 0 auto;
+}
+
+.flip-earpiece {
+  display: none !important;
+}
+
+/* Center Screen Folding Crease Indicator */
+.flip-screen-crease {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.7) 20%, rgba(230, 180, 195, 0.4) 50%, rgba(255, 255, 255, 0.7) 80%, transparent 100%);
+  z-index: 85;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* ── Galaxy Z Flip White & Rose Body ───────────────────────── */
 .iphone-5s {
   position: relative;
   width: 375px;
@@ -6851,6 +7258,97 @@ select option {
   object-fit: contain;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
   pointer-events: none;
+}
+
+/* Mini Flip Folded Mockup in Admin */
+.mini-flip-folded {
+  position: relative;
+  width: 220px;
+  height: 230px;
+  background: linear-gradient(150deg, #FFF0F5 0%, #FFE5EE 45%, #FFD4E3 100%);
+  border: 3px solid #FFCAD8;
+  border-radius: 28px;
+  box-shadow: 0 10px 28px rgba(224, 90, 136, 0.2);
+  overflow: hidden;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-flip-hinge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 6px;
+  background: linear-gradient(90deg, #EAA2B8 0%, #FFF0F5 45%, #EAA2B8 100%);
+  border-radius: 0 0 4px 4px;
+}
+
+.mini-flip-dual-cam {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #1C1518;
+  padding: 3px 6px;
+  border-radius: 999px;
+  border: 1px solid #38242D;
+}
+
+.mini-cam-lens {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #4C3742 0%, #170E13 80%);
+  border: 1px solid #FFCAD8;
+}
+
+.mini-flip-cover-screen {
+  position: absolute;
+  top: 44px;
+  left: 12px;
+  right: 12px;
+  bottom: 14px;
+  background: #150F13;
+  border-radius: 18px;
+  border: 1.5px solid #3D2631;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #FFFFFF;
+}
+
+.mini-cover-clock {
+  font-family: 'Prompt', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1;
+}
+
+.mini-cover-date {
+  font-size: 9px;
+  color: #FFB7CE;
+  font-weight: 600;
+}
+
+.mini-cover-text {
+  background: rgba(255, 183, 206, 0.18);
+  border: 1px solid rgba(255, 183, 206, 0.35);
+  border-radius: 10px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #FFE5EE;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 
