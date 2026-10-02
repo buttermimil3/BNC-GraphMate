@@ -3538,6 +3538,212 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
   ];
 
+  // ── Spinning Vinyl Record Music Player System ─────────────
+  const DEFAULT_MUSIC_TRACKS = [
+    {
+      title: 'BNC Cute Pastel Lofi Cafe',
+      artist: 'BNC GraphMate Studio',
+      url: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3'
+    },
+    {
+      title: 'Sweet Strawberry Relaxing Melody',
+      artist: 'Aesthetic Lofi Beats',
+      url: 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3'
+    },
+    {
+      title: 'Sunny Minimal Boutique Morning',
+      artist: 'Chill Pastel Acoustic',
+      url: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_2bb6174a72.mp3'
+    }
+  ];
+
+  let currentTrackIndex = 0;
+  let isMusicPlaying = false;
+  let customMusicPlaylist = [];
+
+  function initMusicSystem() {
+    try {
+      const saved = localStorage.getItem('BNC_PHONE_PLAYLIST');
+      customMusicPlaylist = saved ? JSON.parse(saved) : [];
+      loadCurrentTrack(false);
+      renderMusicPresetList();
+      renderCustomPlaylistUI();
+    } catch (e) {
+      customMusicPlaylist = [];
+    }
+  }
+
+  function getAllPlaylistTracks() {
+    return [...DEFAULT_MUSIC_TRACKS, ...customMusicPlaylist];
+  }
+
+  function loadCurrentTrack(autoPlay = false) {
+    const tracks = getAllPlaylistTracks();
+    if (tracks.length === 0) return;
+    if (currentTrackIndex >= tracks.length) currentTrackIndex = 0;
+    const track = tracks[currentTrackIndex];
+    const audio = $('bgmAudio');
+    const titleEl = $('vinylSongTitle');
+    if (titleEl) titleEl.textContent = track.title || 'BNC Music Track';
+    if (audio) {
+      audio.src = track.url;
+      if (autoPlay) {
+        audio.play().then(() => {
+          setMusicPlayState(true);
+        }).catch(() => {
+          setMusicPlayState(false);
+        });
+      } else {
+        setMusicPlayState(false);
+      }
+    }
+  }
+
+  function setMusicPlayState(playing) {
+    isMusicPlaying = playing;
+    const disc = $('vinylDisc');
+    const widget = $('vinylMusicWidget');
+    const playIcon = $('vinylPlayIcon');
+
+    if (disc) disc.classList.toggle('is-playing', playing);
+    if (widget) widget.classList.toggle('is-playing', playing);
+    if (playIcon) {
+      playIcon.innerHTML = playing 
+        ? '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>' 
+        : '<polygon points="6 4 18 12 6 20 6 4"></polygon>';
+    }
+  }
+
+  window.togglePlayMusic = function () {
+    const audio = $('bgmAudio');
+    if (!audio) return;
+    if (isMusicPlaying) {
+      audio.pause();
+      setMusicPlayState(false);
+    } else {
+      audio.play().then(() => {
+        setMusicPlayState(true);
+      }).catch((e) => {
+        console.warn('Audio play restricted by browser autoplay policy:', e);
+        audio.play().then(() => setMusicPlayState(true)).catch(() => {});
+      });
+    }
+  };
+
+  window.nextMusicTrack = function () {
+    const tracks = getAllPlaylistTracks();
+    currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+    loadCurrentTrack(true);
+  };
+
+  window.selectMusicTrack = function (idx) {
+    currentTrackIndex = idx;
+    loadCurrentTrack(true);
+    closeMusicManagerModal();
+  };
+
+  window.openMusicManagerModal = function () {
+    renderMusicPresetList();
+    renderCustomPlaylistUI();
+    const modal = $('musicManagerModal');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  window.closeMusicManagerModal = function () {
+    const modal = $('musicManagerModal');
+    if (modal) modal.style.display = 'none';
+  };
+
+  function renderMusicPresetList() {
+    const list = $('musicPresetList');
+    if (!list) return;
+    list.innerHTML = DEFAULT_MUSIC_TRACKS.map((t, idx) => `
+      <div style="display: flex; align-items: center; justify-content: space-between; background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 8px 12px; gap: 8px;">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 700; font-size: 0.82rem; color: #71515B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(t.title)}</div>
+          <small style="color: var(--text-muted); font-size: 0.72rem;">${escapeHTML(t.artist)}</small>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="selectMusicTrack(${idx})" style="padding: 3px 10px; font-size: 0.74rem; border-radius: 8px; border-color: #FFB7CE; color: #B24368; font-weight: 700;">
+          เล่นเพลงนี้
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function renderCustomPlaylistUI() {
+    const container = $('customPlaylistContainer');
+    if (!container) return;
+    if (customMusicPlaylist.length === 0) {
+      container.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--text-muted); font-size: 0.76rem;">ยังไม่มีเพลงที่คุณเพิ่ม สามารถเลือกไฟล์จากเครื่องหรือใส่ URL ได้ด้านบนค่ะ</div>';
+      return;
+    }
+    const offset = DEFAULT_MUSIC_TRACKS.length;
+    container.innerHTML = customMusicPlaylist.map((t, idx) => `
+      <div style="display: flex; align-items: center; justify-content: space-between; background: #FFFFFF; border: 1.5px solid #FFDFE9; border-radius: 12px; padding: 8px 12px; gap: 8px;">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 700; font-size: 0.82rem; color: #71515B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(t.title)}</div>
+          <small style="color: var(--text-muted); font-size: 0.72rem;">เพลงของคุณ</small>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" class="btn btn-outline btn-sm" onclick="selectMusicTrack(${offset + idx})" style="padding: 3px 8px; font-size: 0.72rem; border-radius: 8px; border-color: #FFB7CE; color: #B24368;">
+            เล่น
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="deleteCustomMusic(${idx})" style="padding: 3px 8px; font-size: 0.72rem; border-radius: 8px; border-color: #fca5a5; color: #dc2626;">
+            ลบ
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  window.handleMusicFileUpload = function (event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const dataUrl = e.target.result;
+      const songName = file.name.replace(/\.[^/.]+$/, '');
+      customMusicPlaylist.push({
+        title: songName || 'My Custom Song',
+        artist: 'เพลงของคุณ',
+        url: dataUrl
+      });
+      localStorage.setItem('BNC_PHONE_PLAYLIST', JSON.stringify(customMusicPlaylist));
+      renderCustomPlaylistUI();
+      alert('เพิ่มเพลงของคุณเรียบร้อยแล้วค่ะ');
+      currentTrackIndex = DEFAULT_MUSIC_TRACKS.length + customMusicPlaylist.length - 1;
+      loadCurrentTrack(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.applyCustomMusicUrl = function () {
+    const input = $('musicUrlInput');
+    if (!input) return;
+    const url = input.value.trim();
+    if (!url) return;
+    customMusicPlaylist.push({
+      title: 'เพลงจากลิงก์ (' + (customMusicPlaylist.length + 1) + ')',
+      artist: 'Online Audio Stream',
+      url: url
+    });
+    localStorage.setItem('BNC_PHONE_PLAYLIST', JSON.stringify(customMusicPlaylist));
+    input.value = '';
+    renderCustomPlaylistUI();
+    alert('เพิ่มเพลงจากลิงก์เรียบร้อยแล้วค่ะ');
+    currentTrackIndex = DEFAULT_MUSIC_TRACKS.length + customMusicPlaylist.length - 1;
+    loadCurrentTrack(true);
+  };
+
+  window.deleteCustomMusic = function (idx) {
+    if (confirm('ต้องการลบเพลงนี้ใช่หรือไม่?')) {
+      customMusicPlaylist.splice(idx, 1);
+      localStorage.setItem('BNC_PHONE_PLAYLIST', JSON.stringify(customMusicPlaylist));
+      renderCustomPlaylistUI();
+      loadCurrentTrack(false);
+    }
+  };
+
   function initPhoneSystem() {
     initWallpaper();
     initSpringboardSwipe();
@@ -3547,6 +3753,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     updateHomeWelcomeCard();
     initPhoneStickers();
     renderCustomAppIcons();
+    initMusicSystem();
   }
 
   function updateIosClock() {
@@ -3564,12 +3771,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       const shopNameEl = $('welcomeShopName');
       const shopBioEl = $('welcomeShopBio');
       const avatarEl = $('welcomeAvatarImg');
+      const coverEl = $('welcomeCoverImg');
       const queueTextEl = $('welcomeQueueText');
 
       if (shopNameEl && s.shopName) shopNameEl.textContent = s.shopName;
       if (shopBioEl && s.shopBio) shopBioEl.textContent = s.shopBio;
+      if (coverEl && s.coverImage) coverEl.src = formatDriveImageUrl(s.coverImage);
       if (avatarEl && (s.profileImage || s.logoText)) {
-        if (s.profileImage) avatarEl.src = s.profileImage;
+        if (s.profileImage) avatarEl.src = formatDriveImageUrl(s.profileImage);
       }
       if (queueTextEl && s.queueStatus && s.queueStatus.queueText) {
         queueTextEl.innerHTML = `<strong>สถานะร้าน:</strong> ${escapeHTML(s.queueStatus.queueText)} • ${escapeHTML(s.queueStatus.chatHours || 'ตอบแชทไว')}`;
@@ -3647,7 +3856,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('bnc_admin_auth', 'true');
       closeAdminPinCalculator();
       openPhoneApp('admin');
-      alert('ยินดีต้อนรับสู่ระบบจัดการหลังบ้านค่ะ ✨');
+      alert('ยินดีต้อนรับสู่ระบบจัดการหลังบ้านค่ะ');
     } else {
       const errBanner = $('calcErrorBanner');
       if (errBanner) {
@@ -3718,9 +3927,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (countLabel) countLabel.textContent = phoneStickers.length;
   }
 
-  function attachStickerDragHandler(el, stk) {
+  function attachStickerDragHandler(el, stk, containerOverride, onMovedCallback) {
     let startX, startY, origLeft, origTop;
-    const layer = $('phoneStickerLayer');
+    const layer = containerOverride || $('phoneStickerLayer');
+    if (!layer) return;
 
     function onPointerDown(e) {
       e.preventDefault();
@@ -3762,6 +3972,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           stk.x = (el.offsetLeft / layer.clientWidth) * 100;
           stk.y = (el.offsetTop / layer.clientHeight) * 100;
           savePhoneStickers();
+          renderPhoneStickers();
+          if (typeof onMovedCallback === 'function') onMovedCallback();
         }
       }
 
@@ -3774,6 +3986,30 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     el.addEventListener('mousedown', onPointerDown);
     el.addEventListener('touchstart', onPointerDown, { passive: false });
   }
+
+  function renderAdminMiniPhoneStickers() {
+    const miniLayer = $('adminMiniStickerLayer');
+    if (!miniLayer) return;
+    miniLayer.innerHTML = '';
+    phoneStickers.forEach((stk) => {
+      const item = document.createElement('div');
+      item.className = 'mini-sticker-item';
+      item.dataset.id = stk.id;
+      item.style.left = `${stk.x}%`;
+      item.style.top = `${stk.y}%`;
+      const miniSize = Math.max(22, Math.round((stk.size || 46) * (220 / 340)));
+      item.style.width = `${miniSize}px`;
+      item.style.height = `${miniSize}px`;
+
+      item.innerHTML = `<img src="${escapeHTML(stk.src)}" alt="sticker" draggable="false">`;
+
+      attachStickerDragHandler(item, stk, miniLayer, () => {
+        renderAdminMiniPhoneStickers();
+      });
+      miniLayer.appendChild(item);
+    });
+  }
+  window.renderAdminMiniPhoneStickers = renderAdminMiniPhoneStickers;
 
   window.openStickerModal = function () {
     if (!state.isAdmin) {
@@ -3841,7 +4077,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const reader = new FileReader();
     reader.onload = function (e) {
       addSticker(e.target.result);
-      alert('เพิ่มสติกเกอร์ลงหน้าจอเรียบร้อยแล้วค่ะ! แตะลากย้ายตำแหน่งได้เลยนะคะ ✨');
+      alert('เพิ่มสติกเกอร์ลงหน้าจอเรียบร้อยแล้วค่ะ แตะลากย้ายตำแหน่งได้เลยนะคะ');
     };
     reader.readAsDataURL(file);
   };
@@ -3853,7 +4089,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (!url) return;
     addSticker(url);
     input.value = '';
-    alert('เพิ่มสติกเกอร์จากลิงก์เรียบร้อยแล้วค่ะ ✨');
+    alert('เพิ่มสติกเกอร์จากลิงก์เรียบร้อยแล้วค่ะ');
   };
 
   function renderStickerManageList() {
@@ -3901,7 +4137,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       }
       localStorage.setItem('BNC_CUSTOM_APP_ICONS', JSON.stringify(customIcons));
       renderCustomAppIcons();
-      alert(`บันทึกไอคอนของแอพ ${appId} เรียบร้อยแล้วค่ะ ✨`);
+      alert(`บันทึกไอคอนของแอพ ${appId} เรียบร้อยแล้วค่ะ`);
     } catch (e) {}
   };
 
@@ -3958,7 +4194,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const reader = new FileReader();
     reader.onload = function (e) {
       setWallpaper(e.target.result, true);
-      alert('เปลี่ยนรูปพื้นหลังสำเร็จแล้วค่ะ ✨');
+      alert('เปลี่ยนรูปพื้นหลังสำเร็จแล้วค่ะ');
       closeWallpaperModal();
     };
     reader.readAsDataURL(file);
@@ -3971,7 +4207,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (!url) return;
     setWallpaper(url, true);
     input.value = '';
-    alert('บันทึกรูปพื้นหลังจากลิงก์เรียบร้อยแล้วค่ะ ✨');
+    alert('บันทึกรูปพื้นหลังจากลิงก์เรียบร้อยแล้วค่ะ');
     closeWallpaperModal();
   };
 
@@ -6937,7 +7173,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <button type="button" class="admin-tab-btn ${state.adminTab === 'portfolio' ? 'active' : ''}" onclick="switchAdminTab('portfolio')">จัดการผลงาน</button>
           <button type="button" class="admin-tab-btn ${state.adminTab === 'stamps' ? 'active' : ''}" onclick="switchAdminTab('stamps')">บัตรสะสมแต้ม</button>
           <button type="button" class="admin-tab-btn ${state.adminTab === 'queues' ? 'active' : ''}" onclick="switchAdminTab('queues')">จัดการคิวงาน</button>
-          <button type="button" class="admin-tab-btn ${state.adminTab === 'screen' ? 'active' : ''}" onclick="switchAdminTab('screen')">📱 แต่งจอ & แอพ</button>
+          <button type="button" class="admin-tab-btn ${state.adminTab === 'screen' ? 'active' : ''}" onclick="switchAdminTab('screen')">แต่งจอ & แอพ</button>
           <button type="button" class="admin-tab-btn ${state.adminTab === 'settings' ? 'active' : ''}" onclick="switchAdminTab('settings')">ตั้งค่าร้าน (ทุกจุด)</button>
         </div>
 
@@ -6949,6 +7185,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       </div>
     </section>
     `;
+
+    if (state.adminTab === 'screen' && typeof renderAdminMiniPhoneStickers === 'function') {
+      setTimeout(renderAdminMiniPhoneStickers, 50);
+    }
   }
 
   function renderAdminTabContent(tab, s) {
@@ -7218,7 +7458,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
         <h3 style="margin: 0; color: #71515B; font-size: 1.15rem;">ตรวจสลิปโอนเงิน (${payments.length})</h3>
         <button type="button" class="btn btn-outline btn-sm" onclick="testGrantDrivePermission(null, 'Buttermimil3@gmail.com')" style="border-color: #FFB7CE; color: #B24368; font-weight: 700; background: #FFF0F5;">
-          ⚡ ทดสอบดึงสิทธิ์ Google Drive ให้ Buttermimil3@gmail.com
+          ทดสอบดึงสิทธิ์ Google Drive ให้ Buttermimil3@gmail.com
         </button>
       </div>
 
@@ -7268,7 +7508,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
             <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; flex-wrap: wrap;">
               ${hasDrive ? `
                 <button type="button" class="btn btn-outline btn-sm" onclick="testGrantDrivePermission('${p.id}', '${escapeHTML(targetEmail)}')" style="font-size: 11px; padding: 4px 10px; border-color: #FFB7CE; color: #B24368;">
-                  ⚡ ทดสอบดึงสิทธิ์ Gmail
+                  ทดสอบดึงสิทธิ์ Gmail
                 </button>
               ` : ''}
               <button type="button" class="btn btn-primary btn-sm" onclick="verifySlipAction('${p.id}', 'PAID')">
@@ -9533,7 +9773,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         <div class="card" style="margin-bottom: 1.5rem;">
           <div class="card-header">
             <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-              <span>🔒 รหัสผ่านแอดมิน (Admin Calculator 6-Digit PIN)</span>
+              <span>รหัสผ่านแอดมิน (Admin Calculator 6-Digit PIN)</span>
             </h3>
             <p class="card-subtitle">รหัสตัวเลข 6 หลักสำหรับเข้าสู่ระบบแอดมินผ่านเครื่องคิดเลขบนหน้าจอโทรศัพท์ไอโฟน (ค่าเริ่มต้น: 123456)</p>
           </div>
@@ -9543,7 +9783,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div style="display: flex; gap: 8px; align-items: center;">
                 <input type="password" id="cfg_adminPin" class="form-input" maxlength="6" value="${escapeHTML(s.adminPin || '123456')}" style="letter-spacing: 4px; font-weight: 700; font-size: 1.1rem; text-align: center;">
                 <button type="button" class="btn btn-outline btn-sm" onclick="const inp=$('cfg_adminPin'); if(inp){ inp.type = inp.type==='password'?'text':'password'; }" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">
-                  👁️ ดู/ซ่อน
+                  ดู/ซ่อน
                 </button>
               </div>
               <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">*ใช้สำหรับกดเข้าหลังบ้านผ่านแป้นเครื่องคิดเลข</small>
@@ -9590,34 +9830,110 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       { id: 'admin', name: 'ตั้งค่าหลังบ้าน', desc: 'ระบบแอดมินสำหรับจัดการร้าน' }
     ];
 
+    const currentTrack = getAllPlaylistTracks()[currentTrackIndex] || DEFAULT_MUSIC_TRACKS[0];
+
     return `
       <div class="admin-screen-tab" style="max-width: 900px; margin: 0 auto; animation: fadeIn 0.25s ease;">
         <div style="background: linear-gradient(135deg, #FFF0F5 0%, #FFFFFF 100%); border: 2px solid #FFD1DF; border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 16px rgba(255, 107, 151, 0.08);">
           <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
             <div>
               <div style="display: inline-flex; align-items: center; gap: 6px; background: #FFB7CE; color: #FFFFFF; font-weight: 800; font-size: 0.75rem; padding: 3px 12px; border-radius: 999px; margin-bottom: 6px;">
-                ✨ PHONE SCREEN & APPS CUSTOMIZER
+                PHONE SCREEN & APPS CUSTOMIZER
               </div>
               <h2 style="font-size: 1.35rem; color: #71515B; font-weight: 800; margin: 0; font-family: var(--font-heading);">
-                📱 ปรับแต่งหน้าจอไอโฟนขาว & หน้าตาแอพ
+                ปรับแต่งหน้าจอโทรศัพท์ & หน้าตาแอพ
               </h2>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin: 4px 0 0;">
-                เฉพาะแอดมินเท่านั้น: ปรับเปลี่ยนวอลเปเปอร์, จัดการสติกเกอร์ตกแต่งหน้าจอ, เปลี่ยนไอคอนแอพเป็นภาพ PNG และตั้งรหัส PIN แอดมิน
+                เฉพาะแอดมิน: พรีวิวจำลองหน้าจอไอโฟน, แปะและลากย้ายสติกเกอร์บนขอบเครื่อง/หน้าจอ, จัดการเพลง BGM แผ่นเสียง, เปลี่ยนวอลเปเปอร์, และตั้งค่าไอคอนแอพ
               </p>
             </div>
             <button type="button" class="btn btn-outline btn-sm" onclick="goHome()" style="border-radius: 12px; font-weight: 700; border-color: #FFB7CE; color: #B24368;">
-              🏠 ดูหน้าจอโทรศัพท์
+              ดูหน้าจอโทรศัพท์
             </button>
           </div>
         </div>
 
-        <!-- 1. Wallpaper Management -->
+        <!-- 1. Interactive Phone Mockup Preview & Drag Stickers -->
         <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
           <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
-            <span>🖼️ วอลเปเปอร์หน้าจอโทรศัพท์ (Wallpaper)</span>
+            <span>พรีวิวตัวเครื่องไอโฟน & ลากวางสติกเกอร์ตกแต่งขอบเครื่อง</span>
           </h3>
           <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
-            กำหนดภาพพื้นหลังสำหรับหน้าจอโทรศัพท์ไอโฟน สามารถเลือกจากลายพรีเซ็ตพาสเทล หรืออัปโหลดรูปภาพส่วนตัวได้ค่ะ
+            สติกเกอร์ตกแต่งจะติดอยู่บนตัวเครื่องและขอบจอสีขาว (รอบปุ่มโฮม, ลำโพง, และด้านข้าง) สามารถคลิกค้างแล้วลากย้ายตำแหน่งบนเครื่องจำลองด้านล่างนี้ได้แบบเรียลไทม์เลยค่ะ
+          </p>
+
+          <div class="admin-phone-preview-stage">
+            <div class="mini-phone-frame" id="adminMiniPhoneFrame">
+              <div class="mini-phone-speaker"></div>
+              <div class="mini-phone-camera"></div>
+              <div class="mini-phone-sensor"></div>
+              <div class="mini-phone-screen" id="adminMiniPhoneScreen" style="background-image: url('${escapeHTML(currentWp)}');"></div>
+              <div class="mini-phone-home-btn"></div>
+              <div class="mini-sticker-layer" id="adminMiniStickerLayer"></div>
+            </div>
+          </div>
+
+          <div style="background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <div style="font-size: 0.9rem; font-weight: 700; color: #71515B;">
+                สติกเกอร์ที่กำลังติดอยู่: <span style="color: #E05A88;">${phoneStickers.length}</span> ชิ้น
+              </div>
+              <small style="color: var(--text-muted); font-size: 0.78rem;">กดเลือกสติกเกอร์ หรืออัปโหลดรูปภาพส่วนตัวมาแปะตกแต่งได้ค่ะ</small>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary btn-sm" onclick="openStickerModal()" style="border-radius: 10px; font-weight: 700;">
+                เปิดแผงสติกเกอร์ & ตกแต่ง
+              </button>
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 0.8rem; padding: 6px 12px; border-radius: 10px; border-color: #FFB7CE; color: #B24368;">
+                อัปโหลดรูปแปะเครื่อง
+                <input type="file" accept="image/*" style="display: none;" onchange="handleStickerFileUpload(event)">
+              </label>
+              ${phoneStickers.length > 0 ? `
+                <button type="button" class="btn btn-outline btn-sm" onclick="clearAllStickers()" style="border-radius: 10px; color: #dc2626; border-color: #fca5a5; font-size: 0.78rem;">
+                  ล้างสติกเกอร์ทั้งหมด
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Music Player & Vinyl Disc System -->
+        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
+          <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
+            <span>ระบบเพลง & วิดเจ็ตแผ่นเสียง (Vinyl Music Player)</span>
+          </h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
+            มีวิดเจ็ตแผ่นเสียงหมุนสวยงามบนหน้าแรกของโทรศัพท์ สามารถเลือกเพลงพรีเซ็ต อัปโหลดไฟล์ MP3 จากเครื่อง หรือใส่ลิงก์เพลงออนไลน์ได้ค่ะ
+          </p>
+
+          <div style="background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="font-size: 0.9rem; font-weight: 700; color: #71515B;">
+                เพลงปัจจุบัน: <span id="adminMusicTrackName" style="color: #E05A88;">${escapeHTML(currentTrack.title || 'BNC Music Track')}</span>
+              </div>
+              <small style="color: var(--text-muted); font-size: 0.78rem;">สถานะ: ${isMusicPlaying ? 'กำลังเล่นเพลง' : 'หยุดชั่วคราว'} | รวมเพลงในคลัง: ${getAllPlaylistTracks().length} เพลง</small>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary btn-sm" onclick="openMusicManagerModal()" style="border-radius: 10px; font-weight: 700;">
+                จัดการเพลย์ลิสต์เพลง
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="togglePlayMusic()" style="border-radius: 10px; font-weight: 700; border-color: #FFB7CE; color: #B24368;">
+                เล่น / พักเพลง
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="nextMusicTrack()" style="border-radius: 10px; font-weight: 700; border-color: #FFB7CE; color: #B24368;">
+                เพลงถัดไป
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Wallpaper Management -->
+        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
+          <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
+            <span>วอลเปเปอร์หน้าจอโทรศัพท์ (Wallpaper)</span>
+          </h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
+            กำหนดภาพพื้นหลังสำหรับหน้าจอโทรศัพท์ สามารถเลือกจากลายพรีเซ็ตพาสเทล หรืออัปโหลดรูปภาพส่วนตัวได้ค่ะ
           </p>
 
           <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 1.25rem;">
@@ -9627,16 +9943,16 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
               <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                 <input type="text" id="adminCustomWpUrl" class="form-input" placeholder="วางลิงก์รูปภาพ เช่น https://... หรือ Google Drive" value="${escapeHTML(currentWp)}" style="flex: 1; font-size: 0.82rem;">
                 <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 0.8rem; padding: 6px 12px; border-radius: 10px; border-color: #FFB7CE; color: #B24368;">
-                  📁 เลือกรูป
+                  เลือกรูป
                   <input type="file" accept="image/*" style="display: none;" onchange="adminHandleWallpaperFile(event)">
                 </label>
               </div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary btn-sm" onclick="adminSaveWallpaperUrl()" style="border-radius: 10px; font-weight: 700;">
-                  💾 บันทึกวอลเปเปอร์
+                  บันทึกวอลเปเปอร์
                 </button>
                 <button type="button" class="btn btn-outline btn-sm" onclick="openWallpaperModal()" style="border-radius: 10px; font-weight: 700; border-color: #FFB7CE; color: #B24368;">
-                  🎨 เลือกจาก 6 พรีเซ็ต
+                  เลือกจาก 6 พรีเซ็ต
                 </button>
                 <button type="button" class="btn btn-outline btn-sm" onclick="adminResetWallpaper()" style="border-radius: 10px; font-size: 0.78rem; color: #888;">
                   รีเซ็ตเป็นลายแรก
@@ -9646,43 +9962,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 2. Phone Stickers Decor -->
+        <!-- 4. Custom App Icons (PNG) -->
         <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
           <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
-            <span>✨ สติกเกอร์ & รูปตกแต่งหน้าจอโทรศัพท์</span>
-          </h3>
-          <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
-            แปะสติกเกอร์ หรืออัปโหลดรูปภาพส่วนตัวมาวางตกแต่งบนหน้าจอโทรศัพท์ได้ และเมื่ออยู่ที่หน้าจอสามารถแตะค้างลากย้ายตำแหน่งได้อย่างอิสระค่ะ
-          </p>
-
-          <div style="background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-            <div>
-              <div style="font-size: 0.9rem; font-weight: 700; color: #71515B;">
-                สติกเกอร์ที่กำลังติดอยู่บนหน้าจอ: <span style="color: #E05A88;">${phoneStickers.length}</span> ชิ้น
-              </div>
-              <small style="color: var(--text-muted); font-size: 0.78rem;">กดเปิดแผงตกแต่งเพื่อเลือกติดสติกเกอร์คิวท์ๆ หรืออัปโหลดภาพ</small>
-            </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" class="btn btn-primary btn-sm" onclick="openStickerModal()" style="border-radius: 10px; font-weight: 700;">
-                🎀 เปิดแผงสติกเกอร์ & ตกแต่ง
-              </button>
-              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 0.8rem; padding: 6px 12px; border-radius: 10px; border-color: #FFB7CE; color: #B24368;">
-                ➕ อัปโหลดรูปแปะจอ
-                <input type="file" accept="image/*" style="display: none;" onchange="handleStickerFileUpload(event)">
-              </label>
-              ${phoneStickers.length > 0 ? `
-                <button type="button" class="btn btn-outline btn-sm" onclick="clearAllStickers()" style="border-radius: 10px; color: #dc2626; border-color: #fca5a5; font-size: 0.78rem;">
-                  🗑️ ล้างทั้งหมด
-                </button>
-              ` : ''}
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. Custom App Icons (PNG) -->
-        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
-          <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
-            <span>🎀 ปรับแต่งหน้าตาไอคอนแอพเป็นรูป PNG</span>
+            <span>ปรับแต่งหน้าตาไอคอนแอพเป็นรูป PNG</span>
           </h3>
           <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
             ไอคอนเริ่มต้นของทุกแอพจะเป็น <b>สีชมพูเบบี้พิงค์เรียบหรู (#FFB7CE)</b> คุณสามารถปรับแต่งหน้าตาของแต่ละแอพให้เป็นรูปภาพ PNG สไตล์ส่วนตัวได้ตามต้องการค่ะ
@@ -9744,10 +10027,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
-        <!-- 4. Admin PIN Code -->
+        <!-- 5. Admin PIN Code -->
         <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
           <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
-            <span>🔒 รหัสผ่านเข้าหลังบ้าน (Admin 6-Digit PIN)</span>
+            <span>รหัสผ่านเข้าหลังบ้าน (Admin 6-Digit PIN)</span>
           </h3>
           <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
             รหัสผ่านตัวเลข 6 หลักสำหรับกดเข้าสู่ระบบแอดมินผ่านแป้นพิมพ์เครื่องคิดเลขบนหน้าจอโทรศัพท์ไอโฟน (ค่าเริ่มต้น: 123456)
@@ -9773,13 +10056,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                   onclick="const inp=$('adminNewPinInput'); if(inp){ inp.type = inp.type==='password'?'text':'password'; }"
                   style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; border-color: #FFB7CE; color: #B24368;"
                 >
-                  👁️ ดู/ซ่อน
+                  ดู/ซ่อน
                 </button>
               </div>
               <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">*ต้องเป็นตัวเลข 6 หลักเท่านั้น</small>
             </div>
             <button type="button" class="btn btn-primary" onclick="adminSaveNewPin()" style="border-radius: 10px; font-weight: 800; padding: 8px 18px;">
-              💾 บันทึกรหัสผ่านใหม่
+              บันทึกรหัสผ่านใหม่
             </button>
           </div>
         </div>
@@ -9798,7 +10081,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       return;
     }
     setWallpaper(url, true);
-    alert('บันทึกวอลเปเปอร์หน้าจอเรียบร้อยแล้วค่ะ ✨');
+    alert('บันทึกวอลเปเปอร์หน้าจอเรียบร้อยแล้วค่ะ');
     switchAdminTab('screen');
   };
 
@@ -9809,7 +10092,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     reader.onload = function (e) {
       const dataUrl = e.target.result;
       setWallpaper(dataUrl, true);
-      alert('อัปโหลดและบันทึกวอลเปเปอร์หน้าจอเรียบร้อยแล้วค่ะ ✨');
+      alert('อัปโหลดและบันทึกวอลเปเปอร์หน้าจอเรียบร้อยแล้วค่ะ');
       switchAdminTab('screen');
     };
     reader.readAsDataURL(file);
@@ -9819,7 +10102,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (confirm('ต้องการคืนค่าวอลเปเปอร์เป็นแบบเริ่มต้นใช่หรือไม่?')) {
       const defWp = WALLPAPER_PRESETS[0].url;
       setWallpaper(defWp, true);
-      alert('คืนค่าวอลเปเปอร์เรียบร้อยแล้วค่ะ ✨');
+      alert('คืนค่าวอลเปเปอร์เรียบร้อยแล้วค่ะ');
       switchAdminTab('screen');
     }
   };
@@ -9860,7 +10143,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       return;
     }
     await Store.saveSettings({ adminPin: pin });
-    alert('🎉 บันทึกรหัสผ่าน PIN แอดมินใหม่เรียบร้อยแล้วค่ะ!\nสามารถใช้รหัสนี้กดผ่านเครื่องคิดเลขได้ทันทีค่ะ');
+    alert('บันทึกรหัสผ่าน PIN แอดมินใหม่เรียบร้อยแล้วค่ะ\nสามารถใช้รหัสนี้กดผ่านเครื่องคิดเลขได้ทันทีค่ะ');
     switchAdminTab('screen');
   };
 
@@ -10392,8 +10675,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       document.querySelectorAll('.admin-tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('onclick')?.includes(`'${tab}'`));
       });
+      if (tab === 'screen' && typeof renderAdminMiniPhoneStickers === 'function') {
+        setTimeout(renderAdminMiniPhoneStickers, 50);
+      }
     } else {
       renderCurrentView();
+      if (tab === 'screen' && typeof renderAdminMiniPhoneStickers === 'function') {
+        setTimeout(renderAdminMiniPhoneStickers, 50);
+      }
     }
   };
 
@@ -10416,7 +10705,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       if (!confirm(confirmMsg)) return;
 
       await Store.updatePaymentStatus(payId, status);
-      alert(`🎉 อนุมัติสลิปเรียบร้อยแล้วค่ะ!\n\nระบบได้ดึงสิทธิ์ Google Drive ให้กับ:\n📧 ${targetEmail}\n(สิทธิ์ Viewer พร้อมเข้าใช้งานและดาวน์โหลดไฟล์ได้ทันที)`);
+      alert(`อนุมัติสลิปเรียบร้อยแล้วค่ะ!\n\nระบบได้ดึงสิทธิ์ Google Drive ให้กับ:\n${targetEmail}\n(สิทธิ์ Viewer พร้อมเข้าใช้งานและดาวน์โหลดไฟล์ได้ทันที)`);
     }
     renderCurrentView();
   };
@@ -10433,13 +10722,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                           fonts[0] || {};
     const driveId = itemWithDrive.drive_folder_id || itemWithDrive.drive_file_id || '1A2b3C4d5E6f7G8h9I0jKlMnOpQrStUv';
 
-    const confirmMsg = `⚡ ทดสอบดึงสิทธิ์ Google Drive อัตโนมัติ\n\nอีเมลผู้รับสิทธิ์: ${targetEmail}\nรายการทดสอบ: ${itemWithDrive.name || 'ฟอนต์ตัวอย่าง'}\nDrive ID: ${driveId}\n\n${gasUrl ? '🌐 มีการเชื่อมต่อ Google Apps Script Web App ในโค้ด (GAS_CONFIG)' : '💡 (วาง Web App URL ที่ GAS_CONFIG ด้านบนสุดของไฟล์ app.js เพื่อยิงคำขอจริงเข้า Google Drive)'}\n\nกด "ตกลง" เพื่อเริ่มการทดสอบ`;
+    const confirmMsg = `ทดสอบดึงสิทธิ์ Google Drive อัตโนมัติ\n\nอีเมลผู้รับสิทธิ์: ${targetEmail}\nรายการทดสอบ: ${itemWithDrive.name || 'ฟอนต์ตัวอย่าง'}\nDrive ID: ${driveId}\n\n${gasUrl ? 'มีการเชื่อมต่อ Google Apps Script Web App ในโค้ด (GAS_CONFIG)' : '(วาง Web App URL ที่ GAS_CONFIG ด้านบนสุดของไฟล์ app.js เพื่อยิงคำขอจริงเข้า Google Drive)'}\n\nกด "ตกลง" เพื่อเริ่มการทดสอบ`;
 
     if (!confirm(confirmMsg)) return;
 
     await grantDrivePermissionLive(driveId, targetEmail, payIdOrNull || 'test-pay', 'test-ord');
 
-    alert(`✅ ดำเนินการทดสอบดึงสิทธิ์เรียบร้อยแล้ว!\n\nผู้รับ: ${targetEmail}\nสิทธิ์: Viewer (เข้าดูและดาวน์โหลด)\nสถานะ: ส่งคำขอสิทธิ์เรียบร้อย`);
+    alert(`ดำเนินการทดสอบดึงสิทธิ์เรียบร้อยแล้ว!\n\nผู้รับ: ${targetEmail}\nสิทธิ์: Viewer (เข้าดูและดาวน์โหลด)\nสถานะ: ส่งคำขอสิทธิ์เรียบร้อย`);
     renderCurrentView();
   };
 
