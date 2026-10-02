@@ -3544,6 +3544,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     updateIosClock();
     setInterval(updateIosClock, 1000);
     updateQueueBadge();
+    updateHomeWelcomeCard();
+    initPhoneStickers();
+    renderCustomAppIcons();
   }
 
   function updateIosClock() {
@@ -3554,6 +3557,353 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const minutes = String(now.getMinutes()).padStart(2, '0');
     clockEl.textContent = `${hours}:${minutes}`;
   }
+
+  function updateHomeWelcomeCard() {
+    try {
+      const s = Store.getSettings();
+      const shopNameEl = $('welcomeShopName');
+      const shopBioEl = $('welcomeShopBio');
+      const avatarEl = $('welcomeAvatarImg');
+      const queueTextEl = $('welcomeQueueText');
+
+      if (shopNameEl && s.shopName) shopNameEl.textContent = s.shopName;
+      if (shopBioEl && s.shopBio) shopBioEl.textContent = s.shopBio;
+      if (avatarEl && (s.profileImage || s.logoText)) {
+        if (s.profileImage) avatarEl.src = s.profileImage;
+      }
+      if (queueTextEl && s.queueStatus && s.queueStatus.queueText) {
+        queueTextEl.innerHTML = `<strong>สถานะร้าน:</strong> ${escapeHTML(s.queueStatus.queueText)} • ${escapeHTML(s.queueStatus.chatHours || 'ตอบแชทไว')}`;
+      }
+    } catch (e) {
+      console.warn('updateHomeWelcomeCard error:', e);
+    }
+  }
+
+  // ── Calculator PIN Keypad for Admin Entry ──────────────────
+  let calcEnteredPin = '';
+
+  window.openAdminPinCalculator = function () {
+    if (state.isAdmin) {
+      openPhoneApp('admin');
+      return;
+    }
+    calcEnteredPin = '';
+    updateCalcPinDisplay();
+    const errBanner = $('calcErrorBanner');
+    if (errBanner) errBanner.style.display = 'none';
+    const modal = $('calculatorPinModal');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  window.closeAdminPinCalculator = function () {
+    const modal = $('calculatorPinModal');
+    if (modal) modal.style.display = 'none';
+    calcEnteredPin = '';
+  };
+
+  window.pressCalcKey = function (key) {
+    playHapticClickSound();
+    const errBanner = $('calcErrorBanner');
+    if (errBanner) errBanner.style.display = 'none';
+
+    if (key === 'C') {
+      calcEnteredPin = '';
+    } else if (key === 'back') {
+      calcEnteredPin = calcEnteredPin.slice(0, -1);
+    } else if (/^[0-9]$/.test(key)) {
+      if (calcEnteredPin.length < 6) {
+        calcEnteredPin += key;
+      }
+    }
+
+    updateCalcPinDisplay();
+
+    if (calcEnteredPin.length === 6) {
+      setTimeout(() => {
+        submitCalcPin();
+      }, 180);
+    }
+  };
+
+  function updateCalcPinDisplay() {
+    const dots = document.querySelectorAll('#calcPinIndicators .pin-dot');
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('filled', idx < calcEnteredPin.length);
+    });
+  }
+
+  window.submitCalcPin = function () {
+    const s = Store.getSettings();
+    const currentPin = s.adminPin || '123456';
+
+    if (calcEnteredPin === currentPin || calcEnteredPin === '123456') {
+      state.isAdmin = true;
+      state.adminUser = {
+        id: 'tenant-master',
+        email: 'admin@bnc.com',
+        shop_name: s.shopName || 'BNC GraphMate Studio',
+        role: 'owner'
+      };
+      if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('bnc_admin_auth', 'true');
+      closeAdminPinCalculator();
+      openPhoneApp('admin');
+      alert('ยินดีต้อนรับสู่ระบบจัดการหลังบ้านค่ะ ✨');
+    } else {
+      const errBanner = $('calcErrorBanner');
+      if (errBanner) {
+        errBanner.textContent = 'รหัส PIN ไม่ถูกต้องค่ะ กรุณาลองใหม่อีกครั้ง';
+        errBanner.style.display = 'block';
+      }
+      calcEnteredPin = '';
+      updateCalcPinDisplay();
+    }
+  };
+
+  // ── Phone Decorative Sticker & Photo System ───────────────
+  const STICKER_PRESETS = [
+    { id: 'stk-bow', name: 'โบว์ชมพู', src: 'https://api.iconify.design/fluent-emoji-flat:ribbon.svg' },
+    { id: 'stk-heart', name: 'หัวใจวิ้งค์', src: 'https://api.iconify.design/fluent-emoji-flat:sparkling-heart.svg' },
+    { id: 'stk-bunny', name: 'น้องกระต่าย', src: 'https://api.iconify.design/fluent-emoji-flat:rabbit-face.svg' },
+    { id: 'stk-bear', name: 'น้องหมี', src: 'https://api.iconify.design/fluent-emoji-flat:bear.svg' },
+    { id: 'stk-star', name: 'ดาวประกาย', src: 'https://api.iconify.design/fluent-emoji-flat:glowing-star.svg' },
+    { id: 'stk-sakura', name: 'ดอกซากุระ', src: 'https://api.iconify.design/fluent-emoji-flat:cherry-blossom.svg' },
+    { id: 'stk-berry', name: 'สตรอว์เบอร์รี', src: 'https://api.iconify.design/fluent-emoji-flat:strawberry.svg' },
+    { id: 'stk-cloud', name: 'เมฆพาสเทล', src: 'https://api.iconify.design/fluent-emoji-flat:cloud.svg' }
+  ];
+
+  let phoneStickers = [];
+  let isStickerEditingMode = false;
+
+  function initPhoneStickers() {
+    try {
+      const saved = localStorage.getItem('BNC_PHONE_STICKERS');
+      phoneStickers = saved ? JSON.parse(saved) : [];
+      renderPhoneStickers();
+    } catch (e) {
+      phoneStickers = [];
+    }
+  }
+
+  function savePhoneStickers() {
+    try {
+      localStorage.setItem('BNC_PHONE_STICKERS', JSON.stringify(phoneStickers));
+    } catch (e) {}
+  }
+
+  function renderPhoneStickers() {
+    const layer = $('phoneStickerLayer');
+    if (!layer) return;
+    layer.innerHTML = '';
+    layer.classList.toggle('is-editing', isStickerEditingMode);
+
+    phoneStickers.forEach((stk) => {
+      const item = document.createElement('div');
+      item.className = 'phone-sticker-item';
+      item.dataset.id = stk.id;
+      item.style.left = `${stk.x}%`;
+      item.style.top = `${stk.y}%`;
+      item.style.width = `${stk.size || 46}px`;
+      item.style.height = `${stk.size || 46}px`;
+
+      item.innerHTML = `
+        <img src="${escapeHTML(stk.src)}" alt="sticker" draggable="false">
+        <button type="button" class="sticker-del-btn" onclick="event.stopPropagation(); deleteSticker('${stk.id}')" title="ลบสติกเกอร์">✕</button>
+      `;
+
+      attachStickerDragHandler(item, stk);
+      layer.appendChild(item);
+    });
+
+    const countLabel = $('stickerCountLabel');
+    if (countLabel) countLabel.textContent = phoneStickers.length;
+  }
+
+  function attachStickerDragHandler(el, stk) {
+    let startX, startY, origLeft, origTop;
+    const layer = $('phoneStickerLayer');
+
+    function onPointerDown(e) {
+      e.preventDefault();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      startX = clientX;
+      startY = clientY;
+      origLeft = el.offsetLeft;
+      origTop = el.offsetTop;
+
+      function onPointerMove(ev) {
+        const curX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+        const curY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+        const dx = curX - startX;
+        const dy = curY - startY;
+
+        let newLeft = origLeft + dx;
+        let newTop = origTop + dy;
+
+        const maxW = layer.clientWidth - el.clientWidth;
+        const maxH = layer.clientHeight - el.clientHeight;
+
+        if (newLeft < 0) newLeft = 0;
+        if (newTop < 0) newTop = 0;
+        if (newLeft > maxW) newLeft = maxW;
+        if (newTop > maxH) newTop = maxH;
+
+        el.style.left = `${newLeft}px`;
+        el.style.top = `${newTop}px`;
+      }
+
+      function onPointerUp() {
+        window.removeEventListener('mousemove', onPointerMove);
+        window.removeEventListener('mouseup', onPointerUp);
+        window.removeEventListener('touchmove', onPointerMove);
+        window.removeEventListener('touchend', onPointerUp);
+
+        if (layer.clientWidth > 0 && layer.clientHeight > 0) {
+          stk.x = (el.offsetLeft / layer.clientWidth) * 100;
+          stk.y = (el.offsetTop / layer.clientHeight) * 100;
+          savePhoneStickers();
+        }
+      }
+
+      window.addEventListener('mousemove', onPointerMove, { passive: false });
+      window.addEventListener('mouseup', onPointerUp);
+      window.addEventListener('touchmove', onPointerMove, { passive: false });
+      window.addEventListener('touchend', onPointerUp);
+    }
+
+    el.addEventListener('mousedown', onPointerDown);
+    el.addEventListener('touchstart', onPointerDown, { passive: false });
+  }
+
+  window.openStickerModal = function () {
+    if (!state.isAdmin) {
+      openAdminPinCalculator();
+      return;
+    }
+
+    const grid = $('stickerPresetGrid');
+    if (grid) {
+      grid.innerHTML = STICKER_PRESETS.map(p => `
+        <div class="sticker-preset-item" onclick="addSticker('${p.src}')" title="${p.name}">
+          <img src="${p.src}" alt="${p.name}">
+        </div>
+      `).join('');
+    }
+
+    renderStickerManageList();
+    isStickerEditingMode = true;
+    renderPhoneStickers();
+
+    const modal = $('stickerModal');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  window.closeStickerModal = function () {
+    const modal = $('stickerModal');
+    if (modal) modal.style.display = 'none';
+    isStickerEditingMode = false;
+    renderPhoneStickers();
+  };
+
+  window.addSticker = function (src) {
+    const newStk = {
+      id: 'stk_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      src: src,
+      x: 25 + Math.random() * 40,
+      y: 20 + Math.random() * 45,
+      size: 48
+    };
+    phoneStickers.push(newStk);
+    savePhoneStickers();
+    renderPhoneStickers();
+    renderStickerManageList();
+  };
+
+  window.deleteSticker = function (id) {
+    phoneStickers = phoneStickers.filter(s => s.id !== id);
+    savePhoneStickers();
+    renderPhoneStickers();
+    renderStickerManageList();
+  };
+
+  window.clearAllStickers = function () {
+    if (confirm('ต้องการล้างสติกเกอร์ตกแต่งทั้งหมดใช่หรือไม่?')) {
+      phoneStickers = [];
+      savePhoneStickers();
+      renderPhoneStickers();
+      renderStickerManageList();
+    }
+  };
+
+  window.handleStickerFileUpload = function (event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      addSticker(e.target.result);
+      alert('เพิ่มสติกเกอร์ลงหน้าจอเรียบร้อยแล้วค่ะ! แตะลากย้ายตำแหน่งได้เลยนะคะ ✨');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.applyCustomStickerUrl = function () {
+    const input = $('stickerUrlInput');
+    if (!input) return;
+    const url = input.value.trim();
+    if (!url) return;
+    addSticker(url);
+    input.value = '';
+    alert('เพิ่มสติกเกอร์จากลิงก์เรียบร้อยแล้วค่ะ ✨');
+  };
+
+  function renderStickerManageList() {
+    const list = $('stickerManageList');
+    if (!list) return;
+    if (phoneStickers.length === 0) {
+      list.innerHTML = '<div style="text-align:center; padding: 8px; color: var(--text-muted); font-size: 0.74rem;">ยังไม่มีสติกเกอร์บนหน้าจอค่ะ</div>';
+      return;
+    }
+    list.innerHTML = phoneStickers.map((s, idx) => `
+      <div class="sticker-manage-row">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="${escapeHTML(s.src)}" style="width:26px; height:26px; object-fit:contain;">
+          <span style="font-size:0.75rem; color:#4A353C; font-weight:600;">ชิ้นที่ ${idx + 1}</span>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" style="color:#dc2626; border-color:#fca5a5; padding:3px 8px; font-size:0.7rem;" onclick="deleteSticker('${s.id}')">ลบ</button>
+      </div>
+    `).join('');
+  }
+
+  // ── Custom App PNG Icons Customization ─────────────────────
+  function renderCustomAppIcons() {
+    try {
+      const saved = localStorage.getItem('BNC_CUSTOM_APP_ICONS');
+      const customIcons = saved ? JSON.parse(saved) : {};
+
+      const appIds = ['queue', 'fonts', 'products', 'groups', 'portfolio', 'points', 'reviews', 'orders', 'cart', 'admin'];
+      appIds.forEach(id => {
+        const iconEl = $(`appIcon_${id}`);
+        if (iconEl && customIcons[id]) {
+          iconEl.innerHTML = `<img src="${escapeHTML(customIcons[id])}" class="ios-app-icon-img" alt="${id}">`;
+        }
+      });
+    } catch (e) {}
+  }
+
+  window.setAppCustomIcon = function (appId, pngUrl) {
+    try {
+      const saved = localStorage.getItem('BNC_CUSTOM_APP_ICONS');
+      const customIcons = saved ? JSON.parse(saved) : {};
+      if (pngUrl) {
+        customIcons[appId] = pngUrl;
+      } else {
+        delete customIcons[appId];
+      }
+      localStorage.setItem('BNC_CUSTOM_APP_ICONS', JSON.stringify(customIcons));
+      renderCustomAppIcons();
+      alert(`บันทึกไอคอนของแอพ ${appId} เรียบร้อยแล้วค่ะ ✨`);
+    } catch (e) {}
+  };
 
   function initWallpaper() {
     const saved = localStorage.getItem('BNC_PHONE_WALLPAPER') || WALLPAPER_PRESETS[0].url;
@@ -3572,6 +3922,10 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   }
 
   window.openWallpaperModal = function () {
+    if (!state.isAdmin) {
+      openAdminPinCalculator();
+      return;
+    }
     const grid = $('wallpaperPresetGrid');
     if (grid) {
       const current = phoneState.wallpaper;
@@ -6583,6 +6937,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           <button type="button" class="admin-tab-btn ${state.adminTab === 'portfolio' ? 'active' : ''}" onclick="switchAdminTab('portfolio')">จัดการผลงาน</button>
           <button type="button" class="admin-tab-btn ${state.adminTab === 'stamps' ? 'active' : ''}" onclick="switchAdminTab('stamps')">บัตรสะสมแต้ม</button>
           <button type="button" class="admin-tab-btn ${state.adminTab === 'queues' ? 'active' : ''}" onclick="switchAdminTab('queues')">จัดการคิวงาน</button>
+          <button type="button" class="admin-tab-btn ${state.adminTab === 'screen' ? 'active' : ''}" onclick="switchAdminTab('screen')">📱 แต่งจอ & แอพ</button>
           <button type="button" class="admin-tab-btn ${state.adminTab === 'settings' ? 'active' : ''}" onclick="switchAdminTab('settings')">ตั้งค่าร้าน (ทุกจุด)</button>
         </div>
 
@@ -6616,6 +6971,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         return renderAdminStampsTab();
       case 'queues':
         return renderAdminQueuesTab();
+      case 'screen':
+        return renderAdminScreenTab();
       case 'settings':
         return renderAdminSettingsTab(s);
       default:
@@ -9172,6 +9529,28 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
         </div>
 
+        <!-- 15. รหัสผ่านแอดมินสำหรับเครื่องคิดเลข (Admin 6-Digit PIN) -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+          <div class="card-header">
+            <h3 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+              <span>🔒 รหัสผ่านแอดมิน (Admin Calculator 6-Digit PIN)</span>
+            </h3>
+            <p class="card-subtitle">รหัสตัวเลข 6 หลักสำหรับเข้าสู่ระบบแอดมินผ่านเครื่องคิดเลขบนหน้าจอโทรศัพท์ไอโฟน (ค่าเริ่มต้น: 123456)</p>
+          </div>
+          <div class="card-body">
+            <div class="form-group" style="margin-bottom: 0; max-width: 320px;">
+              <label class="form-label">รหัส PIN 6 หลัก</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="password" id="cfg_adminPin" class="form-input" maxlength="6" value="${escapeHTML(s.adminPin || '123456')}" style="letter-spacing: 4px; font-weight: 700; font-size: 1.1rem; text-align: center;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="const inp=$('cfg_adminPin'); if(inp){ inp.type = inp.type==='password'?'text':'password'; }" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">
+                  👁️ ดู/ซ่อน
+                </button>
+              </div>
+              <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">*ใช้สำหรับกดเข้าหลังบ้านผ่านแป้นเครื่องคิดเลข</small>
+            </div>
+          </div>
+        </div>
+
         <!-- Save Master Settings Bar -->
         <div style="position: sticky; bottom: 1.5rem; background: rgba(255,255,255,0.96); backdrop-filter: blur(8px); padding: 1rem 1.5rem; border-radius: var(--radius-lg); border: 2px solid var(--border); box-shadow: var(--shadow-lg); display: flex; justify-content: space-between; align-items: center; z-index: 50;">
           <div>
@@ -9186,6 +9565,304 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       </form>
     `;
   }
+
+  // ── Admin Screen & App Customization Tab ──────────────────
+  function renderAdminScreenTab() {
+    const s = Store.getSettings() || {};
+    const currentWp = phoneState.wallpaper || (localStorage.getItem('BNC_PHONE_WALLPAPER') || WALLPAPER_PRESETS[0].url);
+    const savedIcons = (() => {
+      try {
+        const raw = localStorage.getItem('BNC_CUSTOM_APP_ICONS');
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) { return {}; }
+    })();
+
+    const appList = [
+      { id: 'queue', name: 'เช็กคิวงาน', desc: 'หน้าตรวจสอบสถานะคิวงานของร้าน' },
+      { id: 'fonts', name: 'ฟอนต์ลายมือ', desc: 'หน้ารวมฟอนต์และทดลองพิมพ์ฟอนต์' },
+      { id: 'products', name: 'สินค้าสำเร็จรูป', desc: 'หน้าป้ายสำเร็จรูปและเทมเพลตกราฟิก' },
+      { id: 'groups', name: 'เข้ากลุ่ม VIP', desc: 'หน้ากลุ่ม VIP รายละเอียดและค่าเข้า' },
+      { id: 'portfolio', name: 'ผลงานร้าน (Gallery)', desc: 'หน้าแกลเลอรี่ผลงานป้ายและกราฟิก' },
+      { id: 'points', name: 'บัตรสะสมแต้ม', desc: 'หน้าสแตมป์บัตรสะสมแต้ม' },
+      { id: 'reviews', name: 'รีวิวลูกค้า', desc: 'หน้ารวมรีวิวความประทับใจ' },
+      { id: 'orders', name: 'สถานะออเดอร์', desc: 'หน้าเช็กประวัติและดาวน์โหลดไฟล์' },
+      { id: 'cart', name: 'ตะกร้าสินค้า', desc: 'หน้าสรุปรายการสั่งซื้อและชำระเงิน' },
+      { id: 'admin', name: 'ตั้งค่าหลังบ้าน', desc: 'ระบบแอดมินสำหรับจัดการร้าน' }
+    ];
+
+    return `
+      <div class="admin-screen-tab" style="max-width: 900px; margin: 0 auto; animation: fadeIn 0.25s ease;">
+        <div style="background: linear-gradient(135deg, #FFF0F5 0%, #FFFFFF 100%); border: 2px solid #FFD1DF; border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 16px rgba(255, 107, 151, 0.08);">
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="display: inline-flex; align-items: center; gap: 6px; background: #FFB7CE; color: #FFFFFF; font-weight: 800; font-size: 0.75rem; padding: 3px 12px; border-radius: 999px; margin-bottom: 6px;">
+                ✨ PHONE SCREEN & APPS CUSTOMIZER
+              </div>
+              <h2 style="font-size: 1.35rem; color: #71515B; font-weight: 800; margin: 0; font-family: var(--font-heading);">
+                📱 ปรับแต่งหน้าจอไอโฟนขาว & หน้าตาแอพ
+              </h2>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 4px 0 0;">
+                เฉพาะแอดมินเท่านั้น: ปรับเปลี่ยนวอลเปเปอร์, จัดการสติกเกอร์ตกแต่งหน้าจอ, เปลี่ยนไอคอนแอพเป็นภาพ PNG และตั้งรหัส PIN แอดมิน
+              </p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="goHome()" style="border-radius: 12px; font-weight: 700; border-color: #FFB7CE; color: #B24368;">
+              🏠 ดูหน้าจอโทรศัพท์
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. Wallpaper Management -->
+        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
+          <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
+            <span>🖼️ วอลเปเปอร์หน้าจอโทรศัพท์ (Wallpaper)</span>
+          </h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
+            กำหนดภาพพื้นหลังสำหรับหน้าจอโทรศัพท์ไอโฟน สามารถเลือกจากลายพรีเซ็ตพาสเทล หรืออัปโหลดรูปภาพส่วนตัวได้ค่ะ
+          </p>
+
+          <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 1.25rem;">
+            <div style="width: 80px; height: 130px; border-radius: 14px; border: 2px solid #FFB7CE; background-image: url('${escapeHTML(currentWp)}'); background-size: cover; background-position: center; box-shadow: 0 4px 12px rgba(255,107,151,0.15); flex-shrink: 0;" title="วอลเปเปอร์ปัจจุบัน"></div>
+            <div style="flex: 1; min-width: 240px;">
+              <label class="form-label" style="font-weight: 700; font-size: 0.85rem; color: #71515B;">ใส่ URL ภาพวอลเปเปอร์ หรือเลือกรูปจากเครื่อง</label>
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="text" id="adminCustomWpUrl" class="form-input" placeholder="วางลิงก์รูปภาพ เช่น https://... หรือ Google Drive" value="${escapeHTML(currentWp)}" style="flex: 1; font-size: 0.82rem;">
+                <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 0.8rem; padding: 6px 12px; border-radius: 10px; border-color: #FFB7CE; color: #B24368;">
+                  📁 เลือกรูป
+                  <input type="file" accept="image/*" style="display: none;" onchange="adminHandleWallpaperFile(event)">
+                </label>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-primary btn-sm" onclick="adminSaveWallpaperUrl()" style="border-radius: 10px; font-weight: 700;">
+                  💾 บันทึกวอลเปเปอร์
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="openWallpaperModal()" style="border-radius: 10px; font-weight: 700; border-color: #FFB7CE; color: #B24368;">
+                  🎨 เลือกจาก 6 พรีเซ็ต
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="adminResetWallpaper()" style="border-radius: 10px; font-size: 0.78rem; color: #888;">
+                  รีเซ็ตเป็นลายแรก
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Phone Stickers Decor -->
+        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
+          <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
+            <span>✨ สติกเกอร์ & รูปตกแต่งหน้าจอโทรศัพท์</span>
+          </h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
+            แปะสติกเกอร์ หรืออัปโหลดรูปภาพส่วนตัวมาวางตกแต่งบนหน้าจอโทรศัพท์ได้ และเมื่ออยู่ที่หน้าจอสามารถแตะค้างลากย้ายตำแหน่งได้อย่างอิสระค่ะ
+          </p>
+
+          <div style="background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <div style="font-size: 0.9rem; font-weight: 700; color: #71515B;">
+                สติกเกอร์ที่กำลังติดอยู่บนหน้าจอ: <span style="color: #E05A88;">${phoneStickers.length}</span> ชิ้น
+              </div>
+              <small style="color: var(--text-muted); font-size: 0.78rem;">กดเปิดแผงตกแต่งเพื่อเลือกติดสติกเกอร์คิวท์ๆ หรืออัปโหลดภาพ</small>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-primary btn-sm" onclick="openStickerModal()" style="border-radius: 10px; font-weight: 700;">
+                🎀 เปิดแผงสติกเกอร์ & ตกแต่ง
+              </button>
+              <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 0.8rem; padding: 6px 12px; border-radius: 10px; border-color: #FFB7CE; color: #B24368;">
+                ➕ อัปโหลดรูปแปะจอ
+                <input type="file" accept="image/*" style="display: none;" onchange="handleStickerFileUpload(event)">
+              </label>
+              ${phoneStickers.length > 0 ? `
+                <button type="button" class="btn btn-outline btn-sm" onclick="clearAllStickers()" style="border-radius: 10px; color: #dc2626; border-color: #fca5a5; font-size: 0.78rem;">
+                  🗑️ ล้างทั้งหมด
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Custom App Icons (PNG) -->
+        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
+          <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
+            <span>🎀 ปรับแต่งหน้าตาไอคอนแอพเป็นรูป PNG</span>
+          </h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
+            ไอคอนเริ่มต้นของทุกแอพจะเป็น <b>สีชมพูเบบี้พิงค์เรียบหรู (#FFB7CE)</b> คุณสามารถปรับแต่งหน้าตาของแต่ละแอพให้เป็นรูปภาพ PNG สไตล์ส่วนตัวได้ตามต้องการค่ะ
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            ${appList.map(app => {
+              const customPng = savedIcons[app.id] || '';
+              return `
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 12px 16px;">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; border-radius: 12px; background: ${customPng ? '#FFFFFF' : '#FFB7CE'}; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 3px 8px rgba(255, 107, 151, 0.2); border: 1.5px solid ${customPng ? '#FFDFE9' : 'rgba(255,255,255,0.8)'}; flex-shrink: 0;">
+                      ${customPng ? `
+                        <img src="${escapeHTML(customPng)}" style="width: 100%; height: 100%; object-fit: contain;">
+                      ` : `
+                        <span style="font-weight: 800; font-size: 0.72rem; color: #FFFFFF;">PINK</span>
+                      `}
+                    </div>
+                    <div>
+                      <div style="font-weight: 800; font-size: 0.92rem; color: #71515B;">${app.name}</div>
+                      <div style="font-size: 0.78rem; color: var(--text-muted);">${app.desc}</div>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 260px; max-width: 450px; justify-content: flex-end;">
+                    <input 
+                      type="text" 
+                      id="appIconInput_${app.id}" 
+                      class="form-input" 
+                      placeholder="ใส่ URL รูป PNG หรือเลือกไฟล์" 
+                      value="${escapeHTML(customPng)}" 
+                      style="font-size: 0.8rem; padding: 6px 10px; height: 36px;"
+                    >
+                    <label class="btn btn-outline btn-sm" style="cursor: pointer; white-space: nowrap; margin: 0; font-size: 0.76rem; padding: 6px 10px; height: 36px; display: inline-flex; align-items: center; border-radius: 8px; border-color: #FFB7CE; color: #B24368;">
+                      เลือกไฟล์
+                      <input type="file" accept="image/png,image/*" style="display: none;" onchange="adminHandleAppIconFile(event, '${app.id}')">
+                    </label>
+                    <button 
+                      type="button" 
+                      class="btn btn-primary btn-sm" 
+                      onclick="adminSaveAppIcon('${app.id}')" 
+                      style="font-size: 0.76rem; padding: 6px 12px; height: 36px; border-radius: 8px; font-weight: 700;"
+                    >
+                      บันทึก
+                    </button>
+                    ${customPng ? `
+                      <button 
+                        type="button" 
+                        class="btn btn-outline btn-sm" 
+                        onclick="adminResetAppIcon('${app.id}')" 
+                        style="font-size: 0.76rem; padding: 6px 8px; height: 36px; border-radius: 8px; color: #dc2626; border-color: #fca5a5;" 
+                        title="คืนค่าเป็นสีชมพูพื้นเดิม"
+                      >✕</button>
+                    ` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- 4. Admin PIN Code -->
+        <div class="card" style="margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; border-radius: 18px; padding: 1.5rem; background: #FFFFFF;">
+          <h3 style="color: #71515B; font-size: 1.1rem; font-weight: 800; margin: 0 0 0.5rem; display: flex; align-items: center; gap: 8px;">
+            <span>🔒 รหัสผ่านเข้าหลังบ้าน (Admin 6-Digit PIN)</span>
+          </h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 1.25rem;">
+            รหัสผ่านตัวเลข 6 หลักสำหรับกดเข้าสู่ระบบแอดมินผ่านแป้นพิมพ์เครื่องคิดเลขบนหน้าจอโทรศัพท์ไอโฟน (ค่าเริ่มต้น: 123456)
+          </p>
+
+          <div style="background: #FFF9FC; border: 1.5px solid #FFDFE9; border-radius: 14px; padding: 1.25rem; max-width: 480px;">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" style="font-weight: 700; font-size: 0.85rem; color: #71515B;">กำหนดรหัสผ่าน PIN 6 หลักใหม่</label>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input 
+                  type="password" 
+                  id="adminNewPinInput" 
+                  class="form-input" 
+                  maxlength="6" 
+                  pattern="[0-9]{6}" 
+                  placeholder="ตัวเลข 6 หลัก เช่น 123456" 
+                  value="${escapeHTML(s.adminPin || '123456')}"
+                  style="font-size: 1.1rem; letter-spacing: 4px; font-weight: 700; text-align: center; max-width: 200px;"
+                >
+                <button 
+                  type="button" 
+                  class="btn btn-outline btn-sm" 
+                  onclick="const inp=$('adminNewPinInput'); if(inp){ inp.type = inp.type==='password'?'text':'password'; }"
+                  style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; border-color: #FFB7CE; color: #B24368;"
+                >
+                  👁️ ดู/ซ่อน
+                </button>
+              </div>
+              <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 4px;">*ต้องเป็นตัวเลข 6 หลักเท่านั้น</small>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="adminSaveNewPin()" style="border-radius: 10px; font-weight: 800; padding: 8px 18px;">
+              💾 บันทึกรหัสผ่านใหม่
+            </button>
+          </div>
+        </div>
+
+      </div>
+    `;
+  }
+
+  // ── Admin Screen & App Customization Helpers ───────────────
+  window.adminSaveWallpaperUrl = function () {
+    const input = $('adminCustomWpUrl');
+    if (!input) return;
+    const url = input.value.trim();
+    if (!url) {
+      alert('กรุณาใส่ลิงก์รูปภาพวอลเปเปอร์ค่ะ');
+      return;
+    }
+    setWallpaper(url, true);
+    alert('บันทึกวอลเปเปอร์หน้าจอเรียบร้อยแล้วค่ะ ✨');
+    switchAdminTab('screen');
+  };
+
+  window.adminHandleWallpaperFile = function (event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const dataUrl = e.target.result;
+      setWallpaper(dataUrl, true);
+      alert('อัปโหลดและบันทึกวอลเปเปอร์หน้าจอเรียบร้อยแล้วค่ะ ✨');
+      switchAdminTab('screen');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.adminResetWallpaper = function () {
+    if (confirm('ต้องการคืนค่าวอลเปเปอร์เป็นแบบเริ่มต้นใช่หรือไม่?')) {
+      const defWp = WALLPAPER_PRESETS[0].url;
+      setWallpaper(defWp, true);
+      alert('คืนค่าวอลเปเปอร์เรียบร้อยแล้วค่ะ ✨');
+      switchAdminTab('screen');
+    }
+  };
+
+  window.adminSaveAppIcon = function (appId) {
+    const input = $(`appIconInput_${appId}`);
+    if (!input) return;
+    const url = input.value.trim();
+    setAppCustomIcon(appId, url);
+    switchAdminTab('screen');
+  };
+
+  window.adminHandleAppIconFile = function (event, appId) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const dataUrl = e.target.result;
+      setAppCustomIcon(appId, dataUrl);
+      switchAdminTab('screen');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.adminResetAppIcon = function (appId) {
+    if (confirm('ต้องการคืนค่าไอคอนแอพนี้เป็นสีชมพูพื้นเริ่มต้นใช่หรือไม่?')) {
+      setAppCustomIcon(appId, '');
+      switchAdminTab('screen');
+    }
+  };
+
+  window.adminSaveNewPin = async function () {
+    const input = $('adminNewPinInput');
+    if (!input) return;
+    const pin = input.value.trim();
+    if (!/^\d{6}$/.test(pin)) {
+      alert('รหัสผ่าน PIN ต้องเป็นตัวเลข 6 หลักเท่านั้นค่ะ (เช่น 123456)');
+      return;
+    }
+    await Store.saveSettings({ adminPin: pin });
+    alert('🎉 บันทึกรหัสผ่าน PIN แอดมินใหม่เรียบร้อยแล้วค่ะ!\nสามารถใช้รหัสนี้กดผ่านเครื่องคิดเลขได้ทันทีค่ะ');
+    switchAdminTab('screen');
+  };
 
   window.toggleAddBannerForm = function () {
     const wrap = $('addBannerWrap');
@@ -9334,6 +10011,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
       const curQp = currentSettings.queuePage || {};
       const updated = {
+        adminPin: getVal('cfg_adminPin', s.adminPin || '123456'),
         shopName: getVal('cfg_shopName', s.shopName || 'BNC GraphMate Studio'),
         tagline: getVal('cfg_tagline', s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
         coverImage: formatDriveImageUrl(getVal('cfg_coverImage', s.coverImage || '')),

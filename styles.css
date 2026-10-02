@@ -4879,7 +4879,7 @@ select option {
   border-radius: 50%;
 }
 
-/* ── Screen Retina Display ─────────────────────────────────── */
+/* ── Screen Retina Display (Clean White Inner Rim, Zero Black Line) ──────── */
 .iphone-screen {
   position: relative;
   flex: 1;
@@ -4887,15 +4887,15 @@ select option {
   margin: 0 auto;
   border-radius: 4px;
   overflow: hidden;
-  background: #000000;
+  background: #FFF7F9;
   display: flex;
   flex-direction: column;
-  border: 1px solid #1A1A1A;
-  box-shadow: inset 0 0 4px rgba(0,0,0,0.3);
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 0 0 1px #ECECEF, inset 0 0 0 1px #FFFFFF;
   transform: translateZ(0); /* Established containing block for fixed overlays */
 }
 
-/* ── iOS 7/8 Status Bar ────────────────────────────────────── */
+/* ── iOS Status Bar (Clean Pure White, Zero Dark Gradient) ───── */
 .ios-status-bar {
   height: 22px;
   width: 100%;
@@ -4908,10 +4908,10 @@ select option {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   font-weight: 600;
   color: #FFFFFF;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  text-shadow: 0 1px 3px rgba(180, 100, 130, 0.45);
   z-index: 80;
   position: relative;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.35), transparent);
+  background: transparent;
   pointer-events: none;
 }
 
@@ -4968,7 +4968,7 @@ select option {
 .battery-shell {
   width: 18px;
   height: 9px;
-  border: 1px solid #FFFFFF;
+  border: 1.2px solid #FFFFFF;
   border-radius: 2.5px;
   padding: 1px;
   box-sizing: border-box;
@@ -4991,8 +4991,63 @@ select option {
 .battery-level {
   width: 100%;
   height: 100%;
-  background: #4CD964;
+  background: #FFFFFF;
   border-radius: 1px;
+}
+
+/* ── Phone Decorative Sticker & Photo Layer ────────────────── */
+.phone-sticker-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 35;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.phone-sticker-item {
+  position: absolute;
+  pointer-events: auto;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transition: transform 0.1s ease;
+  z-index: 36;
+}
+
+.phone-sticker-item:active {
+  cursor: grabbing;
+  transform: scale(1.08);
+}
+
+.phone-sticker-item img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.18));
+  pointer-events: none;
+}
+
+.phone-sticker-item .sticker-del-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  background: #FF3B30;
+  color: #FFFFFF;
+  border: 1.5px solid #FFFFFF;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.phone-sticker-layer.is-editing .sticker-del-btn {
+  display: flex;
 }
 
 /* ── SpringBoard (iOS Home Screen) ─────────────────────────── */
@@ -5022,34 +5077,6 @@ select option {
   z-index: 1;
 }
 
-/* Wallpaper Quick Pill Button */
-.wallpaper-pill-btn {
-  position: absolute;
-  top: 30px;
-  right: 12px;
-  z-index: 35;
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  border-radius: 20px;
-  padding: 4px 10px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #38282D;
-  font-size: 0.68rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: all 0.2s ease;
-}
-
-.wallpaper-pill-btn:hover {
-  background: rgba(255, 255, 255, 0.75);
-  transform: scale(1.04);
-}
-
 /* Swipeable Pages Viewport & Slider */
 .springboard-viewport {
   position: relative;
@@ -5057,7 +5084,7 @@ select option {
   width: 100%;
   overflow: hidden;
   z-index: 10;
-  padding-top: 58px;
+  padding-top: 26px;
   box-sizing: border-box;
   touch-action: pan-y;
   cursor: grab;
@@ -5078,19 +5105,180 @@ select option {
 .springboard-page {
   width: 50%;
   height: 100%;
-  padding: 10px 14px;
+  padding: 8px 12px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* ── Page 1: Shop Welcome & Contact Widget (หน้าแรกของจอ) ───── */
+.home-welcome-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  border-radius: 22px;
+  padding: 14px 12px;
+  box-shadow: 0 8px 24px rgba(180, 100, 130, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.welcome-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.welcome-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 2px solid #FFDFE9;
+  box-shadow: 0 2px 6px rgba(180, 100, 130, 0.12);
+}
+
+.welcome-shop-name {
+  font-family: 'Prompt', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #38282D;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.welcome-shop-tag {
+  font-size: 0.7rem;
+  color: #B26E86;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.welcome-queue-widget {
+  background: #FFF0F5;
+  border: 1px solid #FFD1DF;
+  border-radius: 10px;
+  padding: 6px 9px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.welcome-queue-widget:hover {
+  transform: scale(1.02);
+}
+
+.queue-status-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 6px #10B981;
+  animation: pulseDot 2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+.queue-widget-text {
+  font-size: 0.7rem;
+  color: #71515B;
+  flex: 1;
+}
+
+.welcome-bio-box {
+  background: #FFFFFF;
+  border: 1px solid #FFEBF1;
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+  color: #634752;
+  line-height: 1.4;
+}
+
+.welcome-contact-section {
   display: flex;
   flex-direction: column;
 }
 
-/* 4-Column iOS App Grid */
+.welcome-section-label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #71515B;
+  margin-bottom: 5px;
+}
+
+.welcome-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+}
+
+.contact-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: none;
+  color: #FFFFFF;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+}
+
+.contact-card-btn:hover {
+  transform: scale(1.03);
+}
+
+.btn-line { background: #06C755; }
+.btn-ig { background: linear-gradient(135deg, #FD1D1D, #833AB4); }
+.btn-fb { background: #1877F2; }
+.btn-tiktok { background: #111111; color: #25F4EE; }
+.btn-phone { background: #FF6B97; }
+
+.welcome-swipe-btn {
+  margin-top: 6px;
+  background: linear-gradient(135deg, #FFB7CE, #FF85A6);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(255, 133, 166, 0.35);
+  transition: all 0.2s;
+}
+
+.welcome-swipe-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(255, 133, 166, 0.45);
+}
+
+/* ── Page 2: Uniform Plain Pink iOS Apps Grid ──────────────── */
 .app-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px 8px;
+  gap: 14px 6px;
   justify-items: center;
   align-items: start;
+  padding-top: 6px;
 }
 
 .ios-app-item {
@@ -5098,7 +5286,7 @@ select option {
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  width: 68px;
+  width: 66px;
   text-decoration: none;
   transition: transform 0.15s ease;
   user-select: none;
@@ -5108,26 +5296,47 @@ select option {
   transform: scale(0.9);
 }
 
-.ios-app-icon {
+/* ALL APPS UNIFORM PLAIN PINK (ชมพูพื้นๆ ทั้งหมด) */
+.ios-app-icon,
+.app-icon-pink {
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: 54px;
+  height: 54px;
   border-radius: 14px;
+  background: #FFB7CE !important; /* Flat cute plain baby pink! */
+  color: #FFFFFF !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 3px 8px rgba(180, 110, 135, 0.22) !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #FFFFFF;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+  overflow: hidden;
   transition: transform 0.15s ease, filter 0.15s;
 }
 
+/* Custom PNG App Icon Support */
+.ios-app-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+}
+
+.font-icon-letter {
+  font-size: 1.45rem;
+  font-weight: 800;
+  font-family: 'Prompt', sans-serif;
+  letter-spacing: -1px;
+}
+
 .ios-app-label {
-  margin-top: 5px;
-  font-size: 0.68rem;
-  font-weight: 500;
+  margin-top: 4px;
+  font-size: 0.66rem;
+  font-weight: 600;
   color: #FFFFFF;
   text-align: center;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  text-shadow: 0 1px 2px rgba(140, 70, 95, 0.7);
   line-height: 1.15;
   width: 100%;
   overflow: hidden;
@@ -5138,15 +5347,15 @@ select option {
 /* App Badges */
 .app-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -3px;
+  right: -3px;
   background: #FF3B30;
   color: #FFFFFF;
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 8.5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5155,94 +5364,15 @@ select option {
   border: 1.5px solid #FFFFFF;
 }
 
-/* Individual App Icon Themes (Soft Vibrant iOS Pastel Aesthetic) */
-.icon-queue {
-  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%);
-}
-
-.icon-fonts {
-  background: linear-gradient(135deg, #A18CD1 0%, #FBC2EB 100%);
-}
-
-.font-icon-letter {
-  font-size: 1.55rem;
-  font-weight: 800;
-  font-family: 'Prompt', sans-serif;
-  letter-spacing: -1px;
-}
-
-.icon-products {
-  background: linear-gradient(135deg, #FFA07A 0%, #FFD166 100%);
-}
-
-.icon-groups {
-  background: linear-gradient(135deg, #F6D365 0%, #FDA085 100%);
-}
-
-.icon-portfolio {
-  background: linear-gradient(135deg, #84FAB0 0%, #8FD3F4 100%);
-}
-
-.icon-points {
-  background: linear-gradient(135deg, #FF758C 0%, #FF7EB3 100%);
-}
-
-.icon-reviews {
-  background: linear-gradient(135deg, #FEE140 0%, #FA709A 100%);
-}
-
-.icon-orders {
-  background: linear-gradient(135deg, #48C6EF 0%, #6F86D6 100%);
-}
-
-.icon-wallpaper {
-  background: linear-gradient(135deg, #BFF098 0%, #6FD6FF 100%);
-}
-
-.icon-admin {
-  background: linear-gradient(135deg, #8E9EAB 0%, #EEF2F3 100%);
-  color: #4A4A52;
-}
-
-.icon-cart {
-  background: linear-gradient(135deg, #FF6B97 0%, #FFA8C5 100%);
-}
-
-.icon-line {
-  background: linear-gradient(135deg, #06C755 0%, #00B900 100%);
-}
-
-.icon-ig {
-  background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
-}
-
-.icon-fb {
-  background: linear-gradient(135deg, #1877F2 0%, #0D65D9 100%);
-}
-
-.icon-tiktok {
-  background: linear-gradient(135deg, #111111 0%, #222222 100%);
-  color: #25F4EE;
-}
-
-.icon-phone {
-  background: linear-gradient(135deg, #4CD964 0%, #2ECC71 100%);
-}
-
-.icon-safari {
-  background: linear-gradient(135deg, #E6F3FF 0%, #B8DCFF 100%);
-  color: #007AFF;
-}
-
 /* Springboard Pagination Dots */
 .springboard-dots {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
-  height: 24px;
+  height: 22px;
   z-index: 10;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .springboard-dots .dot {
@@ -5262,14 +5392,14 @@ select option {
 
 /* Frosted Glass Bottom Dock */
 .springboard-dock {
-  margin: 0 10px 10px 10px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.36);
+  margin: 0 10px 8px 10px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.38);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   z-index: 20;
 }
 
@@ -5282,16 +5412,16 @@ select option {
 }
 
 .dock-apps .ios-app-item {
-  width: 60px;
+  width: 58px;
 }
 
 .dock-apps .ios-app-icon {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
 }
 
-/* ── In-App Web Application Screen ─────────────────────────── */
+/* ── In-App Web Application Screen (Proportional Mobile Scaling) ─ */
 .iphone-app-view {
   position: absolute;
   inset: 0;
@@ -5303,26 +5433,67 @@ select option {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  animation: appOpenZoom 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: appOpenZoom 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  font-size: 13.5px !important;
 }
 
-@keyframes appOpenZoom {
-  0% {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+/* Container & Component Scaling Inside iPhone View */
+.iphone-app-view * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.iphone-app-view .container {
+  padding: 0 8px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.iphone-app-view h1 { font-size: 1.22rem !important; line-height: 1.25 !important; }
+.iphone-app-view h2 { font-size: 1.08rem !important; line-height: 1.25 !important; }
+.iphone-app-view h3 { font-size: 0.98rem !important; line-height: 1.25 !important; }
+.iphone-app-view p, .iphone-app-view span { line-height: 1.45; }
+
+.iphone-app-view .hero-banner-item,
+.iphone-app-view .banner-card {
+  max-height: 160px !important;
+  border-radius: 12px !important;
+}
+
+.iphone-app-view .card {
+  padding: 10px 12px !important;
+  border-radius: 14px !important;
+  margin-bottom: 10px !important;
+}
+
+.iphone-app-view .grid-2,
+.iphone-app-view .grid-3,
+.iphone-app-view .grid-4,
+.iphone-app-view .product-grid,
+.iphone-app-view .font-catalog-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 8px !important;
+}
+
+.iphone-app-view .btn {
+  padding: 6px 12px !important;
+  font-size: 0.78rem !important;
+  border-radius: 10px !important;
+}
+
+.iphone-app-view .form-input,
+.iphone-app-view .form-select {
+  padding: 6px 10px !important;
+  font-size: 0.8rem !important;
+  border-radius: 8px !important;
 }
 
 /* In-App Mini Header Bar */
 .inapp-top-bar {
   position: sticky;
   top: 0;
-  height: 42px;
-  background: rgba(255, 255, 255, 0.92);
+  height: 40px;
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
@@ -5342,12 +5513,366 @@ select option {
   background: none;
   border: none;
   color: #B26E86;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 8px;
   transition: background 0.15s;
+}
+
+.inapp-back-btn:hover {
+  background: #FFF0F5;
+}
+
+.inapp-title {
+  font-family: var(--font-heading);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 170px;
+}
+
+.inapp-cart-btn {
+  position: relative;
+  background: none;
+  border: none;
+  color: #B26E86;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inapp-cart-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #FF4D7E;
+  color: #FFFFFF;
+  font-size: 0.6rem;
+  font-weight: 800;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 7.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Calculator-style PIN Keypad Modal ──────────────────────── */
+.calc-modal-overlay {
+  z-index: 2000 !important;
+  background: rgba(25, 15, 20, 0.72) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.calc-modal-card {
+  width: 100%;
+  max-width: 310px;
+  background: #FFFFFF;
+  border-radius: 26px;
+  overflow: hidden;
+  box-shadow: 0 18px 45px rgba(70, 30, 45, 0.28);
+  border: 1.5px solid #FFDFE9;
+  animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.calc-modal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.calc-title-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calc-icon {
+  font-size: 1.15rem;
+}
+
+.calc-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #38282D;
+}
+
+.calc-display-screen {
+  background: #FFF5F8;
+  border: 1.5px solid #FFDFE9;
+  border-radius: 16px;
+  padding: 10px 8px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.calc-screen-hint {
+  font-size: 0.72rem;
+  color: #8D6672;
+  margin-bottom: 6px;
+}
+
+.calc-pin-indicators {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.pin-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #FFB7CE;
+  background: #FFFFFF;
+  transition: all 0.15s ease;
+}
+
+.pin-dot.filled {
+  background: #FF4D7E;
+  border-color: #FF4D7E;
+  transform: scale(1.15);
+  box-shadow: 0 0 6px rgba(255, 77, 126, 0.4);
+}
+
+.calc-error-banner {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: #E11D48;
+  font-weight: 700;
+  animation: shakeErr 0.3s;
+}
+
+@keyframes shakeErr {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.calc-keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+  justify-items: center;
+}
+
+.calc-num-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1.5px solid #FFDFE9;
+  background: #FFFFFF;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #4A353C;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(113, 81, 91, 0.07);
+  transition: all 0.12s;
+  outline: none;
+}
+
+.calc-num-btn:hover {
+  background: #FFF0F5;
+  border-color: #FFB7CE;
+}
+
+.calc-num-btn:active {
+  transform: scale(0.9);
+  background: #FFE4EE;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.calc-btn-c {
+  background: #FFF0F2;
+  color: #E11D48;
+  font-size: 1.1rem;
+}
+
+.calc-btn-back {
+  background: #FFF9FA;
+  color: #8D6672;
+  font-size: 1.1rem;
+}
+
+.calc-action-bar {
+  display: flex;
+}
+
+.calc-submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #FF6B97, #FF85A6);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 14px;
+  padding: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 107, 151, 0.3);
+  transition: transform 0.15s;
+}
+
+.calc-submit-btn:hover {
+  transform: scale(1.02);
+}
+
+/* ── Sticker Modal Styles ──────────────────────────────────── */
+.sticker-modal-overlay {
+  z-index: 2000 !important;
+  background: rgba(25, 15, 20, 0.72) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+}
+
+.sticker-modal-card {
+  width: 100%;
+  max-width: 350px;
+  background: #FFFFFF;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(70, 30, 45, 0.22);
+  border: 1.5px solid #FFDFE9;
+  animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sticker-modal-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid #FFEBF1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFF7F9;
+  position: relative;
+}
+
+.sticker-modal-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.sticker-modal-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 2px 0 0 0;
+}
+
+.sticker-modal-body {
+  padding: 14px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.sticker-section-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.sticker-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sticker-preset-item {
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  background: #FFF7FA;
+  border: 1.5px solid #FFE4EE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.sticker-preset-item:hover {
+  transform: scale(1.08);
+  border-color: #FFB7CE;
+  background: #FFF0F5;
+}
+
+.sticker-preset-item img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+.sticker-upload-box {
+  background: #FFF7FA;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #FFE4EE;
+}
+
+.sticker-upload-box label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.sticker-manage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.sticker-manage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFF9FA;
+  border: 1px solid #FFEBF1;
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.sticker-modal-footer {
+  padding: 10px 14px;
+  border-top: 1px solid #FFEBF1;
+  display: flex;
+  justify-content: space-between;
+  background: #FFF9FA;
+}
+
+.btn-clear-stickers {
+  background: none;
+  border: 1px solid #FECDD3;
+  color: #BE123C;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
 }
 
 .inapp-back-btn:hover {
@@ -5715,5 +6240,95 @@ select option {
     height: 36px;
   }
 }
+
+/* ── In-App Responsive Mobile Scaling (Fit perfectly without overflowing) ── */
+.iphone-app-view {
+  font-size: 13.5px !important;
+}
+
+.iphone-app-view * {
+  box-sizing: border-box !important;
+}
+
+.iphone-app-view .container {
+  padding: 0 10px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.iphone-app-view h1 { font-size: 1.25rem !important; line-height: 1.3 !important; }
+.iphone-app-view h2 { font-size: 1.1rem !important; line-height: 1.3 !important; }
+.iphone-app-view h3 { font-size: 0.98rem !important; line-height: 1.3 !important; }
+.iphone-app-view h4 { font-size: 0.9rem !important; }
+.iphone-app-view p, .iphone-app-view span, .iphone-app-view li { line-height: 1.5; }
+
+.iphone-app-view .hero-banner-item,
+.iphone-app-view .banner-card {
+  max-height: 160px !important;
+  border-radius: 14px !important;
+}
+
+.iphone-app-view .card {
+  padding: 12px !important;
+  border-radius: 16px !important;
+  margin-bottom: 12px !important;
+}
+
+.iphone-app-view .grid-2,
+.iphone-app-view .grid-3,
+.iphone-app-view .grid-4,
+.iphone-app-view .product-grid,
+.iphone-app-view .font-catalog-grid,
+.iphone-app-view .portfolio-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 8px !important;
+}
+
+.iphone-app-view .btn {
+  padding: 6px 12px !important;
+  font-size: 0.8rem !important;
+  border-radius: 10px !important;
+}
+
+.iphone-app-view .form-input,
+.iphone-app-view .form-select,
+.iphone-app-view textarea {
+  padding: 7px 10px !important;
+  font-size: 0.82rem !important;
+  border-radius: 10px !important;
+}
+
+.iphone-app-view .navbar__inner {
+  padding: 6px 10px !important;
+}
+
+.iphone-app-view .navbar-brand {
+  font-size: 0.92rem !important;
+}
+
+.iphone-app-view .admin-nav-tabs,
+.iphone-app-view .tabs-nav {
+  display: flex !important;
+  overflow-x: auto !important;
+  white-space: nowrap !important;
+  padding-bottom: 6px !important;
+  gap: 6px !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.iphone-app-view .admin-nav-tab,
+.iphone-app-view .tab-btn {
+  padding: 6px 10px !important;
+  font-size: 0.78rem !important;
+  flex-shrink: 0 !important;
+}
+
+.iphone-app-view table {
+  display: block !important;
+  overflow-x: auto !important;
+  width: 100% !important;
+  font-size: 0.78rem !important;
+}
+
 
 
