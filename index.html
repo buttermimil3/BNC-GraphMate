@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BNC GraphMate Studio — ร้านป้าย & กราฟิก</title>
+  
+  <meta name="referrer" content="no-referrer">
+  
+  <!-- Google Fonts: IBM Plex Sans Thai + Prompt + Thai Handwriting Fonts (Mali, Itim, Sriracha, Mitr) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Itim&family=Mali:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Mitr:wght@400;500;600&family=Prompt:wght@400;500;600;700&family=Sriracha&display=swap">
+  
+  <!-- Core Unified Styles (Pastel Pink Boutique - BNC HayMate Tone) -->
+  <link rel="stylesheet" href="styles.css?v=2026_CLEAN_PASTEL_V72">
+</head>
+<body>
+  
+  <!-- iPhone 5s Desktop Stage Wrapper -->
+  <div class="iphone-stage">
+    
+    <!-- iPhone 5s Device Frame (White & Silver Edition) -->
+    <div class="iphone-5s">
+      <!-- Hardware Side Buttons & Antennas -->
+      <div class="iphone-btn-power" title="Power Button"></div>
+      <div class="iphone-switch-silent" title="Mute Switch"></div>
+      <div class="iphone-btn-vol-up" title="Volume Up"></div>
+      <div class="iphone-btn-vol-down" title="Volume Down"></div>
+
+      <!-- Phone Decorative Sticker & Photo Layer (Draggable over Phone White Bezel & Body) -->
+      <div class="phone-sticker-layer" id="phoneStickerLayer"></div>
+
+      <!-- Top Bezel (White Glass Front) -->
+      <div class="iphone-top-bezel">
+        <div class="iphone-sensor"></div>
+        <div class="iphone-speaker"></div>
+        <div class="iphone-camera"></div>
+      </div>
+
+      <!-- iPhone Screen (Retina Display Container) -->
+      <div class="iphone-screen" id="iphoneScreen">
+        <!-- iOS Status Bar -->
+        <div class="ios-status-bar" id="iosStatusBar">
+          <div class="status-left">
+            <span class="carrier-dots">
+              <span class="dot filled"></span>
+              <span class="dot filled"></span>
+              <span class="dot filled"></span>
+              <span class="dot filled"></span>
+              <span class="dot"></span>
+            </span>
+            <span class="carrier-name">BNC 5G</span>
+            <svg class="wifi-svg" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+              <path d="M12 3C7.03 3 2.6 5.3 0 8.87l1.77 1.48C4.09 7.4 7.8 5.35 12 5.35s7.91 2.05 10.23 5L24 8.87C21.4 5.3 16.97 3 12 3zm0 4.7c-3.5 0-6.6 1.6-8.6 4.1l1.8 1.5c1.6-2 4-3.3 6.8-3.3s5.2 1.3 6.8 3.3l1.8-1.5c-2-2.5-5.1-4.1-8.6-4.1zm0 4.7c-1.9 0-3.6.9-4.7 2.3l4.7 4.7 4.7-4.7c-1.1-1.4-2.8-2.3-4.7-2.3z"/>
+            </svg>
+          </div>
+          <div class="status-center">
+            <span id="iosClock">12:00</span>
+          </div>
+          <div class="status-right">
+            <span class="battery-pct">100%</span>
+            <div class="battery-shell">
+              <div class="battery-level"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SpringBoard (iOS Home Screen with Swipeable Pages) -->
+        <div class="iphone-springboard" id="iphoneSpringBoard">
+          <!-- Live Wallpaper Container -->
+          <div class="springboard-wallpaper" id="springboardWallpaper"></div>
+
+          <!-- Swipeable Pages Viewport -->
+          <div class="springboard-viewport" id="springboardViewport">
+            <div class="springboard-slider" id="springboardSlider">
+              
+              <!-- PAGE 1: Shop Home Welcome & Contact Channels (หน้าแรกของจอ) -->
+              <div class="springboard-page page-home-welcome" data-page="0">
+                <div class="home-welcome-card">
+                  <!-- Top Bar with Store Status Pill on Top Right (เปิด = เขียว, ปิด = แดง) -->
+                  <div class="welcome-card-topbar">
+                    <div></div>
+                    <div id="welcomeShopStatusBadge" class="welcome-status-pill is-open" title="สถานะร้านค้า">
+                      <span class="status-dot"></span>
+                      <span class="status-label">เปิด</span>
+                    </div>
+                  </div>
+
+                  <!-- Centered Large Profile Avatar -->
+                  <div class="welcome-avatar-center-wrap">
+                    <img id="welcomeAvatarImg" class="welcome-avatar-large" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&auto=format&fit=crop&q=80" alt="BNC Logo">
+                  </div>
+
+                  <!-- Welcome Info Body -->
+                  <div class="welcome-info-body">
+                    <h2 class="welcome-shop-name" id="welcomeShopName">BNC GraphMate</h2>
+                    <div class="welcome-shop-tag" id="welcomeShopTag">ร้านป้าย & ฟอนต์ลายมือ</div>
+
+                    <!-- Store Bio -->
+                    <div class="welcome-bio-box">
+                      <p id="welcomeShopBio">สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล ใช้งานเชิงพาณิชย์ได้</p>
+                    </div>
+
+                    <!-- Minimal Cute Pink Contact Icons Row -->
+                    <div class="welcome-minimal-contacts">
+                      <button type="button" class="min-contact-btn min-btn-line" onclick="openExternalUrl('line')" title="ทัก LINE ร้าน" aria-label="LINE ร้าน">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                          <path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.1 1.87 5.86 4.75 7.37-.2.74-.75 2.76-.86 3.19-.14.53.19.52.4.38.16-.1 2.37-1.59 3.32-2.24.78.14 1.58.21 2.39.21 5.52 0 10-3.92 10-8.75S17.52 2 12 2z"/>
+                        </svg>
+                      </button>
+                      <button type="button" class="min-contact-btn min-btn-ig" onclick="openExternalUrl('instagram')" title="Instagram" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2">
+                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                        </svg>
+                      </button>
+                      <button type="button" class="min-contact-btn min-btn-fb" onclick="openExternalUrl('facebook')" title="Facebook" aria-label="Facebook">
+                        <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+                          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                        </svg>
+                      </button>
+                      <button type="button" class="min-contact-btn min-btn-tiktok" onclick="openExternalUrl('tiktok')" title="TikTok" aria-label="TikTok">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                          <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
+                        </svg>
+                      </button>
+                      <button type="button" class="min-contact-btn min-btn-phone" onclick="openExternalUrl('phone')" title="โทรติดต่อ" aria-label="โทรติดต่อ">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                      </button>
+                    </div>
+
+                    <!-- Prompt to Swipe to Apps (Capsule Rounded Pill & Solid Cute Pink) -->
+                    <button type="button" class="welcome-swipe-btn" onclick="switchSpringboardPage(1)">
+                      <span>แตะหรือปัดซ้าย เพื่อเปิดดูแอพ</span>
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PAGE 2: Vinyl Music Widget + All Apps Grid (วิดเจ็ตเพลงด้านบนสุด จากนั้นค่อยเป็นแอพ) -->
+              <div class="springboard-page page-apps-grid" data-page="1">
+                <!-- Spinning Vinyl Record Music Widget (อยู่บนสุดของหน้า 2) -->
+                <div class="vinyl-music-widget" id="vinylMusicWidget">
+                  <div class="vinyl-record-wrap">
+                    <div class="vinyl-disc" id="vinylDisc" onclick="togglePlayMusic()" title="แตะแผ่นเสียงเพื่อเล่น/หยุดเพลง">
+                      <div class="vinyl-groove groove-1"></div>
+                      <div class="vinyl-groove groove-2"></div>
+                      <div class="vinyl-center-label" id="vinylCenterLabel">
+                        <div class="vinyl-center-hole"></div>
+                      </div>
+                    </div>
+                    <div class="vinyl-tonearm" id="vinylTonearm"></div>
+                  </div>
+                  <div class="vinyl-music-info">
+                    <div class="vinyl-music-marquee">
+                      <span class="vinyl-song-title" id="vinylSongTitle">BNC Cute Pastel Lofi Cafe</span>
+                    </div>
+                    <div class="vinyl-music-controls">
+                      <button type="button" class="vinyl-ctrl-btn" onclick="togglePlayMusic()" id="vinylPlayBtn" title="เล่น/หยุดเพลง" aria-label="เล่นเพลง">
+                        <svg id="vinylPlayIcon" viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="6 4 18 12 6 20 6 4"></polygon></svg>
+                      </button>
+                      <button type="button" class="vinyl-ctrl-btn" onclick="nextMusicTrack()" title="เพลงถัดไป" aria-label="เพลงถัดไป">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.5"></line></svg>
+                      </button>
+                      <button type="button" class="vinyl-ctrl-btn vinyl-btn-settings" onclick="openMusicManagerModal()" title="เพิ่มเพลง / จัดการเพลง" aria-label="เพิ่มเพลง">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="app-grid" id="springboardAppGrid">
+                  <!-- App: เช็กคิว -->
+                  <div class="ios-app-item" onclick="openPhoneApp('queue')" data-app="queue">
+                    <div class="ios-app-icon app-icon-pink" id="appIcon_queue">
+                      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                      <span class="app-badge" id="springboardQueueBadge" style="display:none;">3</span>
+                    </div>
+                    <span class="ios-app-label">เช็กคิว</span>
+                  </div>
+
+                  <!-- App: ฟอนต์ -->
+                  <div class="ios-app-item" onclick="openPhoneApp('fonts')" data-app="fonts">
+                    <div class="ios-app-icon app-icon-pink" id="appIcon_fonts">
+                      <span class="font-icon-letter">Aa</span>
+                    </div>
+                    <span class="ios-app-label">ฟอนต์</span>
+                  </div>
+
+                  <!-- App: สินค้าสำเร็จ -->
+                  <div class="ios-app-item" onclick="openPhoneApp('products')" data-app="products">
+                    <div class="ios-app-icon app-icon-pink" id="appIcon_products">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                      </svg>
+                    </div>
+                    <span class="ios-app-label">สินค้าสำเร็จ</span>
+                  </div>
+
+                  <!-- App: เข้ากลุ่ม VIP -->
+                  <div class="ios-app-item" onclick="openPhoneApp('groups')" data-app="groups">
+                    <div class="ios-app-icon app-icon-pink" id="appIcon_groups">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                      </svg>
+                    </div>
+                    <span class="ios-app-label">เข้ากลุ่ม VIP</span>
+                  </div>
+
+                  <!-- App: ผลงาน -->
+                  <div class="ios-app-item" onclick="openPhoneApp('portfolio')" data-app="portfolio">
+                    <div class="ios-app-icon app-icon-pink" id="appIcon_portfolio">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                      </svg>
+                    </div>
+                    <span class="ios-app-label">ผลงาน</span>
+                  </div>
+
+                  <!-- App: สะสมแต้ม -->
+                  <div class="ios-app-item" onclick="openPhoneApp('points')" data-app="points">
+                    <div class="ios-app-icon app-icon-pink" id="appIcon_points">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                      </svg>
+                    </div>
+                    <span class="ios-app-label">สะสมแต้ม</span>
+                  </div>
+
+                  <!-- App: รีวิวลูกค้า -->
+                  <div class="ios-app-item" onclick="openPhoneApp('reviews')" data-app="reviews">
+                    <div class="ios-app-icon app-icon-pink" id="appIcon_reviews">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                    </div>
+                    <span class="ios-app-label">รีวิวลูกค้า</span>
+                  </div>
+
+                  <!-- App: ออเดอร์ -->
+                  <div class="ios-app-item" onclick="openPhoneApp('orders')" data-app="orders">
+                    <div class="ios-app-icon app-icon-pink" id="appIcon_orders">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line>
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                      </svg>
+                    </div>
+                    <span class="ios-app-label">สถานะออเดอร์</span>
+                  </div>
+
+                  <!-- App: ตะกร้าสินค้า -->
+                  <div class="ios-app-item" onclick="openPhoneCart()" data-app="cart">
+                    <div class="ios-app-icon app-icon-pink" id="appIcon_cart">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                      </svg>
+                      <span class="app-badge" id="springboardCartBadge" style="display:none;">0</span>
+                    </div>
+                    <span class="ios-app-label">ตะกร้าสินค้า</span>
+                  </div>
+
+                  <!-- App: ตั้งค่าหลังบ้าน (กดแล้วขึ้นเครื่องคิดเลข PIN!) -->
+                  <div class="ios-app-item" onclick="openAdminPinCalculator()" data-app="admin">
+                    <div class="ios-app-icon app-icon-pink" id="appIcon_admin">
+                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                      </svg>
+                    </div>
+                    <span class="ios-app-label">ตั้งค่าหลังบ้าน</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- SpringBoard Pagination Dots -->
+          <div class="springboard-dots" id="springboardDots">
+            <span class="dot active" onclick="switchSpringboardPage(0)" title="หน้าแรก"></span>
+            <span class="dot" onclick="switchSpringboardPage(1)" title="หน้ารวมแอพ"></span>
+          </div>
+
+          <!-- Frosted Glass Bottom Dock -->
+          <div class="springboard-dock">
+            <div class="dock-apps">
+              <!-- Dock App 1: หน้าโฮม (Page 1) -->
+              <div class="ios-app-item" onclick="switchSpringboardPage(0)">
+                <div class="ios-app-icon app-icon-pink">
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9.5L12 3l9 6.5V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9.5z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                  </svg>
+                </div>
+                <span class="ios-app-label">หน้าโฮม</span>
+              </div>
+
+              <!-- Dock App 2: รวมแอพ (Page 2) -->
+              <div class="ios-app-item" onclick="switchSpringboardPage(1)">
+                <div class="ios-app-icon app-icon-pink">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                    <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                    <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                    <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                  </svg>
+                </div>
+                <span class="ios-app-label">รวมแอพ</span>
+              </div>
+
+              <!-- Dock App 3: ตะกร้าสินค้า -->
+              <div class="ios-app-item" onclick="openPhoneCart()">
+                <div class="ios-app-icon app-icon-pink">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="9" cy="21" r="1"></circle>
+                    <circle cx="20" cy="21" r="1"></circle>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                  </svg>
+                  <span class="app-badge" id="springboardDockCartBadge" style="display:none;">0</span>
+                </div>
+                <span class="ios-app-label">ตะกร้า</span>
+              </div>
+
+              <!-- Dock App 4: LINE แชทร้าน -->
+              <div class="ios-app-item" onclick="openExternalUrl('line')">
+                <div class="ios-app-icon app-icon-pink">
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.1 1.87 5.86 4.75 7.37-.2.74-.75 2.76-.86 3.19-.14.53.19.52.4.38.16-.1 2.37-1.59 3.32-2.24.78.14 1.58.21 2.39.21 5.52 0 10-3.92 10-8.75S17.52 2 12 2z"/>
+                  </svg>
+                </div>
+                <span class="ios-app-label">แชท LINE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- In-App Web Application Screen (Full Features, Scrolling, Modals) -->
+        <div class="iphone-app-view" id="iphoneAppView" style="display: none;">
+          <!-- In-App Mini Header Bar -->
+          <div class="inapp-top-bar" id="inAppTopBar">
+            <button class="inapp-back-btn" onclick="pressHomeButton()" title="กลับหน้าโฮม">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+              <span>โฮม</span>
+            </button>
+            <div class="inapp-title" id="inAppTitle">BNC GraphMate</div>
+            <button class="inapp-cart-btn" onclick="openPhoneCart()" title="ตะกร้าสินค้า">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+              <span class="inapp-cart-badge" id="inAppCartBadge" style="display:none;">0</span>
+            </button>
+          </div>
+
+          <!-- Original Web App Structure -->
+          <div id="app" class="app-layout">
+            <!-- Dynamic Navbar -->
+            <header id="mainNavbar" class="navbar"></header>
+
+            <!-- Main Dynamic Page Content -->
+            <main id="pageContent" style="flex-grow: 1;"></main>
+
+            <!-- Studio Footer -->
+            <footer class="footer">
+              <div class="container">
+                <div class="footer-brand">BNC GraphMate Studio</div>
+                <p class="footer-copy">สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล</p>
+                <div class="footer-copyright" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 1rem;">
+                  © 2026 BNC GraphMate. All Rights Reserved. Powered by Cloud Sync & Vercel.
+                </div>
+              </div>
+            </footer>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Bezel (White Glass with Clickable Home Button) -->
+      <div class="iphone-bottom-bezel">
+        <button class="iphone-home-btn" id="iphoneHomeBtn" onclick="pressHomeButton()" aria-label="ปุ่มโฮม iPhone 5s" title="กดเพื่อกลับหน้าโฮม">
+          <div class="home-btn-ring">
+            <div class="home-btn-inner"></div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Custom Wallpaper Picker Modal -->
+  <div id="wallpaperModal" class="modal-overlay wallpaper-modal-overlay" style="display:none;" onclick="if(event.target===this)closeWallpaperModal()">
+    <div class="wallpaper-modal-card">
+      <div class="wallpaper-modal-header">
+        <div class="modal-header-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E05A88" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+        </div>
+        <div>
+          <h3 class="wallpaper-modal-title">เปลี่ยนภาพพื้นหลังโทรศัพท์</h3>
+          <p class="wallpaper-modal-sub">เลือกภาพพาสเทลน่ารัก หรือใส่ภาพของคุณเอง</p>
+        </div>
+        <button class="modal-close-x" onclick="closeWallpaperModal()">&times;</button>
+      </div>
+
+      <div class="wallpaper-modal-body">
+        <div class="wallpaper-presets-label">วอลเปเปอร์ยอดนิยม</div>
+        <div class="wallpaper-grid" id="wallpaperPresetGrid">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="wallpaper-custom-divider">
+          <span>หรือใส่ภาพของคุณเอง</span>
+        </div>
+
+        <!-- Custom Upload or URL -->
+        <div class="wallpaper-custom-box">
+          <div class="custom-field">
+            <label>เลือกรูปจากเครื่องคุณ</label>
+            <input type="file" id="wallpaperFileInput" accept="image/*" onchange="handleWallpaperFileUpload(event)" class="cute-file-input">
+          </div>
+          <div class="custom-field" style="margin-top: 0.75rem;">
+            <label>วางลิงก์รูปภาพ (Image URL)</label>
+            <div class="url-input-group">
+              <input type="url" id="wallpaperUrlInput" placeholder="https://example.com/cute-wallpaper.jpg" class="cute-text-input">
+              <button class="btn-apply-url" onclick="applyWallpaperUrl()">บันทึก</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wallpaper-modal-footer">
+        <button class="btn-reset-wallpaper" onclick="resetDefaultWallpaper()">รีเซ็ตภาพเริ่มต้น</button>
+        <button class="btn-close-modal" onclick="closeWallpaperModal()">เรียบร้อย</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calculator-style PIN Keypad Modal (จอเครื่องคิดเลขสำหรับเข้าหลังบ้าน) -->
+  <div id="calculatorPinModal" class="modal-overlay calc-modal-overlay" style="display:none;" onclick="if(event.target===this)closeAdminPinCalculator()">
+    <div class="calc-modal-card">
+      <div class="calc-modal-top">
+        <div class="calc-title-box">
+          <span class="calc-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#E05A88" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </span>
+          <span class="calc-title">ปลดล็อกระบบหลังบ้าน</span>
+        </div>
+        <button type="button" class="modal-close-x" onclick="closeAdminPinCalculator()">&times;</button>
+      </div>
+
+      <!-- Calculator Screen Display -->
+      <div class="calc-display-screen" id="calcDisplayScreen">
+        <div class="calc-screen-hint">กดรหัส PIN แอดมิน (6 หลัก)</div>
+        <div class="calc-pin-indicators" id="calcPinIndicators">
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+          <span class="pin-dot"></span>
+        </div>
+        <div class="calc-error-banner" id="calcErrorBanner" style="display:none;">รหัส PIN ไม่ถูกต้องค่ะ</div>
+      </div>
+
+      <!-- 3x4 Calculator Keypad Grid -->
+      <div class="calc-keypad-grid">
+        <button type="button" class="calc-num-btn" onclick="pressCalcKey('1')">1</button>
+        <button type="button" class="calc-num-btn" onclick="pressCalcKey('2')">2</button>
+        <button type="button" class="calc-num-btn" onclick="pressCalcKey('3')">3</button>
+
+        <button type="button" class="calc-num-btn" onclick="pressCalcKey('4')">4</button>
+        <button type="button" class="calc-num-btn" onclick="pressCalcKey('5')">5</button>
+        <button type="button" class="calc-num-btn" onclick="pressCalcKey('6')">6</button>
+
+        <button type="button" class="calc-num-btn" onclick="pressCalcKey('7')">7</button>
+        <button type="button" class="calc-num-btn" onclick="pressCalcKey('8')">8</button>
+        <button type="button" class="calc-num-btn" onclick="pressCalcKey('9')">9</button>
+
+        <button type="button" class="calc-num-btn calc-btn-c" onclick="pressCalcKey('C')">C</button>
+        <button type="button" class="calc-num-btn" onclick="pressCalcKey('0')">0</button>
+        <button type="button" class="calc-num-btn calc-btn-back" onclick="pressCalcKey('back')">⌫</button>
+      </div>
+
+      <div class="calc-action-bar">
+        <button type="button" class="calc-submit-btn" onclick="submitCalcPin()">
+          <span>ยืนยันรหัส PIN</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticker Manager Modal (จัดการสติกเกอร์ & แปะรูปภาพตกแต่งตัวเครื่อง) -->
+  <div id="stickerModal" class="modal-overlay sticker-modal-overlay" style="display:none;" onclick="if(event.target===this)closeStickerModal()">
+    <div class="sticker-modal-card">
+      <div class="sticker-modal-header">
+        <div class="modal-header-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E05A88" stroke-width="2.2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <div>
+          <h3 class="sticker-modal-title">ตกแต่งตัวเครื่องโทรศัพท์</h3>
+          <p class="sticker-modal-sub">เลือกสติกเกอร์น่ารัก หรืออัปโหลดรูปภาพแปะบนขอบจอขาวและตัวเครื่องได้ตามใจชอบ</p>
+        </div>
+        <button type="button" class="modal-close-x" onclick="closeStickerModal()">&times;</button>
+      </div>
+
+      <div class="sticker-modal-body">
+        <div class="sticker-section-label">สติกเกอร์น่ารักสำเร็จรูป (แตะเพื่อแปะลงเครื่อง)</div>
+        <div class="sticker-preset-grid" id="stickerPresetGrid">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="wallpaper-custom-divider">
+          <span>หรือเพิ่มรูปภาพ/สติกเกอร์ของคุณเอง</span>
+        </div>
+
+        <div class="sticker-upload-box">
+          <label>อัปโหลดรูปภาพ PNG จากเครื่อง</label>
+          <input type="file" id="stickerFileInput" accept="image/*" onchange="handleStickerFileUpload(event)" class="cute-file-input">
+          
+          <div style="margin-top: 8px;">
+            <label>วางลิงก์รูปภาพ (Image URL)</label>
+            <div class="url-input-group">
+              <input type="url" id="stickerUrlInput" placeholder="https://.../sticker.png" class="cute-text-input">
+              <button type="button" class="btn-apply-url" onclick="applyCustomStickerUrl()">+ เพิ่ม</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sticker-active-list-area">
+          <div class="sticker-section-label" style="margin-top: 14px;">สติกเกอร์บนตัวเครื่องขณะนี้ (<span id="stickerCountLabel">0</span> ชิ้น)</div>
+          <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px;">*สามารถใช้นิ้วหรือเมาส์ลากย้ายตำแหน่งสติกเกอร์บนขอบขาวและตัวเครื่องโทรศัพท์ได้เลยนะคะ</p>
+          <div id="stickerManageList" class="sticker-manage-list"></div>
+        </div>
+      </div>
+
+      <div class="sticker-modal-footer">
+        <button type="button" class="btn-clear-stickers" onclick="clearAllStickers()">ล้างสติกเกอร์ทั้งหมด</button>
+        <button type="button" class="btn-close-modal" onclick="closeStickerModal()">เรียบร้อย</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden BGM Audio Element -->
+  <audio id="bgmAudio" preload="auto" loop></audio>
+
+  <!-- Music Manager Modal (เพิ่มเพลง / จัดการเพลง) -->
+  <div id="musicManagerModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeMusicManagerModal()">
+    <div class="wallpaper-modal-card" style="max-width: 440px;">
+      <div class="wallpaper-modal-header">
+        <div class="modal-header-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#E05A88" stroke-width="2.2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+        </div>
+        <div>
+          <h3 class="wallpaper-modal-title">เครื่องเล่นเพลง & เพลย์ลิสต์</h3>
+          <p class="wallpaper-modal-sub">เพิ่มเพลงที่คุณชอบ หรือเลือกจากเพลงพรีเซ็ตน่ารัก</p>
+        </div>
+        <button class="modal-close-x" onclick="closeMusicManagerModal()">&times;</button>
+      </div>
+
+      <div class="wallpaper-modal-body">
+        <div class="wallpaper-presets-label">เพลงพรีเซ็ตคาเฟ่พาสเทล</div>
+        <div id="musicPresetList" class="music-preset-list" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem;">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="wallpaper-custom-divider">
+          <span>เพิ่มเพลงของคุณเอง</span>
+        </div>
+
+        <div class="sticker-upload-box">
+          <label>เลือกไฟล์เพลงจากเครื่อง (MP3 / Audio)</label>
+          <input type="file" id="musicFileInput" accept="audio/*" onchange="handleMusicFileUpload(event)" class="cute-file-input">
+          
+          <div style="margin-top: 10px;">
+            <label>หรือใส่ลิงก์เพลง (Audio URL / MP3)</label>
+            <div class="url-input-group">
+              <input type="url" id="musicUrlInput" placeholder="https://.../song.mp3" class="cute-text-input">
+              <button type="button" class="btn-apply-url" onclick="applyCustomMusicUrl()">+ เพิ่ม</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <div class="wallpaper-presets-label">เพลย์ลิสต์ของคุณขณะนี้</div>
+          <div id="customPlaylistContainer" class="custom-playlist-container" style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="wallpaper-modal-footer" style="padding: 1rem 1.25rem; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary btn-sm" onclick="closeMusicManagerModal()" style="border-radius: 10px; font-weight: 700; padding: 6px 18px;">เสร็จสิ้น</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <!-- Supabase JS Client SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Single Unified Application Script -->
+  <script src="app.js?v=2026_CLEAN_PASTEL_V72"></script>
+
+</body>
+</html>
