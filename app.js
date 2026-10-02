@@ -47,6 +47,7 @@ const Store = (function () {
  announcementEnabled: false,
  adminPin: '123456',
  isShopOpen: true,
+ phoneWallpaper: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop&q=80',
  gasUrl: '',
  // Customizable Button & Action Labels
  btnLineText: 'ทักแชท LINE ร้าน',
@@ -899,7 +900,7 @@ const Store = (function () {
         }
         if (typeof setupFloatingMascot === 'function') setupFloatingMascot();
         if (typeof loadFontFaces === 'function') loadFontFaces();
-        if (typeof state !== 'undefined' && state.currentView === 'fonts' && typeof renderCurrentView === 'function') {
+        if (typeof state !== 'undefined' && (state.view === 'fonts' || state.currentView === 'fonts') && typeof renderCurrentView === 'function') {
           renderCurrentView();
         }
       }
@@ -1260,8 +1261,14 @@ const Store = (function () {
         case 'MULTI_CHECKOUT': {
           const order = payload.order || payload.orderInfo;
           const payment = payload.payment || payload.paymentInfo;
-          const items = payload.items || (order && order.items) || [];
+          const items = payload.items || (order && (order.items || (typeof order.items_json === 'object' ? order.items_json : null))) || [];
           if (order) {
+            if (!order.id || order.id === 'undefined') {
+              order.id = uid('ord');
+            }
+            if (!order.order_number) {
+              order.order_number = orderNum();
+            }
             const orderRow = {
               id: String(order.id),
               order_number: order.order_number || '',
@@ -1275,13 +1282,17 @@ const Store = (function () {
               line_id: order.line_id || '',
               gmail: order.gmail || '',
               notes: order.notes || '',
-              items: items,
-              items_json: JSON.stringify(items),
+              items: Array.isArray(items) ? items : [],
+              items_json: typeof items === 'string' ? items : JSON.stringify(items),
               created_at: order.created_at || new Date().toISOString()
             };
-            await sb.from('orders').upsert(orderRow);
+            const { error: ordErr } = await sb.from('orders').upsert(orderRow);
+            if (ordErr) console.error('Supabase error CREATE_ORDER:', ordErr);
           }
           if (payment) {
+            if (!payment.id || payment.id === 'undefined') {
+              payment.id = uid('pay');
+            }
             const payRow = {
               id: String(payment.id),
               order_id: payment.order_id || (order && order.id) || '',
@@ -1295,7 +1306,8 @@ const Store = (function () {
               verification_notes: payment.verification_notes || '',
               created_at: payment.created_at || new Date().toISOString()
             };
-            await sb.from('payments').upsert(payRow);
+            const { error: payErr } = await sb.from('payments').upsert(payRow);
+            if (payErr) console.error('Supabase error CREATE_PAYMENT:', payErr);
           }
           if (Array.isArray(items) && items.length > 0 && order) {
             for (const it of items) {
@@ -1725,7 +1737,9 @@ const Store = (function () {
           footerCopy: sRow.footer_copy || sObj.footerCopy || local.settings.footerCopy,
           footerCopyright: sRow.footer_copyright || sObj.footerCopyright || local.settings.footerCopyright,
           portfolioContactUrl: sObj.portfolioContactUrl || local.settings.portfolioContactUrl || '',
-          homeReviewIds: sObj.homeReviewIds || local.settings.homeReviewIds || ['rev-1']
+          homeReviewIds: sObj.homeReviewIds || local.settings.homeReviewIds || ['rev-1'],
+          isShopOpen: sObj.isShopOpen !== undefined ? sObj.isShopOpen : (local.settings.isShopOpen !== undefined ? local.settings.isShopOpen : true),
+          phoneWallpaper: sObj.phoneWallpaper || sRow.phone_wallpaper || local.settings.phoneWallpaper || 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop&q=80'
         });
       }
 
@@ -1831,6 +1845,13 @@ const Store = (function () {
       }
 
       saveLocal(merged);
+
+      if (typeof loadFontFaces === 'function') {
+        loadFontFaces();
+      }
+      if (merged.settings && merged.settings.phoneWallpaper && typeof setWallpaper === 'function') {
+        setWallpaper(merged.settings.phoneWallpaper, false);
+      }
 
       // หากฐานข้อมูล Supabase ยังว่างอยู่ ให้นำเข้าข้อมูลเริ่มต้นทันทีอัตโนมัติ
       if ((!resProducts.data || resProducts.data.length === 0) && merged.products && merged.products.length > 0) {
@@ -2126,8 +2147,23 @@ const Store = (function () {
  data.payments.unshift(newPayment);
  saveLocal(data);
 
- // ส่งเข้า Google Sheet ทันที!
- callCloud('CREATE_ORDER', { orderInfo: orderInfo, paymentInfo: paymentInfo });
+ // ส่งเข้า Supabase Cloud ทันที!
+ const cloudPayment = Object.assign({}, newPayment);
+ if (cloudPayment.slip_image_url && cloudPayment.slip_image_url.length > 45000) {
+ cloudPayment.slip_image_url = cloudPayment.slip_image_url.slice(0, 45000);
+ }
+ const orderItem = {
+ id: orderInfo.item_id || '',
+ name: orderInfo.item_name || '',
+ price: Number(orderInfo.amount) || 0,
+ type: orderInfo.order_type || 'PRODUCT',
+ delivery_type: orderInfo.delivery_type || 'MANUAL'
+ };
+ callCloud('CREATE_ORDER', {
+ order: newOrder,
+ payment: cloudPayment,
+ items: [orderItem]
+ });
 
  return { order: newOrder, payment: newPayment };
  },
@@ -3171,6 +3207,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     if (typeof Store !== 'undefined' && Store.syncFromCloud) {
       Store.syncFromCloud((isOk) => {
         if (isOk) {
+          if (typeof loadFontFaces === 'function') loadFontFaces();
+          if (typeof initWallpaper === 'function') initWallpaper();
           renderNavbar();
           setupFloatingMascot();
           updateFooterDisplay();
@@ -4158,7 +4196,8 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   };
 
   function initWallpaper() {
-    const saved = localStorage.getItem('BNC_PHONE_WALLPAPER') || WALLPAPER_PRESETS[0].url;
+    const s = (typeof Store !== 'undefined' && Store.getSettings) ? Store.getSettings() : null;
+    const saved = (s && s.phoneWallpaper) || localStorage.getItem('BNC_PHONE_WALLPAPER') || WALLPAPER_PRESETS[0].url;
     setWallpaper(saved, false);
   }
 
@@ -4170,6 +4209,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
     if (save) {
       localStorage.setItem('BNC_PHONE_WALLPAPER', url);
+      if (typeof Store !== 'undefined' && Store.saveSettings) {
+        Store.saveSettings({ phoneWallpaper: url });
+      }
     }
   }
 
@@ -5065,8 +5107,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       return matchCat && matchSearch;
     });
 
-    const fontA = fonts.find(f => f.id === state.fontTester.compareFontId1) || fonts[0] || {};
-    const fontB = fonts.find(f => f.id === state.fontTester.compareFontId2) || fonts[1] || fonts[0] || {};
+    const fontsWithFiles = fonts.filter(f => hasValidFontFile(f));
+    const defaultFont1 = fontsWithFiles[0] || fonts[0] || {};
+    const defaultFont2 = fontsWithFiles[1] || fonts[1] || defaultFont1;
+
+    const fontA = fonts.find(f => f.id === state.fontTester.compareFontId1) || defaultFont1;
+    const fontB = fonts.find(f => f.id === state.fontTester.compareFontId2) || defaultFont2;
 
     // Sort options: Favorites first in dropdown
     const favsSet = new Set(state.fontTester.favorites || []);
