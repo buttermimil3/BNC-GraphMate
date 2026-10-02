@@ -3148,6 +3148,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
   function initApp() {
     loadFontFaces();
+    initPhoneSystem();
     setupRouting();
     setupCartDrawer();
     setupModals();
@@ -3155,11 +3156,13 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     setupFloatingMascot();
     updateFooterDisplay();
     renderCurrentView();
+    updateCartBadge();
 
     // Listen to store updates (sync from Google Sheets)
     window.addEventListener('storage', () => {
       renderCurrentView();
       updateCartBadge();
+      updateQueueBadge();
       updateFooterDisplay();
     });
 
@@ -3493,35 +3496,385 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
   };
   
+  // ============================================================
+  // IPHONE 5S & SPRINGBOARD CONTROLLER
+  // ============================================================
+  const phoneState = {
+    isAtHome: true,
+    currentPage: 0,
+    wallpaper: ''
+  };
+
+  const WALLPAPER_PRESETS = [
+    {
+      id: 'wp-1',
+      name: 'Baby Pink Clouds',
+      url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'wp-2',
+      name: 'Boutique Sweet Hearts',
+      url: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=800&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'wp-3',
+      name: 'Lavender Starlight',
+      url: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'wp-4',
+      name: 'iOS Aurora Wave',
+      url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'wp-5',
+      name: 'Strawberry Milk Gradient',
+      url: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'wp-6',
+      name: 'Minimal Cream Boutique',
+      url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80'
+    }
+  ];
+
+  function initPhoneSystem() {
+    initWallpaper();
+    initSpringboardSwipe();
+    updateIosClock();
+    setInterval(updateIosClock, 1000);
+    updateQueueBadge();
+  }
+
+  function updateIosClock() {
+    const clockEl = $('iosClock');
+    if (!clockEl) return;
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    clockEl.textContent = `${hours}:${minutes}`;
+  }
+
+  function initWallpaper() {
+    const saved = localStorage.getItem('BNC_PHONE_WALLPAPER') || WALLPAPER_PRESETS[0].url;
+    setWallpaper(saved, false);
+  }
+
+  function setWallpaper(url, save = true) {
+    phoneState.wallpaper = url;
+    const wp = $('springboardWallpaper');
+    if (wp) {
+      wp.style.backgroundImage = `url("${url}")`;
+    }
+    if (save) {
+      localStorage.setItem('BNC_PHONE_WALLPAPER', url);
+    }
+  }
+
+  window.openWallpaperModal = function () {
+    const grid = $('wallpaperPresetGrid');
+    if (grid) {
+      const current = phoneState.wallpaper;
+      grid.innerHTML = WALLPAPER_PRESETS.map(p => `
+        <div 
+          class="wallpaper-preset-thumb ${current === p.url ? 'active' : ''}" 
+          style="background-image: url('${p.url}')"
+          onclick="selectWallpaper('${p.url}')"
+          title="${p.name}"
+        ></div>
+      `).join('');
+    }
+    const modal = $('wallpaperModal');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  window.closeWallpaperModal = function () {
+    const modal = $('wallpaperModal');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.selectWallpaper = function (url) {
+    setWallpaper(url, true);
+    openWallpaperModal();
+  };
+
+  window.handleWallpaperFileUpload = function (event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      setWallpaper(e.target.result, true);
+      alert('เปลี่ยนรูปพื้นหลังสำเร็จแล้วค่ะ ✨');
+      closeWallpaperModal();
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.applyWallpaperUrl = function () {
+    const input = $('wallpaperUrlInput');
+    if (!input) return;
+    const url = input.value.trim();
+    if (!url) return;
+    setWallpaper(url, true);
+    input.value = '';
+    alert('บันทึกรูปพื้นหลังจากลิงก์เรียบร้อยแล้วค่ะ ✨');
+    closeWallpaperModal();
+  };
+
+  window.resetDefaultWallpaper = function () {
+    setWallpaper(WALLPAPER_PRESETS[0].url, true);
+    openWallpaperModal();
+  };
+
+  function playHapticClickSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(140, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } catch (e) {}
+  }
+
+  window.pressHomeButton = function () {
+    const btn = $('iphoneHomeBtn');
+    if (btn) {
+      btn.classList.add('is-pressed');
+      setTimeout(() => btn.classList.remove('is-pressed'), 130);
+    }
+
+    playHapticClickSound();
+
+    if (typeof closeCartDrawer === 'function') closeCartDrawer();
+    if (typeof closeWallpaperModal === 'function') closeWallpaperModal();
+    const activeModals = document.querySelectorAll('.modal-overlay.is-active, .modal-overlay[style*="display: block"], .modal-overlay[style*="display: flex"]');
+    activeModals.forEach(m => {
+      if (m.id !== 'wallpaperModal') m.style.display = 'none';
+      m.classList.remove('is-active');
+    });
+
+    const sb = $('iphoneSpringBoard');
+    const appView = $('iphoneAppView');
+
+    if (!phoneState.isAtHome) {
+      phoneState.isAtHome = true;
+      if (appView) appView.style.display = 'none';
+      if (sb) sb.classList.remove('is-hidden');
+      window.location.hash = '';
+    } else {
+      if (phoneState.currentPage !== 0) {
+        switchSpringboardPage(0);
+      }
+    }
+  };
+
+  window.openPhoneApp = function (viewName) {
+    phoneState.isAtHome = false;
+    const sb = $('iphoneSpringBoard');
+    const appView = $('iphoneAppView');
+    if (sb) sb.classList.add('is-hidden');
+    if (appView) {
+      appView.style.display = 'flex';
+      appView.scrollTop = 0;
+    }
+    const inAppTitle = $('inAppTitle');
+    if (inAppTitle) {
+      const titles = {
+        'home': 'BNC GraphMate Studio',
+        'queue': 'เช็กคิวงาน',
+        'fonts': 'ฟอนต์ลายมือ',
+        'products': 'สินค้าสำเร็จรูป',
+        'groups': 'กลุ่ม VIP กราฟิก',
+        'portfolio': 'ผลงานออกแบบ',
+        'points': 'สะสมแต้มดิจิทัล',
+        'reviews': 'รีวิวจากลูกค้า',
+        'orders': 'ติดตามสถานะออเดอร์',
+        'admin': 'ระบบจัดการหลังบ้าน'
+      };
+      inAppTitle.textContent = titles[viewName] || 'BNC GraphMate';
+    }
+    window.navigate(viewName);
+  };
+
+  window.openPhoneCart = function () {
+    if (phoneState.isAtHome) {
+      openPhoneApp('home');
+      setTimeout(() => {
+        if (typeof openCartDrawer === 'function') openCartDrawer();
+      }, 80);
+    } else {
+      if (typeof openCartDrawer === 'function') openCartDrawer();
+    }
+  };
+
+  window.openExternalUrl = function (type) {
+    const s = Store.getSettings();
+    if (type === 'line') {
+      window.open(s.lineUrl || 'https://line.me/ti/p/~bncgraphmate', '_blank');
+    } else if (type === 'instagram') {
+      window.open(s.instagramUrl || 'https://instagram.com/bncgraphmate', '_blank');
+    } else if (type === 'facebook') {
+      window.open(s.facebookUrl || 'https://facebook.com/bncgraphmate', '_blank');
+    } else if (type === 'tiktok') {
+      window.open(s.tiktokUrl || 'https://tiktok.com/@bncgraphmate', '_blank');
+    } else if (type === 'phone') {
+      window.location.href = `tel:${s.contactPhone || '0812345678'}`;
+    }
+  };
+
+  window.switchSpringboardPage = function (pageIdx) {
+    phoneState.currentPage = pageIdx;
+    const slider = $('springboardSlider');
+    if (slider) {
+      slider.style.transform = `translateX(-${pageIdx * 50}%)`;
+    }
+    const dots = document.querySelectorAll('#springboardDots .dot');
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === pageIdx);
+    });
+  };
+
+  function initSpringboardSwipe() {
+    const vp = $('springboardViewport');
+    if (!vp) return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isSwiping = false;
+
+    vp.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      isSwiping = true;
+    }, { passive: true });
+
+    vp.addEventListener('touchend', (e) => {
+      if (!isSwiping) return;
+      isSwiping = false;
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const diffX = endX - touchStartX;
+      const diffY = endY - touchStartY;
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 35) {
+        if (diffX < 0) {
+          switchSpringboardPage(1);
+        } else {
+          switchSpringboardPage(0);
+        }
+      }
+    }, { passive: true });
+
+    let isMouseDown = false;
+    let mouseStartX = 0;
+    vp.addEventListener('mousedown', (e) => {
+      isMouseDown = true;
+      mouseStartX = e.clientX;
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (!isMouseDown) return;
+      isMouseDown = false;
+      const diffX = e.clientX - mouseStartX;
+      if (Math.abs(diffX) > 40) {
+        if (diffX < 0) {
+          switchSpringboardPage(1);
+        } else {
+          switchSpringboardPage(0);
+        }
+      }
+    });
+  }
+
+  function updateQueueBadge() {
+    try {
+      const queues = Store.getQueue ? Store.getQueue() : [];
+      const activeQueues = queues.filter(q => q.status === 'progress' || q.status === 'waiting');
+      const qBadge = $('springboardQueueBadge');
+      if (qBadge) {
+        if (activeQueues.length > 0) {
+          qBadge.textContent = activeQueues.length;
+          qBadge.style.display = 'flex';
+        } else {
+          qBadge.style.display = 'none';
+        }
+      }
+    } catch (e) {}
+  }
+
   function setupRouting() {
- window.addEventListener('hashchange', handleHash);
- handleHash();
- }
+    window.addEventListener('hashchange', handleHash);
+    handleHash();
+  }
 
- function handleHash() {
- const hash = window.location.hash.replace('#', '') || 'home';
- const parts = hash.split('/');
- const view = parts[0] || 'home';
+  function handleHash() {
+    const rawHash = window.location.hash.replace('#', '').trim();
 
- if (view === 'admin') {
- state.view = 'admin';
- state.adminTab = parts[1] || 'dashboard';
- } else {
- state.view = view;
- }
+    if (!rawHash || rawHash === 'home-screen' || rawHash === 'springboard') {
+      phoneState.isAtHome = true;
+      const sb = $('iphoneSpringBoard');
+      const appView = $('iphoneAppView');
+      if (sb) sb.classList.remove('is-hidden');
+      if (appView) appView.style.display = 'none';
+      return;
+    }
 
- renderNavbar();
- renderCurrentView();
- window.scrollTo({ top: 0, behavior: 'instant' });
- }
+    const parts = rawHash.split('/');
+    const view = parts[0] || 'home';
 
- window.navigate = function (view, subTab) {
- if (subTab) {
- window.location.hash = `${view}/${subTab}`;
- } else {
- window.location.hash = view;
- }
- };
+    if (view === 'admin') {
+      state.view = 'admin';
+      state.adminTab = parts[1] || 'dashboard';
+    } else {
+      state.view = view;
+    }
+
+    phoneState.isAtHome = false;
+    const sb = $('iphoneSpringBoard');
+    const appView = $('iphoneAppView');
+    if (sb) sb.classList.add('is-hidden');
+    if (appView) {
+      appView.style.display = 'flex';
+      appView.scrollTop = 0;
+    }
+
+    const inAppTitle = $('inAppTitle');
+    if (inAppTitle) {
+      const titles = {
+        'home': 'BNC GraphMate Studio',
+        'queue': 'เช็กคิวงาน',
+        'fonts': 'ฟอนต์ลายมือ',
+        'products': 'สินค้าสำเร็จรูป',
+        'groups': 'กลุ่ม VIP กราฟิก',
+        'portfolio': 'ผลงานออกแบบ',
+        'points': 'สะสมแต้มดิจิทัล',
+        'reviews': 'รีวิวจากลูกค้า',
+        'orders': 'ติดตามสถานะออเดอร์',
+        'admin': 'ระบบจัดการหลังบ้าน'
+      };
+      inAppTitle.textContent = titles[view] || 'BNC GraphMate';
+    }
+
+    renderNavbar();
+    renderCurrentView();
+    if (appView) appView.scrollTop = 0;
+  }
+
+  window.navigate = function (view, subTab) {
+    if (subTab) {
+      window.location.hash = `${view}/${subTab}`;
+    } else {
+      window.location.hash = view;
+    }
+  };
 
  // ── Navbar Renderer ──────────────────────────────────────────
  function renderNavbar() {
@@ -9641,8 +9994,20 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
  function updateCartBadge() {
  const cart = Store.getCart();
+ const count = cart ? cart.length : 0;
  const countEl = $('cartBadgeCount');
- if (countEl) countEl.textContent = cart.length;
+ if (countEl) countEl.textContent = count;
+
+ const sbBadge = $('springboardCartBadge');
+ if (sbBadge) {
+   sbBadge.textContent = count;
+   sbBadge.style.display = count > 0 ? 'flex' : 'none';
+ }
+ const inAppBadge = $('inAppCartBadge');
+ if (inAppBadge) {
+   inAppBadge.textContent = count;
+   inAppBadge.style.display = count > 0 ? 'flex' : 'none';
+ }
  }
 
  window.openCartDrawer = function () {
