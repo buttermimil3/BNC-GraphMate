@@ -3669,7 +3669,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       phoneState.isAtHome = true;
       if (appView) appView.style.display = 'none';
       if (sb) sb.classList.remove('is-hidden');
-      window.location.hash = '';
+      window.location.hash = 'home-screen';
     } else {
       if (phoneState.currentPage !== 0) {
         switchSpringboardPage(0);
@@ -3677,7 +3677,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     }
   };
 
-  window.openPhoneApp = function (viewName) {
+  window.openPhoneApp = function (viewName, subTab) {
     phoneState.isAtHome = false;
     const sb = $('iphoneSpringBoard');
     const appView = $('iphoneAppView');
@@ -3702,7 +3702,21 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       };
       inAppTitle.textContent = titles[viewName] || 'BNC GraphMate';
     }
-    window.navigate(viewName);
+
+    if (viewName === 'admin') {
+      state.view = 'admin';
+      state.adminTab = subTab || 'dashboard';
+    } else {
+      state.view = viewName;
+    }
+
+    const targetHash = subTab ? `${viewName}/${subTab}` : viewName;
+    if (window.location.hash.replace('#', '') !== targetHash) {
+      window.location.hash = targetHash;
+    }
+    renderNavbar();
+    renderCurrentView();
+    if (appView) appView.scrollTop = 0;
   };
 
   window.openPhoneCart = function () {
@@ -12032,7 +12046,11 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
   window.playPopSound = window.playCuteStampPopSound;
 
   // ── Run upon DOM load ────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', initApp);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
 
 
 
