@@ -1017,6 +1017,48 @@ input[type="radio"]:focus-visible {
   transform: translateX(0);
 }
 
+/* Phone Screen Scoped Cart Drawer & Backdrop (แสดงผลในโทรศัพท์ ไม่ล้นออกไปข้างนอก) */
+#iphoneScreen .cart-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 5000 !important;
+  border-radius: 4px !important;
+}
+
+#iphoneScreen .cart-drawer {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  z-index: 5001 !important;
+  border-radius: 4px !important;
+  transform: translateY(100%) !important;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 -8px 24px rgba(35, 25, 30, 0.2) !important;
+}
+
+#iphoneScreen .cart-drawer.is-open {
+  transform: translateY(0) !important;
+}
+
+#iphoneScreen .modal-overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 6000 !important;
+  border-radius: 4px !important;
+  padding: 8px !important;
+}
+
+#iphoneScreen .modal-card,
+#iphoneScreen .modal-box {
+  max-width: 100% !important;
+  width: 100% !important;
+  max-height: 94% !important;
+}
+
 .cart-drawer__head {
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--border-light);
@@ -1560,89 +1602,65 @@ input[type="range"] {
    ============================================================ */
 .notebook-paper-container {
   background: #FFFDFE;
-  border: 2px solid var(--border);
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(222, 133, 167, 0.15);
+  border: 1.5px solid #FFDFE9;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(222, 133, 167, 0.12);
   position: relative;
   overflow: hidden;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .notebook-binder-header {
   background: linear-gradient(to bottom, #FDF2F7, #FAE4EE);
-  border-bottom: 1.5px solid var(--border);
-  padding: 12px 18px;
+  border-bottom: 1px solid #FFDFE9;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .notebook-binder-holes {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
 }
 
 .notebook-hole {
-  width: 14px;
-  height: 14px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: #E8BFD1;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 1px #ffffff;
+  background: #FFFFFF;
+  border: 1px solid #FFCCD9;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
   position: relative;
-}
-
-.notebook-hole::after {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 3px;
-  width: 8px;
-  height: 8px;
-  border: 2.5px solid #F3C3D7;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
 }
 
 .goodnotes-paper {
   background-color: #FFFDFE;
   background-image: none !important;
-  padding: 26px 26px 26px 26px;
-  min-height: 180px;
+  padding: 10px 8px 12px !important;
+  min-height: unset;
   position: relative;
-  border-radius: 0 0 18px 18px;
-}
-
-@media (max-width: 640px) {
-  .goodnotes-paper {
-    background-image: none !important;
-    padding: 18px 14px 20px 14px;
-  }
+  border-radius: 0 0 16px 16px;
 }
 
 .font-compare-split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-@media (max-width: 768px) {
-  .font-compare-split {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
 }
 
 .font-compare-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(4px);
-  border: 1.5px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 4px 14px rgba(222, 133, 167, 0.1);
+  border: 1px solid #FFDFE9;
+  border-radius: 12px;
+  padding: 8px 6px;
+  box-shadow: 0 2px 8px rgba(222, 133, 167, 0.08);
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .font-compare-header {
@@ -3036,25 +3054,32 @@ input[type="range"] {
   color: #E11D48;
 }
 
-/* ── 2-Column Responsive Font Gallery Grid & Compact Mobile Portrait Layout ── */
+/* ── Horizontal Scrolling Font Showcase (แนวนอน กะทัดรัด เลื่อนซ้าย-ขวา) ── */
 .font-gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  display: flex !important;
+  flex-direction: row !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  gap: 12px !important;
+  padding: 8px 4px 16px 4px !important;
+  scroll-snap-type: x mandatory !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
-@media (min-width: 640px) {
-  .font-gallery-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-  }
+.font-gallery-grid::-webkit-scrollbar {
+  height: 6px !important;
 }
 
-@media (min-width: 1024px) {
-  .font-gallery-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 22px;
-  }
+.font-gallery-grid::-webkit-scrollbar-thumb {
+  background: #FFB7CE !important;
+  border-radius: 999px !important;
+}
+
+.font-gallery-grid .font-item-card {
+  flex: 0 0 215px !important;
+  min-width: 215px !important;
+  max-width: 215px !important;
+  scroll-snap-align: start !important;
 }
 
 /* Font Item Card Base Styles */
@@ -5009,15 +5034,20 @@ select option {
 
 .phone-sticker-item {
   position: absolute;
-  pointer-events: auto;
-  cursor: grab;
+  pointer-events: none;
+  cursor: default;
   user-select: none;
   touch-action: none;
   transition: transform 0.1s ease;
   z-index: 105;
 }
 
-.phone-sticker-item:active {
+.phone-sticker-layer.is-editing .phone-sticker-item {
+  pointer-events: auto;
+  cursor: grab;
+}
+
+.phone-sticker-layer.is-editing .phone-sticker-item:active {
   cursor: grabbing;
   transform: scale(1.08);
 }
@@ -5130,46 +5160,86 @@ select option {
   box-sizing: border-box;
 }
 
-/* Cover Banner on Welcome Card */
-.welcome-cover-wrap {
-  position: relative;
+/* Top Bar & Store Status Pill on Top Right */
+.welcome-card-topbar {
   width: 100%;
-  height: 96px;
-  overflow: visible;
-  background: #FFF0F5;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 12px 14px 2px;
+  box-sizing: border-box;
 }
 
-.welcome-cover-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.welcome-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: default;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
 
-.welcome-avatar-wrap {
-  position: absolute;
-  bottom: -26px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 58px;
-  height: 58px;
+.welcome-status-pill.is-open {
+  background: #ECFDF5;
+  color: #047857;
+  border: 1.5px solid #A7F3D0;
+}
+
+.welcome-status-pill.is-open .status-dot {
+  background: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+}
+
+.welcome-status-pill.is-closed {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1.5px solid #FECACA;
+}
+
+.welcome-status-pill.is-closed .status-dot {
+  background: #EF4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.7);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  border: 3.5px solid #ffffff;
-  background: #ffffff;
-  box-shadow: 0 3px 10px rgba(180, 100, 130, 0.2);
-  overflow: hidden;
-  z-index: 10;
+  display: inline-block;
+  animation: pulseDot 2s infinite;
 }
 
-.welcome-avatar {
+/* Centered Large Profile Section */
+.welcome-avatar-center-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 0 8px;
   width: 100%;
-  height: 100%;
+}
+
+.welcome-avatar-large {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
   object-fit: cover;
   display: block;
+  border: 3.5px solid #FFFFFF;
+  background: #FFFFFF;
+  box-shadow: 0 8px 24px rgba(255, 107, 151, 0.25);
+  transition: transform 0.25s ease;
+}
+
+.welcome-avatar-large:hover {
+  transform: scale(1.05);
 }
 
 .welcome-info-body {
-  padding: 30px 12px 14px;
+  padding: 0 12px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -5179,35 +5249,18 @@ select option {
 
 .welcome-shop-name {
   font-family: 'Prompt', sans-serif;
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: #38282D;
   margin: 0;
   line-height: 1.2;
 }
 
 .welcome-shop-tag {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: #B26E86;
   font-weight: 600;
-  margin-top: 1px;
-}
-
-.welcome-queue-widget {
-  width: 100%;
-  background: #FFF0F5;
-  border: 1px solid #FFD1DF;
-  border-radius: 12px;
-  padding: 6px 10px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: transform 0.15s;
-}
-
-.welcome-queue-widget:hover {
-  transform: scale(1.02);
+  margin-top: -2px;
 }
 
 .queue-status-indicator {
@@ -5456,7 +5509,28 @@ select option {
   box-shadow: 0 6px 18px rgba(255, 183, 206, 0.65) !important;
 }
 
-/* ── Page 2: Uniform Plain Pink iOS Apps Grid ──────────────── */
+/* ── Page 2: Vinyl Music Widget on Top + Uniform Plain Pink iOS Apps Grid ── */
+.page-apps-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  padding: 8px 12px 16px !important;
+  gap: 10px !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+}
+
+.page-apps-grid .vinyl-music-widget {
+  width: 100% !important;
+  margin: 0 0 4px 0 !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1.5px solid #FFD1DF !important;
+  box-shadow: 0 4px 16px rgba(255, 107, 151, 0.14) !important;
+  border-radius: 18px !important;
+  flex-shrink: 0 !important;
+}
+
 .app-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

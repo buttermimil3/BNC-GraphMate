@@ -78,12 +78,18 @@
               <!-- PAGE 1: Shop Home Welcome & Contact Channels (หน้าแรกของจอ) -->
               <div class="springboard-page page-home-welcome" data-page="0">
                 <div class="home-welcome-card">
-                  <!-- Cover Banner (16:9 ratio, sits at the top of the card) -->
-                  <div class="welcome-cover-wrap">
-                    <img id="welcomeCoverImg" class="welcome-cover-img" src="https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1600&auto=format&fit=crop&q=80" alt="Shop Cover">
-                    <div class="welcome-avatar-wrap">
-                      <img id="welcomeAvatarImg" class="welcome-avatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160&auto=format&fit=crop&q=80" alt="BNC Logo">
+                  <!-- Top Bar with Store Status Pill on Top Right (เปิด = เขียว, ปิด = แดง) -->
+                  <div class="welcome-card-topbar">
+                    <div></div>
+                    <div id="welcomeShopStatusBadge" class="welcome-status-pill is-open" title="สถานะร้านค้า">
+                      <span class="status-dot"></span>
+                      <span class="status-label">เปิด</span>
                     </div>
+                  </div>
+
+                  <!-- Centered Large Profile Avatar -->
+                  <div class="welcome-avatar-center-wrap">
+                    <img id="welcomeAvatarImg" class="welcome-avatar-large" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&auto=format&fit=crop&q=80" alt="BNC Logo">
                   </div>
 
                   <!-- Welcome Info Body -->
@@ -91,18 +97,9 @@
                     <h2 class="welcome-shop-name" id="welcomeShopName">BNC GraphMate</h2>
                     <div class="welcome-shop-tag" id="welcomeShopTag">ร้านป้าย & ฟอนต์ลายมือ</div>
 
-                    <!-- Queue Live Status Widget -->
-                    <div class="welcome-queue-widget" onclick="openPhoneApp('queue')">
-                      <div class="queue-status-indicator"></div>
-                      <div class="queue-widget-text" id="welcomeQueueText">
-                        <strong>สถานะร้าน:</strong> ว่างพร้อมรับ 3 คิว • ตอบแชทไว
-                      </div>
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                    </div>
-
                     <!-- Store Bio -->
                     <div class="welcome-bio-box">
-                      <p id="welcomeShopBio">ยินดีต้อนรับสู่ BNC GraphMate Studio สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล ใช้งานเชิงพาณิชย์ได้</p>
+                      <p id="welcomeShopBio">สตูดิโอออกแบบป้ายร้าน งานฟอนต์ลายมือ สติกเกอร์ และทรัพยากรกราฟิกสำเร็จรูป สไตล์คิวท์ น่ารัก มินิมอล ใช้งานเชิงพาณิชย์ได้</p>
                     </div>
 
                     <!-- Minimal Cute Pink Contact Icons Row -->
@@ -136,36 +133,6 @@
                       </button>
                     </div>
 
-                    <!-- Spinning Vinyl Record Music Widget (แผ่นเพลงหมุนเหมือนวิดเจ็ตในจอ) -->
-                    <div class="vinyl-music-widget" id="vinylMusicWidget">
-                      <div class="vinyl-record-wrap">
-                        <div class="vinyl-disc" id="vinylDisc" onclick="togglePlayMusic()" title="แตะแผ่นเสียงเพื่อเล่น/หยุดเพลง">
-                          <div class="vinyl-groove groove-1"></div>
-                          <div class="vinyl-groove groove-2"></div>
-                          <div class="vinyl-center-label" id="vinylCenterLabel">
-                            <div class="vinyl-center-hole"></div>
-                          </div>
-                        </div>
-                        <div class="vinyl-tonearm" id="vinylTonearm"></div>
-                      </div>
-                      <div class="vinyl-music-info">
-                        <div class="vinyl-music-marquee">
-                          <span class="vinyl-song-title" id="vinylSongTitle">BNC Cute Pastel Lofi Cafe</span>
-                        </div>
-                        <div class="vinyl-music-controls">
-                          <button type="button" class="vinyl-ctrl-btn" onclick="togglePlayMusic()" id="vinylPlayBtn" title="เล่น/หยุดเพลง" aria-label="เล่นเพลง">
-                            <svg id="vinylPlayIcon" viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="6 4 18 12 6 20 6 4"></polygon></svg>
-                          </button>
-                          <button type="button" class="vinyl-ctrl-btn" onclick="nextMusicTrack()" title="เพลงถัดไป" aria-label="เพลงถัดไป">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.5"></line></svg>
-                          </button>
-                          <button type="button" class="vinyl-ctrl-btn vinyl-btn-settings" onclick="openMusicManagerModal()" title="เพิ่มเพลง / จัดการเพลง" aria-label="เพิ่มเพลง">
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
                     <!-- Prompt to Swipe to Apps (Capsule Rounded Pill & Solid Cute Pink) -->
                     <button type="button" class="welcome-swipe-btn" onclick="switchSpringboardPage(1)">
                       <span>แตะหรือปัดซ้าย เพื่อเปิดดูแอพ</span>
@@ -175,8 +142,38 @@
                 </div>
               </div>
 
-              <!-- PAGE 2: All Apps Grid (หน้าถัดไปเป็นแอพสีชมพูล้วน) -->
+              <!-- PAGE 2: Vinyl Music Widget + All Apps Grid (วิดเจ็ตเพลงด้านบนสุด จากนั้นค่อยเป็นแอพ) -->
               <div class="springboard-page page-apps-grid" data-page="1">
+                <!-- Spinning Vinyl Record Music Widget (อยู่บนสุดของหน้า 2) -->
+                <div class="vinyl-music-widget" id="vinylMusicWidget">
+                  <div class="vinyl-record-wrap">
+                    <div class="vinyl-disc" id="vinylDisc" onclick="togglePlayMusic()" title="แตะแผ่นเสียงเพื่อเล่น/หยุดเพลง">
+                      <div class="vinyl-groove groove-1"></div>
+                      <div class="vinyl-groove groove-2"></div>
+                      <div class="vinyl-center-label" id="vinylCenterLabel">
+                        <div class="vinyl-center-hole"></div>
+                      </div>
+                    </div>
+                    <div class="vinyl-tonearm" id="vinylTonearm"></div>
+                  </div>
+                  <div class="vinyl-music-info">
+                    <div class="vinyl-music-marquee">
+                      <span class="vinyl-song-title" id="vinylSongTitle">BNC Cute Pastel Lofi Cafe</span>
+                    </div>
+                    <div class="vinyl-music-controls">
+                      <button type="button" class="vinyl-ctrl-btn" onclick="togglePlayMusic()" id="vinylPlayBtn" title="เล่น/หยุดเพลง" aria-label="เล่นเพลง">
+                        <svg id="vinylPlayIcon" viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><polygon points="6 4 18 12 6 20 6 4"></polygon></svg>
+                      </button>
+                      <button type="button" class="vinyl-ctrl-btn" onclick="nextMusicTrack()" title="เพลงถัดไป" aria-label="เพลงถัดไป">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.5"></line></svg>
+                      </button>
+                      <button type="button" class="vinyl-ctrl-btn vinyl-btn-settings" onclick="openMusicManagerModal()" title="เพิ่มเพลง / จัดการเพลง" aria-label="เพิ่มเพลง">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="app-grid" id="springboardAppGrid">
                   <!-- App: เช็กคิว -->
                   <div class="ios-app-item" onclick="openPhoneApp('queue')" data-app="queue">

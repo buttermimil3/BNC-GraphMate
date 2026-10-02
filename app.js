@@ -46,6 +46,7 @@ const Store = (function () {
  announcement: '',
  announcementEnabled: false,
  adminPin: '123456',
+ isShopOpen: true,
  gasUrl: '',
  // Customizable Button & Action Labels
  btnLineText: 'ทักแชท LINE ร้าน',
@@ -3771,22 +3772,35 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       const shopNameEl = $('welcomeShopName');
       const shopBioEl = $('welcomeShopBio');
       const avatarEl = $('welcomeAvatarImg');
-      const coverEl = $('welcomeCoverImg');
-      const queueTextEl = $('welcomeQueueText');
+      const statusBadge = $('welcomeShopStatusBadge');
 
       if (shopNameEl && s.shopName) shopNameEl.textContent = s.shopName;
       if (shopBioEl && s.shopBio) shopBioEl.textContent = s.shopBio;
-      if (coverEl && s.coverImage) coverEl.src = formatDriveImageUrl(s.coverImage);
       if (avatarEl && (s.profileImage || s.logoText)) {
         if (s.profileImage) avatarEl.src = formatDriveImageUrl(s.profileImage);
       }
-      if (queueTextEl && s.queueStatus && s.queueStatus.queueText) {
-        queueTextEl.innerHTML = `<strong>สถานะร้าน:</strong> ${escapeHTML(s.queueStatus.queueText)} • ${escapeHTML(s.queueStatus.chatHours || 'ตอบแชทไว')}`;
+
+      if (statusBadge) {
+        const isOpen = s.isShopOpen !== false;
+        statusBadge.className = `welcome-status-pill ${isOpen ? 'is-open' : 'is-closed'}`;
+        statusBadge.innerHTML = `
+          <span class="status-dot"></span>
+          <span class="status-label">${isOpen ? 'เปิด' : 'ปิด'}</span>
+        `;
+        statusBadge.title = isOpen ? 'ร้านเปิดให้บริการอยู่ค่ะ' : 'ขณะนี้ร้านปิดให้บริการชั่วคราวค่ะ';
       }
     } catch (e) {
       console.warn('updateHomeWelcomeCard error:', e);
     }
   }
+
+  window.toggleShopStatus = async function (forceState) {
+    const s = Store.getSettings();
+    const newState = (forceState !== undefined) ? !!forceState : !(s.isShopOpen !== false);
+    await Store.saveSettings({ isShopOpen: newState });
+    updateHomeWelcomeCard();
+    renderCurrentView();
+  };
 
   // ── Calculator PIN Keypad for Admin Entry ──────────────────
   let calcEnteredPin = '';
@@ -3919,7 +3933,9 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
         <button type="button" class="sticker-del-btn" onclick="event.stopPropagation(); deleteSticker('${stk.id}')" title="ลบสติกเกอร์">✕</button>
       `;
 
-      attachStickerDragHandler(item, stk);
+      if (isStickerEditingMode) {
+        attachStickerDragHandler(item, stk);
+      }
       layer.appendChild(item);
     });
 
@@ -4255,16 +4271,15 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     const sb = $('iphoneSpringBoard');
     const appView = $('iphoneAppView');
 
-    if (!phoneState.isAtHome) {
-      phoneState.isAtHome = true;
-      if (appView) appView.style.display = 'none';
-      if (sb) sb.classList.remove('is-hidden');
-      window.location.hash = 'home-screen';
-    } else {
-      if (phoneState.currentPage !== 0) {
-        switchSpringboardPage(0);
-      }
-    }
+    phoneState.isAtHome = true;
+    if (appView) appView.style.display = 'none';
+    if (sb) sb.classList.remove('is-hidden');
+    switchSpringboardPage(0);
+    window.location.hash = 'home-screen';
+  };
+
+  window.goHome = function () {
+    pressHomeButton();
   };
 
   window.openPhoneApp = function (viewName, subTab) {
@@ -5067,51 +5082,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       <section style="padding: 2.5rem 0 4rem;">
         <div class="container">
 
-          ${state.isAdmin ? `
-            <!-- Collapsible Admin Font Management Accordion (ย้ายมาหน้าฟอนต์ ทำย่อยุบ) -->
-            <div class="card font-admin-accordion-card" style="border-radius: 18px; margin-bottom: 1.5rem; border: 1.5px solid #FFDFE9; background: #FFFBFD; overflow: hidden; padding: 0;">
-              <div id="font-mgmt-accordion-header" onclick="toggleFontMgmtAccordion()" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; cursor: pointer; background: #FFF7F9; user-select: none; transition: background 0.2s;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span style="font-weight: 700; color: #71515B; font-size: 1.05rem;">จัดการฟอนต์ลายมือ (Admin)</span>
-                  <span class="badge badge--pink" style="font-size: 11px;">${allFonts.length} ฟอนต์</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <button type="button" class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openAddFontModal();" style="font-size: 11px; padding: 4px 10px;">+ เพิ่มฟอนต์ใหม่</button>
-                  <span id="font-mgmt-accordion-badge" class="badge" style="background: ${isFontMgmtOpen ? '#FFE4EE' : '#FFF0F5'}; color: #B26E86; font-size: 0.78rem; font-weight: 700; border: 1px solid #FFDFE9; padding: 4px 10px; border-radius: 999px;">
-                    ${isFontMgmtOpen ? 'ย่อเก็บ' : 'คลิกเพื่อขยาย'}
-                  </span>
-                  <span id="font-mgmt-accordion-arrow" style="display: inline-block; transition: transform 0.25s ease; transform: ${isFontMgmtOpen ? 'rotate(180deg)' : 'rotate(0deg)'}; color: #B26E86; font-weight: 700; font-size: 0.85rem;">▼</span>
-                </div>
-              </div>
-              <div id="font-mgmt-accordion-body" style="display: ${isFontMgmtOpen ? 'block' : 'none'}; padding: 1.25rem;">
-                <div style="overflow-x: auto;">
-                  <table class="admin-table" style="width: 100%;">
-                    <thead>
-                      <tr><th>ชื่อฟอนต์</th><th>หมวดหมู่</th><th>ราคา</th><th>การจัดส่ง</th><th>จัดการ</th></tr>
-                    </thead>
-                    <tbody>
-                      ${allFonts.map(f => `
-                        <tr>
-                          <td><strong>${escapeHTML(f.name)}</strong></td>
-                          <td><span class="badge badge--pink">${escapeHTML(f.category)}</span></td>
-                          <td>฿${Number(f.price).toLocaleString()}</td>
-                          <td>${f.delivery_type === 'GOOGLE_DRIVE' ? 'Google Drive' : 'แอดมินส่งมือ'}</td>
-                          <td>
-                            <div style="display: flex; gap: 6px;">
-                              <button type="button" class="btn btn-outline btn-sm" onclick="openEditFontModal('${f.id}')" style="font-size: 11px; padding: 3px 8px;">แก้ไข</button>
-                              <button type="button" class="btn btn-outline btn-sm" onclick="deleteFont('${f.id}')" style="font-size: 11px; padding: 3px 8px; color: #E11D48;">ลบ</button>
-                            </div>
-                          </td>
-                        </tr>
-                      `).join('')}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          ` : ''}
-
-          <div class="section-header" style="margin-bottom: 1.5rem;">
+          <div class="section-header" style="margin-bottom: 1rem;">
             <span class="section-tag">Font Studio</span>
           </div>
 
@@ -5129,17 +5100,17 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
             <div class="goodnotes-paper">
               <!-- Controls Row: Synchronized Text Input & Pink Size Slider -->
-              <div style="display: grid; grid-template-columns: 1fr auto; gap: 14px; margin-bottom: 20px; align-items: center;">
+              <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 12px; align-items: center;">
                 <div>
-                  <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">พิมพ์ข้อความทดสอบ</label>
-                  <input type="text" id="fontCompareInput" class="form-input" style="background: rgba(255,255,255,0.95); font-size: 15px; border-radius: 12px;" value="${escapeHTML(state.fontTester.text)}" placeholder="พิมพ์ข้อความทดสอบฟอนต์ที่นี่..." oninput="handleCompareTextInput(this.value)">
+                  <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 2px;">พิมพ์ข้อความทดสอบ</label>
+                  <input type="text" id="fontCompareInput" class="form-input" style="background: rgba(255,255,255,0.95); font-size: 13px; padding: 6px 10px; border-radius: 10px;" value="${escapeHTML(state.fontTester.text)}" placeholder="พิมพ์ข้อความทดสอบฟอนต์ที่นี่..." oninput="handleCompareTextInput(this.value)">
                 </div>
-                <div style="min-width: 170px;">
-                  <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 4px;">
+                <div style="min-width: 130px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 2px;">
                     <span>ขนาดฟอนต์</span>
                     <span style="color: var(--primary-deep);" id="fontCompareSizeVal">${state.fontTester.size}px</span>
                   </div>
-                  <input type="range" min="16" max="44" value="${state.fontTester.size}" style="cursor: pointer; width: 100%;" oninput="handleCompareSizeInput(this.value)">
+                  <input type="range" min="14" max="36" value="${state.fontTester.size}" style="cursor: pointer; width: 100%;" oninput="handleCompareSizeInput(this.value)">
                 </div>
               </div>
 
@@ -5148,12 +5119,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <!-- Font A Pane -->
                 <div class="font-compare-card">
                   <div class="font-compare-header">
-                    <div style="flex: 1;">
-                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">ฟอนต์ที่ 1</label>
+                    <div style="flex: 1; min-width: 0;">
+                      <label style="font-size: 10px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 2px;">ฟอนต์ที่ 1</label>
                       ${renderCustomFontPicker(1, fontA, sortedForDropdown, favsSet)}
                     </div>
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                      <span class="badge badge--pink" style="font-size: 11px;">ฟอนต์ 1</span>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                      <span class="badge badge--pink" style="font-size: 10px; padding: 2px 6px;">ฟอนต์ 1</span>
                       <div class="font-weight-pill-group">
                         <button type="button" class="font-weight-pill ${state.fontTester.weight1 === '300' ? 'active' : ''}" onclick="setCompareWeight(1, '300')">บาง</button>
                         <button type="button" class="font-weight-pill ${state.fontTester.weight1 === '400' ? 'active' : ''}" onclick="setCompareWeight(1, '400')">ปกติ</button>
@@ -5166,14 +5137,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
                   </div>
 
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1.5px dashed var(--border);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 8px; border-top: 1.5px dashed var(--border);">
                     <div>
-                      <span style="font-size: 11px; color: var(--text-muted);">${escapeHTML(fontA?.category || 'ลายมือ')}</span>
-                      <div style="font-size: 15px; font-weight: 800; color: var(--primary-deep);">฿${Number(fontA?.price || 0).toLocaleString()}</div>
+                      <span style="font-size: 10px; color: var(--text-muted);">${escapeHTML(fontA?.category || 'ลายมือ')}</span>
+                      <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep);">฿${Number(fontA?.price || 0).toLocaleString()}</div>
                     </div>
-                    <div style="display: flex; gap: 6px;">
-                      <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${fontA?.id}', 'FONT')">ใส่ตะกร้า</button>
-                      <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${fontA?.id}', 'FONT')">สั่งซื้อเลย</button>
+                    <div style="display: flex; gap: 4px;">
+                      <button type="button" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 3px 6px;" onclick="addToCartItem('${fontA?.id}', 'FONT')">ใส่ตะกร้า</button>
+                      <button type="button" class="btn btn-primary btn-sm" style="font-size: 11px; padding: 3px 6px;" onclick="buyNowItem('${fontA?.id}', 'FONT')">สั่งซื้อ</button>
                     </div>
                   </div>
                 </div>
@@ -5181,12 +5152,12 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 <!-- Font B Pane -->
                 <div class="font-compare-card">
                   <div class="font-compare-header">
-                    <div style="flex: 1;">
-                      <label style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">ฟอนต์ที่ 2</label>
+                    <div style="flex: 1; min-width: 0;">
+                      <label style="font-size: 10px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 2px;">ฟอนต์ที่ 2</label>
                       ${renderCustomFontPicker(2, fontB, sortedForDropdown, favsSet)}
                     </div>
-                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                      <span class="badge badge--pink" style="font-size: 11px;">ฟอนต์ 2</span>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                      <span class="badge badge--pink" style="font-size: 10px; padding: 2px 6px;">ฟอนต์ 2</span>
                       <div class="font-weight-pill-group">
                         <button type="button" class="font-weight-pill ${state.fontTester.weight2 === '300' ? 'active' : ''}" onclick="setCompareWeight(2, '300')">บาง</button>
                         <button type="button" class="font-weight-pill ${state.fontTester.weight2 === '400' ? 'active' : ''}" onclick="setCompareWeight(2, '400')">ปกติ</button>
@@ -5199,14 +5170,14 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                     ${escapeHTML(state.fontTester.text || 'ร้านป้ายบีเอ็นซี น่ารักสดใส')}
                   </div>
 
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1.5px dashed var(--border);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 8px; border-top: 1.5px dashed var(--border);">
                     <div>
-                      <span style="font-size: 11px; color: var(--text-muted);">${escapeHTML(fontB?.category || 'ลายมือ')}</span>
-                      <div style="font-size: 15px; font-weight: 800; color: var(--primary-deep);">฿${Number(fontB?.price || 0).toLocaleString()}</div>
+                      <span style="font-size: 10px; color: var(--text-muted);">${escapeHTML(fontB?.category || 'ลายมือ')}</span>
+                      <div style="font-size: 13px; font-weight: 800; color: var(--primary-deep);">฿${Number(fontB?.price || 0).toLocaleString()}</div>
                     </div>
-                    <div style="display: flex; gap: 6px;">
-                      <button type="button" class="btn btn-outline btn-sm" onclick="addToCartItem('${fontB?.id}', 'FONT')">ใส่ตะกร้า</button>
-                      <button type="button" class="btn btn-primary btn-sm" onclick="buyNowItem('${fontB?.id}', 'FONT')">สั่งซื้อเลย</button>
+                    <div style="display: flex; gap: 4px;">
+                      <button type="button" class="btn btn-outline btn-sm" style="font-size: 11px; padding: 3px 6px;" onclick="addToCartItem('${fontB?.id}', 'FONT')">ใส่ตะกร้า</button>
+                      <button type="button" class="btn btn-primary btn-sm" style="font-size: 11px; padding: 3px 6px;" onclick="buyNowItem('${fontB?.id}', 'FONT')">สั่งซื้อ</button>
                     </div>
                   </div>
                 </div>
@@ -5215,7 +5186,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
           </div>
 
           <!-- Category Filters & Search -->
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
               ${categories.map(c => {
                 let label = c;
@@ -5228,12 +5199,17 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
                 `;
               }).join('')}
             </div>
-            <div style="min-width: 240px;">
+            <div style="min-width: 200px;">
               <input type="text" class="form-input" placeholder="ค้นหาชื่อฟอนต์..." value="${escapeHTML(state.fontTester.search)}" oninput="handleFontSearch(this.value)" style="padding: 0.45rem 0.85rem; font-size: 0.9rem;">
             </div>
           </div>
 
-          <!-- Fonts Grid (Responsive 2 Columns in Mobile Portrait) -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 12px; font-weight: 700; color: var(--primary-deep);">รายการฟอนต์ทั้งหมด (${filtered.length})</span>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">เลื่อนแนวนอนเพื่อดูทั้งหมด &gt;</span>
+          </div>
+
+          <!-- Fonts Grid (Responsive Horizontal Scroll Strip) -->
           <div class="font-gallery-grid">
             ${filtered.length > 0 ? filtered.map(f => renderFontCard(f, s)).join('') : `
               <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
@@ -9244,9 +9220,21 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
     return `
       <form id="masterSettingsForm" onsubmit="event.preventDefault(); saveMasterSettings(event); return false;">
         
-        <!-- 1. ข้อมูลร้าน -->
+        <!-- 1. ข้อมูลร้าน & สถานะร้านค้า -->
         <div class="card" style="margin-bottom: 1.5rem;">
-          <h3 style="color: var(--primary-deep); margin-bottom: 1.25rem;">ข้อมูลร้าน</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px;">
+            <h3 style="color: var(--primary-deep); margin: 0;">ข้อมูลร้าน & สถานะเปิด/ปิดร้าน</h3>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 13px; font-weight: 700; color: #4b5563;">สถานะปัจจุบัน:</span>
+              <span id="cfg_shopStatus_indicator" class="welcome-status-pill ${s.isShopOpen !== false ? 'is-open' : 'is-closed'}" style="padding: 4px 12px; font-size: 13px;">
+                <span class="status-dot"></span>
+                <span>${s.isShopOpen !== false ? 'เปิด' : 'ปิด'}</span>
+              </span>
+              <button type="button" class="btn ${s.isShopOpen !== false ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="toggleShopStatus(true)" style="padding: 4px 12px; font-size: 12px;">เปิดร้าน</button>
+              <button type="button" class="btn ${s.isShopOpen === false ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="toggleShopStatus(false)" style="padding: 4px 12px; font-size: 12px; color: #ef4444; border-color: #fca5a5;">ปิดร้าน</button>
+              <input type="hidden" id="cfg_isShopOpen" value="${s.isShopOpen !== false ? 'true' : 'false'}">
+            </div>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="form-group">
               <label class="form-label">ชื่อร้านค้า</label>
@@ -10294,6 +10282,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
 
       const curQp = currentSettings.queuePage || {};
       const updated = {
+        isShopOpen: $('cfg_isShopOpen') ? $('cfg_isShopOpen').value === 'true' : (s.isShopOpen !== false),
         adminPin: getVal('cfg_adminPin', s.adminPin || '123456'),
         shopName: getVal('cfg_shopName', s.shopName || 'BNC GraphMate Studio'),
         tagline: getVal('cfg_tagline', s.tagline || 'ร้านป้าย & กราฟิก สไตล์คิวท์ น่ารัก มินิมอล'),
@@ -10448,6 +10437,7 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
       setupFloatingMascot();
       updateFooterDisplay();
       renderNavbar();
+      updateHomeWelcomeCard();
       renderCurrentView();
     } catch (err) {
       alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
@@ -10937,25 +10927,31 @@ window.getQueueMascotForProgress = getQueueMascotForProgress;
  openCheckoutModal();
  };
 
- function setupCartDrawer() {
- // Backdrop
- let backdrop = $('cartBackdrop');
- if (!backdrop) {
- backdrop = document.createElement('div');
- backdrop.id = 'cartBackdrop';
- backdrop.className = 'cart-backdrop';
- backdrop.onclick = closeCartDrawer;
- document.body.appendChild(backdrop);
- }
+  function setupCartDrawer() {
+    const mountTarget = $('iphoneScreen') || document.body;
 
- // Drawer container
- let drawer = $('cartDrawer');
- if (!drawer) {
- drawer = document.createElement('aside');
- drawer.id = 'cartDrawer';
- drawer.className = 'cart-drawer';
- document.body.appendChild(drawer);
- }
+    // Backdrop
+    let backdrop = $('cartBackdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.id = 'cartBackdrop';
+      backdrop.className = 'cart-backdrop';
+      backdrop.onclick = closeCartDrawer;
+      mountTarget.appendChild(backdrop);
+    } else if (backdrop.parentElement !== mountTarget) {
+      mountTarget.appendChild(backdrop);
+    }
+
+    // Drawer container
+    let drawer = $('cartDrawer');
+    if (!drawer) {
+      drawer = document.createElement('aside');
+      drawer.id = 'cartDrawer';
+      drawer.className = 'cart-drawer';
+      mountTarget.appendChild(drawer);
+    } else if (drawer.parentElement !== mountTarget) {
+      mountTarget.appendChild(drawer);
+    }
 
  // Floating Button
  let floatBtn = $('cartFloatingBtn');
